@@ -17,6 +17,9 @@ buildscript {
     }
 }
 
+plugins {
+    id "org.inferred.processors" version "1.2"
+}
 apply plugin: 'com.palantir.git-version'
 
 group 'com.palantir.tritium'
@@ -32,3 +35,20 @@ apply from: "$rootDir/gradle/java.gradle"
 apply from: "$rootDir/gradle/publishLib.gradle"
 apply plugin: 'com.palantir.baseline-config'
 
+sourceCompatibility = '1.8'
+
+dependencies {
+    compile "com.google.code.findbugs:annotations:${findbugsVersion}"
+    compile "com.google.guava:guava:${guavaVersion}"
+    compile "io.dropwizard.metrics:metrics-core:${dropwizardMetricsVersion}"
+    compile "org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:${hdrHistogramMetricsReservoirVersion}"
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+
+    processor "org.immutables:value:${immutablesVersion}"
+
+    testCompile "com.google.guava:guava-testlib:${guavaVersion}"
+    testCompile "junit:junit:${junitVersion}"
+    testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
+    testCompile "org.mockito:mockito-all:${mockitoVersion}"
+    testCompile "org.slf4j:slf4j-simple:${slf4jVersion}"
+}
