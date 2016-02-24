@@ -1,0 +1,23 @@
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'nebula.maven-publish'
+apply plugin: 'nebula.info'
+apply plugin: 'nebula.javadoc-jar'
+apply plugin: 'nebula.source-jar'
+
+artifactory {
+    publish {
+
+
+        repository {
+            repoKey = project.version =~ /-/ ? 'internal-jar-snapshot' : 'internal-jar-release'
+            username = System.env.ARTIFACTORY_USERNAME
+            password = System.env.ARTIFACTORY_PASSWORD
+        }
+
+        defaults {
+            publications('nebula')
+        }
+    }
+}
+
+artifactoryPublish.dependsOn 'build'
