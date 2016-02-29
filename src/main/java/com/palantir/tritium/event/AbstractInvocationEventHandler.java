@@ -4,8 +4,10 @@
 
 package com.palantir.tritium.event;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.Strings;
 import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 
@@ -53,8 +55,13 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
             Class<? extends InvocationEventHandler<InvocationContext>> clazz) {
 
         checkNotNull(clazz, "clazz");
+        return getSystemPropertySupplier(clazz.getName());
+    }
+
+    protected static BooleanSupplier getSystemPropertySupplier(String name) {
+        checkArgument(!Strings.isNullOrEmpty(name), "name cannot be null or empty, was '%s'", name);
         boolean instrumentationEnabled = !"false".equalsIgnoreCase(System.getProperty(INSTRUMENT_PREFIX))
-                && Boolean.parseBoolean(System.getProperty(INSTRUMENT_PREFIX + "." + clazz.getName(), "true"));
+                && Boolean.parseBoolean(System.getProperty(INSTRUMENT_PREFIX + "." + name, "true"));
         return () -> instrumentationEnabled;
     }
 
