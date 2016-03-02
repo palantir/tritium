@@ -12,6 +12,7 @@ import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +31,17 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private final String serviceName;
 
     public MetricsInvocationEventHandler(MetricRegistry metricRegistry, String serviceName) {
+        super(getEnabledSupplier(serviceName));
         this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
+    }
+
+    private static BooleanSupplier getEnabledSupplier(String serviceName) {
+        return () -> {
+            boolean isEnabled = getSystemPropertySupplier(MetricsInvocationEventHandler.class).getAsBoolean()
+                    || getSystemPropertySupplier(serviceName).getAsBoolean();
+            return isEnabled;
+        };
     }
 
     @Override
