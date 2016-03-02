@@ -49,6 +49,14 @@ public final class Instrumentation {
                 });
     }
 
+    public static <T, U extends T> T instrument(
+            Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
+        return builder(serviceInterface, delegate)
+            .withMetrics(metricRegistry)
+            .withPerformanceTraceLogging()
+            .build();
+    }
+
     public static <T> Logger getPerformanceLoggerForInterface(Class<T> serviceInterface) {
         return LoggerFactory.getLogger("performance." + serviceInterface.getName());
     }
