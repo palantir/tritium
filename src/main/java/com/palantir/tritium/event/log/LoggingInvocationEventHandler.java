@@ -125,7 +125,11 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     private static BooleanSupplier createEnabledSupplier(Logger logger, LoggingLevel level) {
         checkNotNull(logger, "logger");
         checkNotNull(level, "level");
-        return () -> isEnabled(logger, level);
+        if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).getAsBoolean()) {
+            return () -> isEnabled(logger, level);
+        } else {
+            return () -> false;
+        }
     }
 
     private static List<String> generateMessagePatterns(int maxArgCount) {
