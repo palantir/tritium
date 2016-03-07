@@ -4,6 +4,12 @@ machine:
   environment:
     TERM: dumb
 
+checkout:
+  post:
+    - git tag --list | xargs git tag --delete
+    - git fetch --tags
+    - git describe --tags
+
 dependencies:
   override:
     - ./gradlew assemble compileTestJava --console=plain --stacktrace
@@ -15,9 +21,11 @@ test:
 deployment:
   snapshots:
     branch: develop
+    owner: 
     commands:
       - ./gradlew artifactoryPublish --info
   releases:
-    tag: /[0-9]+(\.[0-9]+)+/
+    tag: /[0-9]+(\.[0-9]+)+(-[a-zA-Z]+[0-9]*)*/
+    owner: 
     commands:
-      - ./gradlew artifactoryPublish --info
+      - ./gradlew artifactoryPublish publish --info
