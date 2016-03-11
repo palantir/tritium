@@ -49,8 +49,18 @@ public final class Instrumentation {
                 });
     }
 
-    public static <T, U extends T> T instrument(
-            Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
+    /**
+     * Return an instrumented proxy of the specified service interface and delegate that records aggregated invocation
+     * metrics and performance trace logging.
+     *
+     * @param serviceInterface service interface
+     * @param delegate delegate to instrument
+     * @param metricRegistry metric registry
+     * @return instrumented proxy implementing specified service interface
+     * @deprecated use {@link com.palantir.tritium.Tritium#instrument(Class, Object, MetricRegistry)}
+     */
+    @Deprecated
+    public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
         return builder(serviceInterface, delegate)
             .withMetrics(metricRegistry)
             .withPerformanceTraceLogging()
