@@ -14,12 +14,11 @@ event handlers. Two main invocation handlers are currently provided:
 
 ```java
 
-    import com.palantir.tritium.Tritium;
+import com.palantir.tritium.Tritium;
 
-    ...
-
-    ServiceInterface interestingService = ...
-    ServiceInterface instrumentedService = Tritium.instrument(ServiceInterface.class, interestingService, environment.metrics());
+Service interestingService = ...
+Service instrumentedService = Tritium.instrument(Service.class,
+        interestingService, environment.metrics());
 ```
 
 
