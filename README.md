@@ -14,27 +14,23 @@ event handlers. Two main invocation handlers are currently provided:
 
 ```java
 
-    import com.palantir.tritium.proxy.Instrumentation;
+    import com.palantir.tritium.Tritium;
 
     ...
 
     ServiceInterface interestingService = ...
-    ServiceInterface instrumentedService = Instrumentation.builder(ServiceInterface.class, interestingService)
-            .withMetrics(environment.metrics())
-            .withPerformanceTraceLogging()
-            .build();
+    ServiceInterface instrumentedService = Tritium.instrument(ServiceInterface.class, interestingService, environment.metrics());
 ```
 
 
 ## Creating a metric registry with reservoirs backed by [HDR Histograms](http://hdrhistogram.org/)
-
 
 ### Dropwizard 0.9+ Integration
 
 ```java
 
     @Override
-    public void initialize(Bootstrap<MultipassConfiguration> bootstrap) {
+    public void initialize(Bootstrap<ApplicationConfiguration> bootstrap) {
         super.initialize(bootstrap);
         bootstrap.setMetricRegistry(MetricRegistries.createWithHdrHistogramReservoirs());
         ...
