@@ -11,13 +11,13 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Slf4jReporter.LoggingLevel;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.test.TestImplementation;
@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.SortedMap;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.slf4j.Logger;
 
@@ -104,6 +105,48 @@ public final class InstrumentationTest {
         }
     }
 
+    @Test
+    public void testCheckedExceptions() {
+        TestImplementation delegate = new TestImplementation();
+
+        Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
+        for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
+            for (int i = 0; i < 100; i++) {
+                TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
+                        .withLogging(logger, level, nanos -> false)
+                        .build();
+                try {
+                    instrumentedService.throwsCheckedException();
+                    fail("Expected exception");
+                } catch (Exception expected) {
+                    assertThat(expected, CoreMatchers.instanceOf(TestImplementation.TestException.class));
+                    assertThat(expected.getCause(), equalTo(null));
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testThrowables() {
+        TestImplementation delegate = new TestImplementation();
+
+        Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
+        for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
+            for (int i = 0; i < 100; i++) {
+                TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
+                        .withLogging(logger, level, nanos -> false)
+                        .build();
+                try {
+                    instrumentedService.throwsThrowable();
+                    fail("Expected throwable");
+                } catch (Throwable throwable) {
+                    assertThat(throwable, CoreMatchers.instanceOf(AssertionError.class));
+                    assertThat(throwable.getCause(), equalTo(null));
+                }
+            }
+        }
+    }
+
     @Test(expected = NullPointerException.class)
     public void testNullInterface() {
         //noinspection ConstantConditions
@@ -129,13 +172,13 @@ public final class InstrumentationTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testInaccessibleConstructor() throws ReflectiveOperationException {
+    public void testInaccessibleConstructor() throws Throwable {
         Constructor<Instrumentation> constructor = Instrumentation.class.getDeclaredConstructor();
         constructor.setAccessible(true);
         try {
             constructor.newInstance();
         } catch (InvocationTargetException expected) {
-            throw Throwables.propagate(expected.getCause());
+            throw expected.getCause();
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {

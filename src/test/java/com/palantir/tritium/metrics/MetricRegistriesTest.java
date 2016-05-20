@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -111,13 +110,13 @@ public final class MetricRegistriesTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testInaccessibleConstructor() throws ReflectiveOperationException {
+    public void testInaccessibleConstructor() throws Throwable {
         Constructor<MetricRegistries> constructor = MetricRegistries.class.getDeclaredConstructor();
         constructor.setAccessible(true);
         try {
             constructor.newInstance();
         } catch (InvocationTargetException expected) {
-            throw Throwables.propagate(expected.getCause());
+            throw expected.getCause();
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {

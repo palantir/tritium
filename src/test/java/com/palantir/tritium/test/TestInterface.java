@@ -15,4 +15,8 @@ public interface TestInterface {
 
     void bulk(Set<?> set);
 
+    int throwsCheckedException() throws Exception;
+
+    int throwsThrowable() throws Throwable;
+
 }
