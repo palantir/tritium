@@ -37,8 +37,23 @@ public class TestImplementation implements TestInterface, Runnable {
         }
     }
 
+    @Override
+    public int throwsCheckedException() throws Exception {
+        throw new TestException("Testing checked Exception handling");
+    }
+
+    @Override
+    public int throwsThrowable() throws Throwable {
+        throw new AssertionError("Testing Error handling");
+    }
+
     public int invocationCount() {
         return invocationCount.get();
     }
 
+    public static class TestException extends Exception {
+        public TestException(String message) {
+            super(message);
+        }
+    }
 }

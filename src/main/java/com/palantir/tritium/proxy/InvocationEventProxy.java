@@ -6,7 +6,6 @@ package com.palantir.tritium.proxy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Throwables;
 import com.google.common.reflect.AbstractInvocationHandler;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InvocationContext;
@@ -82,15 +81,16 @@ public abstract class InvocationEventProxy<C extends InvocationContext>
      * passed in.
      */
     @Nullable
-    public final Object instrumentInvocation(Object instance, Method method, Object[] args) {
+    @SuppressWarnings("checkstyle:IllegalThrows")
+    public final Object instrumentInvocation(Object instance, Method method, Object[] args) throws Throwable {
         InvocationContext context = handlePreInvocation(instance, method, args);
         try {
             Object result = execute(method, args);
             return handleOnSuccess(context, result);
         } catch (InvocationTargetException e) {
-            throw Throwables.propagate(handleOnFailure(context, e.getCause()));
+            throw handleOnFailure(context, e.getCause());
         } catch (Throwable t) {
-            throw Throwables.propagate(handleOnFailure(context, t));
+            throw handleOnFailure(context, t);
         }
     }
 

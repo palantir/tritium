@@ -6,7 +6,6 @@ package com.palantir.tritium.proxy;
 
 import static org.junit.Assert.assertEquals;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.test.TestImplementation;
@@ -82,13 +81,13 @@ public final class ProxiesTest {
 
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testInaccessibleConstructor() throws ReflectiveOperationException {
+    public void testInaccessibleConstructor() throws Throwable {
         Constructor<Proxies> constructor = Proxies.class.getDeclaredConstructor();
         constructor.setAccessible(true);
         try {
             constructor.newInstance();
         } catch (InvocationTargetException expected) {
-            throw Throwables.propagate(expected.getCause());
+            throw expected.getCause();
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
