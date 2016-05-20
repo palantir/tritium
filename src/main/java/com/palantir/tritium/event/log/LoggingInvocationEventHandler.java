@@ -78,6 +78,8 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         }
 
         LOGGER.warn("Failed {}", cause, cause);
+        long durationNanos = System.nanoTime() - context.getStartTimeNanos();
+        logInvocation(context.getMethod(), context.getArgs(), durationNanos);
     }
 
     private void logInvocation(Method method, @Nullable Object[] nullableArgs, long durationNanos) {
