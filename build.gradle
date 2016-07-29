@@ -6,49 +6,27 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.palantir:gradle-baseline-java:0.2.5'
-        classpath 'com.palantir.gradle.javadist:gradle-java-distribution:0.5.0'
-        classpath 'gradle.plugin.org.inferred:gradle-processors:1.2'
-        classpath 'com.netflix.nebula:gradle-info-plugin:3.0.3'
-        classpath 'com.netflix.nebula:nebula-publishing-plugin:4.4.4'
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.0.0'
-        classpath 'gradle.plugin.com.palantir.gradle.gitversion:gradle-git-version:0.4.0'
-        classpath 'gradle.plugin.com.palantir:jacoco-coverage:0.3.0'
+        classpath "com.palantir:gradle-baseline-java:${baselineVersion}"
+        classpath "com.palantir:jacoco-coverage:${jacocoCoverageVersion}"
+        classpath "com.palantir.gradle.gitversion:gradle-git-version:${gitVersionVersion}"
+        classpath "com.palantir.internalpublish:gradle-internal-publish-plugin:${internalPublishVersion}"
+        classpath "gradle.plugin.com.palantir.configurationresolver:gradle-configuration-resolver-plugin:${configurationResolverVersion}"
+        classpath "gradle.plugin.org.inferred:gradle-processors:${processorsVersion}"
     }
 }
 
-plugins {
-    id "org.inferred.processors" version "1.2"
-}
-apply plugin: 'com.palantir.git-version'
-
-group 'com.palantir.tritium'
-version gitVersion()
-
-repositories {
-    maven {
-        url 'https://artifactory.palantir.build/artifactory/all-jar'
-    }
-}
-
-apply from: "$rootDir/gradle/java.gradle"
-apply from: "$rootDir/gradle/publishLib.gradle"
 apply plugin: 'com.palantir.baseline-config'
+apply plugin: 'com.palantir.baseline-idea'
+apply plugin: 'com.palantir.git-version'
+apply plugin: 'org.inferred.processors'
 
-sourceCompatibility = '1.8'
+allprojects {
+    group 'com.palantir.tritium'
+    version gitVersion()
 
-dependencies {
-    compile "com.google.code.findbugs:annotations:${findbugsVersion}"
-    compile "com.google.guava:guava:${guavaVersion}"
-    compile "io.dropwizard.metrics:metrics-core:${dropwizardMetricsVersion}"
-    compile "org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:${hdrHistogramMetricsReservoirVersion}"
-    compile "org.slf4j:slf4j-api:${slf4jVersion}"
-
-    processor "org.immutables:value:${immutablesVersion}"
-
-    testCompile "com.google.guava:guava-testlib:${guavaVersion}"
-    testCompile "junit:junit:${junitVersion}"
-    testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
-    testCompile "org.mockito:mockito-all:${mockitoVersion}"
-    testCompile "org.slf4j:slf4j-simple:${slf4jVersion}"
+    repositories {
+        maven {
+            url 'https://artifactory.palantir.build/artifactory/all-jar'
+        }
+    }
 }
