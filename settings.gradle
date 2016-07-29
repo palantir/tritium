@@ -1,1 +1,3 @@
-rootProject.name = 'tritium-lib'
+rootProject.name = 'tritium'
+
+include 'tritium-lib'
