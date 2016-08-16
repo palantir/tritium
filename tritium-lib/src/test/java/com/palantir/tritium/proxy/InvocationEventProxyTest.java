@@ -31,7 +31,7 @@ import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 import org.junit.Test;
 
-public final class InvocationEventProxyTest {
+public class InvocationEventProxyTest {
 
     private static final Object[] EMPTY_ARGS = {};
 

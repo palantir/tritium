@@ -28,7 +28,7 @@ import java.util.Collections;
 import javax.annotation.Nullable;
 import org.junit.Test;
 
-public final class CompositeInvocationEventHandlerTest {
+public class CompositeInvocationEventHandlerTest {
 
     private static final Object[] EMPTY_ARGS = {};
 

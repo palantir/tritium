@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * {@link com.palantir.tritium.event.InvocationEventHandler} that records method timing and failures using Dropwizard
  * metrics.
  */
-public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+public class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricsInvocationEventHandler.class);
 

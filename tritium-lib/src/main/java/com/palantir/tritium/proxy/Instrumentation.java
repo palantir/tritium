@@ -25,6 +25,7 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongPredicate;
@@ -83,10 +84,12 @@ public final class Instrumentation {
         return LoggerFactory.getLogger("performance." + serviceInterface.getName());
     }
 
+    @SuppressFBWarnings(justification = "Catch-22: Checkstyle wants final builder, but FindBugs doesn't")
     public static <T, U extends T> Builder<T, U> builder(Class<T> interfaceClass, U delegate) {
         return new Builder<>(interfaceClass, delegate);
     }
 
+    @SuppressFBWarnings(justification = "Catch-22: Checkstyle wants final builder, but FindBugs doesn't")
     public static final class Builder<T, U extends T> {
 
         private final Class<T> interfaceClass;
@@ -94,7 +97,7 @@ public final class Instrumentation {
         private final ImmutableList.Builder<InvocationEventHandler<InvocationContext>> handlers = ImmutableList
                 .builder();
 
-        Builder(Class<T> interfaceClass, U delegate) {
+        private Builder(Class<T> interfaceClass, U delegate) {
             this.interfaceClass = checkNotNull(interfaceClass);
             this.delegate = checkNotNull(delegate);
         }

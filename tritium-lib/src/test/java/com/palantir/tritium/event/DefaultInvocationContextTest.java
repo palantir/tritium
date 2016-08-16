@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-public final class DefaultInvocationContextTest {
+public class DefaultInvocationContextTest {
 
     @Test
     public void testFactory() throws Exception {

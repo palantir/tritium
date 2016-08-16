@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import org.junit.Test;
 
-public final class ProxiesTest {
+public class ProxiesTest {
 
     @Test
     public void testNewProxy() {
