@@ -19,7 +19,6 @@ package com.palantir.tritium.event;
 import java.lang.reflect.Method;
 import javax.annotation.Nullable;
 
-@SuppressWarnings("checkstyle:designforextension")
 class ThrowingInvocationEventHandler implements InvocationEventHandler<InvocationContext> {
 
     private final boolean isEnabled;

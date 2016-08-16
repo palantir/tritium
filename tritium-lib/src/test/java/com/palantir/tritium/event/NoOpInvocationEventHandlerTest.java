@@ -21,7 +21,7 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-public final class NoOpInvocationEventHandlerTest {
+public class NoOpInvocationEventHandlerTest {
 
     @Test
     public void testIsEnabled() {

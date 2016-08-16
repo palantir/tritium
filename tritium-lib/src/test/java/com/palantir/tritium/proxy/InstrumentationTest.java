@@ -43,7 +43,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.slf4j.Logger;
 
-public final class InstrumentationTest {
+public class InstrumentationTest {
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
 

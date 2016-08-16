@@ -34,7 +34,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
 
-public final class MetricRegistriesTest {
+public class MetricRegistriesTest {
 
     @Test
     public void testHdrHistogram() throws Exception {

@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.impl.SimpleLogger;
 
-public final class LoggingInvocationEventHandlerTest {
+public class LoggingInvocationEventHandlerTest {
 
     private static final String LOG_KEY = SimpleLogger.LOG_KEY_PREFIX + "com.palantir";
 

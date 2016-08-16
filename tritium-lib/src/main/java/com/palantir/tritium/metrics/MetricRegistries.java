@@ -29,6 +29,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheStats;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -65,6 +66,7 @@ public final class MetricRegistries {
      *
      * @see http://taint.org/2014/01/16/145944a.html
      */
+    @SuppressFBWarnings(justification = "Dropwizard MetricRegistry is a concrete type, not an interface")
     private static class HdrHistogramMetricRegistry extends MetricRegistry {
 
         @Override

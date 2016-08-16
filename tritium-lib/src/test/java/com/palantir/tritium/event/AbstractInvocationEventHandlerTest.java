@@ -24,7 +24,7 @@ import java.util.Map.Entry;
 import org.junit.Before;
 import org.junit.Test;
 
-public final class AbstractInvocationEventHandlerTest {
+public class AbstractInvocationEventHandlerTest {
 
     @Before
     public void setUp() {

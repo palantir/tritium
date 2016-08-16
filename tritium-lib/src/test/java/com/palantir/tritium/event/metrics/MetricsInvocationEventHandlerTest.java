@@ -25,7 +25,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.palantir.tritium.event.InvocationContext;
 import org.junit.Test;
 
-public final class MetricsInvocationEventHandlerTest {
+public class MetricsInvocationEventHandlerTest {
 
     @Test
     public void testFailure() throws Exception {

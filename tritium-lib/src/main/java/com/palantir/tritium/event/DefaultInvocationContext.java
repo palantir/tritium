@@ -63,7 +63,6 @@ public class DefaultInvocationContext implements InvocationContext {
     }
 
     @Override
-    @SuppressWarnings("checkstyle:designforextension")
     public String toString() {
         return "DefaultInvocationContext [startTimeNanos=" + startTimeNanos + ", instance=" + instance + ", method="
                 + method + ", args=" + Arrays.toString(args) + "]";

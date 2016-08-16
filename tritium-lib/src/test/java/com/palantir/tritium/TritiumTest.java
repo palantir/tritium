@@ -32,7 +32,7 @@ import com.palantir.tritium.test.TestInterface;
 import java.util.SortedMap;
 import org.junit.Test;
 
-public final class TritiumTest {
+public class TritiumTest {
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
 
