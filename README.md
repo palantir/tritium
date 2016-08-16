@@ -1,3 +1,7 @@
+[![Circle CI](https://circle.palantir.build/gh/elements/tritium.svg?style=svg)](https://circle.palantir.build/gh/elements/tritium)
+[![Artifactory Release](https://shields.palantir.build/artifactory/internal-jar-release/release/com.palantir.tritium/tritium-lib/svg)](https://artifactory.palantir.build/artifactory/webapp/#/artifacts/browse/tree/General/internal-jar-release/com/palantir/tritium/tritium-lib)
+[![Artifactory Snapshot](https://shields.palantir.build/artifactory/internal-jar-snapshot/snapshot/com.palantir.tritium/tritium-lib/svg)](https://artifactory.palantir.build/artifactory/webapp/#/artifacts/browse/tree/General/internal-jar-snapshot/com/palantir/tritium/tritium-lib)
+
 # Tritium
 
 Tritium is a library for instrumenting applications  to provide better
