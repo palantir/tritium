@@ -19,12 +19,12 @@ package com.palantir.tritium.event.metrics;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.MetricRegistry;
+import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,11 +48,13 @@ public class MetricsInvocationEventHandler extends AbstractInvocationEventHandle
         this.serviceName = checkNotNull(serviceName, "serviceName");
     }
 
-    private static BooleanSupplier getEnabledSupplier(String serviceName) {
-        return () -> {
-            boolean isEnabled = getSystemPropertySupplier(MetricsInvocationEventHandler.class).getAsBoolean()
-                    || getSystemPropertySupplier(serviceName).getAsBoolean();
-            return isEnabled;
+    private static BooleanSupplier getEnabledSupplier(final String serviceName) {
+        return new BooleanSupplier() {
+            @Override
+            public boolean asBoolean() {
+                return getSystemPropertySupplier(MetricsInvocationEventHandler.class).asBoolean()
+                        || getSystemPropertySupplier(serviceName).asBoolean();
+            }
         };
     }
 

@@ -20,6 +20,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
+import com.palantir.tritium.api.functions.BooleanSupplier;
+import com.palantir.tritium.api.functions.LongPredicate;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
@@ -27,8 +29,6 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
-import java.util.function.LongPredicate;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,16 +40,25 @@ import org.slf4j.LoggerFactory;
 public class LoggingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingInvocationEventHandler.class);
-
-    public static final LongPredicate LOG_ALL_DURATIONS = nanos -> true;
-    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND = nanos -> {
-        return TimeUnit.MICROSECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 1;
-    };
-    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS = nanos -> {
-        return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 0;
-    };
-
     private static final List<String> MESSAGE_PATTERNS = generateMessagePatterns(10);
+
+    public static final LongPredicate LOG_ALL_DURATIONS = LongPredicate.TRUE;
+
+    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND = new LongPredicate() {
+        @Override
+        public boolean test(long nanos) {
+            return TimeUnit.MICROSECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 1;
+        }
+    };
+
+    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS = new LongPredicate() {
+        @Override
+        public boolean test(long nanos) {
+            return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 0;
+        }
+    };
+
+    public static final LongPredicate NEVER_LOG = LongPredicate.FALSE;
 
     private final Logger logger;
     private final LoggingLevel level;
@@ -136,13 +145,18 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         }
     }
 
-    private static BooleanSupplier createEnabledSupplier(Logger logger, LoggingLevel level) {
+    private static BooleanSupplier createEnabledSupplier(final Logger logger, final LoggingLevel level) {
         checkNotNull(logger, "logger");
         checkNotNull(level, "level");
-        if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).getAsBoolean()) {
-            return () -> isEnabled(logger, level);
+        if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).asBoolean()) {
+            return new BooleanSupplier() {
+                @Override
+                public boolean asBoolean() {
+                    return isEnabled(logger, level);
+                }
+            };
         } else {
-            return () -> false;
+            return BooleanSupplier.FALSE;
         }
     }
 
@@ -182,7 +196,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         Object[] logParams = new Object[3 + args.length];
         logParams[0] = method.getDeclaringClass().getSimpleName();
         logParams[1] = method.getName();
-        logParams[logParams.length - 1] = String.format("%.3f", durationNanos / 1_000_000.0d);
+        logParams[logParams.length - 1] = String.format("%.3f", durationNanos / 1000000.0d);
 
         Class<?>[] argTypes = method.getParameterTypes();
         if (argTypes.length == 0) {

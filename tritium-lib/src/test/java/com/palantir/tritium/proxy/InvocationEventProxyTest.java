@@ -21,13 +21,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import com.google.common.collect.ImmutableList;
+import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 import org.junit.Test;
 
@@ -38,9 +38,9 @@ public class InvocationEventProxyTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testDisabled() throws Throwable {
-        BooleanSupplier disabled = () -> false;
+        BooleanSupplier disabled = BooleanSupplier.FALSE;
         InvocationEventProxy<InvocationContext> proxy = new InvocationEventProxy<InvocationContext>(
-                disabled, Collections.emptyList()) {
+                disabled, Collections.<InvocationEventHandler<InvocationContext>>emptyList()) {
             @Override
             Object getDelegate() {
                 return this;
@@ -138,7 +138,8 @@ public class InvocationEventProxyTest {
 
     @Test
     public void testToInvocationDebugString() throws Exception {
-        InvocationEventProxy<InvocationContext> proxy = createBasicProxy(Collections.emptyList());
+        InvocationEventProxy<InvocationContext> proxy = createBasicProxy(
+                Collections.<InvocationEventHandler<InvocationContext>>emptyList());
 
         String debugString = proxy.toInvocationDebugString(this, getToStringMethod(), null);
         assertThat(debugString, containsString("x"));

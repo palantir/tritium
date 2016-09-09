@@ -16,9 +16,7 @@
 
 package com.palantir.tritium.metrics;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -32,6 +30,7 @@ import com.google.common.cache.LoadingCache;
 import com.palantir.tritium.metrics.MetricRegistries.MetricBuilder;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.Callable;
 import org.junit.Test;
 
 public class MetricRegistriesTest {
@@ -39,25 +38,28 @@ public class MetricRegistriesTest {
     @Test
     public void testHdrHistogram() throws Exception {
         MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-        assertThat(metrics, notNullValue());
+        assertThat(metrics).isNotNull();
 
         Histogram histogram = metrics.histogram("histogram");
         histogram.update(42L);
-        assertThat(histogram.getCount(), equalTo(1L));
-        assertThat(histogram.getSnapshot().getMax(), equalTo(42L));
+        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogram.getSnapshot().getMax()).isEqualTo(42);
 
-        metrics.timer("timer").time(() -> {
-            Thread.sleep(123L);
-            return null;
+        metrics.timer("timer").time(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                Thread.sleep(123L);
+                return null;
+            }
         });
 
-        assertThat(metrics.getTimers().get("timer").getCount(), equalTo(1L));
+        assertThat(metrics.getTimers().get("timer").getCount()).isEqualTo(1);
     }
 
     @Test
     public void testRegisterCache() {
         MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-        assertThat(metrics.getGauges().size(), equalTo(0));
+        assertThat(metrics.getGauges().size()).isEqualTo(0);
 
         LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
                 .maximumSize(1L)
@@ -70,29 +72,29 @@ public class MetricRegistriesTest {
                 });
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges().size(), equalTo(7));
+        assertThat(metrics.getGauges().size()).isEqualTo(7);
 
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(cache.getUnchecked(42), equalTo("42"));
+        assertThat(cache.getUnchecked(42)).isEqualTo("42");
 
-        assertThat(metrics.getGauges().get("test.request.count").getValue(), equalTo(1L));
-        assertThat(metrics.getGauges().get("test.hit.count").getValue(), equalTo(0L));
-        assertThat(metrics.getGauges().get("test.hit.ratio").getValue(), equalTo(0.0d));
-        assertThat(metrics.getGauges().get("test.miss.count").getValue(), equalTo(1L));
-        assertThat(metrics.getGauges().get("test.miss.ratio").getValue(), equalTo(1.0d));
-        assertThat(metrics.getGauges().get("test.eviction.count").getValue(), equalTo(0L));
+        assertThat(metrics.getGauges().get("test.request.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.hit.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.hit.ratio").getValue()).isEqualTo(0.0d);
+        assertThat(metrics.getGauges().get("test.miss.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.miss.ratio").getValue()).isEqualTo(1.0d);
+        assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(0L);
 
-        assertThat(cache.getUnchecked(42), equalTo("42"));
+        assertThat(cache.getUnchecked(42)).isEqualTo("42");
 
-        assertThat(metrics.getGauges().get("test.request.count").getValue(), equalTo(2L));
-        assertThat(metrics.getGauges().get("test.hit.count").getValue(), equalTo(1L));
-        assertThat(metrics.getGauges().get("test.miss.count").getValue(), equalTo(1L));
-        assertThat(metrics.getGauges().get("test.eviction.count").getValue(), equalTo(0L));
+        assertThat(metrics.getGauges().get("test.request.count").getValue()).isEqualTo(2L);
+        assertThat(metrics.getGauges().get("test.hit.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.miss.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(0L);
 
         cache.getUnchecked(1);
 
-        assertThat(metrics.getGauges().get("test.eviction.count").getValue(), equalTo(1L));
+        assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(1L);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -102,9 +104,9 @@ public class MetricRegistriesTest {
         when(metricRegistry.register("test", mockMetric)).thenReturn(mockMetric);
         when(metricRegistry.register("test", mockMetric)).thenThrow(new IllegalArgumentException());
 
-        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", MetricBuilder.HISTOGRAMS), equalTo(mockMetric));
+        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", MetricBuilder.HISTOGRAMS)).isEqualTo(mockMetric);
 
-        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", MetricBuilder.HISTOGRAMS), equalTo(mockMetric));
+        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", MetricBuilder.HISTOGRAMS)).isEqualTo(mockMetric);
     }
 
     @Test(expected = IllegalArgumentException.class)

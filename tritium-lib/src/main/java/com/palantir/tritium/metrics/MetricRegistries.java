@@ -64,7 +64,9 @@ public final class MetricRegistries {
     /**
      * Metric registry which produces timers and histograms backed by high dynamic range histograms.
      *
-     * @see http://taint.org/2014/01/16/145944a.html
+     * See <a href="http://taint.org/2014/01/16/145944a.html">
+     *     Don’t use Timers with exponentially-decaying reservoirs in Graphite
+     * </a>
      */
     @SuppressFBWarnings(justification = "Dropwizard MetricRegistry is a concrete type, not an interface")
     private static class HdrHistogramMetricRegistry extends MetricRegistry {
@@ -170,29 +172,60 @@ public final class MetricRegistries {
             ImmutableMap.Builder<String, Metric> cacheMetrics = ImmutableMap.builder();
 
             cacheMetrics.put(MetricRegistry.name(metricsPrefix, "request", "count"),
-                    (Gauge<Long>) () -> cache.stats().requestCount());
+                    new Gauge<Long>() {
+                        @Override
+                        public Long getValue() {
+                            return cache.stats().requestCount();
+                        }
+                    });
 
             cacheMetrics.put(MetricRegistry.name(metricsPrefix, "hit", "count"),
-                    (Gauge<Long>) () -> cache.stats().hitCount());
+                    new Gauge<Long>() {
+                        @Override
+                        public Long getValue() {
+                            return cache.stats().hitCount();
+                        }
+                    });
             cacheMetrics.put(MetricRegistry.name(metricsPrefix, "hit", "ratio"),
-                    (Gauge<Double>) () -> {
-                        CacheStats stats = cache.stats();
-                        return stats.hitCount() / (1.0d * stats.requestCount());
+                    new Gauge<Double>() {
+                        @Override
+                        public Double getValue() {
+                            CacheStats stats = cache.stats();
+                            return stats.hitCount() / (1.0d * stats.requestCount());
+                        }
                     });
 
             cacheMetrics.put(MetricRegistry.name(metricsPrefix, "miss", "count"),
-                    (Gauge<Long>) () -> cache.stats().missCount());
+                    new Gauge<Long>() {
+                        @Override
+                        public Long getValue() {
+                            return cache.stats().missCount();
+                        }
+                    });
             cacheMetrics.put(MetricRegistry.name(metricsPrefix, "miss", "ratio"),
-                    (Gauge<Double>) () -> {
-                        CacheStats stats = cache.stats();
-                        return stats.missCount() / (1.0d * stats.requestCount());
+                    new Gauge<Double>() {
+                        @Override
+                        public Double getValue() {
+                            CacheStats stats = cache.stats();
+                            return stats.missCount() / (1.0d * stats.requestCount());
+                        }
                     });
 
             cacheMetrics.put(MetricRegistry.name(metricsPrefix, "eviction", "count"),
-                    (Gauge<Long>) () -> cache.stats().evictionCount());
+                    new Gauge<Long>() {
+                        @Override
+                        public Long getValue() {
+                            return cache.stats().evictionCount();
+                        }
+                    });
 
             cacheMetrics.put(MetricRegistry.name(metricsPrefix, "averageLoadPenalty"),
-                    (Gauge<Double>) () -> cache.stats().averageLoadPenalty());
+                    new Gauge<Double>() {
+                        @Override
+                        public Double getValue() {
+                            return cache.stats().averageLoadPenalty();
+                        }
+                    });
 
             return cacheMetrics.build();
         }

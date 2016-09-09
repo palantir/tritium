@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
+import com.palantir.tritium.api.functions.LongPredicate;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
@@ -28,7 +29,6 @@ import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.LongPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +42,9 @@ public final class Instrumentation {
     }
 
     public static <T, U extends T> T wrap(
-            Class<T> interfaceClass,
-            U delegate,
-            List<InvocationEventHandler<InvocationContext>> handlers) {
+            final Class<T> interfaceClass,
+            final U delegate,
+            final List<InvocationEventHandler<InvocationContext>> handlers) {
         checkNotNull(interfaceClass);
         checkNotNull(delegate);
         checkNotNull(handlers);
@@ -86,9 +86,10 @@ public final class Instrumentation {
 
     @SuppressFBWarnings(justification = "Catch-22: Checkstyle wants final builder, but FindBugs doesn't")
     public static <T, U extends T> Builder<T, U> builder(Class<T> interfaceClass, U delegate) {
-        return new Builder<>(interfaceClass, delegate);
+        return new Builder<T, U>(interfaceClass, delegate);
     }
 
+    @SuppressWarnings("WeakerAccess") // intended for public consumption
     @SuppressFBWarnings(justification = "Catch-22: Checkstyle wants final builder, but FindBugs doesn't")
     public static final class Builder<T, U extends T> {
 
