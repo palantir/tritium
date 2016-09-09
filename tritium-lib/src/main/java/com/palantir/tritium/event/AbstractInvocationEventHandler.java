@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Strings;
-import java.util.function.BooleanSupplier;
+import com.palantir.tritium.api.functions.BooleanSupplier;
 import javax.annotation.Nullable;
 
 /**
@@ -41,7 +41,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      * Always enabled instrumentation handler.
      */
     protected AbstractInvocationEventHandler() {
-        this(() -> true);
+        this(BooleanSupplier.TRUE);
     }
 
     protected AbstractInvocationEventHandler(BooleanSupplier isEnabledSupplier) {
@@ -55,7 +55,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      */
     @Override
     public final boolean isEnabled() {
-        return isEnabledSupplier.getAsBoolean();
+        return isEnabledSupplier.asBoolean();
     }
 
     /**
@@ -72,9 +72,14 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
 
     protected static BooleanSupplier getSystemPropertySupplier(String name) {
         checkArgument(!Strings.isNullOrEmpty(name), "name cannot be null or empty, was '%s'", name);
-        boolean instrumentationEnabled = !"false".equalsIgnoreCase(System.getProperty(INSTRUMENT_PREFIX))
+        final boolean instrumentationEnabled = !"false".equalsIgnoreCase(System.getProperty(INSTRUMENT_PREFIX))
                 && Boolean.parseBoolean(System.getProperty(INSTRUMENT_PREFIX + "." + name, "true"));
-        return () -> instrumentationEnabled;
+        return new BooleanSupplier() {
+            @Override
+            public boolean asBoolean() {
+                return instrumentationEnabled;
+            }
+        };
     }
 
     public static Object[] nullToEmpty(@Nullable Object[] args) {

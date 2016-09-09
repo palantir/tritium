@@ -42,7 +42,7 @@ public class AbstractInvocationEventHandlerTest {
     public void testSystemPropertySupplierEnabledByDefault() {
         assertThat(AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class)
-                .getAsBoolean(),
+                .asBoolean(),
                 equalTo(true));
     }
 
@@ -51,7 +51,7 @@ public class AbstractInvocationEventHandlerTest {
         System.setProperty("instrument", "false");
         assertThat(AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class)
-                .getAsBoolean(),
+                .asBoolean(),
                 equalTo(false));
     }
 
@@ -60,7 +60,7 @@ public class AbstractInvocationEventHandlerTest {
         System.setProperty("instrument", "true");
         assertThat(AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class)
-                .getAsBoolean(),
+                .asBoolean(),
                 equalTo(true));
     }
 
@@ -69,7 +69,7 @@ public class AbstractInvocationEventHandlerTest {
         System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "false");
         assertThat(AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class)
-                .getAsBoolean(),
+                .asBoolean(),
                 equalTo(false));
     }
 
@@ -79,7 +79,7 @@ public class AbstractInvocationEventHandlerTest {
         System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "true");
         assertThat(AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class)
-                .getAsBoolean(),
+                .asBoolean(),
                 equalTo(true));
     }
 

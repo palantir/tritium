@@ -31,6 +31,9 @@ import com.codahale.metrics.Slf4jReporter.LoggingLevel;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
@@ -38,8 +41,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
+import java.util.Set;
 import java.util.SortedMap;
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.slf4j.Logger;
 
@@ -48,14 +53,15 @@ public class InstrumentationTest {
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
 
     // Exceed the HotSpot JIT thresholds
-    private static final int INVOCATION_ITERATIONS = 1_500_000;
+    private static final int INVOCATION_ITERATIONS = 1500000;
 
 
     @Test
     public void testEmptyHandlers() {
-        TestImplementation delegate = new TestImplementation();
-        TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate, Collections.emptyList());
-        assertThat(instrumented, is(delegate));
+        TestInterface delegate = new TestImplementation();
+        TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate,
+                Collections.<InvocationEventHandler<InvocationContext>>emptyList());
+        assertThat(instrumented, is(equalTo(delegate)));
         assertThat(Proxy.isProxyClass(instrumented.getClass()), equalTo(false));
     }
 
@@ -78,7 +84,7 @@ public class InstrumentationTest {
 
         SortedMap<String, Timer> timers = metricRegistry.getTimers();
         assertThat(timers.keySet(), hasSize(1));
-        assertThat(timers.keySet(), equalTo(ImmutableSet.of(EXPECTED_METRIC_NAME)));
+        assertThat(timers.keySet(), Matchers.<Set<String>>equalTo(ImmutableSet.of(EXPECTED_METRIC_NAME)));
         assertThat(timers.get(EXPECTED_METRIC_NAME), notNullValue());
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount(), equalTo(1L));
 
@@ -111,7 +117,7 @@ public class InstrumentationTest {
         Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                    .withLogging(logger, level, nanos -> false)
+                    .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
                     .build();
             executeManyTimes(instrumentedService, 100);
         }
@@ -125,7 +131,7 @@ public class InstrumentationTest {
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             for (int i = 0; i < 100; i++) {
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                        .withLogging(logger, level, nanos -> false)
+                        .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
                 try {
                     instrumentedService.throwsCheckedException();
@@ -146,7 +152,7 @@ public class InstrumentationTest {
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             for (int i = 0; i < 100; i++) {
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                        .withLogging(logger, level, nanos -> false)
+                        .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
                 try {
                     instrumentedService.throwsThrowable();
@@ -180,7 +186,8 @@ public class InstrumentationTest {
     @Test(expected = NullPointerException.class)
     public void testNullLogger() {
         //noinspection ConstantConditions
-        Instrumentation.builder(Runnable.class, new TestImplementation()).withLogging(null, null, nanos -> false);
+        Instrumentation.builder(Runnable.class, new TestImplementation())
+                .withLogging(null, null, LoggingInvocationEventHandler.NEVER_LOG);
     }
 
     @Test(expected = UnsupportedOperationException.class)

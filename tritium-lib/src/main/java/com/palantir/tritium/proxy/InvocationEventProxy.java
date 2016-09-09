@@ -19,6 +19,7 @@ package com.palantir.tritium.proxy;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.reflect.AbstractInvocationHandler;
+import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
@@ -27,7 +28,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,7 @@ public abstract class InvocationEventProxy<C extends InvocationContext>
      * @param handlers event handlers
      */
     protected InvocationEventProxy(List<InvocationEventHandler<InvocationContext>> handlers) {
-        this(() -> true, handlers);
+        this(BooleanSupplier.TRUE, handlers);
     }
 
     protected InvocationEventProxy(BooleanSupplier isEnabledSupplier,
@@ -69,7 +69,7 @@ public abstract class InvocationEventProxy<C extends InvocationContext>
      * @return whether instrumentation handling is enabled
      */
     protected final boolean isEnabled() {
-        return isEnabledSupplier.getAsBoolean();
+        return isEnabledSupplier.asBoolean();
     }
 
     @Override

@@ -50,7 +50,7 @@ public class ProxiesTest {
     @Test
     public void testInterfacesAdditionalInterfaces() {
         Class<?>[] interfaces = Proxies.interfaces(TestInterface.class,
-                ImmutableList.of(List.class), Runnable.class);
+                ImmutableList.<Class<?>>of(List.class), Runnable.class);
         assertEquals(3, interfaces.length);
         assertEquals(ImmutableSet.of(Runnable.class, TestInterface.class, List.class),
                 ImmutableSet.copyOf(interfaces));

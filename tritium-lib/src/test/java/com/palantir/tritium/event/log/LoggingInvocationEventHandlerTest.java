@@ -47,7 +47,8 @@ public class LoggingInvocationEventHandlerTest {
 
     private static final String LOG_KEY = SimpleLogger.LOG_KEY_PREFIX + "com.palantir";
 
-    @Nullable private String previousLogLevel = null;
+    @Nullable
+    private String previousLogLevel = null;
 
     @Before
     public void setUp() {
@@ -133,7 +134,7 @@ public class LoggingInvocationEventHandlerTest {
         };
         Logger logger = getLogger();
         TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                .withLogging(logger, LoggingLevel.ERROR, nanos -> false)
+                .withLogging(logger, LoggingLevel.ERROR, LoggingInvocationEventHandler.NEVER_LOG)
                 .build();
         assertThat(delegate.invocationCount(), equalTo(0));
         try {
@@ -214,7 +215,7 @@ public class LoggingInvocationEventHandlerTest {
         long durationNanos = 1234567L;
         LoggingLevel level = LoggingLevel.TRACE;
 
-        Object[] args = new Object[method.getParameterCount()];
+        Object[] args = new Object[method.getParameterTypes().length];
         String messagePattern = LoggingInvocationEventHandler.getMessagePattern(args);
         args[0] = "arg0";
         args[1] = 1;
@@ -233,7 +234,7 @@ public class LoggingInvocationEventHandlerTest {
         long durationNanos = 1234567L;
         LoggingLevel level = LoggingLevel.TRACE;
 
-        Object[] args = new Object[method.getParameterCount()];
+        Object[] args = new Object[method.getParameterTypes().length];
         String messagePattern = LoggingInvocationEventHandler.getMessagePattern(args);
         args[0] = ImmutableSet.of("a", "b");
         Object[] logParams = LoggingInvocationEventHandler.getLogParams(method, args, durationNanos, level);

@@ -16,12 +16,7 @@
 
 package com.palantir.tritium;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
@@ -44,24 +39,23 @@ public class TritiumTest {
 
         TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metricRegistry);
 
-        assertThat(delegate.invocationCount(), equalTo(0));
-        assertThat(metricRegistry.getTimers().get(Runnable.class.getName()), nullValue());
+        assertThat(delegate.invocationCount()).isEqualTo(0);
+        assertThat(metricRegistry.getTimers().get(Runnable.class.getName())).isNull();
 
         instrumentedService.test();
-        assertThat(delegate.invocationCount(), equalTo(1));
+        assertThat(delegate.invocationCount()).isEqualTo(1);
 
 
         SortedMap<String, Timer> timers = metricRegistry.getTimers();
-        assertThat(timers.keySet(), hasSize(1));
-        assertThat(timers.keySet(), equalTo(ImmutableSet.of(EXPECTED_METRIC_NAME)));
-        assertThat(timers.get(EXPECTED_METRIC_NAME), notNullValue());
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount(), equalTo(1L));
+        assertThat(timers.keySet()).hasSize(1);
+        assertThat(timers.keySet()).isEqualTo(ImmutableSet.of(EXPECTED_METRIC_NAME));
+        assertThat(timers.get(EXPECTED_METRIC_NAME)).isNotNull();
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(1);
 
         instrumentedService.test();
 
-        assertThat(Long.valueOf(timers.get(EXPECTED_METRIC_NAME).getCount()).intValue(),
-                equalTo(delegate.invocationCount()));
-        assertTrue(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax() >= 0L);
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax()).isGreaterThan(-1L);
 
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(Slf4jReporter.LoggingLevel.INFO).build().report();
     }
