@@ -1,3 +1,5 @@
 rootProject.name = 'tritium'
 
+include 'tritium-api'
+include 'tritium-core'
 include 'tritium-lib'
