@@ -17,6 +17,7 @@
 package com.palantir.tritium.event;
 
 import java.lang.reflect.Method;
+import javax.annotation.Nullable;
 
 /**
  * Represents the state when an invocation event occurred.
@@ -33,9 +34,9 @@ public interface InvocationContext {
     /**
      * Returns the instance a method was invoked upon.
      *
-     * @return instance invoked
+     * @return instance invoked or null if a static method
      */
-    Object getInstance();
+    @Nullable Object getInstance();
 
     /**
      * Returns the method invoked.

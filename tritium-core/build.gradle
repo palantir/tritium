@@ -7,14 +7,12 @@ jacocoCoverage {
     fileThreshold 0.0, ~"Immutable_.*\\.java"
 }
 
+sourceCompatibility = '1.6'
+targetCompatibility = '1.6'
+
 dependencies {
     compile project(":tritium-api")
-    compile project(":tritium-core")
     compile "com.google.code.findbugs:annotations:${findbugsVersion}"
-    compile "com.google.guava:guava:${guavaVersion}"
-    compile "io.dropwizard.metrics:metrics-core:${dropwizardMetricsVersion}"
-    compile "org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:${hdrHistogramMetricsReservoirVersion}"
-    compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
     processor "org.immutables:value:${immutablesVersion}"
 
@@ -24,3 +22,4 @@ dependencies {
     testCompile "org.mockito:mockito-all:${mockitoVersion}"
     testCompile "org.slf4j:slf4j-simple:${slf4jVersion}"
 }
+
