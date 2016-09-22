@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
-import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.MetricSet;
@@ -56,9 +55,7 @@ public final class MetricRegistries {
     public static MetricRegistry createWithHdrHistogramReservoirs() {
         // Use HDR Histogram reservoir histograms and timers, instead of default exponentially decaying reservoirs,
         // see http://taint.org/2014/01/16/145944a.html
-        MetricRegistry metricRegistry = new HdrHistogramMetricRegistry();
-        JmxReporter.forRegistry(metricRegistry).build().start();
-        return metricRegistry;
+        return new HdrHistogramMetricRegistry();
     }
 
     /**
