@@ -10,17 +10,14 @@ jacocoCoverage {
 dependencies {
     compile project(":tritium-api")
     compile project(":tritium-core")
-    compile project(":tritium-dropwizard")
-    compile project(":tritium-slf4j")
     compile "com.google.code.findbugs:annotations:${findbugsVersion}"
     compile "com.google.guava:guava:${guavaVersion}"
-    compile "org.slf4j:slf4j-api:${slf4jVersion}"
-
+    compile "io.dropwizard.metrics:metrics-core:${dropwizardMetricsVersion}"
+    compile "org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:${hdrHistogramMetricsReservoirVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
     processor "org.immutables:value:${immutablesVersion}"
 
-    testCompile project(path: ":tritium-core", configuration: "testArtifacts")
     testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {
         exclude group: "com.google.truth"
         exclude group: "com.google.guava", module: "guava"
@@ -31,3 +28,4 @@ dependencies {
     testCompile "org.mockito:mockito-all:${mockitoVersion}"
     testCompile "org.slf4j:slf4j-simple:${slf4jVersion}"
 }
+

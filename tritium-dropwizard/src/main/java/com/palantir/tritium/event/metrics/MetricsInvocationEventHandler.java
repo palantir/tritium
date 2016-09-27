@@ -37,8 +37,6 @@ public class MetricsInvocationEventHandler extends AbstractInvocationEventHandle
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricsInvocationEventHandler.class);
 
-    public static final String FAILURES_METRIC_NAME = "failures";
-
     private final MetricRegistry metricRegistry;
     private final String serviceName;
 
@@ -48,14 +46,12 @@ public class MetricsInvocationEventHandler extends AbstractInvocationEventHandle
         this.serviceName = checkNotNull(serviceName, "serviceName");
     }
 
-    private static BooleanSupplier getEnabledSupplier(final String serviceName) {
-        return new BooleanSupplier() {
-            @Override
-            public boolean asBoolean() {
-                return getSystemPropertySupplier(MetricsInvocationEventHandler.class).asBoolean()
-                        || getSystemPropertySupplier(serviceName).asBoolean();
-            }
-        };
+    private static String failuresMetricName() {
+        return "failures";
+    }
+
+    static BooleanSupplier getEnabledSupplier(final String serviceName) {
+        return getSystemPropertySupplier(serviceName);
     }
 
     @Override
@@ -82,7 +78,7 @@ public class MetricsInvocationEventHandler extends AbstractInvocationEventHandle
         }
 
         markGlobalFailure();
-        String failuresMetricName = MetricRegistry.name(getBaseMetricName(context), FAILURES_METRIC_NAME);
+        String failuresMetricName = MetricRegistry.name(getBaseMetricName(context), failuresMetricName());
         metricRegistry.meter(failuresMetricName).mark();
         metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
     }
@@ -92,7 +88,7 @@ public class MetricsInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     private void markGlobalFailure() {
-        metricRegistry.meter(FAILURES_METRIC_NAME).mark();
+        metricRegistry.meter(failuresMetricName()).mark();
     }
 
 }

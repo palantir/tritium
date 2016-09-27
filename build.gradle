@@ -24,6 +24,10 @@ allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
 
+    configurations {
+        testArtifacts.extendsFrom testCompile
+    }
+
     repositories {
         maven {
 
