@@ -28,6 +28,7 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.junit.Test;
 
@@ -120,7 +121,7 @@ public class InvocationEventProxyTest {
             }
 
             @Override
-            public void onFailure(@Nullable InvocationContext context, Throwable cause) {
+            public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
                 throw new IllegalStateException("expected");
             }
         };
@@ -174,6 +175,6 @@ public class InvocationEventProxyTest {
         public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {}
 
         @Override
-        public void onFailure(@Nullable InvocationContext context, Throwable cause) {}
+        public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {}
     }
 }
