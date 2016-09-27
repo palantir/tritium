@@ -8,6 +8,7 @@ buildscript {
     dependencies {
         classpath "com.palantir:gradle-baseline-java:${baselineVersion}"
         classpath "com.palantir:jacoco-coverage:${jacocoCoverageVersion}"
+        classpath "com.palantir.exartisi:gradle-exartisi-plugin:${exartisiVersion}"
         classpath "com.palantir.gradle.gitversion:gradle-git-version:${gitVersionVersion}"
         classpath "com.palantir.internalpublish:gradle-internal-publish-plugin:${internalPublishVersion}"
         classpath "gradle.plugin.com.palantir.configurationresolver:gradle-configuration-resolver-plugin:${configurationResolverVersion}"
@@ -23,6 +24,8 @@ apply plugin: 'org.inferred.processors'
 allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
+
+    apply plugin: 'com.palantir.exartisi'
 
     configurations {
         testArtifacts.extendsFrom testCompile
