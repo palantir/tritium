@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +93,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     @Override
-    public final void onFailure(@Nullable InvocationContext context, Throwable cause) {
+    public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         if (context == null) {
             LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
             return;

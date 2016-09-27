@@ -17,6 +17,7 @@
 package com.palantir.tritium.event;
 
 import java.lang.reflect.Method;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 class ThrowingInvocationEventHandler implements InvocationEventHandler<InvocationContext> {
@@ -39,7 +40,7 @@ class ThrowingInvocationEventHandler implements InvocationEventHandler<Invocatio
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, Throwable cause) {
+    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         throw new IllegalStateException("onFailure always throws");
     }
 

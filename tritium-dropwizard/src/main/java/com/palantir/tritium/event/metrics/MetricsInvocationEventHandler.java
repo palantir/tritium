@@ -25,6 +25,7 @@ import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ public class MetricsInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, Throwable cause) {
+    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         if (context == null) {
             markGlobalFailure();
             LOGGER.debug("Encountered null metric context likely due to exception in preInvocation: {}", cause, cause);

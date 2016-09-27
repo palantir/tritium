@@ -17,6 +17,7 @@
 package com.palantir.tritium.event;
 
 import java.lang.reflect.Method;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -42,7 +43,7 @@ public enum NoOpInvocationEventHandler implements InvocationEventHandler<Invocat
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, Throwable cause) {
+    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         // no-op
     }
 
