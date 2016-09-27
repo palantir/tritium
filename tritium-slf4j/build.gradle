@@ -10,12 +10,7 @@ jacocoCoverage {
 dependencies {
     compile project(":tritium-api")
     compile project(":tritium-core")
-    compile project(":tritium-dropwizard")
-    compile project(":tritium-slf4j")
     compile "com.google.code.findbugs:annotations:${findbugsVersion}"
-    compile "com.google.guava:guava:${guavaVersion}"
-    compile "org.slf4j:slf4j-api:${slf4jVersion}"
-
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
     processor "org.immutables:value:${immutablesVersion}"
@@ -31,3 +26,4 @@ dependencies {
     testCompile "org.mockito:mockito-all:${mockitoVersion}"
     testCompile "org.slf4j:slf4j-simple:${slf4jVersion}"
 }
+

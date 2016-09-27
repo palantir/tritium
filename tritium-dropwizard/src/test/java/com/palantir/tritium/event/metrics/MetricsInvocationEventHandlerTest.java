@@ -16,8 +16,7 @@
 
 package com.palantir.tritium.event.metrics;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,33 +33,40 @@ public class MetricsInvocationEventHandlerTest {
 
         InvocationContext context = mock(InvocationContext.class);
         when(context.getMethod()).thenReturn(String.class.getDeclaredMethod("length"));
-        assertThat(metricRegistry.getMeters().get("failures"), equalTo(null));
+        assertThat(metricRegistry.getMeters().get("failures")).isNull();
 
         handler.onFailure(context, new RuntimeException("unexpected"));
 
-        assertThat(metricRegistry.getMeters().get("failures").getCount(), equalTo(1L));
+        assertThat(metricRegistry.getMeters().get("failures")).isNotNull();
+        assertThat(metricRegistry.getMeters().get("failures").getCount()).isEqualTo(1L);
     }
 
     @Test
     public void testOnSuccessNullContext() {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
-        assertThat(metricRegistry.getMeters().get("failures"), equalTo(null));
+        assertThat(metricRegistry.getMeters().get("failures")).isNull();
 
         handler.onSuccess(null, new Object());
 
-        assertThat(metricRegistry.getMeters().get("failures"), equalTo(null));
+        assertThat(metricRegistry.getMeters().get("failures")).isNull();
     }
 
     @Test
     public void testOnFailureNullContext() {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
-        assertThat(metricRegistry.getMeters().get("failures"), equalTo(null));
+        assertThat(metricRegistry.getMeters().get("failures")).isNull();
 
         handler.onFailure(null, new RuntimeException("expected"));
 
-        assertThat(metricRegistry.getMeters().get("failures").getCount(), equalTo(1L));
+        assertThat(metricRegistry.getMeters().get("failures")).isNotNull();
+        assertThat(metricRegistry.getMeters().get("failures").getCount()).isEqualTo(1L);
+    }
+
+    @Test
+    public void testSystemPropertySupplier_Handler_Enabled() throws Exception {
+        assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
     }
 
 }

@@ -65,15 +65,17 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      */
     protected static BooleanSupplier getSystemPropertySupplier(
             Class<? extends InvocationEventHandler<InvocationContext>> clazz) {
-
         checkNotNull(clazz, "clazz");
         return getSystemPropertySupplier(clazz.getName());
     }
 
     protected static BooleanSupplier getSystemPropertySupplier(String name) {
         checkArgument(!Strings.isNullOrEmpty(name), "name cannot be null or empty, was '%s'", name);
-        final boolean instrumentationEnabled = !"false".equalsIgnoreCase(System.getProperty(INSTRUMENT_PREFIX))
-                && Boolean.parseBoolean(System.getProperty(INSTRUMENT_PREFIX + "." + name, "true"));
+        boolean isGloballyDisabled = "false".equalsIgnoreCase(System.getProperty(INSTRUMENT_PREFIX));
+        String qualifiedValue = System.getProperty(INSTRUMENT_PREFIX + "." + name);
+        boolean isSpecificallyEnabled = "true".equalsIgnoreCase(qualifiedValue);
+        final boolean instrumentationEnabled = !isGloballyDisabled
+                && (isSpecificallyEnabled || qualifiedValue == null);
         return new BooleanSupplier() {
             @Override
             public boolean asBoolean() {
