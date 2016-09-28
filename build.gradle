@@ -19,12 +19,12 @@ buildscript {
 apply plugin: 'com.palantir.baseline-config'
 apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.git-version'
-apply plugin: 'org.inferred.processors'
 
 allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
 
+    apply from: "${rootDir}/gradle/java.gradle"
     apply plugin: 'com.palantir.exartisi'
 
     configurations {
