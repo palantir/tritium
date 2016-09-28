@@ -1,11 +1,4 @@
-apply from: "${rootDir}/gradle/java.gradle"
 apply plugin: 'com.palantir.publish-jar'
-apply plugin: 'org.inferred.processors'
-
-jacocoCoverage {
-    fileThreshold 0.5
-    fileThreshold 0.0, ~"Immutable_.*\\.java"
-}
 
 dependencies {
     compile project(":tritium-api")
