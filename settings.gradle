@@ -2,7 +2,7 @@ rootProject.name = 'tritium'
 
 include 'tritium-api'
 include 'tritium-core'
-include 'tritium-dropwizard'
 include 'tritium-jmh'
 include 'tritium-lib'
+include 'tritium-metrics'
 include 'tritium-slf4j'
