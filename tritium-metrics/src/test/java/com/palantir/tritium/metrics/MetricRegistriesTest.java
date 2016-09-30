@@ -27,13 +27,14 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.palantir.tritium.metrics.MetricRegistries.MetricBuilder;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
 import org.junit.Test;
 
 public class MetricRegistriesTest {
+
+    private static final String RESERVOIR_TYPE_GAUGE_NAME = MetricRegistry.name(MetricRegistry.class, "reservoirType");
 
     @Test
     public void testHdrHistogram() throws Exception {
@@ -59,7 +60,9 @@ public class MetricRegistriesTest {
     @Test
     public void testRegisterCache() {
         MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-        assertThat(metrics.getGauges().size()).isEqualTo(0);
+        assertThat(metrics.getGauges().size()).isEqualTo(1);
+        assertThat(metrics.getGauges()).containsKey(RESERVOIR_TYPE_GAUGE_NAME);
+        assertThat(metrics.getGauges().get(RESERVOIR_TYPE_GAUGE_NAME).getValue()).isEqualTo("HDR Histogram");
 
         LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
                 .maximumSize(1L)
@@ -72,7 +75,7 @@ public class MetricRegistriesTest {
                 });
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges().size()).isEqualTo(7);
+        assertThat(metrics.getGauges().size()).isEqualTo(8);
 
         MetricRegistries.registerCache(metrics, cache, "test");
 
@@ -104,9 +107,11 @@ public class MetricRegistriesTest {
         when(metricRegistry.register("test", mockMetric)).thenReturn(mockMetric);
         when(metricRegistry.register("test", mockMetric)).thenThrow(new IllegalArgumentException());
 
-        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", MetricBuilder.HISTOGRAMS)).isEqualTo(mockMetric);
+        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", HdrHistogramMetricRegistry.HISTOGRAMS))
+                .isEqualTo(mockMetric);
 
-        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", MetricBuilder.HISTOGRAMS)).isEqualTo(mockMetric);
+        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", HdrHistogramMetricRegistry.HISTOGRAMS))
+                .isEqualTo(mockMetric);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -119,8 +124,8 @@ public class MetricRegistriesTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidGetOrAdd() {
         MetricRegistry metrics = new MetricRegistry();
-        MetricRegistries.getOrAdd(metrics, "histogram", MetricRegistries.MetricBuilder.HISTOGRAMS);
-        MetricRegistries.getOrAdd(metrics, "histogram", MetricRegistries.MetricBuilder.TIMERS);
+        MetricRegistries.getOrAdd(metrics, "histogram", HdrHistogramMetricRegistry.HISTOGRAMS);
+        MetricRegistries.getOrAdd(metrics, "histogram", HdrHistogramMetricRegistry.TIMERS);
     }
 
     @Test(expected = UnsupportedOperationException.class)

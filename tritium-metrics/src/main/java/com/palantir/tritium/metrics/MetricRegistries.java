@@ -19,20 +19,13 @@ package com.palantir.tritium.metrics;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.MetricSet;
-import com.codahale.metrics.Timer;
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheStats;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,29 +48,7 @@ public final class MetricRegistries {
     public static MetricRegistry createWithHdrHistogramReservoirs() {
         // Use HDR Histogram reservoir histograms and timers, instead of default exponentially decaying reservoirs,
         // see http://taint.org/2014/01/16/145944a.html
-        return new HdrHistogramMetricRegistry();
-    }
-
-    /**
-     * Metric registry which produces timers and histograms backed by high dynamic range histograms.
-     *
-     * See <a href="http://taint.org/2014/01/16/145944a.html">
-     *     Don’t use Timers with exponentially-decaying reservoirs in Graphite
-     * </a>
-     */
-    @SuppressFBWarnings(justification = "Dropwizard MetricRegistry is a concrete type, not an interface")
-    private static class HdrHistogramMetricRegistry extends MetricRegistry {
-
-        @Override
-        public Histogram histogram(String name) {
-            return getOrAdd(this, name, MetricBuilder.HISTOGRAMS);
-        }
-
-        @Override
-        public Timer timer(String name) {
-            return getOrAdd(this, name, MetricBuilder.TIMERS);
-        }
-
+        return HdrHistogramMetricRegistry.create();
     }
 
     @SuppressWarnings("unchecked")
@@ -102,36 +73,17 @@ public final class MetricRegistries {
         throw new IllegalArgumentException(name + " is already used for a different type of metric");
     }
 
-    interface MetricBuilder<T extends Metric> {
 
-        T newMetric();
-
-        boolean isInstance(Metric metric);
-
-        MetricBuilder<Histogram> HISTOGRAMS = new MetricBuilder<Histogram>() {
-            @Override
-            public Histogram newMetric() {
-                return new Histogram(new HdrHistogramReservoir());
-            }
-
-            @Override
-            public boolean isInstance(Metric metric) {
-                return Histogram.class.isInstance(metric);
-            }
-        };
-
-        MetricBuilder<Timer> TIMERS = new MetricBuilder<Timer>() {
-            @Override
-            public Timer newMetric() {
-                return new Timer(new HdrHistogramReservoir());
-            }
-
-            @Override
-            public boolean isInstance(Metric metric) {
-                return Timer.class.isInstance(metric);
-            }
-        };
-
+    /**
+     * Register specified cache with the given metric registry.
+     *
+     * @deprecated use {@link #registerCache(MetricRegistry, String, Cache)}
+     */
+    @Deprecated
+    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry,
+                                                             Cache<?, ?> cache,
+                                                             String metricsPrefix) {
+        registerCache(registry, metricsPrefix, cache);
     }
 
     /**
@@ -142,91 +94,16 @@ public final class MetricRegistries {
      * @param metricsPrefix metrics prefix
      */
     public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry,
-                                                             Cache<?, ?> cache,
-                                                             String metricsPrefix) {
-        checkNotNull(registry);
-        checkNotNull(metricsPrefix);
-        checkNotNull(cache);
+                                                             String metricsPrefix,
+                                                             C cache) {
+        checkNotNull(registry, "metric registry");
+        checkNotNull(metricsPrefix, "prefix");
+        checkNotNull(cache, "cache");
 
         CacheMetricSet cacheMetrics = new CacheMetricSet(cache, metricsPrefix);
         for (Entry<String, Metric> entry : cacheMetrics.getMetrics().entrySet()) {
             registerSafe(registry, entry.getKey(), entry.getValue());
         }
-    }
-
-    private static class CacheMetricSet implements MetricSet {
-        private final Cache<?, ?> cache;
-        private final String metricsPrefix;
-
-        CacheMetricSet(Cache<?, ?> cache, String metricsPrefix) {
-            checkNotNull(cache);
-            this.cache = cache;
-            this.metricsPrefix = metricsPrefix;
-        }
-
-        @Override
-        public Map<String, Metric> getMetrics() {
-            ImmutableMap.Builder<String, Metric> cacheMetrics = ImmutableMap.builder();
-
-            cacheMetrics.put(MetricRegistry.name(metricsPrefix, "request", "count"),
-                    new Gauge<Long>() {
-                        @Override
-                        public Long getValue() {
-                            return cache.stats().requestCount();
-                        }
-                    });
-
-            cacheMetrics.put(MetricRegistry.name(metricsPrefix, "hit", "count"),
-                    new Gauge<Long>() {
-                        @Override
-                        public Long getValue() {
-                            return cache.stats().hitCount();
-                        }
-                    });
-            cacheMetrics.put(MetricRegistry.name(metricsPrefix, "hit", "ratio"),
-                    new Gauge<Double>() {
-                        @Override
-                        public Double getValue() {
-                            CacheStats stats = cache.stats();
-                            return stats.hitCount() / (1.0d * stats.requestCount());
-                        }
-                    });
-
-            cacheMetrics.put(MetricRegistry.name(metricsPrefix, "miss", "count"),
-                    new Gauge<Long>() {
-                        @Override
-                        public Long getValue() {
-                            return cache.stats().missCount();
-                        }
-                    });
-            cacheMetrics.put(MetricRegistry.name(metricsPrefix, "miss", "ratio"),
-                    new Gauge<Double>() {
-                        @Override
-                        public Double getValue() {
-                            CacheStats stats = cache.stats();
-                            return stats.missCount() / (1.0d * stats.requestCount());
-                        }
-                    });
-
-            cacheMetrics.put(MetricRegistry.name(metricsPrefix, "eviction", "count"),
-                    new Gauge<Long>() {
-                        @Override
-                        public Long getValue() {
-                            return cache.stats().evictionCount();
-                        }
-                    });
-
-            cacheMetrics.put(MetricRegistry.name(metricsPrefix, "averageLoadPenalty"),
-                    new Gauge<Double>() {
-                        @Override
-                        public Double getValue() {
-                            return cache.stats().averageLoadPenalty();
-                        }
-                    });
-
-            return cacheMetrics.build();
-        }
-
     }
 
     /**
