@@ -290,10 +290,12 @@
             <property name="message" value="printStackTrace is not generally allowed."/>
             <property name="ignoreComments" value="true"/>
         </module>
+        <!-- Following is not available in Java 6 and is useless anyway
         <module name="RegexpSinglelineJava">
             <property name="format" value="\bCharsets\."/>
             <property name="message" value="Use JDK StandardCharsets instead of alternatives."/>
         </module>
+        -->
         <module name="RegexpSinglelineJava">
             <property name="format" value="\bCharset.defaultCharset\("/>
             <property name="message" value="Use explicit charset (e.g. StandardCharsets.UTF-8) instead of default."/>

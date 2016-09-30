@@ -15,6 +15,7 @@
 .generated
 .apt_generated
 generated_src/
+generated_testSrc/
 **/src/generated/
 
 # OS X
