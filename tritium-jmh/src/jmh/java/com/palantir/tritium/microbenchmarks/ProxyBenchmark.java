@@ -16,7 +16,10 @@
 
 package com.palantir.tritium.microbenchmarks;
 
-import com.palantir.tritium.Tritium;
+import com.github.kristofa.brave.Brave;
+import com.github.kristofa.brave.LoggingSpanCollector;
+import com.github.kristofa.brave.Sampler;
+import com.palantir.tritium.brave.BraveLocalTracingInvocationEventHandler;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +32,7 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
@@ -43,24 +47,59 @@ import org.openjdk.jmh.runner.options.TimeValue;
 @State(Scope.Benchmark)
 public class ProxyBenchmark {
 
+    private static final String DEFAULT_LOG_LEVEL = "org.slf4j.simpleLogger.defaultLogLevel";
+
+    private String previousLogLevel;
+
     private Service raw;
     private Service instrumentedWithoutHandlers;
     private Service instrumentedWithPerformanceLogging;
     private Service instrumentedWithMetrics;
     private Service instrumentedWithEverything;
+    private Service instrumentedWithBrave;
 
     @Setup
     public void setup() {
+        previousLogLevel = System.setProperty(DEFAULT_LOG_LEVEL, "trace");
+
         raw = new TestService();
+
         instrumentedWithoutHandlers = Instrumentation.builder(Service.class, raw).build();
+
         instrumentedWithPerformanceLogging = Instrumentation.builder(Service.class, raw)
                 .withPerformanceTraceLogging()
                 .build();
+
         instrumentedWithMetrics = Instrumentation.builder(Service.class, raw)
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .build();
-        instrumentedWithEverything = Tritium.instrument(Service.class, raw,
-                MetricRegistries.createWithHdrHistogramReservoirs());
+
+        BraveLocalTracingInvocationEventHandler braveLocalTracingInvocationEventHandler =
+                new BraveLocalTracingInvocationEventHandler("testComponent",
+                        new Brave.Builder("testService")
+                                .clock(() -> System.currentTimeMillis() * 1000)
+                                .spanCollector(new LoggingSpanCollector("tracing"))
+                                .traceSampler(Sampler.create(0.01f))
+                                .build());
+
+        instrumentedWithBrave = Instrumentation.builder(Service.class, raw)
+                .withHandler(braveLocalTracingInvocationEventHandler)
+                .build();
+
+        instrumentedWithEverything = Instrumentation.builder(Service.class, raw)
+                .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
+                .withPerformanceTraceLogging()
+                .withHandler(braveLocalTracingInvocationEventHandler)
+                .build();
+    }
+
+    @TearDown
+    public void tearDown() throws Exception {
+        if (previousLogLevel == null) {
+            System.clearProperty(DEFAULT_LOG_LEVEL);
+        } else {
+            System.setProperty(DEFAULT_LOG_LEVEL, previousLogLevel);
+        }
     }
 
     @Benchmark
@@ -81,6 +120,11 @@ public class ProxyBenchmark {
     @Benchmark
     public String instrumentedWithMetrics() {
         return instrumentedWithMetrics.echo("test");
+    }
+
+    @Benchmark
+    public String instrumentedWithBrave() {
+        return instrumentedWithBrave.echo("test");
     }
 
     @Benchmark
@@ -110,4 +154,5 @@ public class ProxyBenchmark {
                 .build();
         new Runner(options).run();
     }
+
 }
