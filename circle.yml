@@ -3,6 +3,9 @@ machine:
     version: oraclejdk8
   environment:
     TERM: dumb
+  post:
+
+
 
 checkout:
   post:
@@ -23,7 +26,7 @@ deployment:
     branch: develop
     owner: 
     commands:
-      - ./gradlew publish --console=plain --stacktrace
+
   releases:
     tag: /[0-9]+(\.[0-9]+)+(-[a-zA-Z]+[0-9]*)*/
     owner: 
