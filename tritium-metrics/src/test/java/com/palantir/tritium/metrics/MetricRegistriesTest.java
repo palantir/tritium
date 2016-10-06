@@ -58,7 +58,7 @@ public class MetricRegistriesTest {
     }
 
     @Test
-    public void testRegisterCache() {
+    public void testRegisterCache() throws InterruptedException {
         MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
         assertThat(metrics.getGauges().size()).isEqualTo(1);
         assertThat(metrics.getGauges()).containsKey(RESERVOIR_TYPE_GAUGE_NAME);
@@ -75,9 +75,19 @@ public class MetricRegistriesTest {
                 });
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges().size()).isEqualTo(8);
-
-        MetricRegistries.registerCache(metrics, cache, "test");
+        assertThat(metrics.getGauges().keySet()).containsExactly(
+                RESERVOIR_TYPE_GAUGE_NAME,
+                "test.averageLoadPenalty",
+                "test.eviction.count",
+                "test.hit.count",
+                "test.hit.ratio",
+                "test.loadFailure.count",
+                "test.loadSuccess.count",
+                "test.miss.count",
+                "test.miss.ratio",
+                "test.request.count"
+        );
+        assertThat(metrics.getGauges().size()).isEqualTo(10);
 
         assertThat(cache.getUnchecked(42)).isEqualTo("42");
 
@@ -87,17 +97,69 @@ public class MetricRegistriesTest {
         assertThat(metrics.getGauges().get("test.miss.count").getValue()).isEqualTo(1L);
         assertThat(metrics.getGauges().get("test.miss.ratio").getValue()).isEqualTo(1.0d);
         assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.averageLoadPenalty").getValue()).isInstanceOf(Double.class);
+        assertThat(metrics.getGauges().get("test.loadFailure.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.loadSuccess.count").getValue()).isEqualTo(1L);
 
         assertThat(cache.getUnchecked(42)).isEqualTo("42");
+        Thread.sleep(700); // let stats snapshot cache expire
 
         assertThat(metrics.getGauges().get("test.request.count").getValue()).isEqualTo(2L);
         assertThat(metrics.getGauges().get("test.hit.count").getValue()).isEqualTo(1L);
         assertThat(metrics.getGauges().get("test.miss.count").getValue()).isEqualTo(1L);
         assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.averageLoadPenalty").getValue()).isInstanceOf(Double.class);
+        assertThat(metrics.getGauges().get("test.loadFailure.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.loadSuccess.count").getValue()).isEqualTo(1L);
 
         cache.getUnchecked(1);
+        Thread.sleep(700); // let stats snapshot cache expire
 
         assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(1L);
+    }
+
+    @Test
+    public void testNoStats() throws Exception {
+        MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
+        assertThat(metrics.getGauges().size()).isEqualTo(1);
+        assertThat(metrics.getGauges()).containsKey(RESERVOIR_TYPE_GAUGE_NAME);
+        assertThat(metrics.getGauges().get(RESERVOIR_TYPE_GAUGE_NAME).getValue()).isEqualTo("HDR Histogram");
+
+        LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
+                .maximumSize(1L)
+                .build(new CacheLoader<Integer, String>() {
+                    @Override
+                    public String load(Integer key) throws Exception {
+                        return String.valueOf(key);
+                    }
+                });
+
+        MetricRegistries.registerCache(metrics, cache, "test");
+
+        assertThat(metrics.getGauges().keySet()).containsExactly(
+                "com.codahale.metrics.MetricRegistry.reservoirType",
+                "test.averageLoadPenalty",
+                "test.eviction.count",
+                "test.hit.count",
+                "test.hit.ratio",
+                "test.loadFailure.count",
+                "test.loadSuccess.count",
+                "test.miss.count",
+                "test.miss.ratio",
+                "test.request.count");
+        assertThat(metrics.getGauges().size()).isEqualTo(10);
+
+        assertThat(cache.getUnchecked(42)).isEqualTo("42");
+
+        assertThat(metrics.getGauges().get("test.request.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.hit.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.hit.ratio").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("test.miss.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.miss.ratio").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.averageLoadPenalty").getValue()).isEqualTo(0.0d);
+        assertThat(metrics.getGauges().get("test.loadFailure.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.loadSuccess.count").getValue()).isEqualTo(0L);
     }
 
     @Test(expected = IllegalArgumentException.class)
