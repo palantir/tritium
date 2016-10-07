@@ -77,25 +77,13 @@ public final class MetricRegistries {
     /**
      * Register specified cache with the given metric registry.
      *
-     * @deprecated use {@link #registerCache(MetricRegistry, String, Cache)}
-     */
-    @Deprecated
-    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry,
-                                                             Cache<?, ?> cache,
-                                                             String metricsPrefix) {
-        registerCache(registry, metricsPrefix, cache);
-    }
-
-    /**
-     * Register specified cache with the given metric registry.
-     *
      * @param registry metric registry
      * @param cache cache to instrument
      * @param metricsPrefix metrics prefix
      */
     public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry,
-                                                             String metricsPrefix,
-                                                             C cache) {
+                                                             Cache<?, ?> cache,
+                                                             String metricsPrefix) {
         checkNotNull(registry, "metric registry");
         checkNotNull(metricsPrefix, "prefix");
         checkNotNull(cache, "cache");

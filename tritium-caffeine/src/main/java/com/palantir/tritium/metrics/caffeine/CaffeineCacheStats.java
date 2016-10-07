@@ -40,9 +40,9 @@ public final class CaffeineCacheStats {
     public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry,
             Cache<?, ?> cache,
             String metricsPrefix) {
-        checkNotNull(registry);
-        checkNotNull(metricsPrefix);
-        checkNotNull(cache);
+        checkNotNull(registry, "registry");
+        checkNotNull(metricsPrefix, "metricsPrefix");
+        checkNotNull(cache, "cache");
 
         CaffeineCacheMetricSet cacheMetrics = new CaffeineCacheMetricSet(cache, metricsPrefix);
         for (Map.Entry<String, Metric> entry : cacheMetrics.getMetrics().entrySet()) {
