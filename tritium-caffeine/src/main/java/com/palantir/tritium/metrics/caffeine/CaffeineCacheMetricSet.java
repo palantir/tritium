@@ -84,17 +84,17 @@ final class CaffeineCacheMetricSet implements MetricSet {
         cacheMetrics.put(metricName("miss", "ratio"),
                 derivedGauge(stats -> stats.missCount() / (1.0d * stats.requestCount())));
 
-        cacheMetrics.put(metricName("loadSuccess", "count"),
-                derivedGauge(CacheStats::loadSuccessCount));
-
-        cacheMetrics.put(metricName("loadFailure", "count"),
-                derivedGauge(CacheStats::loadFailureCount));
-
         cacheMetrics.put(metricName("eviction", "count"),
                 derivedGauge(CacheStats::evictionCount));
 
-        cacheMetrics.put(metricName("averageLoadPenalty"),
-                derivedGauge(CacheStats::averageLoadPenalty));
+        cacheMetrics.put(metricName("load", "success", "count"),
+                derivedGauge(CacheStats::loadSuccessCount));
+
+        cacheMetrics.put(metricName("load", "failure", "count"),
+                derivedGauge(CacheStats::loadFailureCount));
+
+        cacheMetrics.put(metricName("load", "average", "millis"),
+                derivedGauge((stats) -> stats.averageLoadPenalty() / 1000000.0d));
 
         return cacheMetrics.build();
     }
