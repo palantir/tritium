@@ -108,22 +108,6 @@ class CacheMetricSet implements MetricSet {
                     }
                 }));
 
-        cacheMetrics.put(cacheMetricName("loadSuccess", "count"),
-                derivedGauge(new Function<CacheStats, Long>() {
-                    @Override
-                    public Long apply(CacheStats stats) {
-                        return stats.loadSuccessCount();
-                    }
-                }));
-
-        cacheMetrics.put(cacheMetricName("loadFailure", "count"),
-                derivedGauge(new Function<CacheStats, Long>() {
-                    @Override
-                    public Long apply(CacheStats stats) {
-                        return stats.loadExceptionCount();
-                    }
-                }));
-
         cacheMetrics.put(cacheMetricName("eviction", "count"),
                 derivedGauge(new Function<CacheStats, Long>() {
                     @Override
@@ -132,11 +116,27 @@ class CacheMetricSet implements MetricSet {
                     }
                 }));
 
-        cacheMetrics.put(cacheMetricName("averageLoadPenalty"),
+        cacheMetrics.put(cacheMetricName("load.success", "count"),
+                derivedGauge(new Function<CacheStats, Long>() {
+                    @Override
+                    public Long apply(CacheStats stats) {
+                        return stats.loadSuccessCount();
+                    }
+                }));
+
+        cacheMetrics.put(cacheMetricName("load.failure", "count"),
+                derivedGauge(new Function<CacheStats, Long>() {
+                    @Override
+                    public Long apply(CacheStats stats) {
+                        return stats.loadExceptionCount();
+                    }
+                }));
+
+        cacheMetrics.put(cacheMetricName("load", "average", "millis"),
                 derivedGauge(new Function<CacheStats, Double>() {
                     @Override
                     public Double apply(CacheStats stats) {
-                        return stats.averageLoadPenalty();
+                        return stats.averageLoadPenalty() / 1000000.0d;
                     }
                 }));
 
