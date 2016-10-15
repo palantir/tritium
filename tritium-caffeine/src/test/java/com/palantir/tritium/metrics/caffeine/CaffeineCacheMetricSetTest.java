@@ -50,6 +50,7 @@ public class CaffeineCacheMetricSetTest {
 
         assertThat(metrics.getGauges().keySet()).containsExactly(
                 RESERVOIR_TYPE_GAUGE_NAME,
+                "test1.estimated.size",
                 "test1.eviction.count",
                 "test1.hit.count",
                 "test1.hit.ratio",
@@ -60,7 +61,6 @@ public class CaffeineCacheMetricSetTest {
                 "test1.miss.ratio",
                 "test1.request.count"
         );
-        assertThat(metrics.getGauges().size()).isEqualTo(10);
 
         assertThat(cache.get(42)).isEqualTo("42");
 
@@ -69,6 +69,7 @@ public class CaffeineCacheMetricSetTest {
         assertThat(metrics.getGauges().get("test1.hit.ratio").getValue()).isEqualTo(0.0d);
         assertThat(metrics.getGauges().get("test1.miss.count").getValue()).isEqualTo(1L);
         assertThat(metrics.getGauges().get("test1.miss.ratio").getValue()).isEqualTo(1.0d);
+        assertThat(metrics.getGauges().get("test1.estimated.size").getValue()).isEqualTo(1L);
         assertThat(metrics.getGauges().get("test1.eviction.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test1.load.average.millis").getValue()).isNotEqualTo(0L);
         assertThat(metrics.getGauges().get("test1.load.failure.count").getValue()).isEqualTo(0L);
@@ -108,6 +109,7 @@ public class CaffeineCacheMetricSetTest {
 
         assertThat(metrics.getGauges().keySet()).containsExactly(
                 "com.codahale.metrics.MetricRegistry.reservoirType",
+                "test2.estimated.size",
                 "test2.eviction.count",
                 "test2.hit.count",
                 "test2.hit.ratio",
@@ -117,7 +119,6 @@ public class CaffeineCacheMetricSetTest {
                 "test2.miss.count",
                 "test2.miss.ratio",
                 "test2.request.count");
-        assertThat(metrics.getGauges().size()).isEqualTo(10);
 
         assertThat(cache.get(42)).isEqualTo("42");
 

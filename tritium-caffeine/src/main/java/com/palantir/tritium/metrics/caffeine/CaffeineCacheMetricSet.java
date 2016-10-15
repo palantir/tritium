@@ -69,6 +69,14 @@ final class CaffeineCacheMetricSet implements MetricSet {
     public Map<String, Metric> getMetrics() {
         ImmutableMap.Builder<String, Metric> cacheMetrics = ImmutableMap.builder();
 
+        cacheMetrics.put(metricName("estimated", "size"),
+                new CachedGauge<Long>(500, TimeUnit.MILLISECONDS) {
+                    @Override
+                    protected Long loadValue() {
+                        return cache.estimatedSize();
+                    }
+                });
+
         cacheMetrics.put(metricName("request", "count"),
                 derivedGauge(CacheStats::requestCount));
 

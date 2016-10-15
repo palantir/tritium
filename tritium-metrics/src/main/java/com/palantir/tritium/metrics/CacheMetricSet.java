@@ -68,6 +68,14 @@ class CacheMetricSet implements MetricSet {
     public Map<String, Metric> getMetrics() {
         ImmutableMap.Builder<String, Metric> cacheMetrics = ImmutableMap.builder();
 
+        cacheMetrics.put(cacheMetricName("estimated", "size"),
+                new CachedGauge<Long>(500, TimeUnit.MILLISECONDS) {
+                    @Override
+                    protected Long loadValue() {
+                        return cache.size();
+                    }
+                });
+
         cacheMetrics.put(cacheMetricName("request", "count"),
                 derivedGauge(new Function<CacheStats, Long>() {
                     @Override
