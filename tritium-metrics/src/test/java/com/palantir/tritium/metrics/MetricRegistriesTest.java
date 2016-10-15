@@ -77,6 +77,7 @@ public class MetricRegistriesTest {
 
         assertThat(metrics.getGauges().keySet()).containsExactly(
                 RESERVOIR_TYPE_GAUGE_NAME,
+                "test.estimated.size",
                 "test.eviction.count",
                 "test.hit.count",
                 "test.hit.ratio",
@@ -87,7 +88,6 @@ public class MetricRegistriesTest {
                 "test.miss.ratio",
                 "test.request.count"
         );
-        assertThat(metrics.getGauges().size()).isEqualTo(10);
 
         assertThat(cache.getUnchecked(42)).isEqualTo("42");
 
@@ -138,6 +138,7 @@ public class MetricRegistriesTest {
 
         assertThat(metrics.getGauges().keySet()).containsExactly(
                 "com.codahale.metrics.MetricRegistry.reservoirType",
+                "test.estimated.size",
                 "test.eviction.count",
                 "test.hit.count",
                 "test.hit.ratio",
@@ -147,7 +148,6 @@ public class MetricRegistriesTest {
                 "test.miss.count",
                 "test.miss.ratio",
                 "test.request.count");
-        assertThat(metrics.getGauges().size()).isEqualTo(10);
 
         assertThat(cache.getUnchecked(42)).isEqualTo("42");
 
@@ -156,6 +156,7 @@ public class MetricRegistriesTest {
         assertThat(metrics.getGauges().get("test.hit.ratio").getValue()).isEqualTo(Double.NaN);
         assertThat(metrics.getGauges().get("test.miss.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.miss.ratio").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("test.estimated.size").getValue()).isEqualTo(1L);
         assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.load.average.millis").getValue()).isEqualTo(0.0d);
         assertThat(metrics.getGauges().get("test.load.failure.count").getValue()).isEqualTo(0L);
