@@ -26,7 +26,7 @@ Service instrumentedService = Tritium.instrument(Service.class,
 ```
 
 
-## Creating a metric registry with reservoirs backed by [HDR Histograms](http://hdrhistogram.org/)
+## Creating a metric registry with reservoirs backed by [HDR Histograms](http://hdrhistogram.org/). The Histogram collects metrics throughout the lifetime of the service.
 
 ### Dropwizard 0.9+ Integration
 
