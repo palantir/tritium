@@ -17,34 +17,47 @@
 package com.palantir.tritium;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
+import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Timer;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.util.SortedMap;
+import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class TritiumTest {
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
 
+    private TestImplementation delegate = new TestImplementation();
+    private MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
+    private TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metricRegistry);
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
+    @After
+    public void tearDown() throws Exception {
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build();
+        reporter.report();
+        reporter.stop();
+    }
+
     @Test
     public void testInstrument() {
-        TestImplementation delegate = new TestImplementation();
-
-        MetricRegistry metricRegistry = new MetricRegistry();
-
-        TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metricRegistry);
-
         assertThat(delegate.invocationCount()).isEqualTo(0);
         assertThat(metricRegistry.getTimers().get(Runnable.class.getName())).isNull();
 
         instrumentedService.test();
         assertThat(delegate.invocationCount()).isEqualTo(1);
-
 
         SortedMap<String, Timer> timers = metricRegistry.getTimers();
         assertThat(timers.keySet()).hasSize(1);
@@ -60,4 +73,40 @@ public class TritiumTest {
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(Slf4jReporter.LoggingLevel.INFO).build().report();
     }
 
+    @Test
+    public void rethrowOutOfMemoryError() throws Exception {
+        expectedException.expect(OutOfMemoryError.class);
+        expectedException.expectMessage("Testing OOM");
+        instrumentedService.throwsOutOfMemoryError();
+    }
+
+    @Test
+    public void rethrowOutOfMemoryErrorMetrics() throws Exception {
+        String methodMetricName = MetricRegistry.name(TestInterface.class, "throwsOutOfMemoryError");
+        assertThat(metricRegistry.meter(
+                MetricRegistry.name(methodMetricName, "failures"))
+                .getCount())
+                .isEqualTo(0);
+        assertThat(metricRegistry.meter(
+                MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
+                .getCount())
+                .isEqualTo(0);
+
+        try {
+            instrumentedService.throwsOutOfMemoryError();
+            fail("Should have thrown OutOfMemoryError");
+        } catch (OutOfMemoryError expected) {
+            assertThat(expected.getMessage()).isEqualTo("Testing OOM");
+
+        }
+
+        assertThat(metricRegistry.meter(
+                MetricRegistry.name(methodMetricName, "failures"))
+                .getCount())
+                .isEqualTo(1);
+        assertThat(metricRegistry.meter(
+                MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
+                .getCount())
+                .isEqualTo(1);
+    }
 }
