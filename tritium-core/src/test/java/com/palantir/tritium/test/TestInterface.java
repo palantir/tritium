@@ -31,4 +31,6 @@ public interface TestInterface {
 
     int throwsThrowable() throws Throwable;
 
+    void throwsOutOfMemoryError();
+
 }

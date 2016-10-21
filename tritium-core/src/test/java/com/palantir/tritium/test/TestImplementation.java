@@ -58,6 +58,11 @@ public class TestImplementation implements TestInterface, Runnable {
         throw new AssertionError("Testing Error handling");
     }
 
+    @Override
+    public void throwsOutOfMemoryError() {
+        throw new OutOfMemoryError("Testing OOM");
+    }
+
     public int invocationCount() {
         return invocationCount.get();
     }
