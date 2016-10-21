@@ -21,15 +21,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 public class MetricRegistriesTest {
@@ -46,23 +48,14 @@ public class MetricRegistriesTest {
         assertThat(histogram.getCount()).isEqualTo(1);
         assertThat(histogram.getSnapshot().getMax()).isEqualTo(42);
 
-        metrics.timer("timer").time(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                Thread.sleep(123L);
-                return null;
-            }
-        });
-
-        assertThat(metrics.getTimers().get("timer").getCount()).isEqualTo(1);
+        metrics.timer("timer").update(123L, TimeUnit.MILLISECONDS);
+        assertThat(metrics.timer("timer").getCount()).isEqualTo(1);
     }
 
     @Test
     public void testRegisterCache() throws InterruptedException {
         MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-        assertThat(metrics.getGauges().size()).isEqualTo(1);
-        assertThat(metrics.getGauges()).containsKey(RESERVOIR_TYPE_GAUGE_NAME);
-        assertThat(metrics.getGauges().get(RESERVOIR_TYPE_GAUGE_NAME).getValue()).isEqualTo("HDR Histogram");
+
 
         LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
                 .maximumSize(1L)
@@ -75,8 +68,7 @@ public class MetricRegistriesTest {
                 });
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges().keySet()).containsExactly(
-                RESERVOIR_TYPE_GAUGE_NAME,
+        assertThat(metrics.getGauges(metricsPrefixedBy("test")).keySet()).containsExactly(
                 "test.estimated.size",
                 "test.eviction.count",
                 "test.hit.count",
@@ -119,11 +111,22 @@ public class MetricRegistriesTest {
     }
 
     @Test
-    public void testNoStats() throws Exception {
+    public void defaultMetrics() throws Exception {
         MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-        assertThat(metrics.getGauges().size()).isEqualTo(1);
+        assertThat(metrics.getGauges().size()).isEqualTo(3);
         assertThat(metrics.getGauges()).containsKey(RESERVOIR_TYPE_GAUGE_NAME);
         assertThat(metrics.getGauges().get(RESERVOIR_TYPE_GAUGE_NAME).getValue()).isEqualTo("HDR Histogram");
+        assertThat(metrics.getGauges().keySet()).containsExactly(
+                RESERVOIR_TYPE_GAUGE_NAME,
+                "com.palantir.tritium.metrics.snapshot.begin",
+                "com.palantir.tritium.metrics.snapshot.now"
+        );
+        report(metrics);
+    }
+
+    @Test
+    public void testNoStats() throws Exception {
+        MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
 
         LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
                 .maximumSize(1L)
@@ -136,8 +139,7 @@ public class MetricRegistriesTest {
 
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges().keySet()).containsExactly(
-                "com.codahale.metrics.MetricRegistry.reservoirType",
+        assertThat(metrics.getGauges(metricsPrefixedBy("test")).keySet()).containsExactly(
                 "test.estimated.size",
                 "test.eviction.count",
                 "test.hit.count",
@@ -147,7 +149,8 @@ public class MetricRegistriesTest {
                 "test.load.average.millis",
                 "test.miss.count",
                 "test.miss.ratio",
-                "test.request.count");
+                "test.request.count"
+        );
 
         assertThat(cache.getUnchecked(42)).isEqualTo("42");
 
@@ -205,4 +208,23 @@ public class MetricRegistriesTest {
             constructor.setAccessible(false);
         }
     }
+
+    private static MetricFilter metricsPrefixedBy(final String prefix) {
+        return new MetricFilter() {
+            @Override
+            public boolean matches(String name, Metric metric) {
+                return name.startsWith(prefix);
+            }
+        };
+    }
+
+    private static void report(MetricRegistry metrics) {
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
+                .convertDurationsTo(TimeUnit.MICROSECONDS)
+                .convertRatesTo(TimeUnit.MICROSECONDS)
+                .build();
+        reporter.report();
+        reporter.stop();
+    }
+
 }

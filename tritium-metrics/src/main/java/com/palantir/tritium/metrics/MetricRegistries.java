@@ -23,9 +23,12 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import javax.annotation.concurrent.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +38,12 @@ import org.slf4j.LoggerFactory;
 public final class MetricRegistries {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricRegistries.class);
+
+    /**
+     * An ISO 8601 date format for pre-Java 8 compatibility without Joda dependency.
+     */
+    @GuardedBy("field")
+    private static final SimpleDateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     private MetricRegistries() {
         throw new UnsupportedOperationException();
@@ -48,7 +57,34 @@ public final class MetricRegistries {
     public static MetricRegistry createWithHdrHistogramReservoirs() {
         // Use HDR Histogram reservoir histograms and timers, instead of default exponentially decaying reservoirs,
         // see http://taint.org/2014/01/16/145944a.html
-        return HdrHistogramMetricRegistry.create();
+        HdrHistogramMetricRegistry metrics = HdrHistogramMetricRegistry.create();
+        registerDefaultMetrics(metrics);
+        return metrics;
+    }
+
+    private static MetricRegistry registerDefaultMetrics(MetricRegistry metrics) {
+        registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "begin"),
+                new Gauge<String>() {
+                    private final String start = nowIsoTimestamp();
+                    @Override
+                    public String getValue() {
+                        return start;
+                    }
+                });
+        registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "now"),
+                new Gauge<String>() {
+                    @Override
+                    public String getValue() {
+                        return nowIsoTimestamp();
+                    }
+                });
+        return metrics;
+    }
+
+    private static String nowIsoTimestamp() {
+        synchronized (ISO_8601_DATE_FORMAT) {
+            return ISO_8601_DATE_FORMAT.format(new Date());
+        }
     }
 
     @SuppressWarnings("unchecked")

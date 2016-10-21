@@ -18,28 +18,32 @@ package com.palantir.tritium.metrics.caffeine;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.palantir.tritium.metrics.MetricRegistries;
+import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Test;
 
 public class CaffeineCacheMetricSetTest {
 
-    private static final String RESERVOIR_TYPE_GAUGE_NAME = MetricRegistry.name(MetricRegistry.class, "reservoirType");
+    private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
 
-
-    private MetricRegistry createMetricRegistry() {
-        MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-        assertThat(metrics.getGauges().size()).isEqualTo(1);
-        assertThat(metrics.getGauges()).containsKey(RESERVOIR_TYPE_GAUGE_NAME);
-        assertThat(metrics.getGauges().get(RESERVOIR_TYPE_GAUGE_NAME).getValue()).isEqualTo("HDR Histogram");
-        return metrics;
+    @After
+    public void tearDown() throws Exception {
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
+                .convertDurationsTo(TimeUnit.MICROSECONDS)
+                .convertRatesTo(TimeUnit.MICROSECONDS)
+                .build();
+        reporter.report();
+        reporter.stop();
     }
 
     @Test
     public void testRegisterCache() throws InterruptedException {
-        MetricRegistry metrics = createMetricRegistry();
 
         LoadingCache<Integer, String> cache = Caffeine.newBuilder()
                 .maximumSize(1L)
@@ -48,8 +52,7 @@ public class CaffeineCacheMetricSetTest {
 
         CaffeineCacheStats.registerCache(metrics, cache, "test1");
 
-        assertThat(metrics.getGauges().keySet()).containsExactly(
-                RESERVOIR_TYPE_GAUGE_NAME,
+        assertThat(metrics.getGauges(metricsPrefixedBy("test1")).keySet()).containsExactly(
                 "test1.estimated.size",
                 "test1.eviction.count",
                 "test1.hit.count",
@@ -96,19 +99,13 @@ public class CaffeineCacheMetricSetTest {
 
     @Test
     public void testNoStats() throws Exception {
-        MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-        assertThat(metrics.getGauges().size()).isEqualTo(1);
-        assertThat(metrics.getGauges()).containsKey(RESERVOIR_TYPE_GAUGE_NAME);
-        assertThat(metrics.getGauges().get(RESERVOIR_TYPE_GAUGE_NAME).getValue()).isEqualTo("HDR Histogram");
-
         LoadingCache<Integer, String> cache = Caffeine.newBuilder()
                 .maximumSize(1L)
                 .build(String::valueOf);
 
         CaffeineCacheStats.registerCache(metrics, cache, "test2");
 
-        assertThat(metrics.getGauges().keySet()).containsExactly(
-                "com.codahale.metrics.MetricRegistry.reservoirType",
+        assertThat(metrics.getGauges(metricsPrefixedBy("test2")).keySet()).containsExactly(
                 "test2.estimated.size",
                 "test2.eviction.count",
                 "test2.hit.count",
@@ -131,6 +128,10 @@ public class CaffeineCacheMetricSetTest {
         assertThat(metrics.getGauges().get("test2.load.average.millis").getValue()).isEqualTo(0.0d);
         assertThat(metrics.getGauges().get("test2.load.failure.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test2.load.success.count").getValue()).isEqualTo(0L);
+    }
+
+    private static MetricFilter metricsPrefixedBy(final String prefix) {
+        return (name, metric) -> name.startsWith(prefix);
     }
 
 }
