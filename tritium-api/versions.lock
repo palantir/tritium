@@ -1,0 +1,12 @@
+{
+    "compileClasspath": {
+        "com.google.code.findbugs:annotations": {
+            "locked": "3.0.0"
+        }
+    },
+    "runtime": {
+        "com.google.code.findbugs:annotations": {
+            "locked": "3.0.0"
+        }
+    }
+}

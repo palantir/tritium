@@ -1,0 +1,62 @@
+{
+    "compileClasspath": {
+        "com.google.code.findbugs:annotations": {
+            "locked": "3.0.0",
+            "transitive": [
+                "com.palantir.tritium:tritium-api",
+                "com.palantir.tritium:tritium-core"
+            ]
+        },
+        "com.google.guava:guava": {
+            "locked": "18.0",
+            "transitive": [
+                "com.palantir.tritium:tritium-core"
+            ]
+        },
+        "com.palantir.tritium:tritium-api": {
+            "project": true,
+            "transitive": [
+                "com.palantir.tritium:tritium-core"
+            ]
+        },
+        "com.palantir.tritium:tritium-core": {
+            "project": true
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.12",
+            "transitive": [
+                "com.palantir.tritium:tritium-core"
+            ]
+        }
+    },
+    "runtime": {
+        "com.google.code.findbugs:annotations": {
+            "locked": "3.0.0",
+            "transitive": [
+                "com.palantir.tritium:tritium-api",
+                "com.palantir.tritium:tritium-core"
+            ]
+        },
+        "com.google.guava:guava": {
+            "locked": "18.0",
+            "transitive": [
+                "com.palantir.tritium:tritium-core"
+            ]
+        },
+        "com.palantir.tritium:tritium-api": {
+            "project": true,
+            "transitive": [
+                "com.palantir.tritium:tritium-core"
+            ]
+        },
+        "com.palantir.tritium:tritium-core": {
+            "project": true
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.12",
+            "transitive": [
+                "com.palantir.tritium:tritium-core"
+            ]
+        }
+    }
+}
