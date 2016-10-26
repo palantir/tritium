@@ -13,5 +13,5 @@ org.hdrhistogram:HdrHistogram = 2.1.9
 org.immutables:value = 2.1.10
 org.mockito:mockito-all = 1.10.19
 org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir = 1.1.2
-org.openjdk.jmh:* = 1.14.1
+org.openjdk.jmh:* = 1.15
 org.slf4j:* = 1.7.12
