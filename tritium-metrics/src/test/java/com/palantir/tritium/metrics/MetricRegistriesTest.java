@@ -26,37 +26,58 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Snapshot;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Test;
+import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
 public class MetricRegistriesTest {
 
-    private static final String RESERVOIR_TYPE_GAUGE_NAME = MetricRegistry.name(MetricRegistry.class, "reservoirType");
+    private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
+
+    @After
+    public void tearDown() throws Exception {
+        report(metrics);
+    }
+
+    @Test
+    public void defaultMetrics() throws Exception {
+        assertThat(metrics.getGauges().size()).isEqualTo(3);
+        assertThat(metrics.getGauges()).containsKey(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME);
+        assertThat(metrics.getGauges().get(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME).getValue()).isEqualTo(
+                HdrHistogramReservoir.class.getName());
+        assertThat(metrics.getGauges().keySet()).containsExactly(
+                MetricRegistries.RESERVOIR_TYPE_METRIC_NAME,
+                "com.palantir.tritium.metrics.snapshot.begin",
+                "com.palantir.tritium.metrics.snapshot.now"
+        );
+        report(metrics);
+    }
 
     @Test
     public void testHdrHistogram() throws Exception {
-        MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
         assertThat(metrics).isNotNull();
 
         Histogram histogram = metrics.histogram("histogram");
         histogram.update(42L);
         assertThat(histogram.getCount()).isEqualTo(1);
-        assertThat(histogram.getSnapshot().getMax()).isEqualTo(42);
+        Snapshot histogramSnapshot = histogram.getSnapshot();
+        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogramSnapshot.getMax()).isEqualTo(42);
 
-        metrics.timer("timer").update(123L, TimeUnit.MILLISECONDS);
+        metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
         assertThat(metrics.timer("timer").getCount()).isEqualTo(1);
     }
 
     @Test
     public void testRegisterCache() throws InterruptedException {
-        MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-
-
         LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
                 .maximumSize(1L)
                 .recordStats()
@@ -111,23 +132,7 @@ public class MetricRegistriesTest {
     }
 
     @Test
-    public void defaultMetrics() throws Exception {
-        MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-        assertThat(metrics.getGauges().size()).isEqualTo(3);
-        assertThat(metrics.getGauges()).containsKey(RESERVOIR_TYPE_GAUGE_NAME);
-        assertThat(metrics.getGauges().get(RESERVOIR_TYPE_GAUGE_NAME).getValue()).isEqualTo("HDR Histogram");
-        assertThat(metrics.getGauges().keySet()).containsExactly(
-                RESERVOIR_TYPE_GAUGE_NAME,
-                "com.palantir.tritium.metrics.snapshot.begin",
-                "com.palantir.tritium.metrics.snapshot.now"
-        );
-        report(metrics);
-    }
-
-    @Test
     public void testNoStats() throws Exception {
-        MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-
         LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
                 .maximumSize(1L)
                 .build(new CacheLoader<Integer, String>() {
@@ -173,25 +178,27 @@ public class MetricRegistriesTest {
         when(metricRegistry.register("test", mockMetric)).thenReturn(mockMetric);
         when(metricRegistry.register("test", mockMetric)).thenThrow(new IllegalArgumentException());
 
-        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", HdrHistogramMetricRegistry.HISTOGRAMS))
+        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test",
+                new HistogramMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier())))
                 .isEqualTo(mockMetric);
 
-        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test", HdrHistogramMetricRegistry.HISTOGRAMS))
+        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test",
+                new HistogramMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier())))
                 .isEqualTo(mockMetric);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidReregistration() {
-        MetricRegistry metrics = new MetricRegistry();
         MetricRegistries.registerSafe(metrics, "test", metrics.counter("counter"));
         MetricRegistries.registerSafe(metrics, "test", metrics.histogram("histogram"));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidGetOrAdd() {
-        MetricRegistry metrics = new MetricRegistry();
-        MetricRegistries.getOrAdd(metrics, "histogram", HdrHistogramMetricRegistry.HISTOGRAMS);
-        MetricRegistries.getOrAdd(metrics, "histogram", HdrHistogramMetricRegistry.TIMERS);
+        MetricRegistries.getOrAdd(metrics, "histogram", new HistogramMetricBuilder(
+                Reservoirs.hdrHistogramReservoirSupplier()));
+        MetricRegistries.getOrAdd(metrics, "histogram", new TimerMetricBuilder(
+                Reservoirs.hdrHistogramReservoirSupplier()));
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -220,8 +227,6 @@ public class MetricRegistriesTest {
 
     private static void report(MetricRegistry metrics) {
         ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
-                .convertDurationsTo(TimeUnit.MICROSECONDS)
-                .convertRatesTo(TimeUnit.MICROSECONDS)
                 .build();
         reporter.report();
         reporter.stop();

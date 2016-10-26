@@ -21,6 +21,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Reservoir;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import java.text.SimpleDateFormat;
@@ -45,19 +48,34 @@ public final class MetricRegistries {
     @GuardedBy("field")
     private static final SimpleDateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
+    static final String RESERVOIR_TYPE_METRIC_NAME = MetricRegistry.name(MetricRegistries.class, "reservoir.type");
+
     private MetricRegistries() {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Create metric registry which produces timers and histograms backed by high dynamic range histograms.
+     * Create metric registry which produces timers and histograms backed by
+     * high dynamic range histograms and timers, that accumulates internal state forever.
      *
      * @return metric registry
      */
     public static MetricRegistry createWithHdrHistogramReservoirs() {
         // Use HDR Histogram reservoir histograms and timers, instead of default exponentially decaying reservoirs,
         // see http://taint.org/2014/01/16/145944a.html
-        HdrHistogramMetricRegistry metrics = HdrHistogramMetricRegistry.create();
+        return createWithReservoirType(Reservoirs.hdrHistogramReservoirSupplier());
+    }
+
+    @VisibleForTesting
+    static MetricRegistry createWithReservoirType(Supplier<Reservoir> reservoirSupplier) {
+        MetricRegistry metrics = new MetricRegistryWithReservoirs(reservoirSupplier);
+        final String name = reservoirSupplier.get().getClass().getCanonicalName();
+        registerSafe(metrics, RESERVOIR_TYPE_METRIC_NAME, new Gauge<String>() {
+            @Override
+            public String getValue() {
+                return name;
+            }
+        });
         registerDefaultMetrics(metrics);
         return metrics;
     }
@@ -106,9 +124,8 @@ public final class MetricRegistries {
         } else if (builder.isInstance(metric)) {
             return (T) metric;
         }
-        throw new IllegalArgumentException(name + " is already used for a different type of metric");
+        throw new IllegalArgumentException(name + " is already used for a different type of metric for " + metric);
     }
-
 
     /**
      * Register specified cache with the given metric registry.

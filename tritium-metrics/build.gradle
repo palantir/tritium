@@ -10,6 +10,7 @@ dependencies {
     compile "com.google.guava:guava:${guavaVersion}"
     compile "io.dropwizard.metrics:metrics-core:${dropwizardMetricsVersion}"
     compile "org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:${hdrHistogramMetricsReservoirVersion}"
+    compile "org.hdrhistogram:HdrHistogram:${hdrHistogramVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
     processor "org.immutables:value:${immutablesVersion}"
