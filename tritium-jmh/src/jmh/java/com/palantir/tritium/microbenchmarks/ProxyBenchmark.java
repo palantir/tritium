@@ -19,9 +19,14 @@ package com.palantir.tritium.microbenchmarks;
 import com.github.kristofa.brave.Brave;
 import com.github.kristofa.brave.LoggingSpanCollector;
 import com.github.kristofa.brave.Sampler;
+import com.palantir.remoting1.tracing.AsyncSlf4jSpanObserver;
+import com.palantir.remoting1.tracing.Tracer;
 import com.palantir.tritium.brave.BraveLocalTracingInvocationEventHandler;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
+import com.palantir.tritium.tracing.TracingInvocationEventHandler;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -57,10 +62,13 @@ public class ProxyBenchmark {
     private Service instrumentedWithMetrics;
     private Service instrumentedWithEverything;
     private Service instrumentedWithBrave;
+    private Service instrumentedWithTracing;
+
+    private ExecutorService executor;
 
     @Setup
     public void setup() {
-        previousLogLevel = System.setProperty(DEFAULT_LOG_LEVEL, "trace");
+        previousLogLevel = System.setProperty(DEFAULT_LOG_LEVEL, "WARN");
 
         raw = new TestService();
 
@@ -86,15 +94,24 @@ public class ProxyBenchmark {
                 .withHandler(braveLocalTracingInvocationEventHandler)
                 .build();
 
+        TracingInvocationEventHandler tracingInvocationEventHandler = new TracingInvocationEventHandler("jmh");
+        executor = Executors.newSingleThreadExecutor();
+        Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
+        instrumentedWithTracing = Instrumentation.builder(Service.class, raw)
+                .withHandler(tracingInvocationEventHandler)
+                .build();
+
         instrumentedWithEverything = Instrumentation.builder(Service.class, raw)
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .withPerformanceTraceLogging()
                 .withHandler(braveLocalTracingInvocationEventHandler)
+                .withHandler(tracingInvocationEventHandler)
                 .build();
     }
 
     @TearDown
     public void tearDown() throws Exception {
+        executor.shutdown();
         if (previousLogLevel == null) {
             System.clearProperty(DEFAULT_LOG_LEVEL);
         } else {
@@ -125,6 +142,11 @@ public class ProxyBenchmark {
     @Benchmark
     public String instrumentedWithBrave() {
         return instrumentedWithBrave.echo("test");
+    }
+
+    @Benchmark
+    public String instrumentedWithTracing() {
+        return instrumentedWithTracing.echo("test");
     }
 
     @Benchmark
