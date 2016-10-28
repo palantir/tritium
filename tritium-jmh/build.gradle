@@ -38,6 +38,8 @@ dependencies {
     compile project(":tritium-lib")
     compile project(":tritium-metrics")
     compile project(":tritium-slf4j")
+    compile project(":tritium-tracing")
+
     compile "com.google.code.findbugs:annotations:${findbugsVersion}"
     compile "com.google.guava:guava:${guavaVersion}"
     compile "io.dropwizard.metrics:metrics-core:${dropwizardMetricsVersion}"

@@ -1,0 +1,28 @@
+apply plugin: 'com.palantir.publish-jar'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+dependencies {
+    compile project(":tritium-api")
+    compile project(":tritium-core")
+
+    compile "com.google.code.findbugs:annotations:${findbugsVersion}"
+    compile "com.palantir.remoting1:tracing:${httpRemotingVersion}"
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+
+    processor "org.immutables:value:${immutablesVersion}"
+
+    testCompile project(path: ":tritium-core", configuration: "testArtifacts")
+
+    testCompile "ch.qos.logback:logback-classic:${logbackClassicVersion}"
+    testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {
+        exclude group: "com.google.truth"
+        exclude group: "com.google.guava", module: "guava"
+    }
+    testCompile "com.google.truth:truth:${truthVersion}"
+    testCompile "junit:junit:${junitVersion}"
+    testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
+    testCompile "org.mockito:mockito-all:${mockitoVersion}"
+}
+
