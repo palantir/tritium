@@ -18,7 +18,7 @@ package com.palantir.tritium.event.log;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Verify;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.api.functions.LongPredicate;
@@ -180,7 +180,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
             message.append("{}");
         }
         message.append(") took {}ms");
-        Verify.verify(estimatedSize == message.length(),
+        Preconditions.checkState(estimatedSize == message.length(),
                 "Incorrect estimated size for %s arguments, expected %s, was %s",
                 argCount, estimatedSize, message.length());
         return message.toString();
