@@ -61,7 +61,7 @@ class CacheMetricSet implements MetricSet {
     }
 
     private String cacheMetricName(String... args) {
-        return MetricRegistry.name(metricsPrefix, args);
+        return MetricRegistry.name(MetricRegistry.name(metricsPrefix, "cache"), args);
     }
 
     @Override
