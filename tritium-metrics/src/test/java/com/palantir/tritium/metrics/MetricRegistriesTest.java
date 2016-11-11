@@ -90,45 +90,45 @@ public class MetricRegistriesTest {
         MetricRegistries.registerCache(metrics, cache, "test");
 
         assertThat(metrics.getGauges(metricsPrefixedBy("test")).keySet()).containsExactly(
-                "test.estimated.size",
-                "test.eviction.count",
-                "test.hit.count",
-                "test.hit.ratio",
-                "test.load.failure.count",
-                "test.load.success.count",
-                "test.load.average.millis",
-                "test.miss.count",
-                "test.miss.ratio",
-                "test.request.count"
+                "test.cache.estimated.size",
+                "test.cache.eviction.count",
+                "test.cache.hit.count",
+                "test.cache.hit.ratio",
+                "test.cache.load.failure.count",
+                "test.cache.load.success.count",
+                "test.cache.load.average.millis",
+                "test.cache.miss.count",
+                "test.cache.miss.ratio",
+                "test.cache.request.count"
         );
 
         assertThat(cache.getUnchecked(42)).isEqualTo("42");
 
-        assertThat(metrics.getGauges().get("test.request.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test.hit.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.hit.ratio").getValue()).isEqualTo(0.0d);
-        assertThat(metrics.getGauges().get("test.miss.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test.miss.ratio").getValue()).isEqualTo(1.0d);
-        assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.load.average.millis").getValue()).isInstanceOf(Double.class);
-        assertThat(metrics.getGauges().get("test.load.failure.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.load.success.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(0.0d);
+        assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(1.0d);
+        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isInstanceOf(Double.class);
+        assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue()).isEqualTo(1L);
 
         assertThat(cache.getUnchecked(42)).isEqualTo("42");
         Thread.sleep(700); // let stats snapshot cache expire
 
-        assertThat(metrics.getGauges().get("test.request.count").getValue()).isEqualTo(2L);
-        assertThat(metrics.getGauges().get("test.hit.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test.miss.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.load.average.millis").getValue()).isInstanceOf(Double.class);
-        assertThat(metrics.getGauges().get("test.load.failure.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.load.success.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(2L);
+        assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isInstanceOf(Double.class);
+        assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue()).isEqualTo(1L);
 
         cache.getUnchecked(1);
         Thread.sleep(700); // let stats snapshot cache expire
 
-        assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(1L);
     }
 
     @Test
@@ -145,30 +145,30 @@ public class MetricRegistriesTest {
         MetricRegistries.registerCache(metrics, cache, "test");
 
         assertThat(metrics.getGauges(metricsPrefixedBy("test")).keySet()).containsExactly(
-                "test.estimated.size",
-                "test.eviction.count",
-                "test.hit.count",
-                "test.hit.ratio",
-                "test.load.failure.count",
-                "test.load.success.count",
-                "test.load.average.millis",
-                "test.miss.count",
-                "test.miss.ratio",
-                "test.request.count"
+                "test.cache.estimated.size",
+                "test.cache.eviction.count",
+                "test.cache.hit.count",
+                "test.cache.hit.ratio",
+                "test.cache.load.failure.count",
+                "test.cache.load.success.count",
+                "test.cache.load.average.millis",
+                "test.cache.miss.count",
+                "test.cache.miss.ratio",
+                "test.cache.request.count"
         );
 
         assertThat(cache.getUnchecked(42)).isEqualTo("42");
 
-        assertThat(metrics.getGauges().get("test.request.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.hit.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.hit.ratio").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("test.miss.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.miss.ratio").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("test.estimated.size").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test.eviction.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.load.average.millis").getValue()).isEqualTo(0.0d);
-        assertThat(metrics.getGauges().get("test.load.failure.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.load.success.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("test.cache.estimated.size").getValue()).isEqualTo(1L);
+        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isEqualTo(0.0d);
+        assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue()).isEqualTo(0L);
     }
 
     @Test(expected = IllegalArgumentException.class)
