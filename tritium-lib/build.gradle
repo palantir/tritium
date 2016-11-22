@@ -1,5 +1,6 @@
 apply plugin: 'com.palantir.publish-jar'
 apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'maven'
 
 dependencies {
     compile project(":tritium-api")
@@ -28,12 +29,28 @@ dependencies {
 }
 
 shadowJar {
+    classifier = null
     mergeServiceFiles()
 
     dependencies {
+        // Exclude other tritium projects
+        exclude project(':tritium-api')
+        exclude project(':tritium-core')
+        exclude project(':tritium-metrics')
+        exclude project(':tritium-slf4j')
+
         // Exclude Guava, dropwizard metrics, and slf4j
-        exclude 'com/google/common/**'
+        exclude 'com.google.code.findbugs:annotations'
+        exclude 'com.google.guava:guava'
+        exclude 'org.objenesis:objenesis'
+        exclude 'org.slf4j:slf4j-api'
+
         exclude 'com/codahale/metrics/**'
+        exclude 'com/google/common/**'
+        exclude 'com/google/thirdparty/publicsuffix/**'
+        exclude 'edu/umd/cs/findbugs/annotations/**'
+        exclude 'javax/annotation/**'
+        exclude 'net/jcip/annotations/**'
         exclude 'org/slf4j/**'
     }
 
