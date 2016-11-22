@@ -16,15 +16,16 @@
 
 package com.palantir.tritium.proxy;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
+import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Slf4jReporter.LoggingLevel;
@@ -41,13 +42,15 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
-import java.util.Set;
 import java.util.SortedMap;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
 
+@RunWith(MockitoJUnitRunner.class)
 public class InstrumentationTest {
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
@@ -55,14 +58,25 @@ public class InstrumentationTest {
     // Exceed the HotSpot JIT thresholds
     private static final int INVOCATION_ITERATIONS = 1500000;
 
+    @Mock
+    private InvocationEventHandler<InvocationContext> mockHandler;
+
+    private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
+
+    @After
+    public void after() throws Exception {
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build();
+        reporter.report();
+        reporter.close();
+    }
 
     @Test
     public void testEmptyHandlers() {
         TestInterface delegate = new TestImplementation();
         TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate,
                 Collections.<InvocationEventHandler<InvocationContext>>emptyList());
-        assertThat(instrumented, is(equalTo(delegate)));
-        assertThat(Proxy.isProxyClass(instrumented.getClass()), equalTo(false));
+        assertThat(instrumented).isEqualTo(delegate);
+        assertThat(Proxy.isProxyClass(instrumented.getClass())).isFalse();
     }
 
     @Test
@@ -76,23 +90,22 @@ public class InstrumentationTest {
                 .withPerformanceTraceLogging()
                 .build();
 
-        assertThat(delegate.invocationCount(), equalTo(0));
-        assertThat(metricRegistry.getTimers().get(Runnable.class.getName()), nullValue());
+        assertThat(delegate.invocationCount()).isEqualTo(0);
+        assertThat(metricRegistry.getTimers().get(Runnable.class.getName())).isNull();
 
         instrumentedService.test();
-        assertThat(delegate.invocationCount(), equalTo(1));
+        assertThat(delegate.invocationCount()).isEqualTo(1);
 
         SortedMap<String, Timer> timers = metricRegistry.getTimers();
-        assertThat(timers.keySet(), hasSize(1));
-        assertThat(timers.keySet(), Matchers.<Set<String>>equalTo(ImmutableSet.of(EXPECTED_METRIC_NAME)));
-        assertThat(timers.get(EXPECTED_METRIC_NAME), notNullValue());
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount(), equalTo(1L));
+        assertThat(timers.keySet()).hasSize(1);
+        assertThat(timers.keySet()).isEqualTo(ImmutableSet.of(EXPECTED_METRIC_NAME));
+        assertThat(timers.get(EXPECTED_METRIC_NAME)).isNotNull();
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(1);
 
         executeManyTimes(instrumentedService, INVOCATION_ITERATIONS);
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
 
-        assertThat(Long.valueOf(timers.get(EXPECTED_METRIC_NAME).getCount()).intValue(),
-                equalTo(delegate.invocationCount()));
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
         assertTrue(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax() >= 0L);
 
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
@@ -137,8 +150,8 @@ public class InstrumentationTest {
                     instrumentedService.throwsCheckedException();
                     fail("Expected exception");
                 } catch (Exception expected) {
-                    assertThat(expected, CoreMatchers.instanceOf(TestImplementation.TestException.class));
-                    assertThat(expected.getCause(), equalTo(null));
+                    assertThat(expected).isInstanceOf(TestImplementation.TestException.class);
+                    assertThat(expected.getCause()).isNull();
                 }
             }
         }
@@ -158,11 +171,44 @@ public class InstrumentationTest {
                     instrumentedService.throwsThrowable();
                     fail("Expected throwable");
                 } catch (Throwable throwable) {
-                    assertThat(throwable, CoreMatchers.instanceOf(AssertionError.class));
-                    assertThat(throwable.getCause(), equalTo(null));
+                    assertThat(throwable).isInstanceOf(AssertionError.class);
+                    assertThat(throwable.getCause()).isNull();
                 }
             }
         }
+    }
+
+    @Test
+    public void testWrapConcreteType() throws Exception {
+        when(mockHandler.isEnabled()).thenReturn(true);
+        Number instrumentedFourtyTwo = Instrumentation.builder(Number.class, Integer.valueOf(42))
+                .withMetrics(metrics)
+                .withHandler(mockHandler)
+                .build();
+
+        assertThat(instrumentedFourtyTwo.intValue()).isEqualTo(42);
+        assertThat(metrics.timer(MetricRegistry.name(Number.class, "intValue")).getCount()).isEqualTo(1);
+
+        assertThat(instrumentedFourtyTwo.longValue()).isEqualTo(42);
+        assertThat(metrics.timer(MetricRegistry.name(Number.class, "longValue")).getCount()).isEqualTo(1);
+
+        verify(mockHandler, times(2)).onSuccess(any(InvocationContext.class), any(Object.class));
+    }
+
+    @Test
+    public void testCannotWrapFinalConcreteType() throws Exception {
+        try {
+            Instrumentation.builder(Integer.class, Integer.valueOf(42))
+                    .withMetrics(metrics)
+                    .withHandler(mockHandler)
+                    .build();
+            fail("Integer is a final type and cannot be instrumented");
+        } catch (IllegalArgumentException expected) {
+            assertThat(expected.getMessage()).isEqualTo(
+                    "Cannot subclass final class java.lang.Integer");
+        }
+
+        verifyNoMoreInteractions(mockHandler);
     }
 
     @Test(expected = NullPointerException.class)

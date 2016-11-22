@@ -1,12 +1,16 @@
 apply plugin: 'com.palantir.publish-jar'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     compile project(":tritium-api")
     compile project(":tritium-core")
     compile project(":tritium-metrics")
     compile project(":tritium-slf4j")
+
+    compile "cglib:cglib-nodep:${cglibVersion}"
     compile "com.google.code.findbugs:annotations:${findbugsVersion}"
     compile "com.google.guava:guava:${guavaVersion}"
+    compile "org.objenesis:objenesis:${objenesisVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
     processor "org.immutables:value:${immutablesVersion}"
@@ -21,4 +25,25 @@ dependencies {
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
     testCompile "org.mockito:mockito-all:${mockitoVersion}"
     testCompile "org.slf4j:slf4j-simple:${slf4jVersion}"
+}
+
+shadowJar {
+    mergeServiceFiles()
+
+    dependencies {
+        // Exclude Guava, dropwizard metrics, and slf4j
+        exclude 'com/google/common/**'
+        exclude 'com/codahale/metrics/**'
+        exclude 'org/slf4j/**'
+    }
+
+    relocate('net.sf.cglib', 'com.palantir.tritium.shaded.net.sf.cglib')
+    relocate('org.HdrHistogram', 'com.palantir.tritium.shaded.org.HdrHistogram')
+    relocate('org.mpierce', 'com.palantir.tritium.shaded.org.mpierce')
+    relocate('org.objenesis', 'com.palantir.tritium.shaded.org.objenesis')
+
+}
+
+publishing.publications.nebula {
+    artifact(shadowJar)
 }
