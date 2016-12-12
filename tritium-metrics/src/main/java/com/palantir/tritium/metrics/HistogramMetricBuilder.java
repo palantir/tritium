@@ -21,7 +21,6 @@ import com.codahale.metrics.Reservoir;
 import com.google.common.base.Supplier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressFBWarnings("PT_EXTENDS_CONCRETE_TYPE")
 final class HistogramMetricBuilder extends AbstractReservoirMetricBuilder<Histogram> {
 
     HistogramMetricBuilder(Supplier<Reservoir> reservoirSupplier) {
@@ -33,6 +32,7 @@ final class HistogramMetricBuilder extends AbstractReservoirMetricBuilder<Histog
         return new ReservoirHistogram(getReservoirSupplier().get());
     }
 
+    @SuppressFBWarnings("PT_EXTENDS_CONCRETE_TYPE")
     private static class ReservoirHistogram extends Histogram {
         private final Reservoir reservoir;
 
