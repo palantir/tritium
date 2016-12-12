@@ -21,7 +21,6 @@ import com.codahale.metrics.Timer;
 import com.google.common.base.Supplier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressFBWarnings("PT_EXTENDS_CONCRETE_TYPE")
 final class TimerMetricBuilder extends AbstractReservoirMetricBuilder<Timer> {
 
     TimerMetricBuilder(Supplier<Reservoir> reservoirSupplier) {
@@ -33,6 +32,7 @@ final class TimerMetricBuilder extends AbstractReservoirMetricBuilder<Timer> {
         return new ReservoirTimer(getReservoirSupplier().get());
     }
 
+    @SuppressFBWarnings("PT_EXTENDS_CONCRETE_TYPE")
     private static class ReservoirTimer extends Timer {
         private final Reservoir reservoir;
 
