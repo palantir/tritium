@@ -30,13 +30,20 @@ final class TimerMetricBuilder extends AbstractReservoirMetricBuilder<Timer> {
 
     @Override
     public Timer newMetric() {
-        final Reservoir reservoir = getReservoirSupplier().get();
-        return new Timer(reservoir) {
-            @Override
-            public long getCount() {
-                return reservoir.size();
-            }
-        };
+        return new ReservoirTimer(getReservoirSupplier().get());
     }
 
+    private static class ReservoirTimer extends Timer {
+        private final Reservoir reservoir;
+
+        ReservoirTimer(Reservoir reservoir) {
+            super(reservoir);
+            this.reservoir = reservoir;
+        }
+
+        @Override
+        public long getCount() {
+            return reservoir.size();
+        }
+    }
 }
