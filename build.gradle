@@ -6,12 +6,11 @@ buildscript {
     }
 
     dependencies {
-        classpath "com.github.jengelman.gradle.plugins:shadow:${shadowVersion}"
+        classpath "com.palantir:gradle-baseline-java:${baselineVersion}"
+        classpath "com.palantir:jacoco-coverage:${jacocoCoverageVersion}"
         classpath "com.palantir.exartisi:gradle-exartisi-plugin:${exartisiVersion}"
         classpath "com.palantir.gradle.gitversion:gradle-git-version:${gitVersionVersion}"
         classpath "com.palantir.internalpublish:gradle-internal-publish-plugin:${internalPublishVersion}"
-        classpath "com.palantir:gradle-baseline-java:${baselineVersion}"
-        classpath "com.palantir:jacoco-coverage:${jacocoCoverageVersion}"
         classpath "gradle.plugin.com.palantir.configurationresolver:gradle-configuration-resolver-plugin:${configurationResolverVersion}"
         classpath "gradle.plugin.org.inferred:gradle-processors:${processorsVersion}"
     }

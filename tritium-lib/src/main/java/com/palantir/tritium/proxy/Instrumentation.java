@@ -27,13 +27,8 @@ import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
-import net.sf.cglib.proxy.Callback;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.InvocationHandler;
-import org.objenesis.ObjenesisHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,27 +41,18 @@ public final class Instrumentation {
         throw new UnsupportedOperationException();
     }
 
-    static <T, U extends T> T wrap(
-            final Class<T> type,
+    public static <T, U extends T> T wrap(
+            final Class<T> interfaceClass,
             final U delegate,
             final List<InvocationEventHandler<InvocationContext>> handlers) {
-        checkNotNull(type, "type");
-        checkNotNull(delegate, "delegate");
-        checkNotNull(handlers, "handlers");
+        checkNotNull(interfaceClass);
+        checkNotNull(delegate);
+        checkNotNull(handlers);
 
         if (handlers.isEmpty()) {
             return delegate;
         }
 
-        if (type.isInterface()) {
-            return createInterfaceProxy(type, delegate, handlers);
-        } else {
-            return createConcreteProxy(type, delegate, handlers);
-        }
-    }
-
-    private static <T, U extends T> T createInterfaceProxy(Class<T> interfaceClass, final U delegate,
-            final List<InvocationEventHandler<InvocationContext>> handlers) {
         return Proxies.newProxy(interfaceClass, delegate,
                 new InvocationEventProxy<InvocationContext>(handlers) {
                     @Override
@@ -74,21 +60,6 @@ public final class Instrumentation {
                         return delegate;
                     }
                 });
-    }
-
-    private static <T, U extends T> T createConcreteProxy(Class<T> interfaceClass,
-            final U delegate,
-            final List<InvocationEventHandler<InvocationContext>> handlers) {
-        Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(interfaceClass);
-        enhancer.setCallbackType(InvocationEventHandlerAdapter.class);
-        // use objenesis so that we can proxy classes which do not have a null constructor
-        @SuppressWarnings("unchecked")
-        Class<T> newClass = (Class<T>) enhancer.createClass();
-        Enhancer.registerCallbacks(newClass, new Callback[] {
-                InvocationEventHandlerAdapter.create(delegate, handlers)
-        });
-        return ObjenesisHelper.newInstance(newClass);
     }
 
     /**
@@ -104,9 +75,9 @@ public final class Instrumentation {
     @Deprecated
     public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
         return builder(serviceInterface, delegate)
-                .withMetrics(metricRegistry)
-                .withPerformanceTraceLogging()
-                .build();
+            .withMetrics(metricRegistry)
+            .withPerformanceTraceLogging()
+            .build();
     }
 
     public static <T> Logger getPerformanceLoggerForInterface(Class<T> serviceInterface) {
@@ -165,27 +136,4 @@ public final class Instrumentation {
         }
     }
 
-    private static class InvocationEventHandlerAdapter implements InvocationHandler {
-        private InvocationEventProxy<InvocationContext> proxy;
-
-        InvocationEventHandlerAdapter(InvocationEventProxy<InvocationContext> proxy) {
-            this.proxy = proxy;
-        }
-
-        static <T> InvocationEventHandlerAdapter create(final T delegate,
-                List<InvocationEventHandler<InvocationContext>> handlers) {
-            return new InvocationEventHandlerAdapter(
-                    new InvocationEventProxy<InvocationContext>(handlers) {
-                        @Override
-                        T getDelegate() {
-                            return delegate;
-                        }
-                    });
-        }
-
-        @Override
-        public Object invoke(Object instance, Method method, Object[] args) throws Throwable {
-            return proxy.invoke(instance, method, args);
-        }
-    }
 }
