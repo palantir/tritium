@@ -19,11 +19,6 @@ package com.palantir.tritium.proxy;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
@@ -176,39 +171,6 @@ public class InstrumentationTest {
                 }
             }
         }
-    }
-
-    @Test
-    public void testWrapConcreteType() throws Exception {
-        when(mockHandler.isEnabled()).thenReturn(true);
-        Number instrumentedFourtyTwo = Instrumentation.builder(Number.class, Integer.valueOf(42))
-                .withMetrics(metrics)
-                .withHandler(mockHandler)
-                .build();
-
-        assertThat(instrumentedFourtyTwo.intValue()).isEqualTo(42);
-        assertThat(metrics.timer(MetricRegistry.name(Number.class, "intValue")).getCount()).isEqualTo(1);
-
-        assertThat(instrumentedFourtyTwo.longValue()).isEqualTo(42);
-        assertThat(metrics.timer(MetricRegistry.name(Number.class, "longValue")).getCount()).isEqualTo(1);
-
-        verify(mockHandler, times(2)).onSuccess(any(InvocationContext.class), any(Object.class));
-    }
-
-    @Test
-    public void testCannotWrapFinalConcreteType() throws Exception {
-        try {
-            Instrumentation.builder(Integer.class, Integer.valueOf(42))
-                    .withMetrics(metrics)
-                    .withHandler(mockHandler)
-                    .build();
-            fail("Integer is a final type and cannot be instrumented");
-        } catch (IllegalArgumentException expected) {
-            assertThat(expected.getMessage()).isEqualTo(
-                    "Cannot subclass final class java.lang.Integer");
-        }
-
-        verifyNoMoreInteractions(mockHandler);
     }
 
     @Test(expected = NullPointerException.class)

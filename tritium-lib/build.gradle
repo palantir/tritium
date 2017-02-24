@@ -1,29 +1,13 @@
 apply plugin: 'com.palantir.publish-jar'
-apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     compile project(":tritium-api")
     compile project(":tritium-core")
     compile project(":tritium-metrics")
     compile project(":tritium-slf4j")
-
-    compile "cglib:cglib-nodep:${cglibVersion}"
     compile "com.google.code.findbugs:annotations:${findbugsVersion}"
     compile "com.google.guava:guava:${guavaVersion}"
-    compile "org.objenesis:objenesis:${objenesisVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
-
-    // Keep in sync with the dependencies excluded from shadowJar.
-    shadow project(":tritium-api")
-    shadow project(":tritium-core")
-    shadow project(":tritium-metrics")
-    shadow project(":tritium-slf4j")
-
-    shadow "cglib:cglib-nodep:${cglibVersion}"
-    shadow "com.google.code.findbugs:annotations:${findbugsVersion}"
-    shadow "com.google.guava:guava:${guavaVersion}"
-    shadow "org.objenesis:objenesis:${objenesisVersion}"
-    shadow "org.slf4j:slf4j-api:${slf4jVersion}"
 
     processor "org.immutables:value:${immutablesVersion}"
 
@@ -37,37 +21,4 @@ dependencies {
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
     testCompile "org.mockito:mockito-all:${mockitoVersion}"
     testCompile "org.slf4j:slf4j-simple:${slf4jVersion}"
-}
-
-shadowJar {
-    baseName = project.name
-    classifier = ''
-
-    mergeServiceFiles()
-
-    relocate('net.sf.cglib', 'com.palantir.tritium.shaded.net.sf.cglib')
-    relocate('org.HdrHistogram', 'com.palantir.tritium.shaded.org.HdrHistogram')
-    relocate('org.mpierce', 'com.palantir.tritium.shaded.org.mpierce')
-    relocate('org.objenesis', 'com.palantir.tritium.shaded.org.objenesis')
-
-    dependencies {
-        // Exclude other tritium projects
-        exclude(project(':tritium-api'))
-        exclude(project(':tritium-core'))
-        exclude(project(':tritium-metrics'))
-        exclude(project(':tritium-slf4j'))
-
-        // Exclude Guava, dropwizard metrics, and slf4j
-        exclude(dependency('com.google.code.findbugs:annotations'))
-        exclude(dependency('com.google.guava:guava'))
-        exclude(dependency('io.dropwizard.metrics:metrics-core'))
-        exclude(dependency('net.jcip:jcip-annotations'))
-        exclude(dependency('org.slf4j:slf4j-api'))
-
-        exclude 'javax/annotation/**'
-    }
-}
-
-publishing.publications.nebula {
-    artifacts = [ shadowJar ]
 }

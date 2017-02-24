@@ -7,17 +7,17 @@ buildscript {
             url 'https://plugins.gradle.org/m2/'
         }
     }
-    dependencies {
-        classpath "me.champeau.gradle:jmh-gradle-plugin:${jmhGradleVersion}"
-        classpath "net.ltgt.gradle:gradle-apt-plugin:${aptGradleVersion}"
-    }
 }
 
-apply plugin: 'java'
-apply plugin: 'com.github.johnrengelman.shadow'
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id 'me.champeau.gradle.jmh' version '0.3.1'
+    id 'net.ltgt.apt' version '0.9'
+}
+
 apply plugin: 'com.palantir.git-version'
 apply plugin: 'me.champeau.gradle.jmh'
-apply plugin: 'net.ltgt.apt'
 apply from: "${rootDir}/gradle/java.gradle"
 
 sourceCompatibility = '1.8'
