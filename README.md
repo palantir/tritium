@@ -1,32 +1,36 @@
-[![Circle CI](https://circle.palantir.build/gh/elements/tritium.svg?style=svg)](https://circle.palantir.build/gh/elements/tritium)
-[![Artifactory Release](https://shields.palantir.build/artifactory/internal-jar-release/release/com.palantir.tritium/tritium-lib/svg)](https://artifactory.palantir.build/artifactory/webapp/#/artifacts/browse/tree/General/internal-jar-release/com/palantir/tritium/tritium-lib)
-[![Artifactory Snapshot](https://shields.palantir.build/artifactory/internal-jar-snapshot/snapshot/com.palantir.tritium/tritium-lib/svg)](https://artifactory.palantir.build/artifactory/webapp/#/artifacts/browse/tree/General/internal-jar-snapshot/com/palantir/tritium/tritium-lib)
+# [Tritium](https://github.com/palantir/tritium)
 
-# Tritium
-
-Tritium is a library for instrumenting applications  to provide better
-observability at runtime. Tritium allows for instrumentation of service
-interfaces through a Java proxy, providing call backs to extensible invocation
-event handlers. Two main invocation handlers are currently provided:
+Tritium is a library for instrumenting applications  to provide better observability at runtime. Tritium allows for instrumentation of service interfaces through a Java proxy, providing call backs to extensible invocation event handlers. Two main invocation handlers currently provided are:
 
 * Metrics - records aggregate service time and call rates using Dropwizard metrics
 * Logging - logs individual service times
 
+## Why Tritium?
+
+Tritium gives us aggregate metrics for the various services exposed and consumed by a server.
+
+* invocation response times (including min, average, max, percentile distribution, request count and 1, 5, and 15 rates)
+* cache effectiveness (eviction count, hit count, hit ratio, load average millis, load failure count, load success count, miss count, miss ratio, request count)
+
+These metrics can be exposed at the Dropwizard ``MetricsServlet`` and can be exported via any of the [Dropwizard provided reporters](http://metrics.dropwizard.io/3.1.0/manual/core/#reporters).
+
 ## Basic Usage
 
-### Instrumenting a service interface
+### Instrumenting a service interface of a dropwizard application.
 
 ```java
 
-import com.palantir.tritium.Tritium;
+import com.palantir.tritium.proxy.Instrumentation;
 
 Service interestingService = ...
-Service instrumentedService = Tritium.instrument(Service.class,
-        interestingService, environment.metrics());
+Service instrumentedService = Instrumentation.instrument(Service.class, interestingService, environment.metrics());
 ```
 
+## Creating a metric registry with reservoirs backed by [HDR Histograms](http://hdrhistogram.org/).
 
-## Creating a metric registry with reservoirs backed by [HDR Histograms](http://hdrhistogram.org/). The Histogram collects metrics throughout the lifetime of the service.
+HDR histograms are more useful if the service is long running, so the stats represents the lifetime of the server rather than using default exponential decay which can lead to some mis-interpretations of timings (especially higher percentiles and things like max dropping over time) if the consumer isn't aware of these assumptions.
+
+Note that the Histogram collects metrics throughout the lifetime of the service.
 
 ### Dropwizard 0.9+ Integration
 
@@ -39,8 +43,4 @@ Service instrumentedService = Tritium.instrument(Service.class,
         ...
     }
 ```
-
-### Dropwizard 0.8.x Integration
-
-TODO - This requires some hacks through reflection to override the default Dropwizard `MetricRegistry`
 
