@@ -17,7 +17,7 @@ dependencies:
 
 test:
   override:
-    - ./gradlew check --parallel --continue
+    - ./gradlew check --parallel --continue --stacktrace --info
 
 deployment:
   snapshots:
