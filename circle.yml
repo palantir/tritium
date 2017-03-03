@@ -12,11 +12,12 @@ checkout:
 
 dependencies:
   override:
-    - ./gradlew assemble compileTestJava --console=plain --stacktrace --no-daemon
+    - mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
+    - ./gradlew assemble compileTestJava --console=plain --stacktrace
 
 test:
   override:
-    - ./gradlew check --parallel --continue --no-daemon
+    - ./gradlew check --parallel --continue
 
 deployment:
   snapshots:
