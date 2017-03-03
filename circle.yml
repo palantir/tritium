@@ -1,4 +1,6 @@
 machine:
+  pre:
+    - mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
   java:
     version: oraclejdk8
   environment:
@@ -12,12 +14,11 @@ checkout:
 
 dependencies:
   override:
-    - mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
     - ./gradlew assemble compileTestJava --console=plain --stacktrace
 
 test:
   override:
-    - ./gradlew check --parallel --continue --stacktrace --info
+    - ./gradlew check --parallel --continue --stacktrace
 
 deployment:
   snapshots:
