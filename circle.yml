@@ -21,13 +21,8 @@ test:
     - ./gradlew check --parallel --continue --stacktrace
 
 deployment:
-  snapshots:
-    branch: develop
-    owner: palantir
-    commands:
-      - ./gradlew publish --console=plain --stacktrace
   releases:
     tag: /[0-9]+(\.[0-9]+)+(-[a-zA-Z]+[0-9]*)*/
     owner: palantir
     commands:
-      - ./gradlew publish --console=plain --stacktrace
+      - ./gradlew bintrayUpload -x check

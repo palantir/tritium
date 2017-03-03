@@ -1,3 +1,5 @@
+apply from: "${rootDir}/gradle/publish-jars.gradle"
+
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
