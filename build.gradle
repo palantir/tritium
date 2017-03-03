@@ -38,4 +38,15 @@ allprojects {
             url 'https://dl.bintray.com/palantir/releases/'
         }
     }
+
+    tasks.withType(Test) {
+        testLogging {
+            showExceptions true
+            exceptionFormat "full"
+            showCauses true
+            showStackTraces true
+
+            events "started", "passed", "skipped", "failed"
+        }
+    }
 }
