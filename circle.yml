@@ -12,11 +12,11 @@ checkout:
 
 dependencies:
   override:
-    - ./gradlew assemble compileTestJava --console=plain --stacktrace
+    - ./gradlew assemble compileTestJava --console=plain --stacktrace --no-daemon
 
 test:
   override:
-    - ./gradlew check --parallel
+    - ./gradlew check --parallel --continue --no-daemon
 
 deployment:
   snapshots:
