@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         maven {
-            url 'https://artifactory.palantir.build/artifactory/all-jar'
+            url 'https://dl.bintray.com/palantir/releases/'
         }
         maven {
             url 'https://plugins.gradle.org/m2/'

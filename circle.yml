@@ -1,11 +1,11 @@
 machine:
+  pre:
+    - mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
   java:
     version: oraclejdk8
   environment:
     TERM: dumb
-  post:
-    # Install Unlimited Strength JCE jars for exartisi
-    - wget -qO- https://artifactory.palantir.build/artifactory/internal-dist-thirdparty/oracle/jce_policy/8/jce_policy-8.zip | bsdtar -xvf- -C /tmp && sudo cp /tmp/UnlimitedJCEPolicyJDK8/* $JAVA_HOME/jre/lib/security/
+    _JAVA_OPTIONS: "-Xmx512M -XX:+HeapDumpOnOutOfMemoryError -verbose:gc -XX:+PrintGC -XX:+PrintGCDateStamps -XX:+PrintGCDetails -XX:-TraceClassUnloading -Xloggc:build-%t-%p.gc.log"
 
 checkout:
   post:
@@ -19,16 +19,16 @@ dependencies:
 
 test:
   override:
-    - ./scripts/verify.sh
+    - ./gradlew check --parallel --continue
+  post:
+    - mkdir -p $CIRCLE_ARTIFACTS/heapdumps:
+        parallel: true
+    - find . -type f -name "*.hprof" -o -name "*.gc.log" -exec cp {} $CIRCLE_ARTIFACTS/heapdumps \;:
+        parallel: true
 
 deployment:
-  snapshots:
-    branch: develop
-    owner: elements
-    commands:
-      - ./gradlew publish exartisi --console=plain --stacktrace
   releases:
     tag: /[0-9]+(\.[0-9]+)+(-[a-zA-Z]+[0-9]*)*/
-    owner: elements
+    owner: palantir
     commands:
-      - ./gradlew publish exartisi --console=plain --stacktrace
+      - ./gradlew bintrayUpload -x check
