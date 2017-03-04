@@ -1,3 +1,5 @@
+apply from: "${rootDir}/gradle/publish-jars.gradle"
+
 dependencies {
     compile project(":tritium-api")
     compile project(":tritium-core")
