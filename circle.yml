@@ -5,6 +5,7 @@ machine:
     version: oraclejdk8
   environment:
     TERM: dumb
+    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
 
 checkout:
   post:
