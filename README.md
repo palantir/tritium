@@ -16,14 +16,14 @@ These metrics can be exposed at the Dropwizard ``MetricsServlet`` and can be exp
 
 ## Basic Usage
 
-### Instrumenting a service interface of a dropwizard application.
+### Instrumenting a service interface of a dropwizard application with default metrics timers and optional trace logging.
 
 ```java
-
-import com.palantir.tritium.proxy.Instrumentation;
+import com.palantir.tritium.Tritium;
 
 Service interestingService = ...
-Service instrumentedService = Instrumentation.instrument(Service.class, interestingService, environment.metrics());
+Service instrumentedService = Tritium.instrument(Service.class,
+        interestingService, environment.metrics());
 ```
 
 ## Creating a metric registry with reservoirs backed by [HDR Histograms](http://hdrhistogram.org/).
