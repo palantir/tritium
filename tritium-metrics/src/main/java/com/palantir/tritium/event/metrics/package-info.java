@@ -14,6 +14,5 @@
  * limitations under the License.
  */
 
-@com.palantir.tritium.commons.annotations.ImmutablesStyle
 @com.palantir.tritium.commons.annotations.NonnullByDefault
 package com.palantir.tritium.event.metrics;

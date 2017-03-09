@@ -46,8 +46,6 @@ dependencies {
     compile "org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:${hdrHistogramMetricsReservoirVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
-    processor "org.immutables:value:${immutablesVersion}"
-
     testCompile project(path: ":tritium-core", configuration: "testArtifacts")
     testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {
         exclude group: "com.google.truth"
