@@ -13,8 +13,6 @@ dependencies {
     compile "org.hdrhistogram:HdrHistogram:${hdrHistogramVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
-    processor "org.immutables:value:${immutablesVersion}"
-
     testCompile "ch.qos.logback:logback-classic:${logbackClassicVersion}"
     testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {
         exclude group: "com.google.truth"

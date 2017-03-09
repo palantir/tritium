@@ -6,8 +6,6 @@ dependencies {
     compile "com.google.code.findbugs:annotations:${findbugsVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
-    processor "org.immutables:value:${immutablesVersion}"
-
     testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {
         exclude group: "com.google.truth"
         exclude group: "com.google.guava", module: "guava"
