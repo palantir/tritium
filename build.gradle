@@ -1,18 +1,20 @@
 buildscript {
     repositories {
+        mavenCentral()
         maven {
-            url 'https://artifactory.palantir.build/artifactory/all-jar'
+            url 'https://dl.bintray.com/palantir/releases/'
+        }
+        maven {
+            url 'https://plugins.gradle.org/m2/'
         }
     }
 
     dependencies {
         classpath "com.palantir:gradle-baseline-java:${baselineVersion}"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${bintrayPluginVersion}"
         classpath "com.palantir:jacoco-coverage:${jacocoCoverageVersion}"
-        classpath "com.palantir.exartisi:gradle-exartisi-plugin:${exartisiVersion}"
         classpath "com.palantir.gradle.gitversion:gradle-git-version:${gitVersionVersion}"
-        classpath "com.palantir.internalpublish:gradle-internal-publish-plugin:${internalPublishVersion}"
         classpath "gradle.plugin.com.palantir.configurationresolver:gradle-configuration-resolver-plugin:${configurationResolverVersion}"
-        classpath "gradle.plugin.org.inferred:gradle-processors:${processorsVersion}"
     }
 }
 
@@ -25,15 +27,29 @@ allprojects {
     version gitVersion()
 
     apply from: "${rootDir}/gradle/java.gradle"
-    apply plugin: 'com.palantir.exartisi'
 
     configurations {
         testArtifacts.extendsFrom testCompile
     }
 
     repositories {
+        mavenCentral()
         maven {
-            url 'https://artifactory.palantir.build/artifactory/all-jar'
+            url 'https://dl.bintray.com/palantir/releases/'
+        }
+        maven {
+            url 'https://dl.bintray.com/marshallpierce/maven/'
+        }
+    }
+
+    tasks.withType(Test) {
+        testLogging {
+            showExceptions true
+            exceptionFormat "full"
+            showCauses true
+            showStackTraces true
+
+            events "started", "passed", "skipped", "failed"
         }
     }
 }

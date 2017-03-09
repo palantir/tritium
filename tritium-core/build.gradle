@@ -1,12 +1,10 @@
-apply plugin: 'com.palantir.publish-jar'
+apply from: "${rootDir}/gradle/publish-jars.gradle"
 
 dependencies {
     compile project(":tritium-api")
     compile "com.google.guava:guava:${guavaVersion}"
     compile "com.google.code.findbugs:annotations:${findbugsVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
-
-    processor "org.immutables:value:${immutablesVersion}"
 
     testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {
         exclude group: "com.google.truth"

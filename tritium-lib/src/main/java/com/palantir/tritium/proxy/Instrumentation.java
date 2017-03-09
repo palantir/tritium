@@ -21,6 +21,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.api.functions.LongPredicate;
+import com.palantir.tritium.event.InstrumentationFilter;
+import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
@@ -41,25 +43,36 @@ public final class Instrumentation {
         throw new UnsupportedOperationException();
     }
 
-    public static <T, U extends T> T wrap(
-            final Class<T> interfaceClass,
+    static <T, U extends T> T wrap(
+            Class<T> interfaceClass,
             final U delegate,
+            final InstrumentationFilter instrumentationFilter,
             final List<InvocationEventHandler<InvocationContext>> handlers) {
-        checkNotNull(interfaceClass);
-        checkNotNull(delegate);
-        checkNotNull(handlers);
 
-        if (handlers.isEmpty()) {
+        checkNotNull(interfaceClass, "interfaceClass");
+        checkNotNull(delegate, "delegate");
+        checkNotNull(instrumentationFilter, "instrumentationFilter");
+        checkNotNull(handlers, "handlers");
+
+        if (handlers.isEmpty() || instrumentationFilter == InstrumentationFilters.INSTRUMENT_NONE) {
             return delegate;
         }
 
         return Proxies.newProxy(interfaceClass, delegate,
-                new InvocationEventProxy<InvocationContext>(handlers) {
-                    @Override
-                    U getDelegate() {
-                        return delegate;
-                    }
-                });
+                new InstrumentationProxy<U>(instrumentationFilter, handlers, delegate));
+    }
+
+    /**
+     * Wraps delegate with instrumentation.
+     *
+     * @deprecated Use {@link #wrap(Class, Object, InstrumentationFilter, List)}
+     */
+    @Deprecated
+    static <T, U extends T> T wrap(
+            Class<T> interfaceClass,
+            final U delegate,
+            final List<InvocationEventHandler<InvocationContext>> handlers) {
+        return wrap(interfaceClass, delegate, InstrumentationFilters.INSTRUMENT_ALL, handlers);
     }
 
     /**
@@ -75,9 +88,10 @@ public final class Instrumentation {
     @Deprecated
     public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
         return builder(serviceInterface, delegate)
-            .withMetrics(metricRegistry)
-            .withPerformanceTraceLogging()
-            .build();
+                .withFilter(InstrumentationFilters.INSTRUMENT_ALL)
+                .withMetrics(metricRegistry)
+                .withPerformanceTraceLogging()
+                .build();
     }
 
     public static <T> Logger getPerformanceLoggerForInterface(Class<T> serviceInterface) {
@@ -97,15 +111,17 @@ public final class Instrumentation {
         private final U delegate;
         private final ImmutableList.Builder<InvocationEventHandler<InvocationContext>> handlers = ImmutableList
                 .builder();
+        private InstrumentationFilter filter = InstrumentationFilters.INSTRUMENT_ALL;
 
         private Builder(Class<T> interfaceClass, U delegate) {
-            this.interfaceClass = checkNotNull(interfaceClass);
-            this.delegate = checkNotNull(delegate);
+            this.interfaceClass = checkNotNull(interfaceClass, "class");
+            this.delegate = checkNotNull(delegate, "delegate");
         }
 
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
+            checkNotNull(metricRegistry, "metricRegistry");
             this.handlers.add(new MetricsInvocationEventHandler(
-                    checkNotNull(metricRegistry),
+                    metricRegistry,
                     MetricRegistry.name(interfaceClass.getName())));
             return this;
         }
@@ -123,16 +139,23 @@ public final class Instrumentation {
         }
 
         public Builder<T, U> withHandler(InvocationEventHandler<InvocationContext> handler) {
+            checkNotNull(handler, "handler");
             return withHandlers(Collections.singleton(handler));
         }
 
         public Builder<T, U> withHandlers(Iterable<InvocationEventHandler<InvocationContext>> additionalHandlers) {
+            checkNotNull(additionalHandlers, "additionalHandlers");
             this.handlers.addAll(additionalHandlers);
             return this;
         }
 
+        public Builder<T, U> withFilter(InstrumentationFilter instrumentationFilter) {
+            this.filter = checkNotNull(instrumentationFilter, "instrumentationFilter");
+            return this;
+        }
+
         public T build() {
-            return wrap(interfaceClass, delegate, handlers.build());
+            return wrap(interfaceClass, delegate, filter, handlers.build());
         }
     }
 

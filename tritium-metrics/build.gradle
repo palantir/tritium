@@ -1,4 +1,4 @@
-apply plugin: 'com.palantir.publish-jar'
+apply from: "${rootDir}/gradle/publish-jars.gradle"
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -12,8 +12,6 @@ dependencies {
     compile "org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:${hdrHistogramMetricsReservoirVersion}"
     compile "org.hdrhistogram:HdrHistogram:${hdrHistogramVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
-
-    processor "org.immutables:value:${immutablesVersion}"
 
     testCompile "ch.qos.logback:logback-classic:${logbackClassicVersion}"
     testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {

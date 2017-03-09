@@ -1,12 +1,10 @@
-apply plugin: 'com.palantir.publish-jar'
+apply from: "${rootDir}/gradle/publish-jars.gradle"
 
 dependencies {
     compile project(":tritium-api")
     compile project(":tritium-core")
     compile "io.zipkin.brave:brave-core:${braveVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
-
-    processor "org.immutables:value:${immutablesVersion}"
 
     testCompile project(path: ":tritium-core", configuration: "testArtifacts")
     testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {

@@ -1,4 +1,4 @@
-apply plugin: 'com.palantir.publish-jar'
+apply from: "${rootDir}/gradle/publish-jars.gradle"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -12,8 +12,6 @@ dependencies {
     compile "com.google.guava:guava:${guavaVersion}"
     compile "io.dropwizard.metrics:metrics-core:${dropwizardMetricsVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
-
-    processor "org.immutables:value:${immutablesVersion}"
 
     testCompile "ch.qos.logback:logback-classic:${logbackClassicVersion}"
     testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {
