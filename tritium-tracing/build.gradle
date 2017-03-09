@@ -11,8 +11,6 @@ dependencies {
     compile "com.palantir.remoting1:tracing:${httpRemotingVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
-    processor "org.immutables:value:${immutablesVersion}"
-
     testCompile project(path: ":tritium-core", configuration: "testArtifacts")
 
     testCompile "ch.qos.logback:logback-classic:${logbackClassicVersion}"
