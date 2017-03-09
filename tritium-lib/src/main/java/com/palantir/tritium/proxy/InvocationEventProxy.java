@@ -21,6 +21,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.reflect.AbstractInvocationHandler;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
+import com.palantir.tritium.event.InstrumentationFilter;
+import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.InvocationHandler;
@@ -32,13 +34,13 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class InvocationEventProxy<C extends InvocationContext>
+abstract class InvocationEventProxy<C extends InvocationContext>
         extends AbstractInvocationHandler implements InvocationHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InvocationEventProxy.class);
     private static final Object[] NO_ARGS = {};
 
-    private final BooleanSupplier isEnabledSupplier;
+    private final InstrumentationFilter filter;
     private final InvocationEventHandler<?> eventHandler;
 
     /**
@@ -46,14 +48,20 @@ public abstract class InvocationEventProxy<C extends InvocationContext>
      * @param handlers event handlers
      */
     protected InvocationEventProxy(List<InvocationEventHandler<InvocationContext>> handlers) {
-        this(BooleanSupplier.TRUE, handlers);
+        this(InstrumentationFilters.INSTRUMENT_ALL, handlers);
     }
 
     protected InvocationEventProxy(BooleanSupplier isEnabledSupplier,
             List<InvocationEventHandler<InvocationContext>> handlers) {
+        this(InstrumentationFilters.from(isEnabledSupplier), handlers);
+    }
+
+    protected InvocationEventProxy(InstrumentationFilter filter,
+            List<InvocationEventHandler<InvocationContext>> handlers) {
+        checkNotNull(filter, "filter");
         checkNotNull(handlers, "handlers");
-        this.isEnabledSupplier = checkNotNull(isEnabledSupplier, "isEnabledSupplier");
         this.eventHandler = CompositeInvocationEventHandler.of(handlers);
+        this.filter = filter;
     }
 
     /**
@@ -68,15 +76,22 @@ public abstract class InvocationEventProxy<C extends InvocationContext>
      *
      * @return whether instrumentation handling is enabled
      */
-    protected final boolean isEnabled() {
-        return isEnabledSupplier.asBoolean();
+    private boolean isEnabled(Object instance, Method method, Object[] args) {
+        try {
+            return eventHandler.isEnabled()
+                    && filter.shouldInstrument(instance, method, args);
+        } catch (Throwable t) {
+            LOGGER.warn("Exception handling preInvocation({}): {}",
+                    toInvocationDebugString(instance, method, args), t.toString(), t);
+            return false;
+        }
     }
 
     @Override
     @Nullable
     @SuppressWarnings("checkstyle:IllegalThrows")
     protected final Object handleInvocation(Object proxy, Method method, Object[] args) throws Throwable {
-        if (isEnabled()) {
+        if (isEnabled(proxy, method, args)) {
             return instrumentInvocation(proxy, method, args);
         } else {
             return execute(method, args);
@@ -118,9 +133,12 @@ public abstract class InvocationEventProxy<C extends InvocationContext>
     }
 
     @Nullable
-    final Object execute(Method method, Object[] args)
-            throws IllegalAccessException, InvocationTargetException {
-        return method.invoke(getDelegate(), args);
+    final Object execute(Method method, Object[] args) throws Throwable {
+        try {
+            return method.invoke(getDelegate(), args);
+        } catch (InvocationTargetException e) {
+            throw e.getCause();
+        }
     }
 
     @Nullable
