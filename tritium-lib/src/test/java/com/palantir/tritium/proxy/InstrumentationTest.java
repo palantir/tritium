@@ -19,6 +19,11 @@ package com.palantir.tritium.proxy;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
@@ -26,7 +31,9 @@ import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Slf4jReporter.LoggingLevel;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.tritium.event.InstrumentationFilter;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
@@ -35,9 +42,12 @@ import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
+import java.util.Set;
 import java.util.SortedMap;
+import javax.annotation.Nonnull;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +61,7 @@ public class InstrumentationTest {
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
 
     // Exceed the HotSpot JIT thresholds
-    private static final int INVOCATION_ITERATIONS = 1500000;
+    private static final int INVOCATION_ITERATIONS = 150000;
 
     @Mock
     private InvocationEventHandler<InvocationContext> mockHandler;
@@ -166,11 +176,49 @@ public class InstrumentationTest {
                     instrumentedService.throwsThrowable();
                     fail("Expected throwable");
                 } catch (Throwable throwable) {
+                    assertThat(Throwables.getRootCause(throwable)).isInstanceOf(AssertionError.class);
                     assertThat(throwable).isInstanceOf(AssertionError.class);
                     assertThat(throwable.getCause()).isNull();
                 }
             }
         }
+    }
+
+    @Test
+    public void testFilterSkips() throws Exception {
+        TestInterface delegate = new TestImplementation();
+        TestInterface instrumented = Instrumentation.builder(TestInterface.class, delegate)
+                .withFilter(methodNameFilter("bulk"))
+                .withHandler(mockHandler)
+                .build();
+
+        when(mockHandler.isEnabled()).thenReturn(true);
+
+        instrumented.test();
+        verify(mockHandler).isEnabled();
+        verifyNoMoreInteractions(mockHandler);
+    }
+
+    @Test
+    public void testFilterMatches() throws Exception {
+        TestInterface delegate = new TestImplementation();
+        TestInterface instrumented = Instrumentation.builder(TestInterface.class, delegate)
+                .withFilter(methodNameFilter("bulk"))
+                .withHandler(mockHandler)
+                .build();
+
+        InvocationContext mockContext = mock(InvocationContext.class);
+        when(mockHandler.isEnabled()).thenReturn(true);
+        when(mockHandler.preInvocation(any(), any(Method.class), any(Object[].class))).thenReturn(mockContext);
+
+        ImmutableSet<String> testSet = ImmutableSet.of("test");
+        instrumented.bulk(testSet);
+        verify(mockHandler).isEnabled();
+        verify(mockHandler).preInvocation(instrumented,
+                TestInterface.class.getDeclaredMethod("bulk", Set.class),
+                new Object[] {testSet});
+        verify(mockHandler).onSuccess(mockContext, null);
+        verifyNoMoreInteractions(mockHandler);
     }
 
     @Test(expected = NullPointerException.class)
@@ -198,6 +246,13 @@ public class InstrumentationTest {
                 .withLogging(null, null, LoggingInvocationEventHandler.NEVER_LOG);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void testNullFilter() {
+        //noinspection ConstantConditions
+        Instrumentation.builder(Runnable.class, new TestImplementation())
+                .withFilter(null);
+    }
+
     @Test(expected = UnsupportedOperationException.class)
     public void testInaccessibleConstructor() throws Throwable {
         Constructor<Instrumentation> constructor = Instrumentation.class.getDeclaredConstructor();
@@ -214,4 +269,12 @@ public class InstrumentationTest {
         }
     }
 
+    private static InstrumentationFilter methodNameFilter(final String methodName) {
+        return new InstrumentationFilter() {
+            @Override
+            public boolean shouldInstrument(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+                return method.getName().equals(methodName);
+            }
+        };
+    }
 }
