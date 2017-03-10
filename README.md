@@ -44,3 +44,8 @@ Note that the Histogram collects metrics throughout the lifetime of the service.
     }
 ```
 
+License
+-------
+This project is made available under the
+[Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0).
+
