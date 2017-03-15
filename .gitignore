@@ -29,3 +29,6 @@ generated_testSrc/
 bin/
 build/
 out/
+
+# Gc logs
+build*.gc.log
