@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.proxy;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.MetricRegistry;
@@ -31,6 +32,9 @@ import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collections;
 import java.util.List;
+import net.sf.cglib.proxy.Callback;
+import net.sf.cglib.proxy.Enhancer;
+import org.objenesis.ObjenesisHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,12 +48,12 @@ public final class Instrumentation {
     }
 
     static <T, U extends T> T wrap(
-            Class<T> interfaceClass,
+            Class<T> type,
             final U delegate,
             final InstrumentationFilter instrumentationFilter,
             final List<InvocationEventHandler<InvocationContext>> handlers) {
 
-        checkNotNull(interfaceClass, "interfaceClass");
+        checkNotNull(type, "type");
         checkNotNull(delegate, "delegate");
         checkNotNull(instrumentationFilter, "instrumentationFilter");
         checkNotNull(handlers, "handlers");
@@ -58,8 +62,10 @@ public final class Instrumentation {
             return delegate;
         }
 
-        return Proxies.newProxy(interfaceClass, delegate,
-                new InstrumentationProxy<U>(instrumentationFilter, handlers, delegate));
+        if (type.isInterface()) {
+            return createInterfaceProxy(type, delegate, instrumentationFilter, handlers);
+        }
+        return createConcreteProxy(type, delegate, instrumentationFilter, handlers);
     }
 
     /**
@@ -73,6 +79,31 @@ public final class Instrumentation {
             final U delegate,
             final List<InvocationEventHandler<InvocationContext>> handlers) {
         return wrap(interfaceClass, delegate, InstrumentationFilters.INSTRUMENT_ALL, handlers);
+    }
+
+    private static <T, U extends T> T createInterfaceProxy(Class<T> interfaceClass,
+            U delegate,
+            final InstrumentationFilter instrumentationFilter,
+            List<InvocationEventHandler<InvocationContext>> handlers) {
+        checkArgument(interfaceClass.isInterface(), "Must specify interface class to proxy");
+        return Proxies.newProxy(interfaceClass, delegate,
+                new InstrumentationProxy<U>(instrumentationFilter, handlers, delegate));
+    }
+
+    private static <T, U extends T> T createConcreteProxy(Class<T> interfaceClass,
+            final U delegate,
+            InstrumentationFilter instrumentationFilter,
+            final List<InvocationEventHandler<InvocationContext>> handlers) {
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(interfaceClass);
+        enhancer.setCallbackType(InvocationEventHandlerAdapter.class);
+        // use objenesis so that we can proxy classes which do not have a null constructor
+        @SuppressWarnings("unchecked")
+        Class<T> newClass = (Class<T>) enhancer.createClass();
+        Enhancer.registerCallbacks(newClass, new Callback[] {
+                InvocationEventHandlerAdapter.create(delegate, instrumentationFilter, handlers)
+        });
+        return ObjenesisHelper.newInstance(newClass);
     }
 
     /**

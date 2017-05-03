@@ -5,8 +5,10 @@ dependencies {
     compile project(":tritium-core")
     compile project(":tritium-metrics")
     compile project(":tritium-slf4j")
+    compile "cglib:cglib-nodep:${cglibVersion}"
     compile "com.google.code.findbugs:annotations:${findbugsVersion}"
     compile "com.google.guava:guava:${guavaVersion}"
+    compile "org.objenesis:objenesis:${objenesisVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
     testCompile project(path: ":tritium-core", configuration: "testArtifacts")
