@@ -25,6 +25,8 @@ import javax.annotation.Nullable;
 
 public class DefaultInvocationContext implements InvocationContext {
 
+    private static final Object[] NO_ARGS = {};
+
     private final long startTimeNanos;
     private final Object instance;
     private final Method method;
@@ -32,13 +34,21 @@ public class DefaultInvocationContext implements InvocationContext {
 
     protected DefaultInvocationContext(long startTimeNanos, Object instance, Method method, @Nullable Object[] args) {
         this.startTimeNanos = startTimeNanos;
-        this.instance = checkNotNull(instance);
-        this.method = checkNotNull(method);
-        this.args = AbstractInvocationEventHandler.nullToEmpty(args).clone();
+        this.instance = instance;
+        this.method = method;
+        this.args = toNonNullClone(args);
+    }
+
+    private static Object[] toNonNullClone(@Nullable Object[] args) {
+        return args == null ? NO_ARGS : args.clone();
     }
 
     public static InvocationContext of(Object instance, Method method, @Nullable Object[] args) {
-        return new DefaultInvocationContext(System.nanoTime(), instance, method, args);
+        return new DefaultInvocationContext(
+                System.nanoTime(),
+                checkNotNull(instance, "instance"),
+                checkNotNull(method, "method"),
+                args);
     }
 
     @Override

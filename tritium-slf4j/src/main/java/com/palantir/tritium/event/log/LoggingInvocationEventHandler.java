@@ -99,7 +99,6 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
             return;
         }
 
-        LOGGER.warn("Failed {}", cause, cause);
         long durationNanos = System.nanoTime() - context.getStartTimeNanos();
         logInvocation(context.getMethod(), context.getArgs(), durationNanos);
     }
@@ -107,43 +106,51 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     private void logInvocation(Method method, @Nullable Object[] nullableArgs, long durationNanos) {
         if (isEnabled() && durationPredicate.test(durationNanos)) {
             Object[] args = nullToEmpty(nullableArgs);
-            String messagePattern = getMessagePattern(args);
-            Object[] logParams = getLogParams(method, args, durationNanos, level);
-            log(messagePattern, logParams);
+            log(getMessagePattern(args), getLogParams(method, args, durationNanos, level));
         }
     }
 
-    private void log(String message, Object... args) {
-        if (level == LoggingLevel.TRACE) {
-            logger.trace(message, args);
-        } else if (level == LoggingLevel.DEBUG) {
-            logger.debug(message, args);
-        } else if (level == LoggingLevel.INFO) {
-            logger.info(message, args);
-        } else if (level == LoggingLevel.WARN) {
-            logger.warn(message, args);
-        } else if (level == LoggingLevel.ERROR) {
-            logger.error(message, args);
-        } else {
-            throw new IllegalArgumentException("Unsupported logging level " + level);
+    void log(String message, Object... args) {
+        switch (level) {
+            case TRACE:
+                logger.trace(message, args);
+                return;
+            case DEBUG:
+                logger.debug(message, args);
+                return;
+            case INFO:
+                logger.info(message, args);
+                return;
+            case WARN:
+                logger.warn(message, args);
+                return;
+            case ERROR:
+                logger.error(message, args);
+                return;
+            default:
+                throw invalidLoggingLevel(level);
         }
     }
 
     static boolean isEnabled(Logger logger, LoggingLevel level) {
-        checkNotNull(level);
-        if (level == LoggingLevel.TRACE) {
-            return logger.isTraceEnabled();
-        } else if (level == LoggingLevel.DEBUG) {
-            return logger.isDebugEnabled();
-        } else if (level == LoggingLevel.INFO) {
-            return logger.isInfoEnabled();
-        } else if (level == LoggingLevel.WARN) {
-            return logger.isWarnEnabled();
-        } else if (level == LoggingLevel.ERROR) {
-            return logger.isErrorEnabled();
-        } else {
-            throw new IllegalArgumentException("Unsupported logging level " + level);
+        switch (level) {
+            case TRACE:
+                return logger.isTraceEnabled();
+            case DEBUG:
+                return logger.isDebugEnabled();
+            case INFO:
+                return logger.isInfoEnabled();
+            case WARN:
+                return logger.isWarnEnabled();
+            case ERROR:
+                return logger.isErrorEnabled();
+            default:
+                throw invalidLoggingLevel(level);
         }
+    }
+
+    private static IllegalArgumentException invalidLoggingLevel(LoggingLevel level) {
+        return new IllegalArgumentException("Unsupported logging level " + level);
     }
 
     private static BooleanSupplier createEnabledSupplier(final Logger logger, final LoggingLevel level) {
