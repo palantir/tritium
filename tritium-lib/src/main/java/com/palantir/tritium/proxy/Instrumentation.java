@@ -59,7 +59,7 @@ public final class Instrumentation {
         }
 
         return Proxies.newProxy(interfaceClass, delegate,
-                new InstrumentationProxy<U>(instrumentationFilter, handlers, delegate));
+                new InstrumentationProxy<>(instrumentationFilter, handlers, delegate));
     }
 
     /**
@@ -100,7 +100,7 @@ public final class Instrumentation {
 
     @SuppressFBWarnings(justification = "Catch-22: Checkstyle wants final builder, but FindBugs doesn't")
     public static <T, U extends T> Builder<T, U> builder(Class<T> interfaceClass, U delegate) {
-        return new Builder<T, U>(interfaceClass, delegate);
+        return new Builder<>(interfaceClass, delegate);
     }
 
     @SuppressWarnings("WeakerAccess") // intended for public consumption
