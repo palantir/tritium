@@ -33,12 +33,7 @@ final class Reservoirs {
     }
 
     private static Supplier<Recorder> twoSignificantDigits() {
-        return new Supplier<Recorder>() {
-            @Override
-            public Recorder get() {
-                return new Recorder(2);
-            }
-        };
+        return () -> new Recorder(2);
     }
 
     /**
@@ -54,12 +49,7 @@ final class Reservoirs {
 
     static Supplier<Reservoir> hdrHistogramReservoirSupplier(final Supplier<Recorder> recorder) {
         checkNotNull(recorder, "recorder");
-        return new Supplier<Reservoir>() {
-            @Override
-            public Reservoir get() {
-                return new HdrHistogramReservoir(recorder.get());
-            }
-        };
+        return () -> new HdrHistogramReservoir(recorder.get());
     }
 
 }

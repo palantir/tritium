@@ -77,76 +77,31 @@ class CacheMetricSet implements MetricSet {
                 });
 
         cacheMetrics.put(cacheMetricName("request", "count"),
-                derivedGauge(new Function<CacheStats, Long>() {
-                    @Override
-                    public Long apply(CacheStats stats) {
-                        return stats.requestCount();
-                    }
-                }));
+                derivedGauge(CacheStats::requestCount));
 
         cacheMetrics.put(cacheMetricName("hit", "count"),
-                derivedGauge(new Function<CacheStats, Long>() {
-                    @Override
-                    public Long apply(CacheStats stats) {
-                        return stats.hitCount();
-                    }
-                }));
+                derivedGauge(CacheStats::hitCount));
 
         cacheMetrics.put(cacheMetricName("hit", "ratio"),
-                derivedGauge(new Function<CacheStats, Double>() {
-                    @Override
-                    public Double apply(CacheStats stats) {
-                        return stats.hitCount() / (1.0d * stats.requestCount());
-                    }
-                }));
+                derivedGauge(stats -> stats.hitCount() / (1.0d * stats.requestCount())));
 
         cacheMetrics.put(cacheMetricName("miss", "count"),
-                derivedGauge(new Function<CacheStats, Long>() {
-                    @Override
-                    public Long apply(CacheStats stats) {
-                        return stats.missCount();
-                    }
-                }));
+                derivedGauge(CacheStats::missCount));
 
         cacheMetrics.put(cacheMetricName("miss", "ratio"),
-                derivedGauge(new Function<CacheStats, Double>() {
-                    @Override
-                    public Double apply(CacheStats stats) {
-                        return stats.missCount() / (1.0d * stats.requestCount());
-                    }
-                }));
+                derivedGauge(stats -> stats.missCount() / (1.0d * stats.requestCount())));
 
         cacheMetrics.put(cacheMetricName("eviction", "count"),
-                derivedGauge(new Function<CacheStats, Long>() {
-                    @Override
-                    public Long apply(CacheStats stats) {
-                        return stats.evictionCount();
-                    }
-                }));
+                derivedGauge(CacheStats::evictionCount));
 
         cacheMetrics.put(cacheMetricName("load.success", "count"),
-                derivedGauge(new Function<CacheStats, Long>() {
-                    @Override
-                    public Long apply(CacheStats stats) {
-                        return stats.loadSuccessCount();
-                    }
-                }));
+                derivedGauge(CacheStats::loadSuccessCount));
 
         cacheMetrics.put(cacheMetricName("load.failure", "count"),
-                derivedGauge(new Function<CacheStats, Long>() {
-                    @Override
-                    public Long apply(CacheStats stats) {
-                        return stats.loadExceptionCount();
-                    }
-                }));
+                derivedGauge(CacheStats::loadExceptionCount));
 
         cacheMetrics.put(cacheMetricName("load", "average", "millis"),
-                derivedGauge(new Function<CacheStats, Double>() {
-                    @Override
-                    public Double apply(CacheStats stats) {
-                        return stats.averageLoadPenalty() / 1000000.0d;
-                    }
-                }));
+                derivedGauge(stats -> stats.averageLoadPenalty() / 1000000.0d));
 
         return cacheMetrics.build();
     }
