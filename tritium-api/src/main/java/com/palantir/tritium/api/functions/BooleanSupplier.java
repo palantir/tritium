@@ -16,27 +16,18 @@
 
 package com.palantir.tritium.api.functions;
 
+@FunctionalInterface
 public interface BooleanSupplier {
 
     /**
      * {@link BooleanSupplier} that always returns true.
      */
-    BooleanSupplier TRUE = new BooleanSupplier() {
-        @Override
-        public boolean asBoolean() {
-            return true;
-        }
-    };
+    BooleanSupplier TRUE = () -> true;
 
     /**
      * {@link BooleanSupplier} that always returns false.
      */
-    BooleanSupplier FALSE = new BooleanSupplier() {
-        @Override
-        public boolean asBoolean() {
-            return false;
-        }
-    };
+    BooleanSupplier FALSE = () -> false;
 
     /**
      * Supply a boolean.

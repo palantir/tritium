@@ -19,6 +19,7 @@ package com.palantir.tritium.event;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 
+@FunctionalInterface
 public interface InstrumentationFilter {
 
     /**
