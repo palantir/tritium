@@ -106,10 +106,18 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         try {
             return handler.preInvocation(instance, method, args);
         } catch (RuntimeException e) {
-            LOGGER.warn("Exception handling preInvocation({}): {}",
-                    toInvocationDebugString(handler, instance, method, args), e.toString(), e);
+            preInvocationFailed(handler, instance, method, args, e);
+            return null;
         }
-        return null;
+    }
+
+    private static void preInvocationFailed(InvocationEventHandler<? extends InvocationContext> handler,
+            Object instance, Method method, Object[] args, Exception exception) {
+        LOGGER.warn("Exception handling preInvocation({}): "
+                        + "invocation of {}.{} with arguments {} on {} threw: {}",
+                handler,
+                method.getDeclaringClass().getCanonicalName(), method.getName(), Arrays.toString(args), instance,
+                exception, exception);
     }
 
     private void handleSuccess(InvocationEventHandler<?> handler,
@@ -120,7 +128,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             handler.onSuccess(context, result);
         } catch (RuntimeException e) {
             LOGGER.warn("Exception handling onSuccess({}, {}): {}",
-                    context, result, e.toString(), e);
+                    context, result, e, e);
         }
     }
 
@@ -132,17 +140,8 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             handler.onFailure(context, cause);
         } catch (RuntimeException e) {
             LOGGER.warn("Exception handling onFailure({}, {}): {}",
-                    context, cause, e.toString(), e);
+                    context, cause, e, e);
         }
-    }
-
-    protected static String toInvocationDebugString(InvocationEventHandler<?> handler,
-            Object instance,
-            Method method,
-            Object[] args) {
-        return "invocation of " + handler + " on " + instance + " : "
-                + method.getDeclaringClass() + '.' + method.getName()
-                + " with arguments " + Arrays.toString(args);
     }
 
     static class CompositeInvocationContext extends DefaultInvocationContext {

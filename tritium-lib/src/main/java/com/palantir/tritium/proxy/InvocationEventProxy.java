@@ -81,8 +81,8 @@ abstract class InvocationEventProxy<C extends InvocationContext>
             return eventHandler.isEnabled()
                     && filter.shouldInstrument(instance, method, args);
         } catch (Throwable t) {
-            LOGGER.warn("Exception handling preInvocation({}): {}",
-                    toInvocationDebugString(instance, method, args), t.toString(), t);
+            LOGGER.warn("Exception handling isEnabled({}): {}",
+                    toInvocationDebugString(instance, method, args), t, t);
             return false;
         }
     }
@@ -127,7 +127,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
             return eventHandler.preInvocation(instance, method, args);
         } catch (RuntimeException e) {
             LOGGER.warn("Exception handling preInvocation({}): {}",
-                    toInvocationDebugString(instance, method, args), e.toString(), e);
+                    toInvocationDebugString(instance, method, args), e, e);
         }
         return null;
     }
@@ -147,7 +147,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
             eventHandler.onSuccess(context, result);
         } catch (RuntimeException e) {
             LOGGER.warn("Exception handling onSuccess({}, {}): {}",
-                    context, result, e.toString(), e);
+                    context, result, e, e);
         }
         return result;
     }
@@ -157,7 +157,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
             eventHandler.onFailure(context, cause);
         } catch (RuntimeException e) {
             LOGGER.warn("Exception handling onFailure({}, {}): {}",
-                    context, cause, e.toString(), e);
+                    context, cause, e, e);
         }
         return cause;
     }
