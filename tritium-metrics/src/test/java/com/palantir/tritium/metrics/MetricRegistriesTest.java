@@ -27,6 +27,7 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Snapshot;
+import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -42,7 +43,7 @@ public class MetricRegistriesTest {
     private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
 
     @After
-    public void tearDown() throws Exception {
+    public void after() throws Exception {
         report(metrics);
     }
 
@@ -202,17 +203,20 @@ public class MetricRegistriesTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testInaccessibleConstructor() throws Throwable {
-        Constructor<MetricRegistries> constructor = MetricRegistries.class.getDeclaredConstructor();
-        constructor.setAccessible(true);
+    public void testInaccessibleConstructor() {
+        Constructor<?> constructor = null;
         try {
+            constructor = MetricRegistries.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
             constructor.newInstance();
         } catch (InvocationTargetException expected) {
-            throw expected.getCause();
+            throw Throwables.propagate(expected.getCause());
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            constructor.setAccessible(false);
+            if (constructor != null) {
+                constructor.setAccessible(false);
+            }
         }
     }
 

@@ -40,6 +40,7 @@ import com.twitter.zipkin.gen.BinaryAnnotation;
 import com.twitter.zipkin.gen.Endpoint;
 import com.twitter.zipkin.gen.Span;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.junit.Before;
@@ -182,11 +183,16 @@ public class BraveLocalTracingInvocationEventHandlerTest {
                 }
             };
 
+    // TODO (davids): Use StandardCharset
+    // CHECKSTYLE:OFF
+    private static final Charset UTF_8 = Charsets.UTF_8;
+    // CHECKSTYLE:ON
+
     private static final Function<BinaryAnnotation, String> ANNOTATION_TO_VALUE =
             new Function<BinaryAnnotation, String>() {
                 @Override
                 public String apply(@Nullable BinaryAnnotation input) {
-                    return input == null ? "" : new String(input.getValue(), Charsets.UTF_8);
+                    return input == null ? "" : new String(input.getValue(), UTF_8);
                 }
             };
 

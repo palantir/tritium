@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+public final class TracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TracingInvocationEventHandler.class);
 
@@ -60,7 +60,7 @@ public class TracingInvocationEventHandler extends AbstractInvocationEventHandle
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
-        // TODO (davids) add Error event
+        // TODO (davids): add Error event
         Tracer.completeSpan();
     }
 

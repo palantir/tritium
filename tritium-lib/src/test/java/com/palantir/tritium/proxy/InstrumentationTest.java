@@ -254,18 +254,20 @@ public class InstrumentationTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testInaccessibleConstructor() throws Throwable {
-        Constructor<Instrumentation> constructor = Instrumentation.class.getDeclaredConstructor();
-        constructor.setAccessible(true);
+    public void testInaccessibleConstructor() {
+        Constructor<?> constructor = null;
         try {
+            constructor = Instrumentation.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
             constructor.newInstance();
         } catch (InvocationTargetException expected) {
-            throw expected.getCause();
+            throw Throwables.propagate(expected.getCause());
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            //noinspection ThrowFromFinallyBlock
-            constructor.setAccessible(false);
+            if (constructor != null) {
+                constructor.setAccessible(false);
+            }
         }
     }
 

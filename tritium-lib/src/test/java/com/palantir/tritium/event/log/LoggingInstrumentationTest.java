@@ -40,12 +40,12 @@ public class LoggingInstrumentationTest {
     private String previousLogLevel = null;
 
     @Before
-    public void setUp() {
+    public void before() {
         previousLogLevel = System.setProperty(LOG_KEY, LoggingLevel.TRACE.name());
     }
 
     @After
-    public void tearDown() {
+    public void after() {
         if (previousLogLevel == null) {
             System.clearProperty(LOG_KEY);
         } else {

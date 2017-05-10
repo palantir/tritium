@@ -111,6 +111,11 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
+    @Override
+    public String toString() {
+        return "CompositeInvocationEventHandler{" + "handlers=" + handlers + '}';
+    }
+
     private static void preInvocationFailed(InvocationEventHandler<? extends InvocationContext> handler,
             Object instance, Method method, Object[] args, Exception exception) {
         LOGGER.warn("Exception handling preInvocation({}): "

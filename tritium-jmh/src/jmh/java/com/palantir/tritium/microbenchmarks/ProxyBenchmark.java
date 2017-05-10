@@ -50,6 +50,7 @@ import org.openjdk.jmh.runner.options.TimeValue;
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
 @State(Scope.Benchmark)
+@SuppressWarnings("designforextension")
 public class ProxyBenchmark {
 
     private static final String DEFAULT_LOG_LEVEL = "org.slf4j.simpleLogger.defaultLogLevel";
@@ -67,7 +68,7 @@ public class ProxyBenchmark {
     private ExecutorService executor;
 
     @Setup
-    public void setup() {
+    public void before() {
         previousLogLevel = System.setProperty(DEFAULT_LOG_LEVEL, "WARN");
 
         raw = new TestService();
@@ -110,7 +111,7 @@ public class ProxyBenchmark {
     }
 
     @TearDown
-    public void tearDown() throws Exception {
+    public void after() throws Exception {
         executor.shutdown();
         if (previousLogLevel == null) {
             System.clearProperty(DEFAULT_LOG_LEVEL);

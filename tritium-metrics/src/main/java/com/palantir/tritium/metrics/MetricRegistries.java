@@ -45,7 +45,9 @@ public final class MetricRegistries {
     /**
      * An ISO 8601 date format for pre-Java 8 compatibility without Joda dependency.
      */
-    @GuardedBy("field")
+    // TODO (davids): switch to Java 8 date format
+    @GuardedBy("ISO_8601_DATE_FORMAT")
+    @SuppressWarnings("SimpleDateFormatConstant")
     private static final SimpleDateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     static final String RESERVOIR_TYPE_METRIC_NAME = MetricRegistry.name(MetricRegistries.class, "reservoir.type");

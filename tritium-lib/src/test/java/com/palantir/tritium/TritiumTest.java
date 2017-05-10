@@ -45,7 +45,7 @@ public class TritiumTest {
     public ExpectedException expectedException = ExpectedException.none();
 
     @After
-    public void tearDown() throws Exception {
+    public void after() throws Exception {
         ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build();
         reporter.report();
         reporter.stop();

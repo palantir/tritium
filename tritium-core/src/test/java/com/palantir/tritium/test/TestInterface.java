@@ -29,6 +29,7 @@ public interface TestInterface {
 
     int throwsCheckedException() throws Exception;
 
+    @SuppressWarnings("checkstyle:illegalthrows")
     int throwsThrowable() throws Throwable;
 
     void throwsOutOfMemoryError();

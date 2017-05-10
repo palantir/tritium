@@ -89,7 +89,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
 
     @Override
     @Nullable
-    @SuppressWarnings("checkstyle:IllegalThrows")
+    @SuppressWarnings("checkstyle:illegalthrows")
     protected final Object handleInvocation(Object proxy, Method method, Object[] args) throws Throwable {
         if (isEnabled(proxy, method, args)) {
             return instrumentInvocation(proxy, method, args);
@@ -108,7 +108,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
      * passed in.
      */
     @Nullable
-    @SuppressWarnings("checkstyle:IllegalThrows")
+    @SuppressWarnings("checkstyle:illegalthrows")
     public final Object instrumentInvocation(Object instance, Method method, Object[] args) throws Throwable {
         InvocationContext context = handlePreInvocation(instance, method, args);
         try {
@@ -133,6 +133,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
     }
 
     @Nullable
+    @SuppressWarnings("checkstyle:illegalthrows")
     final Object execute(Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(getDelegate(), args);
