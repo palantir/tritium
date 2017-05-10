@@ -10,17 +10,24 @@ buildscript {
     }
 
     dependencies {
-        classpath "com.palantir:gradle-baseline-java:${baselineVersion}"
+        classpath "com.palantir.baseline:gradle-baseline-java:${baselineVersion}"
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${bintrayPluginVersion}"
         classpath "com.palantir:jacoco-coverage:${jacocoCoverageVersion}"
         classpath "com.palantir.gradle.gitversion:gradle-git-version:${gitVersionVersion}"
         classpath "gradle.plugin.com.palantir.configurationresolver:gradle-configuration-resolver-plugin:${configurationResolverVersion}"
+        classpath "gradle.plugin.org.inferred:gradle-processors:1.2.3"
     }
 }
 
 apply plugin: 'com.palantir.baseline-config'
 apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.git-version'
+
+dependencies {
+    // Adds a dependency on the Baseline configuration files. Typically use
+    // the same version as the plugin itself.
+    baseline "com.palantir.baseline:gradle-baseline-java-config:${baselineVersion}@zip"
+}
 
 allprojects {
     group 'com.palantir.tritium'

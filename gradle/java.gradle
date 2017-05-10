@@ -1,7 +1,8 @@
 apply plugin: 'java'
+apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
+apply plugin: 'com.palantir.baseline-error-prone'
 apply plugin: 'com.palantir.baseline-checkstyle'
 apply plugin: 'com.palantir.baseline-eclipse'
-apply plugin: 'com.palantir.baseline-findbugs'
 apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.configuration-resolver'
 apply plugin: 'com.palantir.jacoco-coverage'
@@ -13,11 +14,3 @@ jacocoCoverage {
 
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
-
-findbugsTest {
-    enabled = false
-}
-
-dependencies {
-    findbugsPlugins "com.palantir.antipatterns:antipatterns:${antipatternsVersion}"
-}
