@@ -11,11 +11,11 @@ buildscript {
 
     dependencies {
         classpath "com.palantir.baseline:gradle-baseline-java:${baselineVersion}"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${bintrayPluginVersion}"
-        classpath "com.palantir:jacoco-coverage:${jacocoCoverageVersion}"
-        classpath "com.palantir.gradle.gitversion:gradle-git-version:${gitVersionVersion}"
-        classpath "gradle.plugin.com.palantir.configurationresolver:gradle-configuration-resolver-plugin:${configurationResolverVersion}"
-        classpath "gradle.plugin.org.inferred:gradle-processors:1.2.3"
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath 'com.palantir:jacoco-coverage:0.4.0'
+        classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.7.2'
+        classpath 'gradle.plugin.com.palantir.configurationresolver:gradle-configuration-resolver-plugin:0.2.0'
+        classpath 'gradle.plugin.org.inferred:gradle-processors:1.2.3'
     }
 }
 
