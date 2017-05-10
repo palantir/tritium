@@ -16,24 +16,39 @@ buildscript {
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.7.2'
         classpath 'gradle.plugin.com.palantir.configurationresolver:gradle-configuration-resolver-plugin:0.2.0'
         classpath 'gradle.plugin.org.inferred:gradle-processors:1.2.3'
+        classpath 'com.netflix.nebula:nebula-dependency-recommender:3.6.3'
+        classpath 'com.netflix.nebula:nebula-publishing-plugin:4.9.1'
     }
 }
 
+apply plugin: 'java'
 apply plugin: 'com.palantir.baseline-config'
 apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.git-version'
-
-dependencies {
-    // Adds a dependency on the Baseline configuration files. Typically use
-    // the same version as the plugin itself.
-    baseline "com.palantir.baseline:gradle-baseline-java-config:${baselineVersion}@zip"
-}
 
 allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
 
+    apply plugin: 'nebula.dependency-recommender'
     apply from: "${rootDir}/gradle/java.gradle"
+
+    dependencyRecommendations {
+        strategy OverrideTransitives
+        propertiesFile file: project.rootProject.file('versions.props')
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            failOnVersionConflict()
+        }
+    }
+
+    configurations.errorprone {
+        resolutionStrategy {
+            force 'com.google.guava:guava:21.0'
+        }
+    }
 
     configurations {
         testArtifacts.extendsFrom testCompile
@@ -59,4 +74,15 @@ allprojects {
             events "started", "passed", "skipped", "failed"
         }
     }
+
+    if (System.env.CIRCLE_TEST_REPORTS) {
+        test.reports.junitXml.destination = new File(System.env.CIRCLE_TEST_REPORTS, it.getName())
+    }
 }
+
+dependencies {
+    // Adds a dependency on the Baseline configuration files. Typically use
+    // the same version as the plugin itself.
+    baseline "com.palantir.baseline:gradle-baseline-java-config:${baselineVersion}@zip"
+}
+

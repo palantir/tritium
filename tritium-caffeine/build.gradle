@@ -4,24 +4,21 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-    compile project(":tritium-api")
-    compile project(":tritium-core")
-    compile project(":tritium-metrics")
-    compile "com.github.ben-manes.caffeine:caffeine:${caffeineVersion}"
-    compile "com.google.code.findbugs:annotations:${findbugsVersion}"
-    compile "com.google.guava:guava:${guavaVersion}"
-    compile "io.dropwizard.metrics:metrics-core:${dropwizardMetricsVersion}"
-    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+    compile project(':tritium-api')
+    compile project(':tritium-core')
+    compile project(':tritium-metrics')
+    compile 'com.github.ben-manes.caffeine:caffeine'
+    compile 'com.google.code.findbugs:annotations'
+    compile 'com.google.guava:guava'
+    compile 'io.dropwizard.metrics:metrics-core'
+    compile 'org.slf4j:slf4j-api'
 
-    testCompile "ch.qos.logback:logback-classic:${logbackClassicVersion}"
-    testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {
-        exclude group: "com.google.truth"
-        exclude group: "com.google.guava", module: "guava"
-    }
-    testCompile "com.google.truth:truth:${truthVersion}"
-    testCompile "junit:junit:${junitVersion}"
-    testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
-    testCompile "org.mockito:mockito-all:${mockitoVersion}"
-    testCompile "org.slf4j:slf4j-simple:${slf4jVersion}"
+    testCompile 'ch.qos.logback:logback-classic'
+    testCompile 'com.google.guava:guava-testlib'
+    testCompile 'com.google.truth:truth'
+    testCompile 'junit:junit'
+    testCompile 'org.hamcrest:hamcrest-all'
+    testCompile 'org.mockito:mockito-all'
+    testCompile 'org.slf4j:slf4j-simple'
 }
 
