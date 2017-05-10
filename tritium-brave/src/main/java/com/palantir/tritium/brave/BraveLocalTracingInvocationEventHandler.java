@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import zipkin.Constants;
 
-public class BraveLocalTracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+public final class BraveLocalTracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BraveLocalTracingInvocationEventHandler.class);
 

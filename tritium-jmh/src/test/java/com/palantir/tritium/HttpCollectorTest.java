@@ -72,7 +72,7 @@ public class HttpCollectorTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void after() throws Exception {
         System.out.printf("Zipkin HTTP collector at %s metrics%n  accepted: %d%n  dropped: %d %n",
                 targetZipkinUrl, metrics.getAccepted(), metrics.getDropped());
     }

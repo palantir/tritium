@@ -110,22 +110,24 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         }
     }
 
-    void log(String message, Object... args) {
+    @SuppressWarnings("Slf4jConstantLogMessage")
+    // All message formats are generated with placeholders
+    private void log(final String messageFormat, Object... args) {
         switch (level) {
             case TRACE:
-                logger.trace(message, args);
+                logger.trace(messageFormat, args);
                 return;
             case DEBUG:
-                logger.debug(message, args);
+                logger.debug(messageFormat, args);
                 return;
             case INFO:
-                logger.info(message, args);
+                logger.info(messageFormat, args);
                 return;
             case WARN:
-                logger.warn(message, args);
+                logger.warn(messageFormat, args);
                 return;
             case ERROR:
-                logger.error(message, args);
+                logger.error(messageFormat, args);
                 return;
             default:
                 throw invalidLoggingLevel(level);

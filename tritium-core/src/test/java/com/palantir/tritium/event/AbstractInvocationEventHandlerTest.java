@@ -27,7 +27,7 @@ import org.junit.Test;
 public class AbstractInvocationEventHandlerTest {
 
     @Before
-    public void setUp() {
+    public void before() {
         System.clearProperty("instrument");
         Iterator<Entry<Object, Object>> props = System.getProperties().entrySet().iterator();
         while (props.hasNext()) {

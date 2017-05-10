@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings("DesignForExtension")
 public class TestImplementation implements TestInterface, Runnable {
 
     private final AtomicInteger invocationCount = new AtomicInteger();

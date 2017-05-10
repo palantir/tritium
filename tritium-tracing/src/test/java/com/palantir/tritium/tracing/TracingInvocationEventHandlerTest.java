@@ -75,7 +75,7 @@ public class TracingInvocationEventHandlerTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void after() throws Exception {
         Tracer.unsubscribe("sysout");
         Tracer.unsubscribe("mock");
         Tracer.unsubscribe("slf4j");

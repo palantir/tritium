@@ -33,7 +33,7 @@ public class CaffeineCacheMetricSetTest {
     private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
 
     @After
-    public void tearDown() throws Exception {
+    public void after() throws Exception {
         ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
                 .convertDurationsTo(TimeUnit.MICROSECONDS)
                 .convertRatesTo(TimeUnit.MICROSECONDS)
