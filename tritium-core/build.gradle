@@ -4,6 +4,7 @@ dependencies {
     compile project(':tritium-api')
     compile 'com.google.guava:guava'
     compile 'com.google.code.findbugs:annotations'
+    compile 'com.palantir.safe-logging:safe-logging'
     compile 'org.slf4j:slf4j-api'
 
     testCompile 'com.google.guava:guava-testlib'

@@ -6,6 +6,7 @@ dependencies {
 
     compile 'com.google.code.findbugs:annotations'
     compile 'com.palantir.remoting1:tracing'
+    compile 'com.palantir.safe-logging:safe-logging'
     compile 'org.slf4j:slf4j-api'
 
     testCompile project(path: ':tritium-core', configuration: 'testArtifacts')

@@ -3,6 +3,7 @@ apply from: "${rootDir}/gradle/publish-jars.gradle"
 dependencies {
     compile project(':tritium-api')
     compile project(':tritium-core')
+    compile 'com.palantir.safe-logging:safe-logging'
     compile 'io.zipkin.brave:brave-core'
     compile 'org.slf4j:slf4j-api'
 
