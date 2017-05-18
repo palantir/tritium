@@ -1,0 +1,71 @@
+project.sourceSets.create('jmh') {
+    java.srcDir 'src/jmh/java'
+    resources.srcDir 'src/jmh/resources'
+    compileClasspath += project.sourceSets.main.output
+    compileClasspath += project.sourceSets.main.compileClasspath
+    runtimeClasspath += compileClasspath
+}
+
+project.dependencies {
+    jmhCompile 'org.openjdk.jmh:jmh-core'
+    jmhCompile 'org.openjdk.jmh:jmh-generator-annprocess'
+}
+
+project.configurations.jmhCompile.extendsFrom(project.configurations.compile)
+project.configurations.jmhRuntime.extendsFrom(project.configurations.runtime)
+
+project.tasks.getByName('compileJmhJava').dependsOn project.tasks.getByName('compileJava')
+project.tasks.build.dependsOn project.tasks.getByName('compileJmhJava')
+
+project.task(type: JavaExec, 'benchmarks') {
+    main = 'org.openjdk.jmh.Main'
+    classpath = project.sourceSets.jmh.runtimeClasspath
+    maxHeapSize = '512m'
+    // add jvm args with `jvmArgs <arg>`
+
+    if (project.hasProperty('jmh')) {
+        args(project.jmh.split(' '))
+    } else {
+        //args '-h' // help output
+        args '-f' // fork
+        args '1'
+        args '-wi' // warmup iterations
+        args '5'
+        args '-i' // test iterations
+        args '5'
+        args '-r' // time per execution in seconds
+        args '5'
+        //args '-prof' // profilers
+        //args 'HS_GC' // HotSpot (tm) memory manager (GC) profiling via implementation-specific MBeans
+        //args 'HS_RT' // HotSpot (tm) runtime profiling via implementation-specific MBeans
+        //args 'HS_THR' // HotSpot (tm) threading subsystem via implementation-specific MBeans
+        //args 'HS_COMP' // HotSpot (tm) JIT compiler profiling via implementation-specific MBeans
+        //args 'HS_CL' // HotSpot (tm) classloader profiling via implementation-specific MBeans
+        //args 'STACK' // Simple and naive Java stack profiler
+    }
+}
+
+project.afterEvaluate {
+    def hasIdea = project.plugins.findPlugin(org.gradle.plugins.ide.idea.IdeaPlugin)
+    if (hasIdea) {
+        project.idea {
+            module {
+                scopes.TEST.plus += [project.configurations.jmhCompile]
+            }
+        }
+        project.idea {
+            module {
+                project.sourceSets.jmh.java.srcDirs.each {
+                    testSourceDirs += project.file(it)
+                }
+            }
+        }
+    }
+    def hasEclipsePlugin = project.plugins.findPlugin(org.gradle.plugins.ide.eclipse.EclipsePlugin)
+    def hasEclipseWtpPlugin = project.plugins.findPlugin(org.gradle.plugins.ide.eclipse.EclipseWtpPlugin)
+    if (hasEclipsePlugin != null || hasEclipseWtpPlugin != null) {
+        project.eclipse.classpath.plusConfigurations += [ project.configurations.jmhCompile ]
+        project.eclipse.classpath.plusConfigurations += [ project.configurations.jmhRuntime ]
+    }
+}
+

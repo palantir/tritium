@@ -12,57 +12,45 @@ buildscript {
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '1.2.3'
-    id 'me.champeau.gradle.jmh' version '0.3.1'
-    id 'net.ltgt.apt' version '0.9'
+    id 'net.ltgt.apt' version '0.10'
 }
 
 apply plugin: 'com.palantir.git-version'
-apply plugin: 'me.champeau.gradle.jmh'
 apply from: "${rootDir}/gradle/java.gradle"
+apply from: "${rootDir}/gradle/jmh.gradle"
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
-jmhJar {
-    manifest {
-        attributes 'Main-Class': 'com.palantir.tritium.microbenchmarks.ProxyBenchmark'
-    }
-    append('META-INF/BenchmarkList')
-    append('META-INF/CompilerHints')
-}
-
 dependencies {
-    compile project(":tritium-api")
-    compile project(":tritium-brave")
-    compile project(":tritium-core")
-    compile project(":tritium-lib")
-    compile project(":tritium-metrics")
-    compile project(":tritium-slf4j")
-    compile project(":tritium-tracing")
+    compile project(':tritium-api')
+    compile project(':tritium-brave')
+    compile project(':tritium-core')
+    compile project(':tritium-lib')
+    compile project(':tritium-metrics')
+    compile project(':tritium-slf4j')
+    compile project(':tritium-tracing')
 
-    compile "com.google.code.findbugs:annotations:${findbugsVersion}"
-    compile "com.google.guava:guava:${guavaVersion}"
-    compile "io.dropwizard.metrics:metrics-core:${dropwizardMetricsVersion}"
-    compile "org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:${hdrHistogramMetricsReservoirVersion}"
-    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+    compile 'com.google.code.findbugs:annotations'
+    compile 'com.google.guava:guava'
+    compile 'io.dropwizard.metrics:metrics-core'
+    compile 'org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir'
+    compile 'org.openjdk.jmh:jmh-core'
+    compile 'org.openjdk.jmh:jmh-generator-annprocess'
+    compile 'org.slf4j:slf4j-api'
 
-    testCompile project(path: ":tritium-core", configuration: "testArtifacts")
-    testCompile ("com.google.guava:guava-testlib:${guavaVersion}") {
-        exclude group: "com.google.truth"
-        exclude group: "com.google.guava", module: "guava"
-    }
-    testCompile "com.google.truth:truth:${truthVersion}"
-    testCompile "io.zipkin.brave:brave-spancollector-http:${braveVersion}"
-    testCompile "io.zipkin.java:zipkin-junit:${zipkinJunitVersion}"
-    testCompile "junit:junit:${junitVersion}"
-    testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
-    testCompile "org.mockito:mockito-all:${mockitoVersion}"
-    testCompile "org.slf4j:slf4j-simple:${slf4jVersion}"
+    testCompile project(path: ':tritium-core', configuration: 'testArtifacts')
+    testCompile 'io.zipkin.brave:brave-spancollector-http'
+    testCompile 'io.zipkin.java:zipkin-junit'
+    testCompile 'com.google.guava:guava-testlib'
+    testCompile 'com.google.truth:truth'
+    testCompile 'junit:junit'
+    testCompile 'org.hamcrest:hamcrest-all'
+    testCompile 'org.mockito:mockito-all'
+    testCompile 'org.slf4j:slf4j-simple'
 
-    jmh "io.zipkin.brave:brave-spancollector-http:${braveVersion}"
-    jmh "org.openjdk.jmh:jmh-core:${jmhVersion}"
-    jmh "org.slf4j:slf4j-simple:${slf4jVersion}"
-    jmh "ch.qos.logback:logback-classic:${logbackClassicVersion}"
-    apt "org.openjdk.jmh:jmh-generator-annprocess:${jmh.jmhVersion}"
+    jmhCompile 'ch.qos.logback:logback-classic'
+    jmhCompile 'io.zipkin.brave:brave-spancollector-http'
+    jmhCompile 'org.slf4j:slf4j-simple'
 
 }
