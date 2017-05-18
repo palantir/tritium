@@ -1,4 +1,6 @@
 project.sourceSets.create('jmh') {
+    java.srcDir 'src/jmh/java'
+    resources.srcDir 'src/jmh/resources'
     compileClasspath += project.sourceSets.main.output
     compileClasspath += project.sourceSets.main.compileClasspath
     runtimeClasspath += compileClasspath
@@ -14,9 +16,6 @@ project.configurations.jmhRuntime.extendsFrom(project.configurations.runtime)
 
 project.tasks.getByName('compileJmhJava').dependsOn project.tasks.getByName('compileJava')
 project.tasks.build.dependsOn project.tasks.getByName('compileJmhJava')
-
-project.eclipse.classpath.plusConfigurations += [ project.configurations.jmhCompile ]
-project.eclipse.classpath.plusConfigurations += [ project.configurations.jmhRuntime ]
 
 project.task(type: JavaExec, 'benchmarks') {
     main = 'org.openjdk.jmh.Main'
@@ -43,6 +42,30 @@ project.task(type: JavaExec, 'benchmarks') {
         //args 'HS_COMP' // HotSpot (tm) JIT compiler profiling via implementation-specific MBeans
         //args 'HS_CL' // HotSpot (tm) classloader profiling via implementation-specific MBeans
         //args 'STACK' // Simple and naive Java stack profiler
+    }
+}
+
+project.afterEvaluate {
+    def hasIdea = project.plugins.findPlugin(org.gradle.plugins.ide.idea.IdeaPlugin)
+    if (hasIdea) {
+        project.idea {
+            module {
+                scopes.TEST.plus += [project.configurations.jmhCompile]
+            }
+        }
+        project.idea {
+            module {
+                project.sourceSets.jmh.java.srcDirs.each {
+                    testSourceDirs += project.file(it)
+                }
+            }
+        }
+    }
+    def hasEclipsePlugin = project.plugins.findPlugin(org.gradle.plugins.ide.eclipse.EclipsePlugin)
+    def hasEclipseWtpPlugin = project.plugins.findPlugin(org.gradle.plugins.ide.eclipse.EclipseWtpPlugin)
+    if (hasEclipsePlugin != null || hasEclipseWtpPlugin != null) {
+        project.eclipse.classpath.plusConfigurations += [ project.configurations.jmhCompile ]
+        project.eclipse.classpath.plusConfigurations += [ project.configurations.jmhRuntime ]
     }
 }
 
