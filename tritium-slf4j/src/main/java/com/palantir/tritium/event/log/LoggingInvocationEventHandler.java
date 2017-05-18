@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.api.functions.LongPredicate;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoggingInvocationEventHandler.class);
+    private static final Logger CLASS_LOGGER = LoggerFactory.getLogger(LoggingInvocationEventHandler.class);
     private static final List<String> MESSAGE_PATTERNS = generateMessagePatterns(10);
 
     public static final LongPredicate LOG_ALL_DURATIONS = LongPredicate.TRUE;
@@ -76,7 +77,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     @Override
     public final void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         if (context == null) {
-            LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
+            CLASS_LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
             return;
         }
 
@@ -87,7 +88,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     @Override
     public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         if (context == null) {
-            LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
+            CLASS_LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
             return;
         }
 
@@ -191,9 +192,9 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     static Object[] getLogParams(Method method, Object[] args, long durationNanos, LoggingLevel level) {
         Object[] logParams = new Object[3 + args.length];
-        logParams[0] = method.getDeclaringClass().getSimpleName();
-        logParams[1] = method.getName();
-        logParams[logParams.length - 1] = String.format("%.3f", durationNanos / 1000000.0d);
+        logParams[0] = SafeArg.of("class", method.getDeclaringClass().getSimpleName());
+        logParams[1] = SafeArg.of("method", method.getName());
+        logParams[logParams.length - 1] = SafeArg.of("milliseconds", String.format("%.3f", durationNanos / 1000000.0d));
 
         Class<?>[] argTypes = method.getParameterTypes();
         if (argTypes.length == 0) {
@@ -209,7 +210,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
                 }
             }
 
-            logParams[2 + i] = argMessage;
+            logParams[2 + i] = SafeArg.of("type" + i, argMessage);
         }
 
         return logParams;

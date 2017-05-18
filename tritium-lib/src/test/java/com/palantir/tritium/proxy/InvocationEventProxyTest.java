@@ -142,8 +142,8 @@ public class InvocationEventProxyTest {
         InvocationEventProxy<InvocationContext> proxy = createBasicProxy(
                 Collections.<InvocationEventHandler<InvocationContext>>emptyList());
 
-        String debugString = proxy.toInvocationDebugString(this, getToStringMethod(), null);
-        assertThat(debugString, containsString("x"));
+        Throwable cause = new RuntimeException("cause");
+        proxy.logInvocationWarning("test", this, getToStringMethod(), null, cause);
     }
 
     private InvocationEventProxy<InvocationContext> createBasicProxy(

@@ -19,6 +19,7 @@ package com.palantir.tritium.event;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
+import com.palantir.logsafe.SafeArg;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public final class CompositeInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CompositeInvocationEventHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(CompositeInvocationEventHandler.class);
 
     private final List<InvocationEventHandler<InvocationContext>> handlers;
 
@@ -76,7 +77,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
                 }
             }
         } else {
-            LOGGER.debug("onSuccess InvocationContext was not a CompositeInvocationContext: {}", invocationContext);
+            logger.debug("onSuccess InvocationContext was not a CompositeInvocationContext: {}", invocationContext);
         }
     }
 
@@ -93,7 +94,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
                 }
             }
         } else {
-            LOGGER.debug("onFailure InvocationContext was not a CompositeInvocationContext: {}", invocationContext);
+            logger.debug("onFailure InvocationContext was not a CompositeInvocationContext: {}", invocationContext);
         }
     }
 
@@ -118,11 +119,15 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private static void preInvocationFailed(InvocationEventHandler<? extends InvocationContext> handler,
             Object instance, Method method, Object[] args, Exception exception) {
-        LOGGER.warn("Exception handling preInvocation({}): "
+        logger.warn("Exception handling preInvocation({}): "
                         + "invocation of {}.{} with arguments {} on {} threw: {}",
                 handler,
-                method.getDeclaringClass().getCanonicalName(), method.getName(), Arrays.toString(args), instance,
-                exception, exception);
+                SafeArg.of("class", method.getDeclaringClass().getCanonicalName()),
+                SafeArg.of("method", method.getName()),
+                Arrays.toString(args),
+                instance,
+                exception,
+                exception);
     }
 
     private void handleSuccess(InvocationEventHandler<?> handler,
@@ -132,7 +137,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         try {
             handler.onSuccess(context, result);
         } catch (RuntimeException e) {
-            LOGGER.warn("Exception handling onSuccess({}, {}): {}",
+            logger.warn("Exception handling onSuccess({}, {}): {}",
                     context, result, e, e);
         }
     }
@@ -144,7 +149,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         try {
             handler.onFailure(context, cause);
         } catch (RuntimeException e) {
-            LOGGER.warn("Exception handling onFailure({}, {}): {}",
+            logger.warn("Exception handling onFailure({}, {}): {}",
                     context, cause, e, e);
         }
     }
