@@ -69,7 +69,7 @@ public final class Proxies {
         checkNotNull(additionalInterfaces);
         checkNotNull(delegateClass);
 
-        Set<Class<?>> interfaces = new LinkedHashSet<Class<?>>();
+        Set<Class<?>> interfaces = new LinkedHashSet<>();
         interfaces.add(iface);
         interfaces.addAll(additionalInterfaces);
         if (delegateClass.isInterface()) {
@@ -90,7 +90,7 @@ public final class Proxies {
      * @throws IllegalArgumentException if the specified interface class is not an interface
      */
     static Class<?>[] interfaces(Class<?> iface, Class<?> delegateClass) {
-        return interfaces(iface, Collections.<Class<?>>emptySet(), delegateClass);
+        return interfaces(iface, Collections.emptySet(), delegateClass);
     }
 
     static void checkIsInterface(Class<?> iface) {

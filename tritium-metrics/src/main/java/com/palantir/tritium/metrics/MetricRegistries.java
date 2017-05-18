@@ -72,12 +72,7 @@ public final class MetricRegistries {
     static MetricRegistry createWithReservoirType(Supplier<Reservoir> reservoirSupplier) {
         MetricRegistry metrics = new MetricRegistryWithReservoirs(reservoirSupplier);
         final String name = reservoirSupplier.get().getClass().getCanonicalName();
-        registerSafe(metrics, RESERVOIR_TYPE_METRIC_NAME, new Gauge<String>() {
-            @Override
-            public String getValue() {
-                return name;
-            }
-        });
+        registerSafe(metrics, RESERVOIR_TYPE_METRIC_NAME, (Gauge<String>) () -> name);
         registerDefaultMetrics(metrics);
         return metrics;
     }
@@ -92,12 +87,7 @@ public final class MetricRegistries {
                     }
                 });
         registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "now"),
-                new Gauge<String>() {
-                    @Override
-                    public String getValue() {
-                        return nowIsoTimestamp();
-                    }
-                });
+                (Gauge<String>) MetricRegistries::nowIsoTimestamp);
         return metrics;
     }
 

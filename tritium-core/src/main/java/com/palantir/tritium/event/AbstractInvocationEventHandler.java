@@ -76,12 +76,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
         boolean isSpecificallyEnabled = "true".equalsIgnoreCase(qualifiedValue);
         final boolean instrumentationEnabled = !isGloballyDisabled
                 && (isSpecificallyEnabled || qualifiedValue == null);
-        return new BooleanSupplier() {
-            @Override
-            public boolean asBoolean() {
-                return instrumentationEnabled;
-            }
-        };
+        return () -> instrumentationEnabled;
     }
 
     public static Object[] nullToEmpty(@Nullable Object[] args) {

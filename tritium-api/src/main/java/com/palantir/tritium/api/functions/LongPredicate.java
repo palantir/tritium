@@ -21,22 +21,12 @@ public interface LongPredicate {
     /**
      * {@link LongPredicate} that always returns true.
      */
-    LongPredicate TRUE = new LongPredicate() {
-        @Override
-        public boolean test(long input) {
-            return true;
-        }
-    };
+    LongPredicate TRUE = input -> true;
 
     /**
      * {@link LongPredicate} that always returns false.
      */
-    LongPredicate FALSE = new LongPredicate() {
-        @Override
-        public boolean test(long input) {
-            return false;
-        }
-    };
+    LongPredicate FALSE = input -> false;
 
     /**
      * Returns the result of applying this predicate to {@code input}.
@@ -45,4 +35,5 @@ public interface LongPredicate {
      * @return true
      */
     boolean test(long input);
+
 }

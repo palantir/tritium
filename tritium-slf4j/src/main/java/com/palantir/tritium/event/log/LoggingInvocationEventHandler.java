@@ -45,19 +45,11 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     public static final LongPredicate LOG_ALL_DURATIONS = LongPredicate.TRUE;
 
-    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND = new LongPredicate() {
-        @Override
-        public boolean test(long nanos) {
-            return TimeUnit.MICROSECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 1;
-        }
-    };
+    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND = nanos ->
+            TimeUnit.MICROSECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 1;
 
-    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS = new LongPredicate() {
-        @Override
-        public boolean test(long nanos) {
-            return TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 0;
-        }
-    };
+    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS = nanos ->
+            TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 0;
 
     public static final LongPredicate NEVER_LOG = LongPredicate.FALSE;
 
@@ -159,12 +151,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         checkNotNull(logger, "logger");
         checkNotNull(level, "level");
         if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).asBoolean()) {
-            return new BooleanSupplier() {
-                @Override
-                public boolean asBoolean() {
-                    return isEnabled(logger, level);
-                }
-            };
+            return () -> isEnabled(logger, level);
         } else {
             return BooleanSupplier.FALSE;
         }
