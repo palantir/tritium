@@ -19,6 +19,7 @@ package com.palantir.tritium.proxy;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.reflect.AbstractInvocationHandler;
+import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InstrumentationFilter;
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory;
 abstract class InvocationEventProxy<C extends InvocationContext>
         extends AbstractInvocationHandler implements InvocationHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InvocationEventProxy.class);
+    private static final Logger logger = LoggerFactory.getLogger(InvocationEventProxy.class);
     private static final Object[] NO_ARGS = {};
 
     private final InstrumentationFilter filter;
@@ -45,6 +46,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
 
     /**
      * Always enabled instrumentation handler.
+     *
      * @param handlers event handlers
      */
     protected InvocationEventProxy(List<InvocationEventHandler<InvocationContext>> handlers) {
@@ -81,11 +83,11 @@ abstract class InvocationEventProxy<C extends InvocationContext>
             return eventHandler.isEnabled()
                     && filter.shouldInstrument(instance, method, args);
         } catch (Throwable t) {
-            LOGGER.warn("Exception handling isEnabled({}): {}",
-                    toInvocationDebugString(instance, method, args), t, t);
+            logInvocationWarning("isEnabled", instance, method, args, t);
             return false;
         }
     }
+
 
     @Override
     @Nullable
@@ -102,7 +104,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
      * {@link #invoke} delegates to this method upon any method invocation on the instance, except
      * {@link Object#equals}, {@link Object#hashCode} and {@link Object#toString}. The result will be returned as the
      * proxied method's return value.
-     *
+     * <p>
      * <p>
      * Unlike {@link #invoke}, {@code args} will never be null. When the method has no parameter, an empty array is
      * passed in.
@@ -126,8 +128,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         try {
             return eventHandler.preInvocation(instance, method, args);
         } catch (RuntimeException e) {
-            LOGGER.warn("Exception handling preInvocation({}): {}",
-                    toInvocationDebugString(instance, method, args), e, e);
+            logInvocationWarning("preInvocation", instance, method, args, e);
         }
         return null;
     }
@@ -147,30 +148,48 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         try {
             eventHandler.onSuccess(context, result);
         } catch (RuntimeException e) {
-            LOGGER.warn("Exception handling onSuccess({}, {}): {}",
-                    context, result, e, e);
+            logInvocationWarningOnSuccess(context, result, e);
         }
         return result;
+    }
+
+    private static void logInvocationWarningOnSuccess(InvocationContext context, Object result, Exception cause) {
+        logger.warn("{} exception handling onSuccess({}, {}): {}",
+                safeSimpleClassName("cause", cause), context, safeSimpleClassName("result", result), cause);
     }
 
     final Throwable handleOnFailure(@Nullable InvocationContext context, Throwable cause) {
         try {
             eventHandler.onFailure(context, cause);
         } catch (RuntimeException e) {
-            LOGGER.warn("Exception handling onFailure({}, {}): {}",
-                    context, cause, e, e);
+            logInvocationWarningOnFailure(context, cause, e);
         }
         return cause;
     }
 
-    protected final String toInvocationDebugString(Object instance, Method method, @Nullable Object[] args) {
-        return "invocation of "
-                + method.getDeclaringClass() + '.' + method.getName()
-                + " with arguments " + Arrays.toString(nullToEmpty(args))
-                + " on " + instance + " via " + this + " : ";
+    private static void logInvocationWarningOnFailure(InvocationContext context, @Nullable Throwable result,
+            RuntimeException cause) {
+        logger.warn("{} exception handling onFailure({}, {}): {}",
+                safeSimpleClassName("cause", cause), context, safeSimpleClassName("result", result), cause);
     }
 
-    protected static Object[] nullToEmpty(@Nullable Object[] args) {
+    private static SafeArg<String> safeSimpleClassName(String name, @Nullable Object object) {
+        return SafeArg.of(name, (object == null) ? "null" : object.getClass().getSimpleName());
+    }
+
+    static void logInvocationWarning(String event, Object instance, Method method, Object[] args,
+            Throwable cause) {
+        logger.warn("{} exception handling {} invocation of {}.{} with arguments {} on {}",
+                safeSimpleClassName("throwable", cause),
+                event,
+                SafeArg.of("class", method.getDeclaringClass()),
+                SafeArg.of("method", method.getName()),
+                Arrays.toString(nullToEmpty(args)),
+                instance,
+                cause);
+    }
+
+    private static Object[] nullToEmpty(@Nullable Object[] args) {
         return (args == null) ? NO_ARGS : args;
     }
 

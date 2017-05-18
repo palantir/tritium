@@ -32,7 +32,7 @@ import zipkin.Constants;
 
 public final class BraveLocalTracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BraveLocalTracingInvocationEventHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(BraveLocalTracingInvocationEventHandler.class);
 
     private final Brave brave;
     private final String component;
@@ -71,7 +71,7 @@ public final class BraveLocalTracingInvocationEventHandler extends AbstractInvoc
 
     private void debugIfNullContext(@Nullable InvocationContext context) {
         if (context == null) {
-            LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
+            logger.debug("Encountered null metric context likely due to exception in preInvocation");
         }
     }
 

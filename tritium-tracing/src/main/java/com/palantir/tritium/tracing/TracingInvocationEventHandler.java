@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public final class TracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TracingInvocationEventHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(TracingInvocationEventHandler.class);
 
     private final String component;
 
@@ -66,7 +66,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
 
     private void debugIfNullContext(@Nullable InvocationContext context) {
         if (context == null) {
-            LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
+            logger.debug("Encountered null metric context likely due to exception in preInvocation");
         }
     }
 

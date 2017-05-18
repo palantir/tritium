@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MetricsInvocationEventHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(MetricsInvocationEventHandler.class);
 
     private final MetricRegistry metricRegistry;
     private final String serviceName;
@@ -63,7 +63,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     @Override
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         if (context == null) {
-            LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
+            logger.debug("Encountered null metric context likely due to exception in preInvocation");
             return;
         }
         metricRegistry.timer(getBaseMetricName(context))
@@ -74,7 +74,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         if (context == null) {
             markGlobalFailure();
-            LOGGER.debug("Encountered null metric context likely due to exception in preInvocation: {}", cause, cause);
+            logger.debug("Encountered null metric context likely due to exception in preInvocation: {}", cause, cause);
             return;
         }
 

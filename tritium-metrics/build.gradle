@@ -5,6 +5,7 @@ dependencies {
     compile project(':tritium-core')
     compile 'com.google.code.findbugs:annotations'
     compile 'com.google.guava:guava'
+    compile 'com.palantir.safe-logging:safe-logging'
     compile 'io.dropwizard.metrics:metrics-core'
     compile 'org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir'
     compile 'org.hdrhistogram:HdrHistogram'

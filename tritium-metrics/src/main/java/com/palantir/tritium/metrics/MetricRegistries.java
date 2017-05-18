@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class MetricRegistries {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MetricRegistries.class);
+    private static final Logger logger = LoggerFactory.getLogger(MetricRegistries.class);
 
     /**
      * An ISO 8601 date format for pre-Java 8 compatibility without Joda dependency.
@@ -160,7 +160,7 @@ public final class MetricRegistries {
         if (existingMetric == null) {
             return registry.register(name, metric);
         } else {
-            LOGGER.warn("Metric already registered at this name."
+            logger.warn("Metric already registered at this name."
                     + " Name: {}, existing metric: {}", name, existingMetric);
 
             Set<Class<?>> existingMetricInterfaces = ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
