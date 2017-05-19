@@ -19,6 +19,7 @@ package com.palantir.tritium.event;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
+import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;

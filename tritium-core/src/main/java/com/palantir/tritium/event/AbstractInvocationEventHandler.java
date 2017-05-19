@@ -20,6 +20,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Strings;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import javax.annotation.Nullable;
 

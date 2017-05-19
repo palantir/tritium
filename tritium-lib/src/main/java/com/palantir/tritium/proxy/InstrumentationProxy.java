@@ -16,9 +16,9 @@
 
 package com.palantir.tritium.proxy;
 
-import com.palantir.tritium.event.InstrumentationFilter;
-import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import java.util.List;
 
 class InstrumentationProxy<T> extends InvocationEventProxy<InvocationContext> {

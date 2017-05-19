@@ -33,7 +33,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import com.twitter.zipkin.gen.BinaryAnnotation;
