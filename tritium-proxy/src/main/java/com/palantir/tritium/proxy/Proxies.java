@@ -16,14 +16,13 @@
 
 package com.palantir.tritium.proxy;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public final class Proxies {
@@ -42,9 +41,9 @@ public final class Proxies {
      *         interfaces from the delegate class
      */
     public static <T, U extends T> T newProxy(Class<T> iface, U delegate, InvocationHandler handler) {
-        checkNotNull(iface);
-        checkNotNull(delegate);
-        checkNotNull(handler);
+        Objects.requireNonNull(iface, "interface");
+        Objects.requireNonNull(delegate, "delegate");
+        Objects.requireNonNull(handler, "handler");
         checkIsInterface(iface);
 
         return iface.cast(Proxy.newProxyInstance(
@@ -66,8 +65,8 @@ public final class Proxies {
                                  Collection<Class<?>> additionalInterfaces,
                                  Class<?> delegateClass) {
         checkIsInterface(iface);
-        checkNotNull(additionalInterfaces);
-        checkNotNull(delegateClass);
+        Objects.requireNonNull(additionalInterfaces, "additionalInterfaces");
+        Objects.requireNonNull(delegateClass, "delegateClass");
 
         Set<Class<?>> interfaces = new LinkedHashSet<>();
         interfaces.add(iface);
