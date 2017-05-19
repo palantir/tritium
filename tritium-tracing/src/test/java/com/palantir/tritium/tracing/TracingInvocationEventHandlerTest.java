@@ -27,7 +27,7 @@ import com.palantir.remoting1.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.remoting1.tracing.Span;
 import com.palantir.remoting1.tracing.SpanObserver;
 import com.palantir.remoting1.tracing.Tracer;
-import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;

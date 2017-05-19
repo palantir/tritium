@@ -21,11 +21,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.SafeArg;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.api.functions.LongPredicate;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InvocationContext;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
@@ -36,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link com.palantir.tritium.event.InvocationEventHandler} that times every method invocation and logs to specified
+ * {@link InvocationEventHandler} that times every method invocation and logs to specified
  * logger.
  */
 public class LoggingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
