@@ -1,16 +1,6 @@
 apply from: "${rootDir}/gradle/publish-jars.gradle"
 
 dependencies {
-    compile project(':tritium-api')
-    compile project(':tritium-core')
-    compile project(':tritium-metrics')
-    compile project(':tritium-proxy')
-    compile project(':tritium-slf4j')
-    compile 'com.google.code.findbugs:annotations'
-    compile 'com.google.guava:guava'
-    compile 'com.palantir.safe-logging:safe-logging'
-    compile 'org.slf4j:slf4j-api'
-
     testCompile project(path: ':tritium-core', configuration: 'testArtifacts')
     testCompile 'com.google.guava:guava-testlib'
     testCompile 'com.google.truth:truth'
