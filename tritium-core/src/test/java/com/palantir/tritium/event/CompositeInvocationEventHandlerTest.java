@@ -19,6 +19,8 @@ package com.palantir.tritium.event;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;

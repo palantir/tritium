@@ -19,10 +19,11 @@ package com.palantir.tritium.event.metrics;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.MetricRegistry;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InvocationContext;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -31,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link com.palantir.tritium.event.InvocationEventHandler} that records method timing and failures using Dropwizard
+ * {@link InvocationEventHandler} that records method timing and failures using Dropwizard
  * metrics.
  */
 public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {

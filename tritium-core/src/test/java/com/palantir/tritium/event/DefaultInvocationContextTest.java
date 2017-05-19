@@ -18,6 +18,7 @@ package com.palantir.tritium.event;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.palantir.tritium.api.event.InvocationContext;
 import org.junit.Test;
 
 public class DefaultInvocationContextTest {

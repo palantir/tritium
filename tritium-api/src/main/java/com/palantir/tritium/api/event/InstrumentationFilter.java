@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.event;
+package com.palantir.tritium.api.event;
 
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;

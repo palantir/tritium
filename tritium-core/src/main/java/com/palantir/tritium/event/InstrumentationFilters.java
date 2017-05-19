@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.event;
 
+import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;

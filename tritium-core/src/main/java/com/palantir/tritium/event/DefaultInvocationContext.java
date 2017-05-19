@@ -18,6 +18,7 @@ package com.palantir.tritium.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.palantir.tritium.api.event.InvocationContext;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Method;
 import java.util.Arrays;
