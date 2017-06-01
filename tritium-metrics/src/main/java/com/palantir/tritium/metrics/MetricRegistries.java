@@ -155,25 +155,27 @@ public final class MetricRegistries {
      *         interfaces as {@code metric}
      */
     public static <T extends Metric> T registerSafe(MetricRegistry registry, String name, T metric) {
-        Map<String, Metric> metrics = registry.getMetrics();
-        Metric existingMetric = metrics.get(name);
-        if (existingMetric == null) {
-            return registry.register(name, metric);
-        } else {
-            logger.warn("Metric already registered at this name."
-                    + " Name: {}, existing metric: {}", name, existingMetric);
+        synchronized (registry) {
+            Map<String, Metric> metrics = registry.getMetrics();
+            Metric existingMetric = metrics.get(name);
+            if (existingMetric == null) {
+                return registry.register(name, metric);
+            } else {
+                logger.warn("Metric already registered at this name."
+                        + " Name: {}, existing metric: {}", name, existingMetric);
 
-            Set<Class<?>> existingMetricInterfaces = ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
-            Set<Class<?>> newMetricInterfaces = ImmutableSet.copyOf(metric.getClass().getInterfaces());
-            if (!existingMetricInterfaces.equals(newMetricInterfaces)) {
-                throw new IllegalArgumentException(
-                        "Metric already registered at this name that implements a different set of interfaces."
-                                + " Name: " + name + ", existing metric: " + existingMetric);
+                Set<Class<?>> existingMetricInterfaces = ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
+                Set<Class<?>> newMetricInterfaces = ImmutableSet.copyOf(metric.getClass().getInterfaces());
+                if (!existingMetricInterfaces.equals(newMetricInterfaces)) {
+                    throw new IllegalArgumentException(
+                            "Metric already registered at this name that implements a different set of interfaces."
+                                    + " Name: " + name + ", existing metric: " + existingMetric);
+                }
+
+                @SuppressWarnings("unchecked")
+                T registeredMetric = (T) existingMetric;
+                return registeredMetric;
             }
-
-            @SuppressWarnings("unchecked")
-            T registeredMetric = (T) existingMetric;
-            return registeredMetric;
         }
     }
 }
