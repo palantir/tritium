@@ -78,11 +78,11 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private static Map<Method, String> createMethodGroupMapping(Class<?> serviceClass) {
         ImmutableMap.Builder<Method,String> builder = ImmutableMap.builder();
 
-        MetricGroup classGroup = serviceClass.getAnnotation(MetricGroup.class);
+        MetricGroup classGroup = AnnotationHelper.getSuperTypeAnnotation(serviceClass, MetricGroup.class);
 
         for(Method method : serviceClass.getMethods()) {
-            AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, method);
-            MetricGroup methodGroup = method.getAnnotation(MetricGroup.class);
+            MetricGroup methodGroup = AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, method);
+
             if(methodGroup != null) {
                 builder.put(method, methodGroup.value());
             } else if(classGroup != null) {
@@ -114,10 +114,14 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
         String metricName = metricGroups.get(context.getMethod());
         if(metricName != null){
-            metricRegistry.timer(MetricRegistry.name(serviceName,metricName))
+            metricRegistry.timer(MetricRegistry.name(serviceName, metricName))
                     .update(nanos, TimeUnit.NANOSECONDS);
-        }
 
+            if(globalGroupPrefix != null) {
+                metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName))
+                        .update(nanos, TimeUnit.NANOSECONDS);
+            }
+        }
     }
 
     @Override
@@ -138,6 +142,11 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         if(metricName != null){
             metricRegistry.timer(MetricRegistry.name(serviceName,metricName, failuresMetricName()))
                     .update(nanos, TimeUnit.NANOSECONDS);
+
+            if(globalGroupPrefix != null) {
+                metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName, failuresMetricName()))
+                        .update(nanos, TimeUnit.NANOSECONDS);
+            }
         }
     }
 
