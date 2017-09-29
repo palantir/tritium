@@ -1,16 +1,26 @@
 apply plugin: 'java'
+apply plugin: 'jacoco'
 apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
 apply plugin: 'com.palantir.baseline-error-prone'
 apply plugin: 'com.palantir.baseline-checkstyle'
 apply plugin: 'com.palantir.baseline-eclipse'
 apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.configuration-resolver'
-apply plugin: 'com.palantir.jacoco-coverage'
 
-jacocoCoverage {
-    fileThreshold 0.5
-    fileThreshold 0.0, ~"Immutable_.*\\.java"
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
+    afterEvaluate {
+        classDirectories = project.files(classDirectories.files.collect {
+            // Exclusion path is project-relative and has a base of compiled classes
+            fileTree(dir: it, exclude: '**/Immutable*.class')
+        })
+    }
 }
+
+tasks.jacocoTestReport.dependsOn(tasks.test)
+tasks.check.dependsOn(tasks.jacocoTestReport)
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
