@@ -25,6 +25,7 @@ import static org.mockito.Mockito.mock;
 
 public class AnnotationHelperTest {
 
+    @MetricGroup("DEFAULT")
     public interface TestSuperInterface {
 
         @MetricGroup("ONE")
@@ -32,12 +33,15 @@ public class AnnotationHelperTest {
     }
 
     @Test
-    public void testParentInterfaceAnnotation() throws NoSuchMethodException {
+    public void testParentInterfaceAnnotations() throws NoSuchMethodException {
         TestSuperInterface impl = mock(TestSuperInterface.class);
+
+        MetricGroup cls = AnnotationHelper.getSuperTypeAnnotation(impl.getClass(), MetricGroup.class);
 
         MetricGroup met = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class, impl.getClass(), impl.getClass().getMethod("method"));
 
+        assertThat(cls.value()).isEqualTo("DEFAULT");
         assertThat(met.value()).isEqualTo("ONE");
     }
 }

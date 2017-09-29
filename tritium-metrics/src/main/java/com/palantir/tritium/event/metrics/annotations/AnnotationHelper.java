@@ -26,6 +26,30 @@ public class AnnotationHelper {
 
     private AnnotationHelper() { throw new UnsupportedOperationException(); }
 
+    /**
+     * Annotation as implemented on passed in type or parent of that type, works for both super classes and
+     * interfaces
+     *
+     * @param annotation
+     * @param <T>
+     * @return First matching annotation found in depth first search, or null if not found
+     */
+    public static <T extends Annotation> T getSuperTypeAnnotation(Class<?> c, Class<T> annotation) {
+        if(c.isAnnotationPresent(annotation)) {
+            return c.getAnnotation(annotation);
+        }
+
+        for(Class<?> ifaces : getParentClasses(c)) {
+            T superAnnotation = getSuperTypeAnnotation(ifaces, annotation);
+            if(superAnnotation != null) {
+                return superAnnotation;
+            }
+        }
+
+        return null;
+    }
+
+
     public static <T extends Annotation> T getMethodAnnotation(Class<T> annotation,
             Class<?> c, Method method) {
         return getMethodAnnotation(annotation, c, method.getName(), method.getParameterTypes());
