@@ -21,6 +21,8 @@ test:
   override:
     - ./gradlew check --parallel --continue
   post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
     - mkdir -p $CIRCLE_ARTIFACTS/heapdumps:
         parallel: true
     - find . -type f -name "*.hprof" -o -name "*.gc.log" -exec cp {} $CIRCLE_ARTIFACTS/heapdumps \;:
