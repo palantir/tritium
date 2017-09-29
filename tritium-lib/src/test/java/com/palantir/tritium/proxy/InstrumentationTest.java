@@ -37,6 +37,7 @@ import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
+import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
@@ -57,6 +58,11 @@ import org.slf4j.Logger;
 
 @RunWith(MockitoJUnitRunner.class)
 public class InstrumentationTest {
+
+    interface AnnotatedInterface {
+        @MetricGroup(value = "ONE")
+        void method();
+    }
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
 
@@ -114,6 +120,25 @@ public class InstrumentationTest {
         assertTrue(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax() >= 0L);
 
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
+    }
+
+    @Test
+    public void testMetricGroupBuilder() {
+        AnnotatedInterface delegate = mock(AnnotatedInterface.class);
+        String globalPrefix = "com.business.service";
+
+        MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
+
+        AnnotatedInterface instrumentedService = Instrumentation.builder(AnnotatedInterface.class, delegate)
+                .withMetrics(metricRegistry, globalPrefix)
+                .withPerformanceTraceLogging()
+                .build();
+        //call
+        instrumentedService.method();
+
+        assertThat(metricRegistry.timer(AnnotatedInterface.class + ".method").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(AnnotatedInterface.class + ".DEFAULT").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(1L);
     }
 
     private void executeManyTimes(TestInterface instrumentedService, int invocations) {

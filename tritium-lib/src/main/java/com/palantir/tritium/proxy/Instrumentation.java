@@ -118,12 +118,18 @@ public final class Instrumentation {
             this.delegate = checkNotNull(delegate, "delegate");
         }
 
-        public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
+        public Builder<T, U> withMetrics(MetricRegistry metricRegistry, String globalPrefix) {
             checkNotNull(metricRegistry, "metricRegistry");
             this.handlers.add(new MetricsInvocationEventHandler(
                     metricRegistry,
-                    MetricRegistry.name(interfaceClass.getName())));
+                    delegate.getClass(),
+                    MetricRegistry.name(interfaceClass.getName()),
+                    globalPrefix));
             return this;
+        }
+
+        public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
+            return withMetrics(metricRegistry, null);
         }
 
         public Builder<T, U> withPerformanceTraceLogging() {

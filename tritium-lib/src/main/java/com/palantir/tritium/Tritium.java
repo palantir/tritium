@@ -44,4 +44,21 @@ public final class Tritium {
                 .build();
     }
 
+    /**
+     * Return an instrumented proxy of the specified service interface and delegate that records aggregated invocation
+     * metrics and performance trace logging.
+     *
+     * @param serviceInterface service interface
+     * @param delegate delegate to instrument
+     * @param metricRegistry metric registry
+     * @param globalPrefix shared prefix across service interfaces for Methods annotated with MetricGroup
+     * @return instrumented proxy implementing specified service interface
+     */
+    public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry, String globalPrefix) {
+        return Instrumentation.builder(serviceInterface, delegate)
+                .withMetrics(metricRegistry, globalPrefix)
+                .withPerformanceTraceLogging()
+                .build();
+    }
+
 }
