@@ -49,12 +49,25 @@ public class AnnotationHelper {
         return null;
     }
 
-
+    /**
+     * Shortcut for getMethodAnnotation(annotation, c, method.getName(), method.getParameterTypes())
+     **/
     public static <T extends Annotation> T getMethodAnnotation(Class<T> annotation,
             Class<?> c, Method method) {
         return getMethodAnnotation(annotation, c, method.getName(), method.getParameterTypes());
     }
 
+    /**
+     * Depth first search up the Type hierarchy to find a matching annotation,  Types which do not implement the
+     * specified method signature are ignored
+     *
+     * @param annotation
+     * @param c
+     * @param methodName
+     * @param parameterTypes
+     * @param <T>
+     * @return - First found matching annotation or null
+     */
     public static <T extends Annotation> T getMethodAnnotation(Class<T> annotation,
             Class<?> c, String methodName, Class... parameterTypes) {
 
