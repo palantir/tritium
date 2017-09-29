@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.codahale.metrics.MetricRegistry;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.event.DefaultInvocationContext;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import org.junit.Test;
 
@@ -73,11 +74,12 @@ public class MetricsInvocationEventHandlerTest {
 
     @Test
     public void testMetricGroupAnnotations() throws Exception {
-        AnnotatedTestClass obj = new AnnotatedTestClass();
+        AnnotatedTestClass obj = mock(AnnotatedTestClass.class);
+        when(obj.methodA()).thenReturn("ok");
 
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler =
-                new MetricsInvocationEventHandler(metricRegistry, AnnotatedTestClass.class, null);
+                new MetricsInvocationEventHandler(metricRegistry, obj.getClass(), null);
 
         callVoidMethod(handler, obj, "methodA", true);
         callVoidMethod(handler, obj, "methodB", true);

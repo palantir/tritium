@@ -26,6 +26,7 @@ import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
+import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -80,6 +81,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         MetricGroup classGroup = serviceClass.getAnnotation(MetricGroup.class);
 
         for(Method method : serviceClass.getMethods()) {
+            AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, method);
             MetricGroup methodGroup = method.getAnnotation(MetricGroup.class);
             if(methodGroup != null) {
                 builder.put(method, methodGroup.value());
