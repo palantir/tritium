@@ -19,20 +19,18 @@ package com.palantir.tritium.event.metrics;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 
 @MetricGroup("DEFAULT")
-public class AnnotatedTestClass {
+public interface AnnotatedTestClass {
 
     @MetricGroup("ONE")
-    public String methodA(){
-        return "ok";
-    }
+    public String methodA();
 
     @MetricGroup("ONE")
-    public void methodB(){}
+    public void methodB();
 
     @MetricGroup("TWO")
-    public void methodC(){}
+    public void methodC();
 
     //Should match the default
-    public void methodD(){}
+    public void methodD();
 
 }
