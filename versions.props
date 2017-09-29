@@ -4,6 +4,7 @@ com.google.code.findbugs:* = 3.0.1
 com.google.code.findbugs:jFormatString = 3.0.0
 com.google.guava:* = 18.0
 com.google.truth:* = 0.30
+com.palantir.baseline:* = 0.16.0
 com.palantir.remoting1:* = 1.0.0
 com.palantir.safe-logging:safe-logging = 0.1.1
 io.dropwizard.metrics:metrics-core = 3.1.5
