@@ -86,3 +86,5 @@ dependencies {
     baseline "com.palantir.baseline:gradle-baseline-java-config:${baselineVersion}@zip"
 }
 
+task wrapper(type: Wrapper) {
+}
