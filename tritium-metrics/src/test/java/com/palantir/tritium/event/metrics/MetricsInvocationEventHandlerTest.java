@@ -22,6 +22,8 @@ import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.MetricRegistry;
 import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.event.DefaultInvocationContext;
+import java.lang.reflect.Method;
 import org.junit.Test;
 
 public class MetricsInvocationEventHandlerTest {
@@ -67,6 +69,41 @@ public class MetricsInvocationEventHandlerTest {
     @Test
     public void testSystemPropertySupplier_Handler_Enabled() throws Exception {
         assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
+    }
+
+    @Test
+    public void testMetricGroupAnnotations() throws Exception {
+        AnnotatedTestClass obj = new AnnotatedTestClass();
+
+        //when(obj.methodA()).thenReturn("ok");
+
+        MetricRegistry metricRegistry = new MetricRegistry();
+        MetricsInvocationEventHandler handler =
+                new MetricsInvocationEventHandler(metricRegistry, AnnotatedTestClass.class, null);
+
+        callVoidMethod(handler, obj, "methodA", true);
+        callVoidMethod(handler, obj, "methodB", true);
+        callVoidMethod(handler, obj, "methodC", true);
+        callVoidMethod(handler, obj, "methodD", true);
+        callVoidMethod(handler, obj, "methodA", false);
+
+        assertThat(metricRegistry.timer(obj.getClass().getName() + "." + "ONE").getCount()).isEqualTo(2L);
+        assertThat(metricRegistry.timer(obj.getClass().getName() + "." + "TWO").getCount()).isEqualTo(1L);
+
+        assertThat(metricRegistry.timer(obj.getClass().getName() + "." + "ONE.failures").getCount()).isEqualTo(1L);
+    }
+
+    private void callVoidMethod(
+            MetricsInvocationEventHandler handler, Object obj, String methodName, boolean success) throws Exception {
+
+        Method method = obj.getClass().getMethod(methodName);
+        InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
+        if(success) {
+            handler.onSuccess(context, null);
+        } else {
+            handler.onFailure(context, new RuntimeException("test failure"));
+        }
+
     }
 
 }
