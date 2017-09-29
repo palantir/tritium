@@ -11,7 +11,7 @@ checkout:
   post:
     - git tag --list | xargs git tag --delete
     - git fetch --tags
-    - git describe --tags
+    - git describe --tags --always
 
 dependencies:
   override:
