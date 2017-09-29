@@ -30,6 +30,8 @@ public class AnnotationHelperTest {
 
         @MetricGroup("ONE")
         void method();
+
+        void otherMethod();
     }
 
     @Test
@@ -41,7 +43,19 @@ public class AnnotationHelperTest {
         MetricGroup met = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class, impl.getClass(), impl.getClass().getMethod("method"));
 
+        MetricGroup override = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class, impl.getClass(), "method");
+
+        MetricGroup noAnnotation = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class, impl.getClass(), impl.getClass().getMethod("otherMethod"));
+
+        MetricGroup noMethod = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class, impl.getClass(), "noMethod");
+
         assertThat(cls.value()).isEqualTo("DEFAULT");
         assertThat(met.value()).isEqualTo("ONE");
+        assertThat(override.value()).isEqualTo("ONE");
+        assertThat(noAnnotation).isNull();
+        assertThat(noMethod).isNull();
     }
 }
