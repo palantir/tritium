@@ -74,13 +74,17 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         return "failures";
     }
 
-    private static Map<Method, String> createMethodGroupMapping(Class serviceClass){
+    private static Map<Method, String> createMethodGroupMapping(Class<?> serviceClass) {
         ImmutableMap.Builder<Method,String> builder = ImmutableMap.builder();
 
-        for(Method method : serviceClass.getMethods()){
-            MetricGroup metricGroup = method.getAnnotation(MetricGroup.class);
-            if(metricGroup != null){
-                builder.put(method, metricGroup.value());
+        MetricGroup classGroup = serviceClass.getAnnotation(MetricGroup.class);
+
+        for(Method method : serviceClass.getMethods()) {
+            MetricGroup methodGroup = method.getAnnotation(MetricGroup.class);
+            if(methodGroup != null) {
+                builder.put(method, methodGroup.value());
+            } else if(classGroup != null) {
+                builder.put(method, classGroup.value());
             }
         }
 

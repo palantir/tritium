@@ -75,8 +75,6 @@ public class MetricsInvocationEventHandlerTest {
     public void testMetricGroupAnnotations() throws Exception {
         AnnotatedTestClass obj = new AnnotatedTestClass();
 
-        //when(obj.methodA()).thenReturn("ok");
-
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler =
                 new MetricsInvocationEventHandler(metricRegistry, AnnotatedTestClass.class, null);
@@ -89,6 +87,7 @@ public class MetricsInvocationEventHandlerTest {
 
         assertThat(metricRegistry.timer(obj.getClass().getName() + "." + "ONE").getCount()).isEqualTo(2L);
         assertThat(metricRegistry.timer(obj.getClass().getName() + "." + "TWO").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(obj.getClass().getName() + "." + "DEFAULT").getCount()).isEqualTo(1L);
 
         assertThat(metricRegistry.timer(obj.getClass().getName() + "." + "ONE.failures").getCount()).isEqualTo(1L);
     }

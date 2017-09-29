@@ -18,6 +18,7 @@ package com.palantir.tritium.event.metrics;
 
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 
+@MetricGroup("DEFAULT")
 public class AnnotatedTestClass {
 
     @MetricGroup("ONE")
@@ -31,7 +32,7 @@ public class AnnotatedTestClass {
     @MetricGroup("TWO")
     public void methodC(){}
 
-    //no metric group
+    //Should match the default
     public void methodD(){}
 
 }
