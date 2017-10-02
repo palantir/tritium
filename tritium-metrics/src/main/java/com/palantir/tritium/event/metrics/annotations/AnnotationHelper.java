@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.event.metrics.annotations;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableList;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -99,5 +101,61 @@ public class AnnotationHelper {
         }
 
         return builder.addAll(Arrays.asList(clazz.getInterfaces())).build();
+    }
+
+    public static class MethodSignature {
+        private final String methodName;
+        private final Class<?>[] parameterTypes;
+
+        private MethodSignature(String methodName, Class<?>... parameterTypes) {
+            this.methodName = checkNotNull(methodName);
+            this.parameterTypes = parameterTypes != null ? parameterTypes : new Class<?>[]{};
+        }
+
+        public String getMethodName() {
+            return methodName;
+        }
+
+        public Class<?>[] getParameterTypes() {
+            return parameterTypes;
+        }
+
+        @Override
+        public String toString() {
+            return "MethodSignature{" +
+                    "methodName='" + methodName + '\'' +
+                    ", parameterTypes=" + Arrays.toString(parameterTypes) +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            MethodSignature that = (MethodSignature) o;
+
+            if (getMethodName() != null ? !getMethodName().equals(that.getMethodName())
+                    : that.getMethodName() != null) {
+                return false;
+            }
+            // Probably incorrect - comparing Object[] arrays with Arrays.equals
+            return Arrays.equals(getParameterTypes(), that.getParameterTypes());
+        }
+
+        @Override
+        public int hashCode() {
+            int result = getMethodName() != null ? getMethodName().hashCode() : 0;
+            result = 31 * result + Arrays.hashCode(getParameterTypes());
+            return result;
+        }
+
+        public static MethodSignature of(Method method) {
+            return new MethodSignature(method.getName(), method.getParameterTypes());
+        }
     }
 }

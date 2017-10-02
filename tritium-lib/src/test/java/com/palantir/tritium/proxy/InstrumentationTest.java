@@ -59,9 +59,15 @@ import org.slf4j.Logger;
 @RunWith(MockitoJUnitRunner.class)
 public class InstrumentationTest {
 
+    @MetricGroup("DEFAULT")
     interface AnnotatedInterface {
-        @MetricGroup(value = "ONE")
+        @MetricGroup("ONE")
         void method();
+
+        @MetricGroup("ONE")
+        void otherMethod();
+
+        void defaultMethod();
     }
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
@@ -135,10 +141,14 @@ public class InstrumentationTest {
                 .build();
         //call
         instrumentedService.method();
+        instrumentedService.otherMethod();
+        instrumentedService.defaultMethod();
 
-        assertThat(metricRegistry.timer(AnnotatedInterface.class + ".method").getCount()).isEqualTo(1L);
-        assertThat(metricRegistry.timer(AnnotatedInterface.class + ".DEFAULT").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".ONE").getCount()).isEqualTo(2L);
+        assertThat(metricRegistry.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
+        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".DEFAULT").getCount()).isEqualTo(1L);
         assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".method").getCount()).isEqualTo(1L);
     }
 
     private void executeManyTimes(TestInterface instrumentedService, int invocations) {

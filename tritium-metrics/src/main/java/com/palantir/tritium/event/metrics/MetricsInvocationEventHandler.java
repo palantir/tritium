@@ -48,7 +48,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private final String serviceName;
 
     //consider creating annotation handlers as separate objects
-    private final Map<Method, String> metricGroups;
+    private final Map<AnnotationHelper.MethodSignature, String> metricGroups;
     private final String globalGroupPrefix;
 
     public MetricsInvocationEventHandler(MetricRegistry metricRegistry, String serviceName) {
@@ -75,8 +75,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         return "failures";
     }
 
-    private static Map<Method, String> createMethodGroupMapping(Class<?> serviceClass) {
-        ImmutableMap.Builder<Method,String> builder = ImmutableMap.builder();
+    private static Map<AnnotationHelper.MethodSignature, String> createMethodGroupMapping(Class<?> serviceClass) {
+        ImmutableMap.Builder<AnnotationHelper.MethodSignature,String> builder = ImmutableMap.builder();
 
         MetricGroup classGroup = AnnotationHelper.getSuperTypeAnnotation(serviceClass, MetricGroup.class);
 
@@ -84,9 +84,9 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
             MetricGroup methodGroup = AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, method);
 
             if(methodGroup != null) {
-                builder.put(method, methodGroup.value());
+                builder.put(AnnotationHelper.MethodSignature.of(method), methodGroup.value());
             } else if(classGroup != null) {
-                builder.put(method, classGroup.value());
+                builder.put(AnnotationHelper.MethodSignature.of(method), classGroup.value());
             }
         }
 
@@ -112,9 +112,10 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         metricRegistry.timer(getBaseMetricName(context))
                 .update(nanos, TimeUnit.NANOSECONDS);
 
-        String metricName = metricGroups.get(context.getMethod());
+        String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
         if(metricName != null){
-            metricRegistry.timer(MetricRegistry.name(serviceName, metricName))
+            String mName = MetricRegistry.name(serviceName, metricName);
+            metricRegistry.timer(mName)
                     .update(nanos, TimeUnit.NANOSECONDS);
 
             if(globalGroupPrefix != null) {
@@ -138,7 +139,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
 
         long nanos = System.nanoTime()- context.getStartTimeNanos();
-        String metricName = metricGroups.get(context.getMethod());
+        String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
         if(metricName != null){
             metricRegistry.timer(MetricRegistry.name(serviceName,metricName, failuresMetricName()))
                     .update(nanos, TimeUnit.NANOSECONDS);
