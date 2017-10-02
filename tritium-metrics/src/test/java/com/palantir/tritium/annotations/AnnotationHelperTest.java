@@ -31,6 +31,9 @@ public class AnnotationHelperTest {
         @MetricGroup("ONE")
         void method();
 
+        @MetricGroup("TWO")
+        void hasParams(String arg);
+
         void otherMethod();
     }
 
@@ -38,24 +41,61 @@ public class AnnotationHelperTest {
     public void testParentInterfaceAnnotations() throws NoSuchMethodException {
         TestSuperInterface impl = mock(TestSuperInterface.class);
 
+        //discovery annotation on parent class
         MetricGroup cls = AnnotationHelper.getSuperTypeAnnotation(impl.getClass(), MetricGroup.class);
-
-        MetricGroup met = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class, impl.getClass(), impl.getClass().getMethod("method"));
-
-        MetricGroup override = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class, impl.getClass(), "method");
-
-        MetricGroup noAnnotation = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class, impl.getClass(), impl.getClass().getMethod("otherMethod"));
-
-        MetricGroup noMethod = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class, impl.getClass(), "noMethod");
-
         assertThat(cls.value()).isEqualTo("DEFAULT");
+
+        //find annotation by class method
+        MetricGroup met = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class,
+                impl.getClass(),
+                AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("method")));
         assertThat(met.value()).isEqualTo("ONE");
+
+        //find annotation by string descriptor
+        MetricGroup override = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class,
+                impl.getClass(),
+                AnnotationHelper.MethodSignature.of("method"));
         assertThat(override.value()).isEqualTo("ONE");
+
+        //return null if annotation does not exist
+        MetricGroup noAnnotation = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class,
+                impl.getClass(),
+                AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("otherMethod")));
         assertThat(noAnnotation).isNull();
+
+        //validate method matching with parameters
+        MetricGroup clsParams = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class,
+                impl.getClass(),
+                AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("hasParams", String.class)));
+        assertThat(clsParams.value()).isEqualTo("TWO");
+
+        //validate signature matching with parameters
+        MetricGroup sigParams = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class,
+                impl.getClass(),
+                AnnotationHelper.MethodSignature.of("hasParams", String.class));
+        assertThat(sigParams.value()).isEqualTo("TWO");
+
+        //return null if method does not exist
+        MetricGroup noMethod = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class,
+                impl.getClass(),
+                AnnotationHelper.MethodSignature.of("noMethod"));
         assertThat(noMethod).isNull();
+    }
+
+    @Test
+    public void testMethodSignatureEquality() throws NoSuchMethodException {
+        assertThat(AnnotationHelper.MethodSignature.of(
+                TestSuperInterface.class.getMethod("method")))
+                .isEqualTo(AnnotationHelper.MethodSignature.of("method"));
+
+        assertThat(AnnotationHelper.MethodSignature.of(
+                TestSuperInterface.class.getMethod("hasParams", String.class)))
+                .isEqualTo(AnnotationHelper.MethodSignature.of("hasParams", String.class));
     }
 }

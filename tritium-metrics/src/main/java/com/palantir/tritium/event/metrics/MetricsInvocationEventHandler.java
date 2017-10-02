@@ -83,12 +83,13 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         MetricGroup classGroup = AnnotationHelper.getSuperTypeAnnotation(serviceClass, MetricGroup.class);
 
         for (Method method : serviceClass.getMethods()) {
-            MetricGroup methodGroup = AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, method);
+            AnnotationHelper.MethodSignature sig = AnnotationHelper.MethodSignature.of(method);
+            MetricGroup methodGroup = AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, sig);
 
             if (methodGroup != null) {
-                builder.put(AnnotationHelper.MethodSignature.of(method), methodGroup.value());
+                builder.put(sig, methodGroup.value());
             } else if (classGroup != null) {
-                builder.put(AnnotationHelper.MethodSignature.of(method), classGroup.value());
+                builder.put(sig, classGroup.value());
             }
         }
 
@@ -141,6 +142,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
         long nanos = System.nanoTime() - context.getStartTimeNanos();
         String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
+
         if (metricName != null) {
             metricRegistry.timer(MetricRegistry.name(serviceName, metricName, failuresMetricName()))
                     .update(nanos, TimeUnit.NANOSECONDS);

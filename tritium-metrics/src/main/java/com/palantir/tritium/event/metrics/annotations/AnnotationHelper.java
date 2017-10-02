@@ -53,28 +53,20 @@ public final class AnnotationHelper {
     }
 
     /**
-     * Shortcut for getMethodAnnotation(annotation, c, method.getName(), method.getParameterTypes()).
-     **/
-    public static <T extends Annotation> T getMethodAnnotation(Class<T> annotation, Class<?> clazz, Method method) {
-        return getMethodAnnotation(annotation, clazz, method.getName(), method.getParameterTypes());
-    }
-
-    /**
      * Depth first search up the Type hierarchy to find a matching annotation,  Types which do not implement the
      * specified method signature are ignored.
      *
      * @param annotation - Annotation type to scan for
      * @param clazz - Class type to scan for matching annotations
-     * @param methodName - method signature to check for annotation type
-     * @param parameterTypes - method signature to check for annotation type
+     * @param methodSignature - Method to search annotation for
      * @return - First found matching annotation or null
      */
     public static <T extends Annotation> T getMethodAnnotation(
-            Class<T> annotation, Class<?> clazz, String methodName, Class... parameterTypes) {
+            Class<T> annotation, Class<?> clazz, MethodSignature methodSignature) {
 
         Method method;
         try {
-            method = clazz.getMethod(methodName, parameterTypes);
+            method = clazz.getMethod(methodSignature.getMethodName(), methodSignature.getParameterTypes());
         } catch (NoSuchMethodException e) {
             return null;
         }
@@ -84,7 +76,7 @@ public final class AnnotationHelper {
         }
 
         for (Class<?> iface : getParentClasses(clazz)) {
-            T foundAnnotation = getMethodAnnotation(annotation, iface, methodName, parameterTypes);
+            T foundAnnotation = getMethodAnnotation(annotation, iface, methodSignature);
             if (foundAnnotation != null) {
                 return foundAnnotation;
             }
@@ -154,7 +146,11 @@ public final class AnnotationHelper {
         }
 
         public static MethodSignature of(Method method) {
-            return new MethodSignature(method.getName(), method.getParameterTypes());
+            return MethodSignature.of(method.getName(), method.getParameterTypes());
+        }
+
+        public static MethodSignature of(String methodName, Class<?>... parameterTypes) {
+            return new MethodSignature(methodName, parameterTypes);
         }
     }
 }
