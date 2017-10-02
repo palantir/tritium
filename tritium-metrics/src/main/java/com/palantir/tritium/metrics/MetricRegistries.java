@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Reservoir;
 import com.google.common.annotations.VisibleForTesting;
@@ -31,6 +32,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import javax.annotation.concurrent.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +120,34 @@ public final class MetricRegistries {
             return (T) metric;
         }
         throw new IllegalArgumentException(name + " is already used for a different type of metric for " + metric);
+    }
+
+    /**
+     * Creates a {@link MetricFilter} predicate to match metrics with names starting with the specified prefix.
+     *
+     * @param prefix metric name prefix
+     * @return metric filter
+     */
+    public static MetricFilter metricsPrefixedBy(final String prefix) {
+        checkNotNull(prefix, "prefix");
+        return (name, metric) -> name.startsWith(prefix);
+    }
+
+    /**
+     * Returns a sorted map of metrics from the specified registry matching the specified filter.
+     *
+     * @param metrics metric registry
+     * @param filter metric filter predicate
+     * @return sorted map of metrics
+     */
+    public static SortedMap<String, Metric> metricsMatching(MetricRegistry metrics, MetricFilter filter) {
+        SortedMap<String, Metric> matchingMetrics = new TreeMap<>();
+        metrics.getMetrics().forEach((key, value) -> {
+            if (filter.matches(key, value)) {
+                matchingMetrics.put(key, value);
+            }
+        });
+        return matchingMetrics;
     }
 
     /**

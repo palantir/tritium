@@ -33,6 +33,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Test;
@@ -90,7 +91,7 @@ public class MetricRegistriesTest {
                 });
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges(metricsPrefixedBy("test")).keySet()).containsExactly(
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactly(
                 "test.cache.estimated.size",
                 "test.cache.eviction.count",
                 "test.cache.hit.count",
@@ -145,7 +146,7 @@ public class MetricRegistriesTest {
 
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges(metricsPrefixedBy("test")).keySet()).containsExactly(
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactly(
                 "test.cache.estimated.size",
                 "test.cache.eviction.count",
                 "test.cache.hit.count",
@@ -220,13 +221,40 @@ public class MetricRegistriesTest {
         }
     }
 
-    private static MetricFilter metricsPrefixedBy(final String prefix) {
-        return new MetricFilter() {
-            @Override
-            public boolean matches(String name, Metric metric) {
-                return name.startsWith(prefix);
-            }
-        };
+    @Test
+    public void testMetricsPrefixedBy() {
+        MetricFilter metricFilter = MetricRegistries.metricsPrefixedBy("test");
+
+        Metric metric = mock(Metric.class);
+        assertThat(metricFilter.matches("test", metric)).isTrue();
+        assertThat(metricFilter.matches("test", null)).isTrue();
+        assertThat(metricFilter.matches("test.foo", metric)).isTrue();
+        assertThat(metricFilter.matches("testing", metric)).isTrue();
+        assertThat(metricFilter.matches("bar", metric)).isFalse();
+        assertThat(metricFilter.matches("bar", null)).isFalse();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testNullPrefixMetricsPrefixedBy() {
+        assertThat(MetricRegistries.metricsPrefixedBy(null)).isNotNull();
+    }
+
+    @Test
+    public void testMetricsMatching() {
+        MetricFilter palantirFilter = (name, metric) -> name.startsWith("test");
+
+        metrics.counter("test.a");
+        metrics.timer("test.b");
+        metrics.counter("non.matching");
+
+        SortedMap<String, Metric> metricsMatching = MetricRegistries.metricsMatching(metrics, palantirFilter);
+        assertThat(metricsMatching.size()).isEqualTo(2);
+        assertThat(metricsMatching.keySet())
+                .containsAllOf("test.a", "test.b")
+                .inOrder();
+        assertThat(metricsMatching.values())
+                .containsExactly(metrics.counter("test.a"), metrics.timer("test.b"))
+                .inOrder();
     }
 
     private static void report(MetricRegistry metrics) {
