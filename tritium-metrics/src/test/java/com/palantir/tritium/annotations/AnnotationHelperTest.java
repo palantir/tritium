@@ -16,12 +16,12 @@
 
 package com.palantir.tritium.annotations;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+
 import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class AnnotationHelperTest {
 

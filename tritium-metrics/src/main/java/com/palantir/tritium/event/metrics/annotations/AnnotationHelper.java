@@ -24,26 +24,27 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
-public class AnnotationHelper {
+public final class AnnotationHelper {
 
-    private AnnotationHelper() { throw new UnsupportedOperationException(); }
+    private AnnotationHelper() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
-     * Annotation as implemented on passed in type or parent of that type, works for both super classes and
-     * interfaces
+     * Annotation as implemented on passed in type or parent of that type, works for both super classes and interfaces.
      *
-     * @param annotation
-     * @param <T>
-     * @return First matching annotation found in depth first search, or null if not found
+     * @param clazz - Class type to scan for annotations
+     * @param annotation - Annotation type to scan for
+     * @return - First matching annotation found in depth first search, or null if not found
      */
-    public static <T extends Annotation> T getSuperTypeAnnotation(Class<?> c, Class<T> annotation) {
-        if(c.isAnnotationPresent(annotation)) {
-            return c.getAnnotation(annotation);
+    public static <T extends Annotation> T getSuperTypeAnnotation(Class<?> clazz, Class<T> annotation) {
+        if (clazz.isAnnotationPresent(annotation)) {
+            return clazz.getAnnotation(annotation);
         }
 
-        for(Class<?> ifaces : getParentClasses(c)) {
+        for (Class<?> ifaces : getParentClasses(clazz)) {
             T superAnnotation = getSuperTypeAnnotation(ifaces, annotation);
-            if(superAnnotation != null) {
+            if (superAnnotation != null) {
                 return superAnnotation;
             }
         }
@@ -52,30 +53,28 @@ public class AnnotationHelper {
     }
 
     /**
-     * Shortcut for getMethodAnnotation(annotation, c, method.getName(), method.getParameterTypes())
+     * Shortcut for getMethodAnnotation(annotation, c, method.getName(), method.getParameterTypes()).
      **/
-    public static <T extends Annotation> T getMethodAnnotation(Class<T> annotation,
-            Class<?> c, Method method) {
-        return getMethodAnnotation(annotation, c, method.getName(), method.getParameterTypes());
+    public static <T extends Annotation> T getMethodAnnotation(Class<T> annotation, Class<?> clazz, Method method) {
+        return getMethodAnnotation(annotation, clazz, method.getName(), method.getParameterTypes());
     }
 
     /**
      * Depth first search up the Type hierarchy to find a matching annotation,  Types which do not implement the
-     * specified method signature are ignored
+     * specified method signature are ignored.
      *
-     * @param annotation
-     * @param c
-     * @param methodName
-     * @param parameterTypes
-     * @param <T>
+     * @param annotation - Annotation type to scan for
+     * @param clazz - Class type to scan for matching annotations
+     * @param methodName - method signature to check for annotation type
+     * @param parameterTypes - method signature to check for annotation type
      * @return - First found matching annotation or null
      */
-    public static <T extends Annotation> T getMethodAnnotation(Class<T> annotation,
-            Class<?> c, String methodName, Class... parameterTypes) {
+    public static <T extends Annotation> T getMethodAnnotation(
+            Class<T> annotation, Class<?> clazz, String methodName, Class... parameterTypes) {
 
         Method method;
         try {
-            method = c.getMethod(methodName, parameterTypes);
+            method = clazz.getMethod(methodName, parameterTypes);
         } catch (NoSuchMethodException e) {
             return null;
         }
@@ -84,9 +83,9 @@ public class AnnotationHelper {
             return method.getAnnotation(annotation);
         }
 
-        for(Class<?> iface : getParentClasses(c)){
+        for (Class<?> iface : getParentClasses(clazz)) {
             T foundAnnotation = getMethodAnnotation(annotation, iface, methodName, parameterTypes);
-            if(foundAnnotation != null) {
+            if (foundAnnotation != null) {
                 return foundAnnotation;
             }
         }
@@ -95,15 +94,15 @@ public class AnnotationHelper {
     }
 
     private static List<Class<?>> getParentClasses(Class<?> clazz) {
-        ImmutableList.Builder<Class<?>> builder = new ImmutableList.Builder<>();
-        if(clazz.getSuperclass() != null) {
+        ImmutableList.Builder<Class<?>> builder = ImmutableList.builder();
+        if (clazz.getSuperclass() != null) {
             builder.add(clazz.getSuperclass());
         }
 
         return builder.addAll(Arrays.asList(clazz.getInterfaces())).build();
     }
 
-    public static class MethodSignature {
+    public static final class MethodSignature {
         private final String methodName;
         private final Class<?>[] parameterTypes;
 
@@ -122,22 +121,22 @@ public class AnnotationHelper {
 
         @Override
         public String toString() {
-            return "MethodSignature{" +
-                    "methodName='" + methodName + '\'' +
-                    ", parameterTypes=" + Arrays.toString(parameterTypes) +
-                    '}';
+            return "MethodSignature{"
+                    + "methodName='" + methodName + '\''
+                    + ", parameterTypes=" + Arrays.toString(parameterTypes)
+                    + '}';
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) {
+        public boolean equals(Object other) {
+            if (this == other) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (other == null || getClass() != other.getClass()) {
                 return false;
             }
 
-            MethodSignature that = (MethodSignature) o;
+            MethodSignature that = (MethodSignature) other;
 
             if (getMethodName() != null ? !getMethodName().equals(that.getMethodName())
                     : that.getMethodName() != null) {

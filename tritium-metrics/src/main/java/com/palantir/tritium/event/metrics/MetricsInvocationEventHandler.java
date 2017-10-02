@@ -59,7 +59,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this.globalGroupPrefix = null;
     }
 
-    public MetricsInvocationEventHandler(MetricRegistry metricRegistry, Class serviceClass, String serviceName, @Nullable String globalGroupPrefix) {
+    public MetricsInvocationEventHandler(
+            MetricRegistry metricRegistry, Class serviceClass, String serviceName, @Nullable String globalGroupPrefix) {
         super(getEnabledSupplier(serviceName));
         this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
@@ -67,7 +68,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this.globalGroupPrefix = Strings.emptyToNull(globalGroupPrefix);
     }
 
-    public MetricsInvocationEventHandler(MetricRegistry metricRegistry, Class serviceClass, @Nullable String globalGroupPrefix) {
+    public MetricsInvocationEventHandler(
+            MetricRegistry metricRegistry, Class serviceClass, @Nullable String globalGroupPrefix) {
        this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
     }
 
@@ -76,16 +78,16 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     private static Map<AnnotationHelper.MethodSignature, String> createMethodGroupMapping(Class<?> serviceClass) {
-        ImmutableMap.Builder<AnnotationHelper.MethodSignature,String> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<AnnotationHelper.MethodSignature, String> builder = ImmutableMap.builder();
 
         MetricGroup classGroup = AnnotationHelper.getSuperTypeAnnotation(serviceClass, MetricGroup.class);
 
-        for(Method method : serviceClass.getMethods()) {
+        for (Method method : serviceClass.getMethods()) {
             MetricGroup methodGroup = AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, method);
 
-            if(methodGroup != null) {
+            if (methodGroup != null) {
                 builder.put(AnnotationHelper.MethodSignature.of(method), methodGroup.value());
-            } else if(classGroup != null) {
+            } else if (classGroup != null) {
                 builder.put(AnnotationHelper.MethodSignature.of(method), classGroup.value());
             }
         }
@@ -108,17 +110,16 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
             logger.debug("Encountered null metric context likely due to exception in preInvocation");
             return;
         }
-        long nanos = System.nanoTime()- context.getStartTimeNanos();
+        long nanos = System.nanoTime() - context.getStartTimeNanos();
         metricRegistry.timer(getBaseMetricName(context))
                 .update(nanos, TimeUnit.NANOSECONDS);
 
         String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
-        if(metricName != null){
-            String mName = MetricRegistry.name(serviceName, metricName);
-            metricRegistry.timer(mName)
+        if (metricName != null) {
+            metricRegistry.timer(MetricRegistry.name(serviceName, metricName))
                     .update(nanos, TimeUnit.NANOSECONDS);
 
-            if(globalGroupPrefix != null) {
+            if (globalGroupPrefix != null) {
                 metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName))
                         .update(nanos, TimeUnit.NANOSECONDS);
             }
@@ -138,13 +139,13 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         metricRegistry.meter(failuresMetricName).mark();
         metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
 
-        long nanos = System.nanoTime()- context.getStartTimeNanos();
+        long nanos = System.nanoTime() - context.getStartTimeNanos();
         String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
-        if(metricName != null){
-            metricRegistry.timer(MetricRegistry.name(serviceName,metricName, failuresMetricName()))
+        if (metricName != null) {
+            metricRegistry.timer(MetricRegistry.name(serviceName, metricName, failuresMetricName()))
                     .update(nanos, TimeUnit.NANOSECONDS);
 
-            if(globalGroupPrefix != null) {
+            if (globalGroupPrefix != null) {
                 metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName, failuresMetricName()))
                         .update(nanos, TimeUnit.NANOSECONDS);
             }

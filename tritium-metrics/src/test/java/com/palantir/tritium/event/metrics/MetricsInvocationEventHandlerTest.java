@@ -135,7 +135,7 @@ public class MetricsInvocationEventHandlerTest {
 
         Method method = obj.getClass().getMethod(methodName);
         InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
-        if(success) {
+        if (success) {
             handler.onSuccess(context, null);
         } else {
             handler.onFailure(context, new RuntimeException("test failure"));

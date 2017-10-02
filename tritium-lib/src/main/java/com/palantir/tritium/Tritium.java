@@ -54,7 +54,8 @@ public final class Tritium {
      * @param globalPrefix shared prefix across service interfaces for Methods annotated with MetricGroup
      * @return instrumented proxy implementing specified service interface
      */
-    public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry, String globalPrefix) {
+    public static <T, U extends T> T instrument(
+            Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry, String globalPrefix) {
         return Instrumentation.builder(serviceInterface, delegate)
                 .withMetrics(metricRegistry, globalPrefix)
                 .withPerformanceTraceLogging()
