@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.event.metrics.annotations;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.api.event.InvocationContext;
@@ -33,9 +35,9 @@ public final class MetricGroupHandler {
 
     private MetricGroupHandler(MetricRegistry metricRegistry,
             Map<AnnotationHelper.MethodSignature, String> metricGroups, String serviceMetricName, String globalPrefix) {
-        this.metricGroups = metricGroups;
-        this.metricRegistry = metricRegistry;
-        this.serviceMetricName = serviceMetricName;
+        this.metricRegistry = checkNotNull(metricRegistry);
+        this.metricGroups = checkNotNull(metricGroups);
+        this.serviceMetricName = checkNotNull(serviceMetricName);
         this.globalPrefix = globalPrefix;
     }
 
