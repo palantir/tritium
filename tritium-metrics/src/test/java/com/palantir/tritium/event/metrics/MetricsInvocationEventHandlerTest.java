@@ -133,7 +133,6 @@ public class MetricsInvocationEventHandlerTest {
     private void callVoidMethod(
             MetricsInvocationEventHandler handler, Object obj, String methodName, boolean success) throws Exception {
 
-        Method method = obj.getClass().getMethod(methodName);
         InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
         if (success) {
             handler.onSuccess(context, null);

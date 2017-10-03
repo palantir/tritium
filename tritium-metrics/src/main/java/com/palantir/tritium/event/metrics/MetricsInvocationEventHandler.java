@@ -49,7 +49,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     //consider creating annotation handlers as separate objects
     private final Map<AnnotationHelper.MethodSignature, String> metricGroups;
-    private final String globalGroupPrefix;
+    @Nullable private final String globalGroupPrefix;
 
     public MetricsInvocationEventHandler(MetricRegistry metricRegistry, String serviceName) {
         super(getEnabledSupplier(serviceName));

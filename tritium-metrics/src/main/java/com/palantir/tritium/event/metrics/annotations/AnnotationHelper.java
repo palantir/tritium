@@ -18,11 +18,14 @@ package com.palantir.tritium.event.metrics.annotations;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public final class AnnotationHelper {
 
@@ -85,13 +88,17 @@ public final class AnnotationHelper {
         return null;
     }
 
-    private static List<Class<?>> getParentClasses(Class<?> clazz) {
-        ImmutableList.Builder<Class<?>> builder = ImmutableList.builder();
-        if (clazz.getSuperclass() != null) {
-            builder.add(clazz.getSuperclass());
+    @VisibleForTesting
+    static Set<Class<?>> getParentClasses(Class<?> clazz) {
+        ImmutableSet.Builder<Class<?>> builder = ImmutableSet.builder();
+        builder.add(clazz.getInterfaces());
+        Class<?> superclass = clazz.getSuperclass();
+        while (superclass != null) {
+            builder.add(superclass.getInterfaces());
+            builder.add(superclass);
+            superclass = superclass.getSuperclass();
         }
-
-        return builder.addAll(Arrays.asList(clazz.getInterfaces())).build();
+        return builder.build();
     }
 
     public static final class MethodSignature {

@@ -73,10 +73,6 @@ public class TritiumTest {
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(Slf4jReporter.LoggingLevel.INFO).build().report();
     }
 
-    public void testInstrumentWithPrefix() {
-
-    }
-
     @Test
     public void rethrowOutOfMemoryError() throws Exception {
         expectedException.expect(OutOfMemoryError.class);
