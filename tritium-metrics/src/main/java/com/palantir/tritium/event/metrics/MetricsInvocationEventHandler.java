@@ -111,7 +111,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
             logger.debug("Encountered null metric context likely due to exception in preInvocation");
             return;
         }
-        long nanos = System.nanoTime() - context.getStartTimeNanos();
+        long nanos = context.markCompleteTimeNanos() - context.getStartTimeNanos();
         metricRegistry.timer(getBaseMetricName(context))
                 .update(nanos, TimeUnit.NANOSECONDS);
 
@@ -140,7 +140,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         metricRegistry.meter(failuresMetricName).mark();
         metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
 
-        long nanos = System.nanoTime() - context.getStartTimeNanos();
+        long nanos = context.markCompleteTimeNanos() - context.getStartTimeNanos();
         String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
 
         if (metricName != null) {

@@ -32,6 +32,13 @@ public interface InvocationContext {
     long getStartTimeNanos();
 
     /**
+     * Returns the time the invocation completed, either successfully or unsuccessfully.
+     *
+     * @return time completed
+     */
+    long markCompleteTimeNanos();
+
+    /**
      * Returns the instance a method was invoked upon.
      *
      * @return instance invoked or null if a static method
@@ -51,5 +58,4 @@ public interface InvocationContext {
      * @return arguments
      */
     Object[] getArgs();
-
 }

@@ -146,6 +146,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
     @Nullable
     final Object handleOnSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         try {
+            context.markCompleteTimeNanos();
             eventHandler.onSuccess(context, result);
         } catch (RuntimeException e) {
             logInvocationWarningOnSuccess(context, result, e);
@@ -160,6 +161,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
 
     final Throwable handleOnFailure(@Nullable InvocationContext context, Throwable cause) {
         try {
+            context.markCompleteTimeNanos();
             eventHandler.onFailure(context, cause);
         } catch (RuntimeException e) {
             logInvocationWarningOnFailure(context, cause, e);

@@ -22,6 +22,7 @@ import com.palantir.tritium.api.event.InvocationContext;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 
 public class DefaultInvocationContext implements InvocationContext {
@@ -29,9 +30,12 @@ public class DefaultInvocationContext implements InvocationContext {
     private static final Object[] NO_ARGS = {};
 
     private final long startTimeNanos;
+    private final AtomicLong completeTimeNanos = new AtomicLong(0L);
     private final Object instance;
     private final Method method;
     private final Object[] args;
+
+    private boolean completed = false;
 
     protected DefaultInvocationContext(long startTimeNanos, Object instance, Method method, @Nullable Object[] args) {
         this.startTimeNanos = startTimeNanos;
@@ -55,6 +59,16 @@ public class DefaultInvocationContext implements InvocationContext {
     @Override
     public final long getStartTimeNanos() {
         return startTimeNanos;
+    }
+
+    @Override
+    public final long markCompleteTimeNanos() {
+        //CAS operation ensures this will only be set once, even with very high concurrency
+        if (!completed) {
+            completeTimeNanos.compareAndSet(0L, System.nanoTime());
+            completed = true;
+        }
+        return completeTimeNanos.get();
     }
 
     @Override
