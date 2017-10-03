@@ -139,7 +139,7 @@ public final class Instrumentation {
          *
          * @param metricRegistry - MetricsRegistry used for this application
          * @param globalPrefix - Metrics name prefix to be used
-         * @return
+         * @return - InstrumentationBuilder
          */
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry, String globalPrefix) {
             checkNotNull(metricRegistry, "metricRegistry");

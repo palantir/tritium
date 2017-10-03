@@ -103,9 +103,12 @@ public final class AnnotationHelper {
         private final String methodName;
         private final Class<?>[] parameterTypes;
 
+        private static final Class<?>[] NO_ARGS = new Class<?>[0];
+
         private MethodSignature(String methodName, Class<?>... parameterTypes) {
             this.methodName = checkNotNull(methodName);
-            this.parameterTypes = parameterTypes != null ? parameterTypes : new Class<?>[]{};
+            this.parameterTypes = (parameterTypes == null || parameterTypes.length == 0)
+                    ? NO_ARGS : parameterTypes.clone();
         }
 
         public String getMethodName() {
