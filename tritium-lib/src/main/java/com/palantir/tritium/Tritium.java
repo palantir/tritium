@@ -43,5 +43,4 @@ public final class Tritium {
                 .withPerformanceTraceLogging()
                 .build();
     }
-
 }

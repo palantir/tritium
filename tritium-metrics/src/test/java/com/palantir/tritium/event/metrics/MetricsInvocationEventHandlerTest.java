@@ -22,9 +22,32 @@ import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.MetricRegistry;
 import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.event.DefaultInvocationContext;
+import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import org.junit.Test;
 
 public class MetricsInvocationEventHandlerTest {
+
+    @MetricGroup("DEFAULT")
+    public interface AnnotatedTestInterface {
+
+        @MetricGroup("ONE")
+        String methodA();
+
+        @MetricGroup("ONE")
+        void methodB();
+
+        @MetricGroup("TWO")
+        void methodC();
+
+        //Should match the default
+        void methodD();
+    }
+
+    @MetricGroup("DEFAULT")
+    public interface AnnotatedOtherInterface {
+        void methodE();
+    }
 
     @Test
     public void testFailure() throws Exception {
@@ -67,6 +90,55 @@ public class MetricsInvocationEventHandlerTest {
     @Test
     public void testSystemPropertySupplier_Handler_Enabled() throws Exception {
         assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
+    }
+
+    @Test
+    public void testMetricGroupAnnotations() throws Exception {
+        AnnotatedTestInterface obj = mock(AnnotatedTestInterface.class);
+        when(obj.methodA()).thenReturn("ok");
+
+        AnnotatedOtherInterface other = mock(AnnotatedOtherInterface.class);
+
+        MetricRegistry metricRegistry = new MetricRegistry();
+        String globalPrefix = "com.business.myservice";
+
+        MetricsInvocationEventHandler handler =
+                new MetricsInvocationEventHandler(metricRegistry, obj.getClass(), globalPrefix);
+
+        MetricsInvocationEventHandler otherHandler =
+                new MetricsInvocationEventHandler(metricRegistry, other.getClass(), globalPrefix);
+
+        //AnnotatedTestInterface
+        callVoidMethod(handler, obj, "methodA", true);
+        callVoidMethod(handler, obj, "methodB", true);
+        callVoidMethod(handler, obj, "methodC", true);
+        callVoidMethod(handler, obj, "methodD", true);
+        callVoidMethod(handler, obj, "methodA", false);
+
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE").getCount()).isEqualTo(2L);
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".TWO").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE.failures").getCount()).isEqualTo(1L);
+
+        //AnnotatedOtherInterface
+        callVoidMethod(otherHandler, other, "methodE", true);
+        assertThat(metricRegistry.timer(other.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
+
+        //GlobalPrefix Tests
+        assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(2L);
+        assertThat(metricRegistry.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
+    }
+
+    private void callVoidMethod(
+            MetricsInvocationEventHandler handler, Object obj, String methodName, boolean success) throws Exception {
+
+        InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
+        if (success) {
+            handler.onSuccess(context, null);
+        } else {
+            handler.onFailure(context, new RuntimeException("test failure"));
+        }
+
     }
 
 }

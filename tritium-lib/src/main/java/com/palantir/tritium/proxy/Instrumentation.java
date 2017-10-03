@@ -118,12 +118,41 @@ public final class Instrumentation {
             this.delegate = checkNotNull(delegate, "delegate");
         }
 
-        public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
+        /**
+         * Supply additional metrics name prefix to be used across interfaces that use MetricGroup annotations.
+         *
+         * Example:
+         *
+         * Given a prefix com.business.service and instrumented interfaces below, a single metric
+         * "com.business.service.fastcall" will share recordings across classes.  Functionality assumes a shared
+         * MetricsRegistry.
+         *
+         * interface WidgetService {
+         *     @MetricGroup("fastcall")
+         *     getWidgets();
+         * }
+         *
+         * interface UserService {
+         *     @MetricGroup("fastcall")
+         *     getUsers();
+         * }
+         *
+         * @param metricRegistry - MetricsRegistry used for this application
+         * @param globalPrefix - Metrics name prefix to be used
+         * @return - InstrumentationBuilder
+         */
+        public Builder<T, U> withMetrics(MetricRegistry metricRegistry, String globalPrefix) {
             checkNotNull(metricRegistry, "metricRegistry");
             this.handlers.add(new MetricsInvocationEventHandler(
                     metricRegistry,
-                    MetricRegistry.name(interfaceClass.getName())));
+                    delegate.getClass(),
+                    MetricRegistry.name(interfaceClass.getName()),
+                    globalPrefix));
             return this;
+        }
+
+        public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
+            return withMetrics(metricRegistry, null);
         }
 
         public Builder<T, U> withPerformanceTraceLogging() {
