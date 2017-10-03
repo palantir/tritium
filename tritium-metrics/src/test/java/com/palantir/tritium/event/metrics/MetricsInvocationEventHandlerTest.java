@@ -24,7 +24,6 @@ import com.codahale.metrics.MetricRegistry;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
-import java.lang.reflect.Method;
 import org.junit.Test;
 
 public class MetricsInvocationEventHandlerTest {

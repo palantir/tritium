@@ -31,10 +31,21 @@ public class AnnotationHelperTest {
         @MetricGroup("ONE")
         void method();
 
+        @MetricGroup("OVERLOAD")
+        void method(String arg);
+
         @MetricGroup("TWO")
         void hasParams(String arg);
 
+        @MetricGroup("VARGS")
+        void vargMethod(String... vargs);
+
         void otherMethod();
+    }
+
+    public interface TestOverrideInterface extends TestSuperInterface {
+        @MetricGroup("OVERRIDE")
+        void method();
     }
 
     @Test
@@ -53,11 +64,18 @@ public class AnnotationHelperTest {
         assertThat(met.value()).isEqualTo("ONE");
 
         //find annotation by string descriptor
-        MetricGroup override = AnnotationHelper.getMethodAnnotation(
+        MetricGroup descriptor = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class,
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of("method"));
-        assertThat(override.value()).isEqualTo("ONE");
+        assertThat(descriptor.value()).isEqualTo("ONE");
+
+        //validate overloaded methods
+        MetricGroup overload = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class,
+                impl.getClass(),
+                AnnotationHelper.MethodSignature.of("method", String.class));
+        assertThat(overload.value()).isEqualTo("OVERLOAD");
 
         //return null if annotation does not exist
         MetricGroup noAnnotation = AnnotationHelper.getMethodAnnotation(
@@ -97,5 +115,35 @@ public class AnnotationHelperTest {
         assertThat(AnnotationHelper.MethodSignature.of(
                 TestSuperInterface.class.getMethod("hasParams", String.class)))
                 .isEqualTo(AnnotationHelper.MethodSignature.of("hasParams", String.class));
+    }
+
+    @Test
+    public void testVargVariants() throws NoSuchMethodException {
+        TestSuperInterface impl = mock(TestSuperInterface.class);
+        AnnotationHelper.MethodSignature vargSig = AnnotationHelper.MethodSignature.of("vargMethod", String[].class);
+
+        //validate signature matching with vargs
+        MetricGroup vargParams = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class,
+                impl.getClass(),
+                vargSig);
+
+        assertThat(vargParams.value()).isEqualTo("VARGS");
+
+        assertThat(vargSig).isEqualTo(
+                AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("vargMethod", String[].class)));
+    }
+
+    @Test
+    public void testOverrideInterface() {
+        TestOverrideInterface impl = mock(TestOverrideInterface.class);
+
+        //validate signature matching with vargs
+        MetricGroup override = AnnotationHelper.getMethodAnnotation(
+                MetricGroup.class,
+                impl.getClass(),
+                AnnotationHelper.MethodSignature.of("method"));
+
+        assertThat(override.value()).isEqualTo("OVERRIDE");
     }
 }
