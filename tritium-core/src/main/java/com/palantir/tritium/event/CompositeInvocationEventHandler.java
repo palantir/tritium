@@ -46,7 +46,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         if (handlers.isEmpty()) {
             return NoOpInvocationEventHandler.INSTANCE;
         } else if (handlers.size() == 1) {
-            return handlers.iterator().next();
+            return checkNotNull(handlers.iterator().next(), "at index 0");
         } else {
             return new CompositeInvocationEventHandler(handlers);
         }

@@ -38,6 +38,7 @@ public enum InstrumentationFilters implements InstrumentationFilter {
     };
 
     public static InstrumentationFilter from(final BooleanSupplier isEnabledSupplier) {
-        return (instance, method, args) -> isEnabledSupplier.asBoolean();
+        return (instance, method, args) ->
+                isEnabledSupplier.asBoolean();
     }
 }
