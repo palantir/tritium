@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.tracing;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -40,12 +40,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TracingInvocationEventHandlerTest {
-    private static final Logger log = LoggerFactory.getLogger(TracingInvocationEventHandlerTest.class);
 
     private TracingInvocationEventHandler handler;
     private TestInterface instance;
@@ -60,12 +57,7 @@ public class TracingInvocationEventHandlerTest {
     public void before() throws Exception {
         executor = MoreExecutors.newDirectExecutorService();
         handler = new TracingInvocationEventHandler("testComponent");
-        Tracer.subscribe("sysout", new SpanObserver() {
-            @Override
-            public void consume(com.palantir.remoting1.tracing.Span span) {
-                System.out.println(span);
-            }
-        });
+        Tracer.subscribe("sysout", System.out::println);
         Tracer.subscribe("mock", mockSpanObserver);
         Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
 
@@ -75,7 +67,7 @@ public class TracingInvocationEventHandlerTest {
     }
 
     @After
-    public void after() throws Exception {
+    public void after() {
         Tracer.unsubscribe("sysout");
         Tracer.unsubscribe("mock");
         Tracer.unsubscribe("slf4j");
@@ -83,7 +75,7 @@ public class TracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void testPreInvocation() throws Exception {
+    public void testPreInvocation() {
         long startNanoseconds = System.nanoTime();
 
         InvocationContext context = handler.preInvocation(instance, method, args);
@@ -96,7 +88,7 @@ public class TracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSuccess() throws Exception {
+    public void testSuccess() {
         InvocationContext context = handler.preInvocation(instance, method, args);
 
         handler.onSuccess(context, null);
@@ -109,7 +101,7 @@ public class TracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void testFailure() throws Exception {
+    public void testFailure() {
         InvocationContext context = handler.preInvocation(instance, method, args);
 
         handler.onFailure(context, new RuntimeException("unexpected"));
@@ -122,7 +114,7 @@ public class TracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void preInvocationWithoutSampling() throws Exception {
+    public void preInvocationWithoutSampling() {
         handler.preInvocation(instance, method, args);
         verifyNoMoreInteractions(mockSpanObserver);
     }
@@ -150,7 +142,7 @@ public class TracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSystemPropertySupplier_Handler_Enabled() throws Exception {
+    public void testSystemPropertySupplier_Handler_Enabled() {
         assertThat(TracingInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
     }
 

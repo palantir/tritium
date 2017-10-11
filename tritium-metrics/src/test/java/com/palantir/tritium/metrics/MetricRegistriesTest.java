@@ -16,18 +16,17 @@
 
 package com.palantir.tritium.metrics;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Snapshot;
-import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -44,16 +43,16 @@ public class MetricRegistriesTest {
     private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
 
     @After
-    public void after() throws Exception {
+    public void after() {
         report(metrics);
     }
 
     @Test
-    public void defaultMetrics() throws Exception {
+    public void defaultMetrics() {
         assertThat(metrics.getGauges().size()).isEqualTo(3);
         assertThat(metrics.getGauges()).containsKey(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME);
-        assertThat(metrics.getGauges().get(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME).getValue()).isEqualTo(
-                HdrHistogramReservoir.class.getName());
+        assertThat(metrics.getGauges().get(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME).getValue())
+                .isEqualTo(HdrHistogramReservoir.class.getName());
         assertThat(metrics.getGauges().keySet()).containsExactly(
                 MetricRegistries.RESERVOIR_TYPE_METRIC_NAME,
                 "com.palantir.tritium.metrics.snapshot.begin",
@@ -63,7 +62,7 @@ public class MetricRegistriesTest {
     }
 
     @Test
-    public void testHdrHistogram() throws Exception {
+    public void testHdrHistogram() {
         assertThat(metrics).isNotNull();
 
         Histogram histogram = metrics.histogram("histogram");
@@ -85,13 +84,13 @@ public class MetricRegistriesTest {
                 .recordStats()
                 .build(new CacheLoader<Integer, String>() {
                     @Override
-                    public String load(Integer key) throws Exception {
+                    public String load(Integer key) {
                         return String.valueOf(key);
                     }
                 });
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactly(
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactlyInAnyOrder(
                 "test.cache.estimated.size",
                 "test.cache.eviction.count",
                 "test.cache.hit.count",
@@ -134,19 +133,19 @@ public class MetricRegistriesTest {
     }
 
     @Test
-    public void testNoStats() throws Exception {
+    public void testNoStats() {
         LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
                 .maximumSize(1L)
                 .build(new CacheLoader<Integer, String>() {
                     @Override
-                    public String load(Integer key) throws Exception {
+                    public String load(Integer key) {
                         return String.valueOf(key);
                     }
                 });
 
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactly(
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactlyInAnyOrder(
                 "test.cache.estimated.size",
                 "test.cache.eviction.count",
                 "test.cache.hit.count",
@@ -173,52 +172,55 @@ public class MetricRegistriesTest {
         assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue()).isEqualTo(0L);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testGetOrAddDuplicate() {
-        MetricRegistry metricRegistry = spy(new MetricRegistry());
-        Metric mockMetric = mock(Metric.class);
-        when(metricRegistry.register("test", mockMetric)).thenReturn(mockMetric);
-        when(metricRegistry.register("test", mockMetric)).thenThrow(new IllegalArgumentException());
+        Counter mockMetric = mock(Counter.class);
+        MetricBuilder<Counter> metricBuilder = new MetricBuilder<Counter>() {
+            @Override
+            public Counter newMetric() {
+                return mockMetric;
+            }
 
-        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test",
-                new HistogramMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier())))
-                .isEqualTo(mockMetric);
+            @Override
+            public boolean isInstance(Metric metric) {
+                return mockMetric == metric;
+            }
+        };
 
-        assertThat(MetricRegistries.getOrAdd(metricRegistry, "test",
-                new HistogramMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier())))
-                .isEqualTo(mockMetric);
+        assertThat(MetricRegistries.getOrAdd(metrics, "test", metricBuilder)).isSameAs(mockMetric);
+        assertThat(MetricRegistries.getOrAdd(metrics, "test", metricBuilder)).isSameAs(mockMetric);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testInvalidReregistration() {
         MetricRegistries.registerSafe(metrics, "test", metrics.counter("counter"));
-        MetricRegistries.registerSafe(metrics, "test", metrics.histogram("histogram"));
+        assertThatThrownBy(() ->
+                MetricRegistries.registerSafe(metrics, "test", metrics.histogram("histogram")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith(
+                        "Metric already registered at this name that implements a different set of interfaces. "
+                                + "Name: test, existing metric: com.codahale.metrics.Counter@");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testInvalidGetOrAdd() {
-        MetricRegistries.getOrAdd(metrics, "histogram", new HistogramMetricBuilder(
-                Reservoirs.hdrHistogramReservoirSupplier()));
-        MetricRegistries.getOrAdd(metrics, "histogram", new TimerMetricBuilder(
-                Reservoirs.hdrHistogramReservoirSupplier()));
+        MetricRegistries.getOrAdd(metrics, "histogram",
+                new HistogramMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier()));
+
+        assertThatThrownBy(() ->
+                MetricRegistries.getOrAdd(metrics, "histogram",
+                        new TimerMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier())))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("histogram is already used for a different type of metric for ");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testInaccessibleConstructor() {
-        Constructor<?> constructor = null;
-        try {
-            constructor = MetricRegistries.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            constructor.newInstance();
-        } catch (InvocationTargetException expected) {
-            throw Throwables.propagate(expected.getCause());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (constructor != null) {
-                constructor.setAccessible(false);
-            }
-        }
+    @Test
+    public void testInaccessibleConstructor() throws Exception {
+        Constructor<?> constructor = MetricRegistries.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        assertThatThrownBy(constructor::newInstance)
+                .isInstanceOf(InvocationTargetException.class)
+                .hasCauseInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -234,9 +236,9 @@ public class MetricRegistriesTest {
         assertThat(metricFilter.matches("bar", null)).isFalse();
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullPrefixMetricsPrefixedBy() {
-        assertThat(MetricRegistries.metricsPrefixedBy(null)).isNotNull();
+        assertThatThrownBy(() -> MetricRegistries.metricsPrefixedBy(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -250,11 +252,9 @@ public class MetricRegistriesTest {
         SortedMap<String, Metric> metricsMatching = MetricRegistries.metricsMatching(metrics, palantirFilter);
         assertThat(metricsMatching.size()).isEqualTo(2);
         assertThat(metricsMatching.keySet())
-                .containsAllOf("test.a", "test.b")
-                .inOrder();
+                .containsExactly("test.a", "test.b");
         assertThat(metricsMatching.values())
-                .containsExactly(metrics.counter("test.a"), metrics.timer("test.b"))
-                .inOrder();
+                .containsExactly(metrics.counter("test.a"), metrics.timer("test.b"));
     }
 
     private static void report(MetricRegistry metrics) {

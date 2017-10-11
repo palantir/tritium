@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.metrics.caffeine;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricFilter;
@@ -33,7 +33,7 @@ public class CaffeineCacheMetricSetTest {
     private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
 
     @After
-    public void after() throws Exception {
+    public void after() {
         ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
                 .convertDurationsTo(TimeUnit.MICROSECONDS)
                 .convertRatesTo(TimeUnit.MICROSECONDS)
@@ -52,7 +52,7 @@ public class CaffeineCacheMetricSetTest {
 
         CaffeineCacheStats.registerCache(metrics, cache, "test1");
 
-        assertThat(metrics.getGauges(metricsPrefixedBy("test1")).keySet()).containsExactly(
+        assertThat(metrics.getGauges(metricsPrefixedBy("test1")).keySet()).containsExactlyInAnyOrder(
                 "test1.cache.estimated.size",
                 "test1.cache.eviction.count",
                 "test1.cache.hit.count",
@@ -98,14 +98,14 @@ public class CaffeineCacheMetricSetTest {
     }
 
     @Test
-    public void testNoStats() throws Exception {
+    public void testNoStats() {
         LoadingCache<Integer, String> cache = Caffeine.newBuilder()
                 .maximumSize(1L)
                 .build(String::valueOf);
 
         CaffeineCacheStats.registerCache(metrics, cache, "test2");
 
-        assertThat(metrics.getGauges(metricsPrefixedBy("test2")).keySet()).containsExactly(
+        assertThat(metrics.getGauges(metricsPrefixedBy("test2")).keySet()).containsExactlyInAnyOrder(
                 "test2.cache.estimated.size",
                 "test2.cache.eviction.count",
                 "test2.cache.hit.count",

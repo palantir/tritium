@@ -13,8 +13,8 @@ dependencies {
 
     testCompile 'ch.qos.logback:logback-classic'
     testCompile 'com.google.guava:guava-testlib'
-    testCompile 'com.google.truth:truth'
     testCompile 'junit:junit'
+    testCompile 'org.assertj:assertj-core'
     testCompile 'org.hamcrest:hamcrest-all'
     testCompile 'org.mockito:mockito-all'
 }
