@@ -43,7 +43,6 @@ dependencies {
     testCompile 'io.zipkin.brave:brave-spancollector-http'
     testCompile 'io.zipkin.java:zipkin-junit'
     testCompile 'com.google.guava:guava-testlib'
-    testCompile 'com.google.truth:truth'
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.hamcrest:hamcrest-all'

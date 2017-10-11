@@ -4,7 +4,6 @@ dependencies {
     compile 'com.google.code.findbugs:annotations'
 
     testCompile 'com.google.guava:guava-testlib'
-    testCompile 'com.google.truth:truth'
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.hamcrest:hamcrest-all'
