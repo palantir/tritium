@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.annotations;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;

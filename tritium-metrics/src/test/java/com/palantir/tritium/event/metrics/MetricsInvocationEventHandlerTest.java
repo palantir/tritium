@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.event.metrics;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -88,7 +88,7 @@ public class MetricsInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSystemPropertySupplier_Handler_Enabled() throws Exception {
+    public void testSystemPropertySupplier_Handler_Enabled() {
         assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
     }
 

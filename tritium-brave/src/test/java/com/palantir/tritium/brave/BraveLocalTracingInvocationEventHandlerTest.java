@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.brave;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,7 +28,6 @@ import com.github.kristofa.brave.Brave;
 import com.github.kristofa.brave.InheritableServerClientAndLocalSpanState;
 import com.github.kristofa.brave.Sampler;
 import com.github.kristofa.brave.SpanCollector;
-import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -40,7 +39,7 @@ import com.twitter.zipkin.gen.BinaryAnnotation;
 import com.twitter.zipkin.gen.Endpoint;
 import com.twitter.zipkin.gen.Span;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.junit.Before;
@@ -87,7 +86,7 @@ public class BraveLocalTracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void testPreInvocation() throws Exception {
+    public void testPreInvocation() {
         long startNanoseconds = System.nanoTime();
 
         InvocationContext context = handler.preInvocation(instance, method, args);
@@ -101,7 +100,7 @@ public class BraveLocalTracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSuccess() throws Exception {
+    public void testSuccess() {
         InvocationContext context = handler.preInvocation(instance, method, args);
 
         handler.onSuccess(context, null);
@@ -111,14 +110,14 @@ public class BraveLocalTracingInvocationEventHandlerTest {
 
         Span span = spanCaptor.getValue();
         assertThat(span.getBinary_annotations())
-                .named("Binary annotations %s", binaryAnnotationValues(span))
+                .withFailMessage("Binary annotations %s", binaryAnnotationValues(span))
                 .hasSize(2);
 
         FluentIterable<BinaryAnnotation> binaryAnnotations = FluentIterable.from(span.getBinary_annotations());
 
         assertThat(binaryAnnotations
                 .filter(annotationKeyEquals("error")))
-                .named("Binary annotations %s", binaryAnnotationValues(span))
+                .withFailMessage("Binary annotations %s", binaryAnnotationValues(span))
                 .hasSize(0);
 
         assertThat(binaryAnnotations
@@ -137,7 +136,7 @@ public class BraveLocalTracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void testFailure() throws Exception {
+    public void testFailure() {
         InvocationContext context = handler.preInvocation(instance, method, args);
 
         handler.onFailure(context, new RuntimeException("unexpected"));
@@ -152,7 +151,7 @@ public class BraveLocalTracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void preInvocationWithoutSampling() throws Exception {
+    public void preInvocationWithoutSampling() {
         when(mockSampler.isSampled(anyLong())).thenReturn(false);
         handler.preInvocation(instance, method, args);
         verifyNoMoreInteractions(mockSpanCollector);
@@ -171,7 +170,7 @@ public class BraveLocalTracingInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSystemPropertySupplier_Handler_Enabled() throws Exception {
+    public void testSystemPropertySupplier_Handler_Enabled() {
         assertThat(BraveLocalTracingInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
     }
 
@@ -183,26 +182,11 @@ public class BraveLocalTracingInvocationEventHandlerTest {
                 }
             };
 
-    // TODO (davids): Use StandardCharset
-    // CHECKSTYLE:OFF
-    private static final Charset UTF_8 = Charsets.UTF_8;
-    // CHECKSTYLE:ON
-
     private static final Function<BinaryAnnotation, String> ANNOTATION_TO_VALUE =
-            new Function<BinaryAnnotation, String>() {
-                @Override
-                public String apply(@Nullable BinaryAnnotation input) {
-                    return input == null ? "" : new String(input.getValue(), UTF_8);
-                }
-            };
+            input -> input == null ? "" : new String(input.getValue(), StandardCharsets.UTF_8);
 
     private static Predicate<BinaryAnnotation> annotationKeyEquals(final String annotationKey) {
-        return new Predicate<BinaryAnnotation>() {
-            @Override
-            public boolean apply(@Nullable BinaryAnnotation input) {
-                return input != null && annotationKey.equals(input.getKey());
-            }
-        };
+        return input -> input != null && annotationKey.equals(input.getKey());
     }
 
 }

@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.event;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.palantir.tritium.api.event.InstrumentationFilter;
@@ -33,23 +33,23 @@ public class InstrumentationFiltersTest {
     private Object[] args = new Object[0];
 
     @Test
-    public void testInstrumentAll() throws Exception {
+    public void testInstrumentAll() {
         assertThat(InstrumentationFilters.INSTRUMENT_ALL.shouldInstrument(instance, method, args)).isTrue();
     }
 
     @Test
-    public void testInstrumentNone() throws Exception {
+    public void testInstrumentNone() {
         assertThat(InstrumentationFilters.INSTRUMENT_NONE.shouldInstrument(instance, method, args)).isFalse();
     }
 
     @Test
-    public void testFromTrueSupplier() throws Exception {
+    public void testFromTrueSupplier() {
         InstrumentationFilter filter = InstrumentationFilters.from(BooleanSupplier.TRUE);
         assertThat(filter.shouldInstrument(instance, method, args)).isTrue();
     }
 
     @Test
-    public void testFromFalseSupplier() throws Exception {
+    public void testFromFalseSupplier() {
         InstrumentationFilter filter = InstrumentationFilters.from(BooleanSupplier.FALSE);
         assertThat(filter.shouldInstrument(instance, method, args)).isFalse();
     }

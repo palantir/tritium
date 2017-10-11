@@ -16,12 +16,12 @@
 
 package com.palantir.tritium.event.metrics;
 
-import static com.google.common.truth.Truth.assertThat;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import org.junit.After;
@@ -67,17 +67,14 @@ public class MetricsBooleanSupplierTest {
     public boolean service;
 
     @After
-    public void after() throws Exception {
+    public void after() {
         Set<Map.Entry<Object, Object>> entries = System.getProperties().entrySet();
-        for (Iterator<Map.Entry<Object, Object>> it = entries.iterator(); it.hasNext(); ) {
-            if (String.valueOf(it.next().getKey()).startsWith(METRICS_SYSTEM_PROPERTY_PREFIX)) {
-                it.remove();
-            }
-        }
+        entries.removeIf(objectObjectEntry ->
+                String.valueOf(objectObjectEntry.getKey()).startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
     }
 
     @Test
-    public void testSupplier() throws Exception {
+    public void testSupplier() {
         System.setProperty("instrument", String.valueOf(global));
         System.setProperty("instrument.com.palantir.tritium.event.metrics.MetricsInvocationEventHandler",
                 String.valueOf(handler));

@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.metrics;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -45,13 +45,13 @@ public class MetricRegistryWithReservoirsTest {
     private MetricRegistryWithReservoirs metrics;
 
     @Before
-    public void before() throws Exception {
+    public void before() {
         when(mockSupplier.get()).thenReturn(mockReservoir);
         metrics = new MetricRegistryWithReservoirs(mockSupplier);
     }
 
     @Test
-    public void getReservoirSupplier() throws Exception {
+    public void getReservoirSupplier() {
         assertThat(metrics.getReservoirSupplier()).isSameAs(mockSupplier);
         assertThat(metrics.getReservoirSupplier().get()).isSameAs(mockReservoir);
         assertThat(metrics.getReservoirSupplier().get()).isSameAs(mockReservoir);
@@ -61,7 +61,7 @@ public class MetricRegistryWithReservoirsTest {
     }
 
     @Test
-    public void histogram() throws Exception {
+    public void histogram() {
         Histogram histogram = metrics.histogram("test");
         assertThat(histogram).isNotNull();
         assertThat(metrics.histogram("test")).isSameAs(histogram);
@@ -71,7 +71,7 @@ public class MetricRegistryWithReservoirsTest {
     }
 
     @Test
-    public void timer() throws Exception {
+    public void timer() {
         Timer timer = metrics.timer("test");
         assertThat(timer).isNotNull();
         assertThat(metrics.timer("test")).isSameAs(timer);

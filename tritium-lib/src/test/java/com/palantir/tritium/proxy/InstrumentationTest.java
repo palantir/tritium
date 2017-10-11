@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.proxy;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
+import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import com.palantir.tritium.metrics.MetricRegistries;
@@ -48,7 +49,6 @@ import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.Set;
 import java.util.SortedMap;
-import javax.annotation.Nonnull;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,7 +81,7 @@ public class InstrumentationTest {
     private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
 
     @After
-    public void after() throws Exception {
+    public void after() {
         ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build();
         reporter.report();
         reporter.close();
@@ -91,7 +91,16 @@ public class InstrumentationTest {
     public void testEmptyHandlers() {
         TestInterface delegate = new TestImplementation();
         TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate,
-                Collections.<InvocationEventHandler<InvocationContext>>emptyList());
+                InstrumentationFilters.INSTRUMENT_NONE, Collections.emptyList());
+        assertThat(instrumented).isEqualTo(delegate);
+        assertThat(Proxy.isProxyClass(instrumented.getClass())).isFalse();
+    }
+
+    @Test
+    public void testDeprecatedEmptyHandlers() {
+        TestInterface delegate = new TestImplementation();
+        @SuppressWarnings("deprecation") // explicitly testing
+        TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate, Collections.emptyList());
         assertThat(instrumented).isEqualTo(delegate);
         assertThat(Proxy.isProxyClass(instrumented.getClass())).isFalse();
     }
@@ -220,7 +229,7 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testFilterSkips() throws Exception {
+    public void testFilterSkips() {
         TestInterface delegate = new TestImplementation();
         TestInterface instrumented = Instrumentation.builder(TestInterface.class, delegate)
                 .withFilter(methodNameFilter("bulk"))
@@ -307,11 +316,6 @@ public class InstrumentationTest {
     }
 
     private static InstrumentationFilter methodNameFilter(final String methodName) {
-        return new InstrumentationFilter() {
-            @Override
-            public boolean shouldInstrument(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-                return method.getName().equals(methodName);
-            }
-        };
+        return (instance, method, args) -> method.getName().equals(methodName);
     }
 }

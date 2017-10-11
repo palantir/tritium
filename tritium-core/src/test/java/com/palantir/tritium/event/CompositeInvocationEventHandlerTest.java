@@ -16,8 +16,8 @@
 
 package com.palantir.tritium.event;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
@@ -36,7 +36,6 @@ public class CompositeInvocationEventHandlerTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testSimpleFlow() throws Throwable {
-
         InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE,
                         new SimpleInvocationEventHandler()));
@@ -81,7 +80,7 @@ public class CompositeInvocationEventHandlerTest {
     @Test
     public void testEmpty() throws Exception {
         InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
-                Collections.<InvocationEventHandler<InvocationContext>>emptyList());
+                Collections.emptyList());
         assertThat(compositeHandler).isInstanceOf(NoOpInvocationEventHandler.class);
         assertThat(compositeHandler).isSameAs(NoOpInvocationEventHandler.INSTANCE);
 
@@ -93,16 +92,20 @@ public class CompositeInvocationEventHandlerTest {
         compositeHandler.onFailure(context, new RuntimeException());
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testNullHandler() throws Exception {
-        List<InvocationEventHandler<InvocationContext>> handlers =
-                Arrays.<InvocationEventHandler<InvocationContext>>asList(
-                        null, null, NoOpInvocationEventHandler.INSTANCE);
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(handlers);
-        assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
-
-        compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        fail("should have thrown");
+    @Test
+    public void testNullHandler() {
+        assertThatThrownBy(() -> CompositeInvocationEventHandler.of(Collections.singletonList(null)))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("at index 0");
+        assertThatThrownBy(
+                () -> CompositeInvocationEventHandler.of(Arrays.asList(NoOpInvocationEventHandler.INSTANCE, null)))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("at index 1");
+        assertThatThrownBy(
+                () -> CompositeInvocationEventHandler.of(
+                        Arrays.asList(null, NoOpInvocationEventHandler.INSTANCE, null)))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("at index 0");
     }
 
     @Test
@@ -139,6 +142,15 @@ public class CompositeInvocationEventHandlerTest {
         InvocationContext context = new CompositeInvocationEventHandler.CompositeInvocationContext(this,
                 getToStringMethod(), null, new InvocationContext[] {null, null});
         compositeHandler.onFailure(context, new RuntimeException());
+    }
+
+    @Test
+    public void testToString() {
+        InvocationEventHandler<InvocationContext> handler = CompositeInvocationEventHandler.of(
+                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new SimpleInvocationEventHandler()));
+        assertThat(handler.toString())
+                .startsWith("CompositeInvocationEventHandler{handlers=[INSTANCE, ")
+                .endsWith("]}");
     }
 
     private static Method getToStringMethod() throws NoSuchMethodException {

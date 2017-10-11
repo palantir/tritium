@@ -16,7 +16,7 @@
 
 package com.palantir.tritium;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import com.codahale.metrics.ConsoleReporter;
@@ -45,7 +45,7 @@ public class TritiumTest {
     public ExpectedException expectedException = ExpectedException.none();
 
     @After
-    public void after() throws Exception {
+    public void after() {
         ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build();
         reporter.report();
         reporter.stop();
@@ -74,14 +74,14 @@ public class TritiumTest {
     }
 
     @Test
-    public void rethrowOutOfMemoryError() throws Exception {
+    public void rethrowOutOfMemoryError() {
         expectedException.expect(OutOfMemoryError.class);
         expectedException.expectMessage("Testing OOM");
         instrumentedService.throwsOutOfMemoryError();
     }
 
     @Test
-    public void rethrowOutOfMemoryErrorMetrics() throws Exception {
+    public void rethrowOutOfMemoryErrorMetrics() {
         String methodMetricName = MetricRegistry.name(TestInterface.class, "throwsOutOfMemoryError");
         assertThat(metricRegistry.meter(
                 MetricRegistry.name(methodMetricName, "failures"))

@@ -16,8 +16,7 @@
 
 package com.palantir.tritium.event;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 
@@ -25,7 +24,7 @@ public class NoOpInvocationEventHandlerTest {
 
     @Test
     public void testIsEnabled() {
-        assertThat(NoOpInvocationEventHandler.INSTANCE.isEnabled(), equalTo(false));
+        assertThat(NoOpInvocationEventHandler.INSTANCE.isEnabled()).isFalse();
     }
 
 }
