@@ -5,7 +5,7 @@ dependencies {
     compile project(':tritium-core')
 
     compile 'com.google.code.findbugs:annotations'
-    compile 'com.palantir.remoting1:tracing'
+    compile 'com.palantir.remoting3:tracing'
     compile 'com.palantir.safe-logging:safe-logging'
     compile 'org.slf4j:slf4j-api'
 
