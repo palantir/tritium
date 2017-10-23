@@ -17,7 +17,7 @@
 package com.palantir.tritium.tracing;
 
 import com.google.common.base.Strings;
-import com.palantir.remoting1.tracing.Tracer;
+import com.palantir.remoting3.tracing.Tracer;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
