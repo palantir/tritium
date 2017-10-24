@@ -56,10 +56,10 @@ public abstract class TaggedMetric {
 
 
     @Value.Parameter
-    abstract String name();
+    public abstract String name();
 
     @Value.Parameter
-    abstract Map<String, String> tags();
+    public abstract Map<String, String> tags();
 
     /**
      * Returns the canonical metric name including any tags.
