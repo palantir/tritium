@@ -16,52 +16,75 @@
 
 package com.palantir.tritium.metrics;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.CachedGauge;
+import com.codahale.metrics.Clock;
 import com.codahale.metrics.DerivativeGauge;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.MetricSet;
-import com.google.common.base.Function;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheStats;
 import com.google.common.collect.ImmutableMap;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.palantir.tritium.tags.TaggedMetric;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import javax.annotation.Nullable;
 
-@SuppressFBWarnings({"PT_FINAL_TYPE_PARAM", "PT_FINAL_TYPE_RETURN"})
-class CacheMetricSet implements MetricSet {
+final class CacheMetricSet implements MetricSet {
 
     private final Cache<?, ?> cache;
-    private final String metricsPrefix;
+    private final String cacheName;
+    private final Clock clock;
+    private final CachedGauge<CacheStats> statsGauge;
 
-    CacheMetricSet(Cache<?, ?> cache, String metricsPrefix) {
-        checkNotNull(cache);
-        this.cache = cache;
-        this.metricsPrefix = metricsPrefix;
+    private CacheMetricSet(Cache<?, ?> cache, String cacheName, Clock clock, CachedGauge<CacheStats> statsGauge) {
+        this.cache = checkNotNull(cache, "cache");
+        this.cacheName = checkNotNull(cacheName, "cacheName");
+        this.clock = checkNotNull(clock, "clock");
+        this.statsGauge = checkNotNull(statsGauge, "statsGauge");
+        checkArgument(!cacheName.trim().isEmpty(), "Cache name cannot be blank or empty");
+    }
+
+    static CacheMetricSet create(Cache<?, ?> cache, String cacheName, Clock clock) {
+        return new CacheMetricSet(cache, cacheName, clock,
+                createCachedCacheStats(cache, clock, 5, TimeUnit.SECONDS));
     }
 
     private <T> Gauge<T> derivedGauge(final Function<CacheStats, T> gauge) {
+        return transformingGauge(statsGauge, gauge);
+    }
+
+    static <T> Gauge<T> transformingGauge(Gauge<CacheStats> cachedStatsSnapshotGauge, Function<CacheStats, T> gauge) {
         // cache the snapshot
-        Gauge<CacheStats> cachedStatsSnapshotGauge = new CachedGauge<CacheStats>(500, TimeUnit.MILLISECONDS) {
+        checkNotNull(gauge, "gauge");
+        return new DerivativeGauge<CacheStats, T>(cachedStatsSnapshotGauge) {
+            @Nullable
+            @Override
+            protected T transform(CacheStats stats) {
+                return (stats == null) ? null : gauge.apply(stats);
+            }
+        };
+    }
+
+    @VisibleForTesting
+    static CachedGauge<CacheStats> createCachedCacheStats(Cache<?, ?> cache, Clock clock, long timeout, TimeUnit unit) {
+        return new CachedGauge<CacheStats>(clock, timeout, unit) {
             @Override
             protected CacheStats loadValue() {
                 return cache.stats();
             }
         };
-        return new DerivativeGauge<CacheStats, T>(cachedStatsSnapshotGauge) {
-            @Override
-            protected T transform(CacheStats stats) {
-                return gauge.apply(stats);
-            }
-        };
     }
 
     private String cacheMetricName(String... args) {
-        return MetricRegistry.name(MetricRegistry.name(metricsPrefix, "cache"), args);
+        return TaggedMetric.toCanonicalName(MetricRegistry.name("cache", args),
+                ImmutableMap.of("cache", cacheName));
     }
 
     @Override
@@ -69,7 +92,7 @@ class CacheMetricSet implements MetricSet {
         ImmutableMap.Builder<String, Metric> cacheMetrics = ImmutableMap.builder();
 
         cacheMetrics.put(cacheMetricName("estimated", "size"),
-                new CachedGauge<Long>(500, TimeUnit.MILLISECONDS) {
+                new CachedGauge<Long>(clock, 500, TimeUnit.MILLISECONDS) {
                     @Override
                     protected Long loadValue() {
                         return cache.size();
@@ -94,10 +117,10 @@ class CacheMetricSet implements MetricSet {
         cacheMetrics.put(cacheMetricName("eviction", "count"),
                 derivedGauge(CacheStats::evictionCount));
 
-        cacheMetrics.put(cacheMetricName("load.success", "count"),
+        cacheMetrics.put(cacheMetricName("load", "success", "count"),
                 derivedGauge(CacheStats::loadSuccessCount));
 
-        cacheMetrics.put(cacheMetricName("load.failure", "count"),
+        cacheMetrics.put(cacheMetricName("load", "failure", "count"),
                 derivedGauge(CacheStats::loadExceptionCount));
 
         cacheMetrics.put(cacheMetricName("load", "average", "millis"),
