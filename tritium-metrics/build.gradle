@@ -3,6 +3,7 @@ apply from: "${rootDir}/gradle/publish-jars.gradle"
 dependencies {
     compile project(':tritium-api')
     compile project(':tritium-core')
+    compile project(':tritium-tags')
     compile 'com.google.code.findbugs:annotations'
     compile 'com.google.guava:guava'
     compile 'com.palantir.safe-logging:safe-logging'
