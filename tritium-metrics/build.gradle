@@ -18,5 +18,7 @@ dependencies {
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.hamcrest:hamcrest-all'
     testCompile 'org.mockito:mockito-all'
+
+    testArtifacts sourceSets.test.output
 }
 
