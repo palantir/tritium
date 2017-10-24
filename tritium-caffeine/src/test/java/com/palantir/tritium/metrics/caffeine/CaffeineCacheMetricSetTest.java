@@ -60,33 +60,33 @@ public class CaffeineCacheMetricSetTest {
     public void testRegisterCache() {
         CaffeineCacheStats.registerCache(metrics, cache, "test1", clock);
 
-        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test1")).keySet()).containsExactlyInAnyOrder(
-                "test1.cache.estimated.size",
-                "test1.cache.eviction.count",
-                "test1.cache.hit.count",
-                "test1.cache.hit.ratio",
-                "test1.cache.load.average.millis",
-                "test1.cache.load.failure.count",
-                "test1.cache.load.success.count",
-                "test1.cache.miss.count",
-                "test1.cache.miss.ratio",
-                "test1.cache.request.count"
+        assertThat(metrics.getGauges(MetricRegistries.metricsWithTag("cache", "test1"))).containsOnlyKeys(
+                "cache.estimated.size[cache:test1]",
+                "cache.eviction.count[cache:test1]",
+                "cache.hit.count[cache:test1]",
+                "cache.hit.ratio[cache:test1]",
+                "cache.load.average.millis[cache:test1]",
+                "cache.load.failure.count[cache:test1]",
+                "cache.load.success.count[cache:test1]",
+                "cache.miss.count[cache:test1]",
+                "cache.miss.ratio[cache:test1]",
+                "cache.request.count[cache:test1]"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(1L, 2L, 3L, 4L, 5L, 6L));
         when(cache.estimatedSize()).thenReturn(42L);
 
         SortedMap<String, Gauge> gauges = metrics.getGauges();
-        assertThat(gauges.get("test1.cache.request.count").getValue()).isEqualTo(3L);
-        assertThat(gauges.get("test1.cache.hit.count").getValue()).isEqualTo(1L);
-        assertThat(gauges.get("test1.cache.hit.ratio").getValue()).isEqualTo(1.0 / 3.0);
-        assertThat(gauges.get("test1.cache.miss.count").getValue()).isEqualTo(2L);
-        assertThat(gauges.get("test1.cache.miss.ratio").getValue()).isEqualTo(2.0 / 3.0);
-        assertThat(gauges.get("test1.cache.estimated.size").getValue()).isEqualTo(42L);
-        assertThat(gauges.get("test1.cache.eviction.count").getValue()).isEqualTo(6L);
-        assertThat(gauges.get("test1.cache.load.average.millis").getValue()).isNotEqualTo(5.0 / 3.0);
-        assertThat(gauges.get("test1.cache.load.failure.count").getValue()).isEqualTo(4L);
-        assertThat(gauges.get("test1.cache.load.success.count").getValue()).isEqualTo(3L);
+        assertThat(gauges.get("cache.request.count[cache:test1]").getValue()).isEqualTo(3L);
+        assertThat(gauges.get("cache.hit.count[cache:test1]").getValue()).isEqualTo(1L);
+        assertThat(gauges.get("cache.hit.ratio[cache:test1]").getValue()).isEqualTo(1.0 / 3.0);
+        assertThat(gauges.get("cache.miss.count[cache:test1]").getValue()).isEqualTo(2L);
+        assertThat(gauges.get("cache.miss.ratio[cache:test1]").getValue()).isEqualTo(2.0 / 3.0);
+        assertThat(gauges.get("cache.estimated.size[cache:test1]").getValue()).isEqualTo(42L);
+        assertThat(gauges.get("cache.eviction.count[cache:test1]").getValue()).isEqualTo(6L);
+        assertThat(gauges.get("cache.load.average.millis[cache:test1]").getValue()).isNotEqualTo(5.0 / 3.0);
+        assertThat(gauges.get("cache.load.failure.count[cache:test1]").getValue()).isEqualTo(4L);
+        assertThat(gauges.get("cache.load.success.count[cache:test1]").getValue()).isEqualTo(3L);
         verify(cache, times(1)).stats();
 
         clock.advance(1, TimeUnit.MINUTES); // let stats snapshot cache expire
@@ -94,13 +94,13 @@ public class CaffeineCacheMetricSetTest {
         when(cache.estimatedSize()).thenReturn(37L);
 
         gauges = metrics.getGauges();
-        assertThat(gauges.get("test1.cache.request.count").getValue()).isEqualTo(23L);
-        assertThat(gauges.get("test1.cache.hit.count").getValue()).isEqualTo(11L);
-        assertThat(gauges.get("test1.cache.miss.count").getValue()).isEqualTo(12L);
-        assertThat(gauges.get("test1.cache.eviction.count").getValue()).isEqualTo(16L);
-        assertThat(gauges.get("test1.cache.load.average.millis").getValue()).isNotEqualTo(15.0 / 23.0);
-        assertThat(gauges.get("test1.cache.load.failure.count").getValue()).isEqualTo(14L);
-        assertThat(gauges.get("test1.cache.load.success.count").getValue()).isEqualTo(13L);
+        assertThat(gauges.get("cache.request.count[cache:test1]").getValue()).isEqualTo(23L);
+        assertThat(gauges.get("cache.hit.count[cache:test1]").getValue()).isEqualTo(11L);
+        assertThat(gauges.get("cache.miss.count[cache:test1]").getValue()).isEqualTo(12L);
+        assertThat(gauges.get("cache.eviction.count[cache:test1]").getValue()).isEqualTo(16L);
+        assertThat(gauges.get("cache.load.average.millis[cache:test1]").getValue()).isNotEqualTo(15.0 / 23.0);
+        assertThat(gauges.get("cache.load.failure.count[cache:test1]").getValue()).isEqualTo(14L);
+        assertThat(gauges.get("cache.load.success.count[cache:test1]").getValue()).isEqualTo(13L);
         verify(cache, times(2)).stats();
     }
 
@@ -108,28 +108,28 @@ public class CaffeineCacheMetricSetTest {
     public void testNoStats() {
         CaffeineCacheStats.registerCache(metrics, cache, "test2");
 
-        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test2")).keySet()).containsExactlyInAnyOrder(
-                "test2.cache.estimated.size",
-                "test2.cache.eviction.count",
-                "test2.cache.hit.count",
-                "test2.cache.hit.ratio",
-                "test2.cache.load.average.millis",
-                "test2.cache.load.failure.count",
-                "test2.cache.load.success.count",
-                "test2.cache.miss.count",
-                "test2.cache.miss.ratio",
-                "test2.cache.request.count");
+        assertThat(metrics.getGauges(MetricRegistries.metricsWithTag("cache", "test2"))).containsOnlyKeys(
+                "cache.estimated.size[cache:test2]",
+                "cache.eviction.count[cache:test2]",
+                "cache.hit.count[cache:test2]",
+                "cache.hit.ratio[cache:test2]",
+                "cache.load.average.millis[cache:test2]",
+                "cache.load.failure.count[cache:test2]",
+                "cache.load.success.count[cache:test2]",
+                "cache.miss.count[cache:test2]",
+                "cache.miss.ratio[cache:test2]",
+                "cache.request.count[cache:test2]");
 
         when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
-        assertThat(metrics.getGauges().get("test2.cache.request.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test2.cache.hit.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test2.cache.hit.ratio").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("test2.cache.miss.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test2.cache.miss.ratio").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("test2.cache.eviction.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test2.cache.load.average.millis").getValue()).isEqualTo(0.0d);
-        assertThat(metrics.getGauges().get("test2.cache.load.failure.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test2.cache.load.success.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("cache.request.count[cache:test2]").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("cache.hit.count[cache:test2]").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("cache.hit.ratio[cache:test2]").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("cache.miss.count[cache:test2]").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("cache.miss.ratio[cache:test2]").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("cache.eviction.count[cache:test2]").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("cache.load.average.millis[cache:test2]").getValue()).isEqualTo(0.0d);
+        assertThat(metrics.getGauges().get("cache.load.failure.count[cache:test2]").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("cache.load.success.count[cache:test2]").getValue()).isEqualTo(0L);
     }
 
     @Test

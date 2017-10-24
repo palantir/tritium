@@ -29,9 +29,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.tritium.tags.TaggedMetric;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -76,6 +78,7 @@ public final class MetricRegistries {
         registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "begin"),
                 new Gauge<String>() {
                     private final String start = nowIsoTimestamp();
+
                     @Override
                     public String getValue() {
                         return start;
@@ -124,6 +127,14 @@ public final class MetricRegistries {
         return (name, metric) -> name.startsWith(prefix);
     }
 
+    public static MetricFilter metricsWithTag(String key, String value) {
+        return (name, metric) -> Objects.equals(TaggedMetric.from(name).tags().get(key), value);
+    }
+
+    public static MetricFilter metricsWithTag(String key) {
+        return (name, metric) -> TaggedMetric.from(name).tags().containsKey(key);
+    }
+
     /**
      * Returns a sorted map of metrics from the specified registry matching the specified filter.
      *
@@ -147,7 +158,6 @@ public final class MetricRegistries {
      * @param registry metric registry
      * @param cache cache to instrument
      * @param name cache name
-     *
      * @throws IllegalArgumentException if name is blank
      */
     public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
@@ -179,7 +189,7 @@ public final class MetricRegistries {
      * times to a static {@link MetricRegistry} in a unit test
      *
      * @throws IllegalArgumentException if there is already a {@link Metric} registered that doesn't implement the same
-     *         interfaces as {@code metric}
+     * interfaces as {@code metric}
      */
     public static <T extends Metric> T registerSafe(MetricRegistry registry, String name, T metric) {
         return registerOrReplace(registry, name, metric, false);

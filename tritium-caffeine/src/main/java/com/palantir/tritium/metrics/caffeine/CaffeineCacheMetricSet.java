@@ -29,6 +29,7 @@ import com.codahale.metrics.MetricSet;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.google.common.collect.ImmutableMap;
+import com.palantir.tritium.tags.TaggedMetric;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -80,7 +81,8 @@ final class CaffeineCacheMetricSet implements MetricSet {
     }
 
     private String cacheMetricName(String... args) {
-        return MetricRegistry.name(MetricRegistry.name(cacheName, "cache"), args);
+        return TaggedMetric.toCanonicalName(MetricRegistry.name("cache", args),
+                ImmutableMap.of("cache", cacheName));
     }
 
     @Override

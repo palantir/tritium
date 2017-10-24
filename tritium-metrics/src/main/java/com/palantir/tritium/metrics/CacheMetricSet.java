@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheStats;
 import com.google.common.collect.ImmutableMap;
+import com.palantir.tritium.tags.TaggedMetric;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -82,7 +83,8 @@ final class CacheMetricSet implements MetricSet {
     }
 
     private String cacheMetricName(String... args) {
-        return MetricRegistry.name(MetricRegistry.name(cacheName, "cache"), args);
+        return TaggedMetric.toCanonicalName(MetricRegistry.name("cache", args),
+                ImmutableMap.of("cache", cacheName));
     }
 
     @Override
