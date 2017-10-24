@@ -19,178 +19,41 @@ package com.palantir.tritium.tags;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
 import org.junit.Test;
 
 public class TaggedMetricTest {
 
     @Test
-    public void simpleMetricName() {
-        TaggedMetric metric = TaggedMetric.builder().name("test").build();
-        assertThat(metric.toString()).isEqualTo("test");
-        assertThat(metric.canonicalName()).isSameAs(metric.toString());
+    public void generateSimple() {
+        assertThat(TaggedMetric.of("test", Collections.emptyMap())).isEqualTo("test");
     }
 
     @Test
-    public void invalidTaggedMetrics() {
-        assertThatThrownBy(() -> TaggedMetric.builder().name(null))
-                .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> TaggedMetric.builder().tags(null))
-                .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> TaggedMetric.builder().putTags(null, null))
-                .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> TaggedMetric.builder().putTags("key", null))
-                .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> TaggedMetric.builder().putTags(null, "value"))
-                .isInstanceOf(NullPointerException.class);
-
-        assertThatThrownBy(() -> TaggedMetric.builder().name("colon:delimited").build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageEndingWith(" must not contain ':'");
-        assertThatThrownBy(() -> TaggedMetric.builder().name("a,b").build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageEndingWith(" must not contain ','");
-        assertThatThrownBy(() -> TaggedMetric.builder().name("a[").build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageEndingWith(" must not contain '['");
-        assertThatThrownBy(() -> TaggedMetric.builder().name("a]").build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageEndingWith(" must not contain ']'");
-        assertThatThrownBy(() -> TaggedMetric.builder().name("a").putTags("a]", "value").build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageEndingWith(" must not contain ']'");
-        assertThatThrownBy(() -> TaggedMetric.builder().name("a").putTags("a", "value]").build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageEndingWith(" must not contain ']'");
+    public void generateSingleTag() {
+        assertThat(TaggedMetric.of("test", Collections.singletonMap("key", "value")))
+                .isEqualTo("test[key:value]");
     }
 
     @Test
-    public void blankMetricName() {
-        assertThatThrownBy(() ->
-                TaggedMetric.builder().name(" ").build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Metric name ' ' must not be empty");
-
-        assertThatThrownBy(() ->
-                TaggedMetric.builder().name("").build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Metric name '' must not be empty");
+    public void generateMultipleTagsOrdered() {
+        assertThat(TaggedMetric.of("test", ImmutableMap.of(
+                "b", "b1",
+                "a", "a1")))
+                .isEqualTo("test[a:a1,b:b1]");
     }
 
     @Test
-    public void emptyTags() {
-        TaggedMetric metric = TaggedMetric.builder()
-                .name("test")
-                .tags(Collections.emptyMap())
-                .build();
+    public void generateInvalid() {
+        assertThatThrownBy(() -> TaggedMetric.of(null, Collections.emptyMap()))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("name");
 
-        assertThat(metric.toString()).isEqualTo("test");
-        assertThat(metric.canonicalName()).isSameAs(metric.toString());
+        assertThatThrownBy(() -> TaggedMetric.of("test", null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("tags");
+
     }
 
-    @Test
-    public void singleTag() {
-        TaggedMetric metric = TaggedMetric.builder()
-                .name("test")
-                .putTags("key", "value")
-                .build();
-
-        assertThat(metric.toString()).isEqualTo("test[key:value]");
-        assertThat(metric.canonicalName()).isSameAs(metric.toString());
-    }
-
-    @Test
-    public void twoTags() {
-        TaggedMetric metric = TaggedMetric.builder()
-                .name("test")
-                .putTags("key1", "value1")
-                .putTags("key2", "value2")
-                .build();
-
-        assertThat(metric.toString()).isEqualTo("test[key1:value1,key2:value2]");
-        assertThat(metric.canonicalName()).isSameAs(metric.toString());
-    }
-
-    @Test
-    public void fullMetricName() {
-        TaggedMetric metric = TaggedMetric.builder()
-                .name(TaggedMetricTest.class.getName())
-                .putTags("ip", "127.0.0.1")
-                .putTags("host", "localhost")
-                .putTags("endpoint", "hasOperations")
-                .putTags("path", "/foo/{bar}")
-                .build();
-
-        assertThat(metric.toString()).isEqualTo("com.palantir.tritium.tags.TaggedMetricTest"
-                + "["
-                + "path:/foo/{bar},"
-                + "endpoint:hasOperations,"
-                + "ip:127.0.0.1,"
-                + "host:localhost"
-                + "]");
-        assertThat(metric.canonicalName()).isSameAs(metric.toString());
-    }
-
-    @Test
-    public void emptyTagName() {
-        TaggedMetric metric = TaggedMetric.builder()
-                .name("test")
-                .putTags("", "value")
-                .build();
-
-        assertThat(metric.tags())
-                .containsKey("")
-                .containsValue("value");
-        assertThat(metric.nonEmptyTags()).isEmpty();
-        assertThat(metric.toString()).isEqualTo("test");
-        assertThat(metric.canonicalName()).isSameAs(metric.toString());
-    }
-
-    @Test
-    public void emptyTagValue() {
-        TaggedMetric metric = TaggedMetric.builder()
-                .name("test")
-                .putTags("key", "")
-                .build();
-
-        assertThat(metric.nonEmptyTags()).isEmpty();
-        assertThat(metric.toString()).isEqualTo("test");
-        assertThat(metric.canonicalName()).isSameAs(metric.toString());
-    }
-
-    @Test
-    public void blankTagValue() {
-        TaggedMetric metric = TaggedMetric.builder()
-                .name("test")
-                .putTags("key", " ")
-                .build();
-
-        assertThat(metric.nonEmptyTags()).isEmpty();
-        assertThat(metric.toString()).isEqualTo("test");
-        assertThat(metric.canonicalName()).isSameAs(metric.toString());
-    }
-
-    @Test
-    public void notBlank() {
-        assertThat(TaggedMetric.isNullOrBlank("test")).isFalse();
-        assertThat(TaggedMetric.isNullOrBlank(" test")).isFalse();
-        assertThat(TaggedMetric.isNullOrBlank("test ")).isFalse();
-
-        assertThat(TaggedMetric.isNotNullOrBlank("test")).isTrue();
-        assertThat(TaggedMetric.isNotNullOrBlank(" test")).isTrue();
-        assertThat(TaggedMetric.isNotNullOrBlank("test ")).isTrue();
-    }
-
-    @Test
-    public void blank() {
-        assertThat(TaggedMetric.isNullOrBlank(null)).isTrue();
-        assertThat(TaggedMetric.isNullOrBlank("")).isTrue();
-        assertThat(TaggedMetric.isNullOrBlank(" ")).isTrue();
-        assertThat(TaggedMetric.isNullOrBlank("\n")).isTrue();
-
-        assertThat(TaggedMetric.isNotNullOrBlank(null)).isFalse();
-        assertThat(TaggedMetric.isNotNullOrBlank("")).isFalse();
-        assertThat(TaggedMetric.isNotNullOrBlank(" ")).isFalse();
-        assertThat(TaggedMetric.isNotNullOrBlank(" \t")).isFalse();
-    }
 }
