@@ -20,14 +20,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 public enum TaggedMetric {
     ;
 
+    static final Pattern TAG_NAME_PATTERN = Pattern.compile("[A-Za-z][A-Za-z0-9-]{1,19}");
     static final char TAG_START_DELIMITER = '[';
     static final char TAG_END_DELIMITER = ']';
     static final char KEY_VALUE_DELIMITER = ':';
@@ -38,21 +40,38 @@ public enum TaggedMetric {
             String.valueOf(KEY_VALUE_DELIMITER),
             String.valueOf(ELEMENT_DELIMITER)));
 
-    static SortedMap<String, String> nonEmptyElements(Map<String, String> tags) {
+    static SortedMap<String, String> normalizeTags(Map<String, String> tags) {
         if (tags.isEmpty()) {
             return Collections.emptySortedMap();
         }
-        return tags.entrySet().stream()
-                .filter(entry ->
-                        TagPreconditions.isNotNullOrBlank(entry.getKey())
-                                && TagPreconditions.isNotNullOrBlank(entry.getValue()))
-                .collect(Collectors.toMap(
-                        mapEntry -> TagPreconditions.checkValidTagComponent(mapEntry.getKey(), DELIMITERS),
-                        mapEntry -> TagPreconditions.checkValidTagComponent(mapEntry.getValue(), DELIMITERS),
-                        (left, right) -> {
-                            throw new IllegalStateException(String.format("Duplicate key %s", left));
-                        },
-                        TreeMap::new));
+
+        TreeMap<String, String> normalizedTags = new TreeMap<>();
+        tags.forEach((key, value) -> {
+            checkValidTagName(key);
+            TagPreconditions.checkValidTagComponent(value, DELIMITERS);
+
+            String previous = normalizedTags.put(normalizeKey(key), value);
+            if (previous != null) {
+                throw new IllegalArgumentException(String.format(
+                        "Invalid tag '%s' with value '%s' duplicates case-insensitive key '%s' with value '%s'",
+                        key, value, key.toLowerCase(), previous));
+            }
+        });
+
+        return normalizedTags;
+    }
+
+    private static String normalizeKey(String key) {
+        return key.toLowerCase(Locale.ROOT).trim();
+    }
+
+    static void checkValidTagName(String key) {
+        TagPreconditions.checkValidTagComponent(key, DELIMITERS);
+        if (!TAG_NAME_PATTERN.matcher(key).matches()) {
+            throw new IllegalArgumentException(String.format(
+                    "Invalid metric name '%s' does not match pattern %s",
+                    key, TAG_NAME_PATTERN));
+        }
     }
 
     /**
@@ -73,9 +92,9 @@ public enum TaggedMetric {
         StringBuilder builder = new StringBuilder();
         builder.append(name).append(TAG_START_DELIMITER);
 
-        for (Iterator<Map.Entry<String, String>> it = nonEmptyElements(tags).entrySet().iterator(); it.hasNext(); ) {
+        for (Iterator<Map.Entry<String, String>> it = normalizeTags(tags).entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, String> entry = it.next();
-            builder.append(entry.getKey().trim()).append(KEY_VALUE_DELIMITER).append(entry.getValue().trim());
+            builder.append(normalizeKey(entry.getKey())).append(KEY_VALUE_DELIMITER).append(entry.getValue().trim());
             if (it.hasNext()) {
                 builder.append(ELEMENT_DELIMITER);
             }
