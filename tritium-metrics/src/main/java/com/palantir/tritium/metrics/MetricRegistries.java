@@ -27,14 +27,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import javax.annotation.concurrent.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,14 +43,6 @@ import org.slf4j.LoggerFactory;
 public final class MetricRegistries {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricRegistries.class);
-
-    /**
-     * An ISO 8601 date format for pre-Java 8 compatibility without Joda dependency.
-     */
-    // TODO (davids): switch to Java 8 date format
-    @GuardedBy("ISO_8601_DATE_FORMAT")
-    @SuppressWarnings("SimpleDateFormatConstant")
-    private static final SimpleDateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     static final String RESERVOIR_TYPE_METRIC_NAME = MetricRegistry.name(MetricRegistries.class, "reservoir.type");
 
@@ -94,10 +85,9 @@ public final class MetricRegistries {
         return metrics;
     }
 
-    private static String nowIsoTimestamp() {
-        synchronized (ISO_8601_DATE_FORMAT) {
-            return ISO_8601_DATE_FORMAT.format(new Date());
-        }
+    @VisibleForTesting
+    static String nowIsoTimestamp() {
+        return DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.now());
     }
 
     @SuppressWarnings("unchecked")

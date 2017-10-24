@@ -32,6 +32,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.text.SimpleDateFormat;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
@@ -255,6 +256,11 @@ public class MetricRegistriesTest {
                 .containsExactly("test.a", "test.b");
         assertThat(metricsMatching.values())
                 .containsExactly(metrics.counter("test.a"), metrics.timer("test.b"));
+    }
+
+    @Test
+    public void testTimestamp() throws Exception {
+        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(MetricRegistries.nowIsoTimestamp());
     }
 
     private static void report(MetricRegistry metrics) {
