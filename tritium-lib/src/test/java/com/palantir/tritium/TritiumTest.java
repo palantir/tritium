@@ -17,36 +17,30 @@
 package com.palantir.tritium;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Timer;
-import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.util.SortedMap;
 import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class TritiumTest {
 
-    private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
+    private static final String EXPECTED_METRIC_NAME = "service.response[method:test,service-name:TestInterface]";
 
     private TestImplementation delegate = new TestImplementation();
-    private MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
-    private TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metricRegistry);
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    private MetricRegistry metrics = new MetricRegistry();
+    private TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metrics);
 
     @After
     public void after() {
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build();
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build();
         reporter.report();
         reporter.stop();
     }
@@ -54,59 +48,72 @@ public class TritiumTest {
     @Test
     public void testInstrument() {
         assertThat(delegate.invocationCount()).isEqualTo(0);
-        assertThat(metricRegistry.getTimers().get(Runnable.class.getName())).isNull();
+        assertThat(metrics.getTimers().get(Runnable.class.getName())).isNull();
 
         instrumentedService.test();
         assertThat(delegate.invocationCount()).isEqualTo(1);
 
-        SortedMap<String, Timer> timers = metricRegistry.getTimers();
-        assertThat(timers.keySet()).hasSize(1);
-        assertThat(timers.keySet()).isEqualTo(ImmutableSet.of(EXPECTED_METRIC_NAME));
-        assertThat(timers.get(EXPECTED_METRIC_NAME)).isNotNull();
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(1);
+        SortedMap<String, Timer> timers = metrics.getTimers();
+        assertThat(timers).containsOnlyKeys(EXPECTED_METRIC_NAME)
+                .hasSize(1)
+                .extracting(EXPECTED_METRIC_NAME)
+                .extracting("count")
+                .contains(1L);
 
         instrumentedService.test();
 
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
         assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax()).isGreaterThan(-1L);
 
-        Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(Slf4jReporter.LoggingLevel.INFO).build().report();
+        Slf4jReporter.forRegistry(metrics).withLoggingLevel(Slf4jReporter.LoggingLevel.INFO).build().report();
     }
 
     @Test
     public void rethrowOutOfMemoryError() {
-        expectedException.expect(OutOfMemoryError.class);
-        expectedException.expectMessage("Testing OOM");
-        instrumentedService.throwsOutOfMemoryError();
+        assertThatThrownBy(() -> instrumentedService.throwsOutOfMemoryError())
+                .isInstanceOf(OutOfMemoryError.class)
+                .hasMessage("Testing OOM");
     }
 
     @Test
     public void rethrowOutOfMemoryErrorMetrics() {
         String methodMetricName = MetricRegistry.name(TestInterface.class, "throwsOutOfMemoryError");
-        assertThat(metricRegistry.meter(
-                MetricRegistry.name(methodMetricName, "failures"))
-                .getCount())
-                .isEqualTo(0);
-        assertThat(metricRegistry.meter(
-                MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
-                .getCount())
-                .isEqualTo(0);
 
-        try {
-            instrumentedService.throwsOutOfMemoryError();
-            fail("Should have thrown OutOfMemoryError");
-        } catch (OutOfMemoryError expected) {
-            assertThat(expected.getMessage()).isEqualTo("Testing OOM");
+        assertThat(metrics.getMeters()).doesNotContainKeys(
+                MetricRegistry.name(methodMetricName, "failures"));
 
-        }
+        assertThat(metrics.getMeters()).doesNotContainKeys(
+                MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"));
 
-        assertThat(metricRegistry.meter(
-                MetricRegistry.name(methodMetricName, "failures"))
-                .getCount())
-                .isEqualTo(1);
-        assertThat(metricRegistry.meter(
-                MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
-                .getCount())
+        assertThatThrownBy(() -> instrumentedService.throwsOutOfMemoryError())
+                .isInstanceOf(OutOfMemoryError.class)
+                .hasMessage("Testing OOM");
+
+        assertThat(MetricRegistries.metricsMatching(metrics,
+                MetricRegistries.metricsWithTag("error"))).containsOnlyKeys(
+                "service.response"
+                        + "["
+                        + "error:java.lang.OutOfMemoryError,"
+                        + "method:throwsOutOfMemoryError,"
+                        + "service-name:TestInterface"
+                        + "]");
+
+        assertThat(metrics.getMeters((name, metric) -> name.contains("failures"))).isEmpty();
+
+        SortedMap<String, Timer> errors = metrics.getTimers(MetricRegistries.metricsWithTag("error"));
+        assertThat(errors).containsOnlyKeys("service.response"
+                + "["
+                + "error:java.lang.OutOfMemoryError,"
+                + "method:throwsOutOfMemoryError,"
+                + "service-name:TestInterface"
+                + "]");
+
+        assertThat(errors.get("service.response"
+                + "["
+                + "error:java.lang.OutOfMemoryError,"
+                + "method:throwsOutOfMemoryError,"
+                + "service-name:TestInterface"
+                + "]").getCount())
                 .isEqualTo(1);
     }
 }

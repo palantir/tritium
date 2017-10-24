@@ -19,82 +19,61 @@ package com.palantir.tritium.event.metrics;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.annotations.VisibleForTesting;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
-import com.palantir.tritium.event.metrics.annotations.MetricGroup;
+import com.palantir.tritium.tags.TaggedMetric;
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link InvocationEventHandler} that records method timing and failures using Dropwizard
- * metrics.
+ * {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics.
  */
 public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricsInvocationEventHandler.class);
 
+    public static final String TAG_METHOD = "method";
+
     private final MetricRegistry metricRegistry;
-    private final String serviceName;
+    private final TaggedMetric metric;
+    private final Function<InvocationContext, TaggedMetric> enrichWithContext;
 
-    //consider creating annotation handlers as separate objects
-    private final Map<AnnotationHelper.MethodSignature, String> metricGroups;
-    @Nullable private final String globalGroupPrefix;
-
-    public MetricsInvocationEventHandler(MetricRegistry metricRegistry, String serviceName) {
-        super(getEnabledSupplier(serviceName));
+    private MetricsInvocationEventHandler(MetricRegistry metricRegistry, TaggedMetric metric,
+            Function<InvocationContext, TaggedMetric> enrichWithContext) {
+        super(getEnabledSupplier(checkNotNull(metric, "metric").name()));
         this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
-        this.serviceName = checkNotNull(serviceName, "serviceName");
-        this.metricGroups = ImmutableMap.of();
-        this.globalGroupPrefix = null;
+        this.metric = metric;
+        this.enrichWithContext = enrichWithContext;
     }
 
-    public MetricsInvocationEventHandler(
-            MetricRegistry metricRegistry, Class serviceClass, String serviceName, @Nullable String globalGroupPrefix) {
-        super(getEnabledSupplier(serviceName));
-        this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
-        this.serviceName = checkNotNull(serviceName, "serviceName");
-        this.metricGroups = createMethodGroupMapping(checkNotNull(serviceClass));
-        this.globalGroupPrefix = Strings.emptyToNull(globalGroupPrefix);
+    @VisibleForTesting
+    static MetricsInvocationEventHandler create(MetricRegistry metricRegistry, String metricName) {
+        return create(metricRegistry, () -> TaggedMetric.from(metricName));
     }
 
-    public MetricsInvocationEventHandler(
-            MetricRegistry metricRegistry, Class serviceClass, @Nullable String globalGroupPrefix) {
-       this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
+    // TODO (davids): JavaDoc
+    public static MetricsInvocationEventHandler create(MetricRegistry metricRegistry,
+            Supplier<TaggedMetric> metricSupplier) {
+        TaggedMetric baseMetric = metricSupplier.get();
+        return create(metricRegistry, () -> baseMetric, contextToMetric(baseMetric));
     }
 
-    private static String failuresMetricName() {
-        return "failures";
-    }
-
-    private static Map<AnnotationHelper.MethodSignature, String> createMethodGroupMapping(Class<?> serviceClass) {
-        ImmutableMap.Builder<AnnotationHelper.MethodSignature, String> builder = ImmutableMap.builder();
-
-        MetricGroup classGroup = AnnotationHelper.getSuperTypeAnnotation(serviceClass, MetricGroup.class);
-
-        for (Method method : serviceClass.getMethods()) {
-            AnnotationHelper.MethodSignature sig = AnnotationHelper.MethodSignature.of(method);
-            MetricGroup methodGroup = AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, sig);
-
-            if (methodGroup != null) {
-                builder.put(sig, methodGroup.value());
-            } else if (classGroup != null) {
-                builder.put(sig, classGroup.value());
-            }
-        }
-
-        return builder.build();
+    public static MetricsInvocationEventHandler create(MetricRegistry metricRegistry,
+            Supplier<TaggedMetric> metricSupplier,
+            Function<InvocationContext, TaggedMetric> enrichWithContext) {
+        TaggedMetric baseMetric = metricSupplier.get();
+        return new MetricsInvocationEventHandler(metricRegistry, baseMetric, enrichWithContext);
     }
 
     static BooleanSupplier getEnabledSupplier(final String serviceName) {
@@ -112,55 +91,41 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
             logger.debug("Encountered null metric context likely due to exception in preInvocation");
             return;
         }
-        long nanos = System.nanoTime() - context.getStartTimeNanos();
-        metricRegistry.timer(getBaseMetricName(context))
-                .update(nanos, TimeUnit.NANOSECONDS);
-
-        String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
-        if (metricName != null) {
-            metricRegistry.timer(MetricRegistry.name(serviceName, metricName))
-                    .update(nanos, TimeUnit.NANOSECONDS);
-
-            if (globalGroupPrefix != null) {
-                metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName))
-                        .update(nanos, TimeUnit.NANOSECONDS);
-            }
-        }
+        long elapsedNanoseconds = System.nanoTime() - context.getStartTimeNanos();
+        String canonicalMetricName = enrichWithContext.apply(context).canonicalName();
+        metricRegistry.timer(canonicalMetricName).update(elapsedNanoseconds, TimeUnit.NANOSECONDS);
     }
 
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         if (context == null) {
-            markGlobalFailure();
+            metricRegistry.meter(
+                    TaggedMetric.builder()
+                            .from(metric)
+                            .putTags("error", cause.getClass().getName())
+                            .build()
+                            .canonicalName())
+                    .mark();
             logger.debug("Encountered null metric context likely due to exception in preInvocation: {}", cause, cause);
             return;
         }
 
-        markGlobalFailure();
-        String failuresMetricName = MetricRegistry.name(getBaseMetricName(context), failuresMetricName());
-        metricRegistry.meter(failuresMetricName).mark();
-        metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
-
-        long nanos = System.nanoTime() - context.getStartTimeNanos();
-        String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
-
-        if (metricName != null) {
-            metricRegistry.timer(MetricRegistry.name(serviceName, metricName, failuresMetricName()))
-                    .update(nanos, TimeUnit.NANOSECONDS);
-
-            if (globalGroupPrefix != null) {
-                metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName, failuresMetricName()))
-                        .update(nanos, TimeUnit.NANOSECONDS);
-            }
-        }
+        String canonicalMetricName = TaggedMetric.builder()
+                .from(metric)
+                .putTags("method", context.getMethod().getName())
+                .putTags("error", cause.getClass().getName())
+                .build()
+                .canonicalName();
+        long elapsedNanoseconds = System.nanoTime() - context.getStartTimeNanos();
+        metricRegistry.timer(canonicalMetricName).update(elapsedNanoseconds, TimeUnit.NANOSECONDS);
     }
 
-    private String getBaseMetricName(InvocationContext context) {
-        return MetricRegistry.name(serviceName, context.getMethod().getName());
-    }
-
-    private void markGlobalFailure() {
-        metricRegistry.meter(failuresMetricName()).mark();
+    private static Function<InvocationContext, TaggedMetric> contextToMetric(TaggedMetric taggedMetric) {
+        return (context) -> TaggedMetric.builder()
+                .from(taggedMetric)
+                .putTags(TAG_METHOD, context.getMethod().getName())
+                // TODO (davids): tag args?
+                .build();
     }
 
 }

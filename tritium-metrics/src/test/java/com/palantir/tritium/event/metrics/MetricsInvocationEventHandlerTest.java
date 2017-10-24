@@ -20,13 +20,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
+import com.palantir.tritium.metrics.MetricRegistries;
+import com.palantir.tritium.tags.TaggedMetric;
+import java.util.SortedMap;
+import java.util.concurrent.TimeUnit;
+import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
-public class MetricsInvocationEventHandlerTest {
+public final class MetricsInvocationEventHandlerTest {
 
     @MetricGroup("DEFAULT")
     public interface AnnotatedTestInterface {
@@ -49,42 +60,59 @@ public class MetricsInvocationEventHandlerTest {
         void methodE();
     }
 
+    private MetricRegistry metrics = new MetricRegistry();
+
+    @After
+    public void after() {
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
+                .convertDurationsTo(TimeUnit.MICROSECONDS)
+                .convertRatesTo(TimeUnit.MICROSECONDS)
+                .build();
+        reporter.report();
+        reporter.stop();
+    }
+
     @Test
     public void testFailure() throws Exception {
-        MetricRegistry metricRegistry = new MetricRegistry();
-        MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
+        MetricsInvocationEventHandler handler = MetricsInvocationEventHandler.create(metrics, "test");
 
         InvocationContext context = mock(InvocationContext.class);
         when(context.getMethod()).thenReturn(String.class.getDeclaredMethod("length"));
-        assertThat(metricRegistry.getMeters().get("failures")).isNull();
+        assertThat(metrics.getMeters()).doesNotContainKeys("failures");
 
         handler.onFailure(context, new RuntimeException("unexpected"));
 
-        assertThat(metricRegistry.getMeters().get("failures")).isNotNull();
-        assertThat(metricRegistry.getMeters().get("failures").getCount()).isEqualTo(1L);
+        SortedMap<String, Metric> metricsMatching = MetricRegistries.metricsMatching(
+                metrics, MetricRegistries.metricsWithTag("error"));
+        assertThat(metricsMatching.get("test[error:java.lang.RuntimeException,method:length]"))
+                .isInstanceOf(Timer.class)
+                .extracting("count")
+                .contains(1L);
     }
 
     @Test
     public void testOnSuccessNullContext() {
-        MetricRegistry metricRegistry = new MetricRegistry();
-        MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
-        assertThat(metricRegistry.getMeters().get("failures")).isNull();
+        MetricsInvocationEventHandler handler = MetricsInvocationEventHandler.create(metrics, "test");
+        assertThat(metrics.getMeters().get("failures")).isNull();
 
         handler.onSuccess(null, new Object());
 
-        assertThat(metricRegistry.getMeters().get("failures")).isNull();
+        assertThat(metrics.getMeters().get("failures")).isNull();
     }
 
     @Test
     public void testOnFailureNullContext() {
-        MetricRegistry metricRegistry = new MetricRegistry();
-        MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
-        assertThat(metricRegistry.getMeters().get("failures")).isNull();
+        MetricsInvocationEventHandler handler = MetricsInvocationEventHandler.create(metrics, "test");
+        assertThat(metrics.getMeters().get("failures")).isNull();
 
         handler.onFailure(null, new RuntimeException("expected"));
 
-        assertThat(metricRegistry.getMeters().get("failures")).isNotNull();
-        assertThat(metricRegistry.getMeters().get("failures").getCount()).isEqualTo(1L);
+        SortedMap<String, Metric> metricsMatching = MetricRegistries.metricsMatching(
+                metrics, MetricRegistries.metricsWithTag("error"));
+        assertThat(metricsMatching.get("test[error:java.lang.RuntimeException]"))
+                .isInstanceOf(Meter.class)
+                .extracting("count")
+                .contains(1L);
     }
 
     @Test
@@ -92,6 +120,8 @@ public class MetricsInvocationEventHandlerTest {
         assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
     }
 
+    // TODO (davids): remove or migrate to tags?
+    @Ignore
     @Test
     public void testMetricGroupAnnotations() throws Exception {
         AnnotatedTestInterface obj = mock(AnnotatedTestInterface.class);
@@ -99,14 +129,15 @@ public class MetricsInvocationEventHandlerTest {
 
         AnnotatedOtherInterface other = mock(AnnotatedOtherInterface.class);
 
-        MetricRegistry metricRegistry = new MetricRegistry();
         String globalPrefix = "com.business.myservice";
 
+        String name = TaggedMetric.toCanonicalName(obj.getClass().getName(), ImmutableMap.of("x1", globalPrefix));
         MetricsInvocationEventHandler handler =
-                new MetricsInvocationEventHandler(metricRegistry, obj.getClass(), globalPrefix);
+                MetricsInvocationEventHandler.create(metrics, name);
 
+        String name2 = TaggedMetric.toCanonicalName(other.getClass().getName(), ImmutableMap.of("x1", globalPrefix));
         MetricsInvocationEventHandler otherHandler =
-                new MetricsInvocationEventHandler(metricRegistry, other.getClass(), globalPrefix);
+                MetricsInvocationEventHandler.create(metrics, name2);
 
         //AnnotatedTestInterface
         callVoidMethod(handler, obj, "methodA", true);
@@ -115,18 +146,18 @@ public class MetricsInvocationEventHandlerTest {
         callVoidMethod(handler, obj, "methodD", true);
         callVoidMethod(handler, obj, "methodA", false);
 
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE").getCount()).isEqualTo(2L);
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".TWO").getCount()).isEqualTo(1L);
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE.failures").getCount()).isEqualTo(1L);
+        assertThat(metrics.timer(obj.getClass().getName() + ".ONE").getCount()).isEqualTo(2L);
+        assertThat(metrics.timer(obj.getClass().getName() + ".TWO").getCount()).isEqualTo(1L);
+        assertThat(metrics.timer(obj.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
+        assertThat(metrics.timer(obj.getClass().getName() + ".ONE.failures").getCount()).isEqualTo(1L);
 
         //AnnotatedOtherInterface
         callVoidMethod(otherHandler, other, "methodE", true);
-        assertThat(metricRegistry.timer(other.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
+        assertThat(metrics.timer(other.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
 
         //GlobalPrefix Tests
-        assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(2L);
-        assertThat(metricRegistry.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
+        assertThat(metrics.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(2L);
+        assertThat(metrics.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
     }
 
     private void callVoidMethod(

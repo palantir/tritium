@@ -24,9 +24,11 @@ import java.lang.annotation.Target;
 /**
  * Instrumentation instruction to tritium to group calls into a common metric name.
  * Setting Type (class) level applies a default metric group to all Methods that are annotated
+ * @deprecated use {@link com.palantir.tritium.tags.TaggedMetric}
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated
 public @interface MetricGroup {
     /**
      * String identifier grouped metrics.

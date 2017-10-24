@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
@@ -27,10 +28,14 @@ import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
+import com.palantir.tritium.tags.TaggedMetric;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.LongPredicate;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +43,10 @@ import org.slf4j.LoggerFactory;
  * Instrument arbitrary service interfaces with optional metrics and invocation logging.
  */
 public final class Instrumentation {
+
+    // TODO (davids): verify naming
+    public static final String METRIC_NAME_SERVICE = "service.response";
+    public static final String TAG_SERVICE_NAME = "service-name";
 
     private Instrumentation() {
         throw new UnsupportedOperationException();
@@ -118,41 +127,29 @@ public final class Instrumentation {
             this.delegate = checkNotNull(delegate, "delegate");
         }
 
-        /**
-         * Supply additional metrics name prefix to be used across interfaces that use MetricGroup annotations.
-         *
-         * Example:
-         *
-         * Given a prefix com.business.service and instrumented interfaces below, a single metric
-         * "com.business.service.fastcall" will share recordings across classes.  Functionality assumes a shared
-         * MetricsRegistry.
-         *
-         * interface WidgetService {
-         *     @MetricGroup("fastcall")
-         *     getWidgets();
-         * }
-         *
-         * interface UserService {
-         *     @MetricGroup("fastcall")
-         *     getUsers();
-         * }
-         *
-         * @param metricRegistry - MetricsRegistry used for this application
-         * @param globalPrefix - Metrics name prefix to be used
-         * @return - InstrumentationBuilder
-         */
-        public Builder<T, U> withMetrics(MetricRegistry metricRegistry, String globalPrefix) {
-            checkNotNull(metricRegistry, "metricRegistry");
-            this.handlers.add(new MetricsInvocationEventHandler(
-                    metricRegistry,
-                    delegate.getClass(),
-                    MetricRegistry.name(interfaceClass.getName()),
-                    globalPrefix));
-            return this;
+        // TODO (davids): JavaDoc
+        public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
+            return withMetrics(metricRegistry, (serviceInterface, service) -> ImmutableMap.of());
         }
 
-        public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
-            return withMetrics(metricRegistry, null);
+        // TODO (davids): tags, make public & JavaDoc
+        public Builder<T, U> withMetrics(MetricRegistry metricRegistry,
+                BiFunction<Class<?>, Object, Map<String, String>> tagsFunction) {
+            checkNotNull(metricRegistry, "metricRegistry");
+            checkNotNull(tagsFunction, "tagsFunction");
+
+            // TODO (davids): metric namer
+            BiFunction<Class<?>, Object, TaggedMetric> metricFunction = serviceToMetric()
+                    .andThen(taggedMetric -> {
+                        Map<String, String> tags = tagsFunction.apply(interfaceClass, delegate);
+                        return TaggedMetric.builder()
+                                .from(taggedMetric)
+                                .putAllTags(tags)
+                                .build();
+                    });
+            Supplier<TaggedMetric> taggedMetricSupplier = () -> metricFunction.apply(interfaceClass, delegate);
+            this.handlers.add(MetricsInvocationEventHandler.create(metricRegistry, taggedMetricSupplier));
+            return this;
         }
 
         public Builder<T, U> withPerformanceTraceLogging() {
@@ -186,6 +183,16 @@ public final class Instrumentation {
         public T build() {
             return wrap(interfaceClass, delegate, filter, handlers.build());
         }
+    }
+
+    // TODO (davids): should we expose this or compose on top of this?
+    static BiFunction<Class<?>, Object, TaggedMetric> serviceToMetric() {
+        return (serviceInterface, implementation) -> TaggedMetric.builder()
+                // TODO (davids): metric namer
+                .name(METRIC_NAME_SERVICE)
+                .putTags(TAG_SERVICE_NAME, serviceInterface.getSimpleName())
+                // TODO (davids): inject annotations as tags?
+                .build();
     }
 
 }
