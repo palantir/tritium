@@ -27,19 +27,244 @@ import org.junit.Test;
 public class TaggedMetricTest {
 
     @Test
+    public void simpleMetricName() {
+        TaggedMetric metric = TaggedMetric.builder().name("test").build();
+        assertThat(metric.toString()).isEqualTo("test");
+        assertThat(metric.canonicalName()).isSameAs(metric.toString());
+    }
+
+    @Test
+    public void invalidTaggedMetricValues() {
+        assertThatThrownBy(() -> TaggedMetric.builder().name(null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> TaggedMetric.builder().tags(null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> TaggedMetric.builder().putTags(null, null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> TaggedMetric.builder().putTags("key", null))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> TaggedMetric.builder().putTags(null, "value"))
+                .isInstanceOf(NullPointerException.class);
+
+        assertThatThrownBy(() -> TaggedMetric.builder().name("colon:delimited").build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageEndingWith(" must not contain ':'");
+        assertThatThrownBy(() -> TaggedMetric.builder().name("a,b").build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageEndingWith(" must not contain ','");
+        assertThatThrownBy(() -> TaggedMetric.builder().name("a[").build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageEndingWith(" must not contain '['");
+        assertThatThrownBy(() -> TaggedMetric.builder().name("a]").build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageEndingWith(" must not contain ']'");
+        assertThatThrownBy(() -> TaggedMetric.builder().name("a").putTags("a]", "value").build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageEndingWith(" must not contain ']'");
+        assertThatThrownBy(() -> TaggedMetric.builder().name("a").putTags("a", "value]").build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageEndingWith(" must not contain ']'");
+    }
+
+    @Test
+    public void blankMetricName() {
+        assertThatThrownBy(() ->
+                TaggedMetric.builder().name(" ").build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("' ' must not be null or blank");
+
+        assertThatThrownBy(() ->
+                TaggedMetric.builder().name("").build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("'' must not be null or blank");
+    }
+
+    @Test
+    public void emptyTags() {
+        TaggedMetric metric = TaggedMetric.builder()
+                .name("test")
+                .tags(Collections.emptyMap())
+                .build();
+
+        assertThat(metric.toString()).isEqualTo("test");
+        assertThat(metric.canonicalName()).isSameAs(metric.toString());
+    }
+
+    @Test
+    public void singleTag() {
+        TaggedMetric metric = TaggedMetric.builder()
+                .name("test")
+                .putTags("key", "value")
+                .build();
+
+        assertThat(metric.toString()).isEqualTo("test[key:value]");
+        assertThat(metric.canonicalName()).isSameAs(metric.toString());
+    }
+
+    @Test
+    public void twoTags() {
+        TaggedMetric metric = TaggedMetric.builder()
+                .name("test")
+                .putTags("key1", "value1")
+                .putTags("key2", "value2")
+                .build();
+
+        assertThat(metric.toString()).isEqualTo("test[key1:value1,key2:value2]");
+        assertThat(metric.canonicalName()).isSameAs(metric.toString());
+    }
+
+    @Test
+    public void fullMetricName() {
+        TaggedMetric metric = TaggedMetric.builder()
+                .name(TaggedMetric.class.getName())
+                .putTags("ip", "127.0.0.1")
+                .putTags("host", "localhost")
+                .putTags("endpoint", "testEndpoint")
+                .putTags("path", "/foo/{bar}")
+                .build();
+
+        assertThat(metric.toString()).isEqualTo("com.palantir.tritium.tags.TaggedMetric"
+                + "["
+                + "endpoint:testEndpoint,"
+                + "host:localhost,"
+                + "ip:127.0.0.1,"
+                + "path:/foo/{bar}"
+                + "]");
+        assertThat(metric.canonicalName()).isSameAs(metric.toString());
+    }
+
+    @Test
+    public void emptyTagName() {
+        assertThatThrownBy(() -> TaggedMetric.builder()
+                .name("test")
+                .putTags("", "value")
+                .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("'' must not be null or blank");
+    }
+
+    @Test
+    public void emptyTagValue() {
+        assertThatThrownBy(() -> TaggedMetric.builder()
+                .name("test")
+                .putTags("key", "")
+                .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("'' must not be null or blank");
+    }
+
+    @Test
+    public void blankTagValue() {
+        assertThatThrownBy(() -> TaggedMetric.builder()
+                .name("test")
+                .putTags("key", " ")
+                .build())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("' ' must not be null or blank");
+    }
+
+    @Test
+    public void parseSimple() {
+        TaggedMetric metric = TaggedMetric.from("server.response-time.p99");
+        assertThat(metric.name())
+                .isEqualTo("server.response-time.p99")
+                .isSameAs(metric.canonicalName())
+                .isSameAs(metric.toString());
+        assertThat(metric.tags()).isEmpty();
+
+    }
+
+    @Test
+    public void parseNoTags() {
+        assertThat(TaggedMetric.from("test").tags()).isEmpty();
+        assertThat(TaggedMetric.from("test[]").tags()).isEmpty();
+        assertThat(TaggedMetric.from("test[ ]").tags()).isEmpty();
+        assertThat(TaggedMetric.from("test[ , ]").tags()).isEmpty();
+    }
+
+    @Test
+    public void parseSingleTag() {
+        assertThat(TaggedMetric.from("test[ key: value ]").tags())
+                .containsExactly(Maps.immutableEntry("key", "value"));
+    }
+
+    @Test
+    public void parseTags() {
+        TaggedMetric metric = TaggedMetric.from("server.response-time"
+                + "["
+                + "path:/foo/{bar},"
+                + "endpoint:testEndpoint,"
+                + "ip:127.0.0.1,"
+                + "host:localhost"
+                + "]");
+        assertThat(metric.name()).isEqualTo("server.response-time");
+        assertThat(metric.canonicalName())
+                .isEqualTo("server.response-time[endpoint:testEndpoint,host:localhost,ip:127.0.0.1,path:/foo/{bar}]")
+                .isSameAs(metric.toString());
+        assertThat(metric.tags()).contains(
+                Maps.immutableEntry("path", "/foo/{bar}"),
+                Maps.immutableEntry("endpoint", "testEndpoint"),
+                Maps.immutableEntry("ip", "127.0.0.1"),
+                Maps.immutableEntry("host", "localhost"));
+    }
+
+    @Test
+    public void parseInvalid() {
+        assertThatThrownBy(() -> TaggedMetric.from(null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("canonicalMetricName");
+
+        assertThatThrownBy(() -> TaggedMetric.from("test:"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("'test:' must not contain ':'");
+
+        assertThatThrownBy(() -> TaggedMetric.from("test:value"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("'test:value' must not contain ':'");
+
+        assertThatThrownBy(() -> TaggedMetric.from("test,value"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("'test,value' must not contain ','");
+
+        assertThatThrownBy(() -> TaggedMetric.from("test]"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("'test]' must not contain ']'");
+
+        assertThatThrownBy(() -> TaggedMetric.from("test["))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid metric name 'test[', found trailing '['");
+
+        assertThatThrownBy(() -> TaggedMetric.from("test[a"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid metric name 'test[a', found trailing '[a'");
+    }
+
+    @Test
+    public void generateParseLifecycle() {
+        TaggedMetric metric1 = TaggedMetric.builder()
+                .name("test")
+                .putTags("alpha", "1")
+                .putTags("beta", "2")
+                .build();
+        TaggedMetric metric2 = TaggedMetric.from(metric1.canonicalName());
+        assertThat(metric1).isEqualTo(metric2);
+        assertThat(metric1.canonicalName()).isEqualTo(metric2.canonicalName());
+    }
+
+    @Test
     public void generateSimple() {
-        assertThat(TaggedMetric.of("test", Collections.emptyMap())).isEqualTo("test");
+        assertThat(TaggedMetric.toCanonicalName("test", Collections.emptyMap())).isEqualTo("test");
     }
 
     @Test
     public void generateSingleTag() {
-        assertThat(TaggedMetric.of("test", Collections.singletonMap("key", "value")))
+        assertThat(TaggedMetric.toCanonicalName("test", Collections.singletonMap("key", "value")))
                 .isEqualTo("test[key:value]");
     }
 
     @Test
     public void generateMultipleTagsOrdered() {
-        assertThat(TaggedMetric.of("test", ImmutableMap.of(
+        assertThat(TaggedMetric.toCanonicalName("test", ImmutableMap.of(
                 "beta", "b1",
                 "alpha", "a1")))
                 .isEqualTo("test[alpha:a1,beta:b1]");
@@ -47,20 +272,20 @@ public class TaggedMetricTest {
 
     @Test
     public void generateInvalid() {
-        assertThatThrownBy(() -> TaggedMetric.of(null, Collections.emptyMap()))
+        assertThatThrownBy(() -> TaggedMetric.toCanonicalName(null, Collections.emptyMap()))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("name");
 
-        assertThatThrownBy(() -> TaggedMetric.of("test", null))
+        assertThatThrownBy(() -> TaggedMetric.toCanonicalName("test", null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("tags");
 
-        assertThatThrownBy(() -> TaggedMetric.of("test", ImmutableMap.of(
+        assertThatThrownBy(() -> TaggedMetric.toCanonicalName("test", ImmutableMap.of(
                 "key", "value",
                 "KEY", "VALUE")))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage(
-                        "Invalid tag 'KEY' with value 'VALUE' duplicates case-insensitive key 'key' with value 'value'");
+                .hasMessage("Invalid tag 'KEY' with value 'VALUE' "
+                        + "duplicates case-insensitive key 'key' with value 'value'");
     }
 
     @Test
@@ -94,8 +319,8 @@ public class TaggedMetricTest {
                 "key", "value",
                 "KEY", "VALUE")))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage(
-                        "Invalid tag 'KEY' with value 'VALUE' duplicates case-insensitive key 'key' with value 'value'");
+                .hasMessage("Invalid tag 'KEY' with value 'VALUE' "
+                        + "duplicates case-insensitive key 'key' with value 'value'");
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
                 "key", "value",
