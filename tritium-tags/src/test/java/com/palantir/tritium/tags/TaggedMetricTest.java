@@ -279,12 +279,6 @@ public class TaggedMetricTest {
         assertThatThrownBy(() -> TaggedMetric.toCanonicalName("test", null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("tags");
-
-        assertThatThrownBy(() -> TaggedMetric.toCanonicalName("test", ImmutableMap.of(
-                "key", "value",
-                "key", "VALUE")))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Multiple entries with same key: key=VALUE and key=value");
     }
 
     @Test
