@@ -29,7 +29,6 @@ import com.codahale.metrics.MetricSet;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.google.common.collect.ImmutableMap;
-import com.palantir.tritium.tags.TaggedMetric;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -73,16 +72,15 @@ final class CaffeineCacheMetricSet implements MetricSet {
 
     static Gauge<CacheStats> createCachedCacheStats(Cache<?, ?> cache, Clock clock, long timeout, TimeUnit unit) {
         return new CachedGauge<CacheStats>(clock, timeout, unit) {
-                @Override
-                protected CacheStats loadValue() {
-                    return cache.stats();
-                }
-            };
+            @Override
+            protected CacheStats loadValue() {
+                return cache.stats();
+            }
+        };
     }
 
     private String cacheMetricName(String... args) {
-        return TaggedMetric.toCanonicalName(MetricRegistry.name("cache", args),
-                ImmutableMap.of("cache", cacheName));
+        return MetricRegistry.name(MetricRegistry.name(cacheName, "cache"), args);
     }
 
     @Override

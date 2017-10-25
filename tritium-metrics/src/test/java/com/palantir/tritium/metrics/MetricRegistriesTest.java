@@ -35,8 +35,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
-import com.palantir.tritium.tags.TaggedMetric;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
@@ -98,33 +96,33 @@ public class MetricRegistriesTest {
     @Test
     public void testRegisterCache() {
         MetricRegistries.registerCache(metrics, cache, "test", clock);
-        assertThat(metrics.getGauges(MetricRegistries.metricsWithTag("cache", "test"))).containsOnlyKeys(
-                "cache.estimated.size[cache:test]",
-                "cache.eviction.count[cache:test]",
-                "cache.hit.count[cache:test]",
-                "cache.hit.ratio[cache:test]",
-                "cache.load.average.millis[cache:test]",
-                "cache.load.failure.count[cache:test]",
-                "cache.load.success.count[cache:test]",
-                "cache.miss.count[cache:test]",
-                "cache.miss.ratio[cache:test]",
-                "cache.request.count[cache:test]"
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactlyInAnyOrder(
+                "test.cache.estimated.size",
+                "test.cache.eviction.count",
+                "test.cache.hit.count",
+                "test.cache.hit.ratio",
+                "test.cache.load.failure.count",
+                "test.cache.load.success.count",
+                "test.cache.load.average.millis",
+                "test.cache.miss.count",
+                "test.cache.miss.ratio",
+                "test.cache.request.count"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(1, 2, 3, 4, 5, 6));
         when(cache.size()).thenReturn(42L);
 
         SortedMap<String, Gauge> gauges = metrics.getGauges();
-        assertThat(gauges.get("cache.request.count[cache:test]").getValue()).isEqualTo(3L);
-        assertThat(gauges.get("cache.hit.count[cache:test]").getValue()).isEqualTo(1L);
-        assertThat(gauges.get("cache.hit.ratio[cache:test]").getValue()).isEqualTo(1.0 / 3.0);
-        assertThat(gauges.get("cache.miss.count[cache:test]").getValue()).isEqualTo(2L);
-        assertThat(gauges.get("cache.miss.ratio[cache:test]").getValue()).isEqualTo(2.0 / 3.0);
-        assertThat(gauges.get("cache.estimated.size[cache:test]").getValue()).isEqualTo(42L);
-        assertThat(gauges.get("cache.eviction.count[cache:test]").getValue()).isEqualTo(6L);
-        assertThat(gauges.get("cache.load.average.millis[cache:test]").getValue()).isNotEqualTo(5.0 / 3.0);
-        assertThat(gauges.get("cache.load.failure.count[cache:test]").getValue()).isEqualTo(4L);
-        assertThat(gauges.get("cache.load.success.count[cache:test]").getValue()).isEqualTo(3L);
+        assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(3L);
+        assertThat(gauges.get("test.cache.hit.count").getValue()).isEqualTo(1L);
+        assertThat(gauges.get("test.cache.hit.ratio").getValue()).isEqualTo(1.0 / 3.0);
+        assertThat(gauges.get("test.cache.miss.count").getValue()).isEqualTo(2L);
+        assertThat(gauges.get("test.cache.miss.ratio").getValue()).isEqualTo(2.0 / 3.0);
+        assertThat(gauges.get("test.cache.estimated.size").getValue()).isEqualTo(42L);
+        assertThat(gauges.get("test.cache.eviction.count").getValue()).isEqualTo(6L);
+        assertThat(gauges.get("test.cache.load.average.millis").getValue()).isNotEqualTo(5.0 / 3.0);
+        assertThat(gauges.get("test.cache.load.failure.count").getValue()).isEqualTo(4L);
+        assertThat(gauges.get("test.cache.load.success.count").getValue()).isEqualTo(3L);
         verify(cache, times(1)).stats();
 
         clock.advance(1, TimeUnit.MINUTES); // let stats snapshot cache expire
@@ -133,13 +131,13 @@ public class MetricRegistriesTest {
         when(cache.size()).thenReturn(37L);
 
         gauges = metrics.getGauges();
-        assertThat(gauges.get("cache.request.count[cache:test]").getValue()).isEqualTo(23L);
-        assertThat(gauges.get("cache.hit.count[cache:test]").getValue()).isEqualTo(11L);
-        assertThat(gauges.get("cache.miss.count[cache:test]").getValue()).isEqualTo(12L);
-        assertThat(gauges.get("cache.eviction.count[cache:test]").getValue()).isEqualTo(16L);
-        assertThat(gauges.get("cache.load.average.millis[cache:test]").getValue()).isNotEqualTo(15.0 / 23.0);
-        assertThat(gauges.get("cache.load.failure.count[cache:test]").getValue()).isEqualTo(14L);
-        assertThat(gauges.get("cache.load.success.count[cache:test]").getValue()).isEqualTo(13L);
+        assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(23L);
+        assertThat(gauges.get("test.cache.hit.count").getValue()).isEqualTo(11L);
+        assertThat(gauges.get("test.cache.miss.count").getValue()).isEqualTo(12L);
+        assertThat(gauges.get("test.cache.eviction.count").getValue()).isEqualTo(16L);
+        assertThat(gauges.get("test.cache.load.average.millis").getValue()).isNotEqualTo(15.0 / 23.0);
+        assertThat(gauges.get("test.cache.load.failure.count").getValue()).isEqualTo(14L);
+        assertThat(gauges.get("test.cache.load.success.count").getValue()).isEqualTo(13L);
         verify(cache, times(2)).stats();
     }
 
@@ -156,29 +154,29 @@ public class MetricRegistriesTest {
     public void testNoStats() throws Exception {
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges(MetricRegistries.metricsWithTag("cache", "test"))).containsOnlyKeys(
-                "cache.estimated.size[cache:test]",
-                "cache.eviction.count[cache:test]",
-                "cache.hit.count[cache:test]",
-                "cache.hit.ratio[cache:test]",
-                "cache.load.average.millis[cache:test]",
-                "cache.load.failure.count[cache:test]",
-                "cache.load.success.count[cache:test]",
-                "cache.miss.count[cache:test]",
-                "cache.miss.ratio[cache:test]",
-                "cache.request.count[cache:test]"
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactlyInAnyOrder(
+                "test.cache.estimated.size",
+                "test.cache.eviction.count",
+                "test.cache.hit.count",
+                "test.cache.hit.ratio",
+                "test.cache.load.failure.count",
+                "test.cache.load.success.count",
+                "test.cache.load.average.millis",
+                "test.cache.miss.count",
+                "test.cache.miss.ratio",
+                "test.cache.request.count"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
-        assertThat(metrics.getGauges().get("cache.request.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.hit.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.hit.ratio[cache:test]").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("cache.miss.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.miss.ratio[cache:test]").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("cache.eviction.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.load.average.millis[cache:test]").getValue()).isEqualTo(0.0d);
-        assertThat(metrics.getGauges().get("cache.load.failure.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.load.success.count[cache:test]").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isEqualTo(0.0d);
+        assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue()).isEqualTo(0L);
     }
 
     @Test
@@ -271,21 +269,6 @@ public class MetricRegistriesTest {
     @Test
     public void testNullPrefixMetricsPrefixedBy() {
         assertThatThrownBy(() -> MetricRegistries.metricsPrefixedBy(null)).isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    public void testMetricsWithTags() {
-        MetricFilter metricFilter = MetricRegistries.metricsWithTag("key", "value");
-
-        Metric metric = mock(Metric.class);
-        assertThat(metricFilter.matches(
-                TaggedMetric.toCanonicalName("test", ImmutableMap.of("key", "value")), metric)).isTrue();
-
-        assertThat(metricFilter.matches(
-                TaggedMetric.toCanonicalName("test", ImmutableMap.of("key", "foo")), metric)).isFalse();
-
-        assertThat(metricFilter.matches("test", metric)).isFalse();
-        assertThat(metricFilter.matches(TaggedMetric.toCanonicalName("test", ImmutableMap.of()), metric)).isFalse();
     }
 
     @Test
