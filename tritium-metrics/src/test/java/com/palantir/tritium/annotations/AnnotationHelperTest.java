@@ -44,6 +44,7 @@ public class AnnotationHelperTest {
     }
 
     public interface TestOverrideInterface extends TestSuperInterface {
+        @Override
         @MetricGroup("OVERRIDE")
         void method();
     }

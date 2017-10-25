@@ -38,7 +38,7 @@ import org.immutables.value.Value;
         // Side effect: Return the base type from builders.
         // Side effect: Nest implementation class inside of builder class.
         visibility = Value.Style.ImplementationVisibility.PRIVATE,
-        builderVisibility = Value.Style.BuilderVisibility.PACKAGE,
+        builderVisibility = Value.Style.BuilderVisibility.PUBLIC,
         // Default interface methods don't need to be annotated @Value.Default
         defaultAsDefault = true)
 public abstract class TaggedMetric {
