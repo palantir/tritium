@@ -300,14 +300,14 @@ public class TaggedMetricTest {
                 .containsExactly(Maps.immutableEntry("key-name", "value"));
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
-                "KEY", "value")))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("Invalid metric name 'KEY'");
-
-        assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
                 "a23456789012345678901", "value")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Invalid metric name 'a23456789012345678901'");
+
+        assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
+                "KEY", "value")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Invalid metric name 'KEY'");
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
                 "key", "value",
