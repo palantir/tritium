@@ -6,6 +6,7 @@ dependencies {
     compile project(':tritium-metrics')
     compile project(':tritium-proxy')
     compile project(':tritium-slf4j')
+    compile project(':tritium-tracing')
     compile 'com.google.code.findbugs:annotations'
     compile 'com.google.guava:guava'
     compile 'com.palantir.safe-logging:safe-logging'
