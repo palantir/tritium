@@ -311,8 +311,8 @@ public class TaggedMetricTest {
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
                 "key", "value",
-                " key", "value2")))
-                .hasMessageStartingWith("Invalid metric name ' key'");
+                " key ", "value2")))
+                .hasMessageStartingWith("Invalid metric name ' key '");
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
                 "a", "value")))
