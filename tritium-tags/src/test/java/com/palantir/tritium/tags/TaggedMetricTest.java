@@ -279,13 +279,6 @@ public class TaggedMetricTest {
         assertThatThrownBy(() -> TaggedMetric.toCanonicalName("test", null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("tags");
-
-        assertThatThrownBy(() -> TaggedMetric.toCanonicalName("test", ImmutableMap.of(
-                "key", "value",
-                "KEY", "VALUE")))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid tag 'KEY' with value 'VALUE' "
-                        + "duplicates case-insensitive key 'key' with value 'value'");
     }
 
     @Test
@@ -303,11 +296,7 @@ public class TaggedMetricTest {
                 .containsExactly(Maps.immutableEntry("a2345678901234567890", "value"));
 
         assertThat(TaggedMetric.normalizeTags(ImmutableMap.of(
-                "KEY", "value")))
-                .containsExactly(Maps.immutableEntry("key", "value"));
-
-        assertThat(TaggedMetric.normalizeTags(ImmutableMap.of(
-                "Key-Name", "value")))
+                "key-name", "value")))
                 .containsExactly(Maps.immutableEntry("key-name", "value"));
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
@@ -316,11 +305,9 @@ public class TaggedMetricTest {
                 .hasMessageStartingWith("Invalid metric name 'a23456789012345678901'");
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
-                "key", "value",
-                "KEY", "VALUE")))
+                "KEY", "value")))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Invalid tag 'KEY' with value 'VALUE' "
-                        + "duplicates case-insensitive key 'key' with value 'value'");
+                .hasMessageStartingWith("Invalid metric name 'KEY'");
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
                 "key", "value",

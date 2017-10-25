@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -43,7 +42,7 @@ import org.immutables.value.Value;
         defaultAsDefault = true)
 public abstract class TaggedMetric {
 
-    static final Pattern TAG_NAME_PATTERN = Pattern.compile("[A-Za-z][A-Za-z0-9-]{1,19}");
+    static final Pattern TAG_NAME_PATTERN = Pattern.compile("[a-z][a-z0-9-]{1,19}");
     static final char TAG_START_DELIMITER = '[';
     static final char TAG_END_DELIMITER = ']';
     static final char KEY_VALUE_DELIMITER = ':';
@@ -198,7 +197,7 @@ public abstract class TaggedMetric {
     }
 
     private static String normalizeKey(String key) {
-        return key.toLowerCase(Locale.ROOT).trim();
+        return key.trim();
     }
 
     static void checkValidTagName(String key) {
