@@ -90,15 +90,15 @@ public final class Instrumentation {
      *
      * @param serviceInterface service interface
      * @param delegate delegate to instrument
-     * @param metricRegistry metric registry
+     * @param metrics metric registry
      * @return instrumented proxy implementing specified service interface
      * @deprecated use {@link com.palantir.tritium.Tritium#instrument(Class, Object, MetricRegistry)}
      */
     @Deprecated
-    public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
+    public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metrics) {
         return builder(serviceInterface, delegate)
                 .withFilter(InstrumentationFilters.INSTRUMENT_ALL)
-                .withMetrics(metricRegistry)
+                .withMetrics(metrics)
                 .withPerformanceTraceLogging()
                 .build();
     }
@@ -128,14 +128,14 @@ public final class Instrumentation {
         }
 
         // TODO (davids): JavaDoc
-        public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
-            return withMetrics(metricRegistry, (serviceInterface, service) -> ImmutableMap.of());
+        public Builder<T, U> withMetrics(MetricRegistry metrics) {
+            return withMetrics(metrics, (serviceInterface, service) -> ImmutableMap.of());
         }
 
         // TODO (davids): tags, make public & JavaDoc
-        public Builder<T, U> withMetrics(MetricRegistry metricRegistry,
+        public Builder<T, U> withMetrics(MetricRegistry metrics,
                 BiFunction<Class<?>, Object, Map<String, String>> tagsFunction) {
-            checkNotNull(metricRegistry, "metricRegistry");
+            checkNotNull(metrics, "metrics");
             checkNotNull(tagsFunction, "tagsFunction");
 
             // TODO (davids): metric namer
@@ -148,7 +148,7 @@ public final class Instrumentation {
                                 .build();
                     });
             Supplier<TaggedMetric> taggedMetricSupplier = () -> metricFunction.apply(interfaceClass, delegate);
-            this.handlers.add(MetricsInvocationEventHandler.create(metricRegistry, taggedMetricSupplier));
+            this.handlers.add(MetricsInvocationEventHandler.create(metrics, taggedMetricSupplier));
             return this;
         }
 

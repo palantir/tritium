@@ -45,35 +45,33 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     public static final String TAG_METHOD = "method";
 
-    private final MetricRegistry metricRegistry;
+    private final MetricRegistry metrics;
     private final TaggedMetric metric;
     private final Function<InvocationContext, TaggedMetric> enrichWithContext;
 
-    private MetricsInvocationEventHandler(MetricRegistry metricRegistry, TaggedMetric metric,
+    private MetricsInvocationEventHandler(MetricRegistry metrics, TaggedMetric metric,
             Function<InvocationContext, TaggedMetric> enrichWithContext) {
         super(getEnabledSupplier(checkNotNull(metric, "metric").name()));
-        this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
+        this.metrics = checkNotNull(metrics, "metrics");
         this.metric = metric;
         this.enrichWithContext = enrichWithContext;
     }
 
     @VisibleForTesting
-    static MetricsInvocationEventHandler create(MetricRegistry metricRegistry, String metricName) {
-        return create(metricRegistry, () -> TaggedMetric.from(metricName));
+    static MetricsInvocationEventHandler create(MetricRegistry metrics, String metricName) {
+        return create(metrics, () -> TaggedMetric.from(metricName));
     }
 
     // TODO (davids): JavaDoc
-    public static MetricsInvocationEventHandler create(MetricRegistry metricRegistry,
-            Supplier<TaggedMetric> metricSupplier) {
+    public static MetricsInvocationEventHandler create(MetricRegistry metrics, Supplier<TaggedMetric> metricSupplier) {
         TaggedMetric baseMetric = metricSupplier.get();
-        return create(metricRegistry, () -> baseMetric, contextToMetric(baseMetric));
+        return create(metrics, () -> baseMetric, contextToMetric(baseMetric));
     }
 
-    public static MetricsInvocationEventHandler create(MetricRegistry metricRegistry,
-            Supplier<TaggedMetric> metricSupplier,
+    public static MetricsInvocationEventHandler create(MetricRegistry metrics, Supplier<TaggedMetric> metricSupplier,
             Function<InvocationContext, TaggedMetric> enrichWithContext) {
         TaggedMetric baseMetric = metricSupplier.get();
-        return new MetricsInvocationEventHandler(metricRegistry, baseMetric, enrichWithContext);
+        return new MetricsInvocationEventHandler(metrics, baseMetric, enrichWithContext);
     }
 
     static BooleanSupplier getEnabledSupplier(final String serviceName) {
@@ -93,13 +91,13 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         }
         long elapsedNanoseconds = System.nanoTime() - context.getStartTimeNanos();
         String canonicalMetricName = enrichWithContext.apply(context).canonicalName();
-        metricRegistry.timer(canonicalMetricName).update(elapsedNanoseconds, TimeUnit.NANOSECONDS);
+        metrics.timer(canonicalMetricName).update(elapsedNanoseconds, TimeUnit.NANOSECONDS);
     }
 
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         if (context == null) {
-            metricRegistry.meter(
+            metrics.meter(
                     TaggedMetric.builder()
                             .from(metric)
                             .putTags("error", cause.getClass().getName())
@@ -117,7 +115,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
                 .build()
                 .canonicalName();
         long elapsedNanoseconds = System.nanoTime() - context.getStartTimeNanos();
-        metricRegistry.timer(canonicalMetricName).update(elapsedNanoseconds, TimeUnit.NANOSECONDS);
+        metrics.timer(canonicalMetricName).update(elapsedNanoseconds, TimeUnit.NANOSECONDS);
     }
 
     private static Function<InvocationContext, TaggedMetric> contextToMetric(TaggedMetric taggedMetric) {

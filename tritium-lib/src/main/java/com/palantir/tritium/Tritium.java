@@ -35,12 +35,13 @@ public final class Tritium {
      *
      * @param serviceInterface service interface
      * @param delegate delegate to instrument
-     * @param metricRegistry metric registry
+     * @param metrics metric registry
      * @return instrumented proxy implementing specified service interface
      */
-    public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
+    public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metrics) {
         return Instrumentation.builder(serviceInterface, delegate)
-                .withMetrics(metricRegistry)
+                // TODO (davids): expose metrics namer, tags
+                .withMetrics(metrics)
                 .withPerformanceTraceLogging()
                 .withHandler(new TracingInvocationEventHandler(serviceInterface.getName()))
                 .build();
