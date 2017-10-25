@@ -312,6 +312,7 @@ public class TaggedMetricTest {
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
                 "key", "value",
                 " key ", "value2")))
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Invalid metric name ' key '");
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
