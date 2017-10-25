@@ -142,10 +142,12 @@ public final class Instrumentation {
             BiFunction<Class<?>, Object, TaggedMetric> metricFunction = serviceToMetric()
                     .andThen(taggedMetric -> {
                         Map<String, String> tags = tagsFunction.apply(interfaceClass, delegate);
-                        return TaggedMetric.builder()
-                                .from(taggedMetric)
-                                .putAllTags(tags)
-                                .build();
+                        return tags.isEmpty()
+                                ? taggedMetric
+                                : TaggedMetric.builder()
+                                        .from(taggedMetric)
+                                        .putAllTags(tags)
+                                        .build();
                     });
             Supplier<TaggedMetric> taggedMetricSupplier = () -> metricFunction.apply(interfaceClass, delegate);
             this.handlers.add(MetricsInvocationEventHandler.create(metrics, taggedMetricSupplier));
