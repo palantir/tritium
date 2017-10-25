@@ -18,11 +18,11 @@ package com.palantir.tritium.metrics.caffeine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.codahale.metrics.Metric;
+import com.codahale.metrics.Clock;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
+import com.google.common.annotations.VisibleForTesting;
 import com.palantir.tritium.metrics.MetricRegistries;
-import java.util.Map;
 
 public final class CaffeineCacheStats {
 
@@ -35,19 +35,21 @@ public final class CaffeineCacheStats {
      *
      * @param registry metric registry
      * @param cache cache to instrument
-     * @param metricsPrefix metrics prefix
+     * @param name cache name
      */
-    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry,
-            Cache<?, ?> cache,
-            String metricsPrefix) {
-        checkNotNull(registry, "registry");
-        checkNotNull(metricsPrefix, "metricsPrefix");
-        checkNotNull(cache, "cache");
+    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
+        registerCache(registry, cache, name, Clock.defaultClock());
+    }
 
-        CaffeineCacheMetricSet cacheMetrics = new CaffeineCacheMetricSet(cache, metricsPrefix);
-        for (Map.Entry<String, Metric> entry : cacheMetrics.getMetrics().entrySet()) {
-            MetricRegistries.registerSafe(registry, entry.getKey(), entry.getValue());
-        }
+    @VisibleForTesting
+    static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name, @VisibleForTesting Clock clock) {
+        checkNotNull(registry, "registry");
+        checkNotNull(cache, "cache");
+        checkNotNull(name, "name");
+        checkNotNull(clock, "clock");
+        CaffeineCacheMetricSet.create(cache, name, clock)
+                .getMetrics()
+                .forEach((key, value) -> MetricRegistries.registerWithReplacement(registry, key, value));
     }
 
 }

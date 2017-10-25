@@ -16,8 +16,10 @@
 
 package com.palantir.tritium.metrics;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.codahale.metrics.Clock;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
@@ -30,7 +32,6 @@ import com.google.common.collect.ImmutableSet;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -145,19 +146,24 @@ public final class MetricRegistries {
      *
      * @param registry metric registry
      * @param cache cache to instrument
-     * @param metricsPrefix metrics prefix
+     * @param name cache name
+     *
+     * @throws IllegalArgumentException if name is blank
      */
-    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry,
-                                                             Cache<?, ?> cache,
-                                                             String metricsPrefix) {
-        checkNotNull(registry, "metric registry");
-        checkNotNull(metricsPrefix, "prefix");
-        checkNotNull(cache, "cache");
+    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
+        registerCache(registry, cache, name, Clock.defaultClock());
+    }
 
-        CacheMetricSet cacheMetrics = new CacheMetricSet(cache, metricsPrefix);
-        for (Entry<String, Metric> entry : cacheMetrics.getMetrics().entrySet()) {
-            registerSafe(registry, entry.getKey(), entry.getValue());
-        }
+    @VisibleForTesting
+    static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name, Clock clock) {
+        checkNotNull(registry, "metric registry");
+        checkNotNull(cache, "cache");
+        checkNotNull(name, "name");
+        checkNotNull(clock, "clock");
+        checkArgument(!name.trim().isEmpty(), "Cache name cannot be blank or empty");
+        CacheMetricSet.create(cache, name, clock)
+                .getMetrics()
+                .forEach((key, value) -> registerWithReplacement(registry, key, value));
     }
 
     /**
@@ -176,15 +182,22 @@ public final class MetricRegistries {
      *         interfaces as {@code metric}
      */
     public static <T extends Metric> T registerSafe(MetricRegistry registry, String name, T metric) {
+        return registerOrReplace(registry, name, metric, false);
+    }
+
+    public static <T extends Metric> T registerWithReplacement(MetricRegistry registry, String name, T metric) {
+        return registerOrReplace(registry, name, metric, true);
+    }
+
+    private static <T extends Metric> T registerOrReplace(MetricRegistry registry, String name, T metric,
+            boolean replace) {
+
         synchronized (registry) {
             Map<String, Metric> metrics = registry.getMetrics();
             Metric existingMetric = metrics.get(name);
             if (existingMetric == null) {
                 return registry.register(name, metric);
             } else {
-                logger.warn("Metric already registered at this name."
-                        + " Name: {}, existing metric: {}", name, existingMetric);
-
                 Set<Class<?>> existingMetricInterfaces = ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
                 Set<Class<?>> newMetricInterfaces = ImmutableSet.copyOf(metric.getClass().getInterfaces());
                 if (!existingMetricInterfaces.equals(newMetricInterfaces)) {
@@ -193,9 +206,17 @@ public final class MetricRegistries {
                                     + " Name: " + name + ", existing metric: " + existingMetric);
                 }
 
-                @SuppressWarnings("unchecked")
-                T registeredMetric = (T) existingMetric;
-                return registeredMetric;
+                if (replace && registry.remove(name)) {
+                    logger.info("Removed existing registered metric with name {}: {}", name, existingMetric);
+                    registry.register(name, metric);
+                    return metric;
+                } else {
+                    logger.warn("Metric already registered at this name."
+                            + " Name: {}, existing metric: {}", name, existingMetric);
+                    @SuppressWarnings("unchecked")
+                    T registeredMetric = (T) existingMetric;
+                    return registeredMetric;
+                }
             }
         }
     }
