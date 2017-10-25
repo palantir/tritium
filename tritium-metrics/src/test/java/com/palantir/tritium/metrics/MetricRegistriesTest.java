@@ -19,28 +19,42 @@ package com.palantir.tritium.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Snapshot;
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.text.SimpleDateFormat;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
+@RunWith(MockitoJUnitRunner.class)
 public class MetricRegistriesTest {
 
-    private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
+    private MetricRegistry metrics = new MetricRegistry();
+    private final TestClock clock = new TestClock();
+
+    @Mock
+    private LoadingCache<Integer, String> cache;
 
     @After
     public void after() {
@@ -49,6 +63,7 @@ public class MetricRegistriesTest {
 
     @Test
     public void defaultMetrics() {
+        metrics = MetricRegistries.createWithHdrHistogramReservoirs();
         assertThat(metrics.getGauges().size()).isEqualTo(3);
         assertThat(metrics.getGauges()).containsKey(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME);
         assertThat(metrics.getGauges().get(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME).getValue())
@@ -63,6 +78,7 @@ public class MetricRegistriesTest {
 
     @Test
     public void testHdrHistogram() {
+        metrics = MetricRegistries.createWithHdrHistogramReservoirs();
         assertThat(metrics).isNotNull();
 
         Histogram histogram = metrics.histogram("histogram");
@@ -78,18 +94,8 @@ public class MetricRegistriesTest {
     }
 
     @Test
-    public void testRegisterCache() throws InterruptedException {
-        LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
-                .maximumSize(1L)
-                .recordStats()
-                .build(new CacheLoader<Integer, String>() {
-                    @Override
-                    public String load(Integer key) {
-                        return String.valueOf(key);
-                    }
-                });
-        MetricRegistries.registerCache(metrics, cache, "test");
-
+    public void testRegisterCache() {
+        MetricRegistries.registerCache(metrics, cache, "test", clock);
         assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactlyInAnyOrder(
                 "test.cache.estimated.size",
                 "test.cache.eviction.count",
@@ -103,46 +109,49 @@ public class MetricRegistriesTest {
                 "test.cache.request.count"
         );
 
-        assertThat(cache.getUnchecked(42)).isEqualTo("42");
+        when(cache.stats()).thenReturn(new CacheStats(1, 2, 3, 4, 5, 6));
+        when(cache.size()).thenReturn(42L);
 
-        assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(0.0d);
-        assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(1.0d);
-        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isInstanceOf(Double.class);
-        assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue()).isEqualTo(1L);
+        SortedMap<String, Gauge> gauges = metrics.getGauges();
+        assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(3L);
+        assertThat(gauges.get("test.cache.hit.count").getValue()).isEqualTo(1L);
+        assertThat(gauges.get("test.cache.hit.ratio").getValue()).isEqualTo(1.0 / 3.0);
+        assertThat(gauges.get("test.cache.miss.count").getValue()).isEqualTo(2L);
+        assertThat(gauges.get("test.cache.miss.ratio").getValue()).isEqualTo(2.0 / 3.0);
+        assertThat(gauges.get("test.cache.estimated.size").getValue()).isEqualTo(42L);
+        assertThat(gauges.get("test.cache.eviction.count").getValue()).isEqualTo(6L);
+        assertThat(gauges.get("test.cache.load.average.millis").getValue()).isNotEqualTo(5.0 / 3.0);
+        assertThat(gauges.get("test.cache.load.failure.count").getValue()).isEqualTo(4L);
+        assertThat(gauges.get("test.cache.load.success.count").getValue()).isEqualTo(3L);
+        verify(cache, times(1)).stats();
 
-        assertThat(cache.getUnchecked(42)).isEqualTo("42");
-        Thread.sleep(700); // let stats snapshot cache expire
+        clock.advance(1, TimeUnit.MINUTES); // let stats snapshot cache expire
 
-        assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(2L);
-        assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isInstanceOf(Double.class);
-        assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue()).isEqualTo(1L);
+        when(cache.stats()).thenReturn(new CacheStats(11L, 12L, 13L, 14L, 15L, 16L));
+        when(cache.size()).thenReturn(37L);
 
-        cache.getUnchecked(1);
-        Thread.sleep(700); // let stats snapshot cache expire
-
-        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(1L);
+        gauges = metrics.getGauges();
+        assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(23L);
+        assertThat(gauges.get("test.cache.hit.count").getValue()).isEqualTo(11L);
+        assertThat(gauges.get("test.cache.miss.count").getValue()).isEqualTo(12L);
+        assertThat(gauges.get("test.cache.eviction.count").getValue()).isEqualTo(16L);
+        assertThat(gauges.get("test.cache.load.average.millis").getValue()).isNotEqualTo(15.0 / 23.0);
+        assertThat(gauges.get("test.cache.load.failure.count").getValue()).isEqualTo(14L);
+        assertThat(gauges.get("test.cache.load.success.count").getValue()).isEqualTo(13L);
+        verify(cache, times(2)).stats();
     }
 
     @Test
-    public void testNoStats() {
-        LoadingCache<Integer, String> cache = CacheBuilder.newBuilder()
-                .maximumSize(1L)
-                .build(new CacheLoader<Integer, String>() {
-                    @Override
-                    public String load(Integer key) {
-                        return String.valueOf(key);
-                    }
-                });
+    public void testRegisterCacheReplacement() {
+        Cache cache1 = CacheBuilder.newBuilder().build();
+        MetricRegistries.registerCache(metrics, cache1, "test");
 
+        Cache cache2 = CacheBuilder.newBuilder().build();
+        MetricRegistries.registerCache(metrics, cache2, "test");
+    }
+
+    @Test
+    public void testNoStats() throws Exception {
         MetricRegistries.registerCache(metrics, cache, "test");
 
         assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactlyInAnyOrder(
@@ -158,14 +167,12 @@ public class MetricRegistriesTest {
                 "test.cache.request.count"
         );
 
-        assertThat(cache.getUnchecked(42)).isEqualTo("42");
-
+        when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
         assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(Double.NaN);
         assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("test.cache.estimated.size").getValue()).isEqualTo(1L);
         assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isEqualTo(0.0d);
         assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
@@ -192,17 +199,6 @@ public class MetricRegistriesTest {
     }
 
     @Test
-    public void testInvalidReregistration() {
-        MetricRegistries.registerSafe(metrics, "test", metrics.counter("counter"));
-        assertThatThrownBy(() ->
-                MetricRegistries.registerSafe(metrics, "test", metrics.histogram("histogram")))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith(
-                        "Metric already registered at this name that implements a different set of interfaces. "
-                                + "Name: test, existing metric: com.codahale.metrics.Counter@");
-    }
-
-    @Test
     public void testInvalidGetOrAdd() {
         MetricRegistries.getOrAdd(metrics, "histogram",
                 new HistogramMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier()));
@@ -212,6 +208,40 @@ public class MetricRegistriesTest {
                         new TimerMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier())))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("histogram is already used for a different type of metric for ");
+    }
+
+    @Test
+    public void testRegisterSafeDuplicateIgnored() {
+        Metric mockMetric1 = mock(Counter.class, "metric1");
+        assertThat(MetricRegistries.registerSafe(metrics, "test", mockMetric1)).isSameAs(mockMetric1);
+        assertThat(metrics.getMetrics().get("test")).isEqualTo(mockMetric1);
+
+        Metric mockMetric2 = mock(Counter.class, "metric2");
+        assertThat(MetricRegistries.registerSafe(metrics, "test", mockMetric2)).isSameAs(mockMetric1);
+        assertThat(metrics.getMetrics().get("test")).isEqualTo(mockMetric1);
+    }
+
+    @Test
+    public void testRegisterWithReplacement() {
+        Metric mockMetric1 = mock(Metric.class, "metric1");
+        assertThat(MetricRegistries.registerWithReplacement(metrics, "test", mockMetric1)).isEqualTo(mockMetric1);
+        assertThat(metrics.getMetrics().get("test")).isEqualTo(mockMetric1);
+
+        Metric mockMetric2 = mock(Metric.class, "metric2");
+        assertThat(MetricRegistries.registerWithReplacement(metrics, "test", mockMetric2)).isEqualTo(mockMetric2);
+        assertThat(metrics.getMetrics().get("test")).isEqualTo(mockMetric2);
+    }
+
+    @Test
+    public void testInvalidReregistration() {
+        Metric metric = metrics.counter("counter");
+        assertThat(MetricRegistries.registerSafe(metrics, "test", metric)).isSameAs(metric);
+        assertThatThrownBy(() ->
+                MetricRegistries.registerSafe(metrics, "test", metrics.histogram("histogram")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith(
+                        "Metric already registered at this name that implements a different set of interfaces. "
+                                + "Name: test, existing metric: com.codahale.metrics.Counter");
     }
 
     @Test
@@ -255,6 +285,11 @@ public class MetricRegistriesTest {
                 .containsExactly("test.a", "test.b");
         assertThat(metricsMatching.values())
                 .containsExactly(metrics.counter("test.a"), metrics.timer("test.b"));
+    }
+
+    @Test
+    public void testTimestamp() throws Exception {
+        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(MetricRegistries.nowIsoTimestamp());
     }
 
     private static void report(MetricRegistry metrics) {

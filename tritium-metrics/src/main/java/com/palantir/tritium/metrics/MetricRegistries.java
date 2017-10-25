@@ -16,8 +16,10 @@
 
 package com.palantir.tritium.metrics;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.codahale.metrics.Clock;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
@@ -27,14 +29,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import javax.annotation.concurrent.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,14 +44,6 @@ import org.slf4j.LoggerFactory;
 public final class MetricRegistries {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricRegistries.class);
-
-    /**
-     * An ISO 8601 date format for pre-Java 8 compatibility without Joda dependency.
-     */
-    // TODO (davids): switch to Java 8 date format
-    @GuardedBy("ISO_8601_DATE_FORMAT")
-    @SuppressWarnings("SimpleDateFormatConstant")
-    private static final SimpleDateFormat ISO_8601_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     static final String RESERVOIR_TYPE_METRIC_NAME = MetricRegistry.name(MetricRegistries.class, "reservoir.type");
 
@@ -94,10 +86,9 @@ public final class MetricRegistries {
         return metrics;
     }
 
-    private static String nowIsoTimestamp() {
-        synchronized (ISO_8601_DATE_FORMAT) {
-            return ISO_8601_DATE_FORMAT.format(new Date());
-        }
+    @VisibleForTesting
+    static String nowIsoTimestamp() {
+        return DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.now());
     }
 
     @SuppressWarnings("unchecked")
@@ -155,19 +146,24 @@ public final class MetricRegistries {
      *
      * @param registry metric registry
      * @param cache cache to instrument
-     * @param metricsPrefix metrics prefix
+     * @param name cache name
+     *
+     * @throws IllegalArgumentException if name is blank
      */
-    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry,
-                                                             Cache<?, ?> cache,
-                                                             String metricsPrefix) {
-        checkNotNull(registry, "metric registry");
-        checkNotNull(metricsPrefix, "prefix");
-        checkNotNull(cache, "cache");
+    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
+        registerCache(registry, cache, name, Clock.defaultClock());
+    }
 
-        CacheMetricSet cacheMetrics = new CacheMetricSet(cache, metricsPrefix);
-        for (Entry<String, Metric> entry : cacheMetrics.getMetrics().entrySet()) {
-            registerSafe(registry, entry.getKey(), entry.getValue());
-        }
+    @VisibleForTesting
+    static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name, Clock clock) {
+        checkNotNull(registry, "metric registry");
+        checkNotNull(cache, "cache");
+        checkNotNull(name, "name");
+        checkNotNull(clock, "clock");
+        checkArgument(!name.trim().isEmpty(), "Cache name cannot be blank or empty");
+        CacheMetricSet.create(cache, name, clock)
+                .getMetrics()
+                .forEach((key, value) -> registerWithReplacement(registry, key, value));
     }
 
     /**
@@ -186,15 +182,22 @@ public final class MetricRegistries {
      *         interfaces as {@code metric}
      */
     public static <T extends Metric> T registerSafe(MetricRegistry registry, String name, T metric) {
+        return registerOrReplace(registry, name, metric, false);
+    }
+
+    public static <T extends Metric> T registerWithReplacement(MetricRegistry registry, String name, T metric) {
+        return registerOrReplace(registry, name, metric, true);
+    }
+
+    private static <T extends Metric> T registerOrReplace(MetricRegistry registry, String name, T metric,
+            boolean replace) {
+
         synchronized (registry) {
             Map<String, Metric> metrics = registry.getMetrics();
             Metric existingMetric = metrics.get(name);
             if (existingMetric == null) {
                 return registry.register(name, metric);
             } else {
-                logger.warn("Metric already registered at this name."
-                        + " Name: {}, existing metric: {}", name, existingMetric);
-
                 Set<Class<?>> existingMetricInterfaces = ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
                 Set<Class<?>> newMetricInterfaces = ImmutableSet.copyOf(metric.getClass().getInterfaces());
                 if (!existingMetricInterfaces.equals(newMetricInterfaces)) {
@@ -203,9 +206,17 @@ public final class MetricRegistries {
                                     + " Name: " + name + ", existing metric: " + existingMetric);
                 }
 
-                @SuppressWarnings("unchecked")
-                T registeredMetric = (T) existingMetric;
-                return registeredMetric;
+                if (replace && registry.remove(name)) {
+                    logger.info("Removed existing registered metric with name {}: {}", name, existingMetric);
+                    registry.register(name, metric);
+                    return metric;
+                } else {
+                    logger.warn("Metric already registered at this name."
+                            + " Name: {}, existing metric: {}", name, existingMetric);
+                    @SuppressWarnings("unchecked")
+                    T registeredMetric = (T) existingMetric;
+                    return registeredMetric;
+                }
             }
         }
     }

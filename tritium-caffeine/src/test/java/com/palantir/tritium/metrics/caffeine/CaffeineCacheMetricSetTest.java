@@ -17,20 +17,34 @@
 package com.palantir.tritium.metrics.caffeine;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.palantir.tritium.metrics.MetricRegistries;
+import com.palantir.tritium.metrics.TestClock;
+import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class CaffeineCacheMetricSetTest {
 
-    private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
+    private final MetricRegistry metrics = new MetricRegistry();
+    private final TestClock clock = new TestClock();
+
+    @Mock
+    private LoadingCache<Integer, String> cache;
 
     @After
     public void after() {
@@ -43,16 +57,10 @@ public class CaffeineCacheMetricSetTest {
     }
 
     @Test
-    public void testRegisterCache() throws InterruptedException {
+    public void testRegisterCache() {
+        CaffeineCacheStats.registerCache(metrics, cache, "test1", clock);
 
-        LoadingCache<Integer, String> cache = Caffeine.newBuilder()
-                .maximumSize(1L)
-                .recordStats()
-                .build(String::valueOf);
-
-        CaffeineCacheStats.registerCache(metrics, cache, "test1");
-
-        assertThat(metrics.getGauges(metricsPrefixedBy("test1")).keySet()).containsExactlyInAnyOrder(
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test1")).keySet()).containsExactlyInAnyOrder(
                 "test1.cache.estimated.size",
                 "test1.cache.eviction.count",
                 "test1.cache.hit.count",
@@ -65,47 +73,42 @@ public class CaffeineCacheMetricSetTest {
                 "test1.cache.request.count"
         );
 
-        assertThat(cache.get(42)).isEqualTo("42");
+        when(cache.stats()).thenReturn(new CacheStats(1L, 2L, 3L, 4L, 5L, 6L));
+        when(cache.estimatedSize()).thenReturn(42L);
 
-        assertThat(metrics.getGauges().get("test1.cache.request.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test1.cache.hit.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test1.cache.hit.ratio").getValue()).isEqualTo(0.0d);
-        assertThat(metrics.getGauges().get("test1.cache.miss.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test1.cache.miss.ratio").getValue()).isEqualTo(1.0d);
-        assertThat(metrics.getGauges().get("test1.cache.estimated.size").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test1.cache.eviction.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test1.cache.load.average.millis").getValue()).isNotEqualTo(0L);
-        assertThat(metrics.getGauges().get("test1.cache.load.failure.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test1.cache.load.success.count").getValue()).isEqualTo(1L);
+        SortedMap<String, Gauge> gauges = metrics.getGauges();
+        assertThat(gauges.get("test1.cache.request.count").getValue()).isEqualTo(3L);
+        assertThat(gauges.get("test1.cache.hit.count").getValue()).isEqualTo(1L);
+        assertThat(gauges.get("test1.cache.hit.ratio").getValue()).isEqualTo(1.0 / 3.0);
+        assertThat(gauges.get("test1.cache.miss.count").getValue()).isEqualTo(2L);
+        assertThat(gauges.get("test1.cache.miss.ratio").getValue()).isEqualTo(2.0 / 3.0);
+        assertThat(gauges.get("test1.cache.estimated.size").getValue()).isEqualTo(42L);
+        assertThat(gauges.get("test1.cache.eviction.count").getValue()).isEqualTo(6L);
+        assertThat(gauges.get("test1.cache.load.average.millis").getValue()).isNotEqualTo(5.0 / 3.0);
+        assertThat(gauges.get("test1.cache.load.failure.count").getValue()).isEqualTo(4L);
+        assertThat(gauges.get("test1.cache.load.success.count").getValue()).isEqualTo(3L);
+        verify(cache, times(1)).stats();
 
-        assertThat(cache.get(42)).isEqualTo("42");
+        clock.advance(1, TimeUnit.MINUTES); // let stats snapshot cache expire
+        when(cache.stats()).thenReturn(new CacheStats(11L, 12L, 13L, 14L, 15L, 16L));
+        when(cache.estimatedSize()).thenReturn(37L);
 
-        Thread.sleep(700); // let stats snapshot cache expire
-
-        assertThat(metrics.getGauges().get("test1.cache.request.count").getValue()).isEqualTo(2L);
-        assertThat(metrics.getGauges().get("test1.cache.hit.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test1.cache.miss.count").getValue()).isEqualTo(1L);
-        assertThat(metrics.getGauges().get("test1.cache.eviction.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test1.cache.load.average.millis").getValue()).isNotEqualTo(0L);
-        assertThat(metrics.getGauges().get("test1.cache.load.failure.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test1.cache.load.success.count").getValue()).isEqualTo(1L);
-
-        cache.get(1);
-
-        Thread.sleep(700); // let stats snapshot cache expire
-
-        assertThat(metrics.getGauges().get("test1.cache.eviction.count").getValue()).isEqualTo(1L);
+        gauges = metrics.getGauges();
+        assertThat(gauges.get("test1.cache.request.count").getValue()).isEqualTo(23L);
+        assertThat(gauges.get("test1.cache.hit.count").getValue()).isEqualTo(11L);
+        assertThat(gauges.get("test1.cache.miss.count").getValue()).isEqualTo(12L);
+        assertThat(gauges.get("test1.cache.eviction.count").getValue()).isEqualTo(16L);
+        assertThat(gauges.get("test1.cache.load.average.millis").getValue()).isNotEqualTo(15.0 / 23.0);
+        assertThat(gauges.get("test1.cache.load.failure.count").getValue()).isEqualTo(14L);
+        assertThat(gauges.get("test1.cache.load.success.count").getValue()).isEqualTo(13L);
+        verify(cache, times(2)).stats();
     }
 
     @Test
     public void testNoStats() {
-        LoadingCache<Integer, String> cache = Caffeine.newBuilder()
-                .maximumSize(1L)
-                .build(String::valueOf);
-
         CaffeineCacheStats.registerCache(metrics, cache, "test2");
 
-        assertThat(metrics.getGauges(metricsPrefixedBy("test2")).keySet()).containsExactlyInAnyOrder(
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test2")).keySet()).containsExactlyInAnyOrder(
                 "test2.cache.estimated.size",
                 "test2.cache.eviction.count",
                 "test2.cache.hit.count",
@@ -117,8 +120,7 @@ public class CaffeineCacheMetricSetTest {
                 "test2.cache.miss.ratio",
                 "test2.cache.request.count");
 
-        assertThat(cache.get(42)).isEqualTo("42");
-
+        when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
         assertThat(metrics.getGauges().get("test2.cache.request.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test2.cache.hit.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test2.cache.hit.ratio").getValue()).isEqualTo(Double.NaN);
@@ -130,8 +132,26 @@ public class CaffeineCacheMetricSetTest {
         assertThat(metrics.getGauges().get("test2.cache.load.success.count").getValue()).isEqualTo(0L);
     }
 
-    private static MetricFilter metricsPrefixedBy(final String prefix) {
-        return (name, metric) -> name.startsWith(prefix);
+    @Test
+    public void testDerivedGauge() {
+        when(cache.stats()).thenReturn(new CacheStats(1L, 2L, 3L, 4L, 5L, 6L));
+        Gauge<CacheStats> cachedCacheStats = CaffeineCacheMetricSet.createCachedCacheStats(cache, clock,
+                15, TimeUnit.SECONDS);
+        CacheStats value1 = cachedCacheStats.getValue();
+        CacheStats value2 = cachedCacheStats.getValue();
+        assertThat(value1.requestCount()).isEqualTo(value2.requestCount());
+        assertThat(value1).isSameAs(value2);
+        verify(cache, times(1)).stats();
+
+        Gauge<Long> requestGauge = CaffeineCacheMetricSet.transformingGauge(cachedCacheStats, CacheStats::requestCount);
+        assertThat(requestGauge.getValue()).isEqualTo(3);
+        assertThat(requestGauge.getValue()).isEqualTo(3);
+        verify(cache, times(1)).stats();
+
+        clock.advance(1, TimeUnit.MINUTES);
+        assertThat(requestGauge.getValue()).isEqualTo(3);
+        verify(cache, times(2)).stats();
+        verifyNoMoreInteractions(cache);
     }
 
 }
