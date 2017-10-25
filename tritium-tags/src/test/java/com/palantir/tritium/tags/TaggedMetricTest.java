@@ -310,6 +310,11 @@ public class TaggedMetricTest {
                 .hasMessageStartingWith("Invalid metric name 'a23456789012345678901'");
 
         assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
+                "key", "value",
+                " key", "value2")))
+                .hasMessageStartingWith("Invalid metric name ' key'");
+
+        assertThatThrownBy(() -> TaggedMetric.normalizeTags(ImmutableMap.of(
                 "a", "value")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Invalid metric name 'a'");
