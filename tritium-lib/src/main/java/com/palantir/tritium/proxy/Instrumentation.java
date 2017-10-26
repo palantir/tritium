@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.api.functions.LongPredicate;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
@@ -31,6 +30,7 @@ import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.LongPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

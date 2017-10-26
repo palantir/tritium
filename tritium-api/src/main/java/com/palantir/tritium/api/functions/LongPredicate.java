@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.api.functions;
 
-public interface LongPredicate {
+public interface LongPredicate extends java.util.function.LongPredicate {
 
     /**
      * {@link LongPredicate} that always returns true.
@@ -34,6 +34,7 @@ public interface LongPredicate {
      * @param input long value
      * @return true
      */
+    @Override
     boolean test(long input);
 
 }

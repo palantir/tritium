@@ -18,7 +18,7 @@ package com.palantir.tritium.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.tritium.api.functions.BooleanSupplier;
+import java.util.function.BooleanSupplier;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +36,7 @@ public class AbstractInvocationEventHandlerTest {
     public void testSystemPropertySupplierEnabledByDefault() {
         BooleanSupplier supplier = AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
-        assertThat(supplier.asBoolean()).isTrue();
+        assertThat(supplier.getAsBoolean()).isTrue();
     }
 
     @Test
@@ -44,7 +44,7 @@ public class AbstractInvocationEventHandlerTest {
         System.setProperty("instrument", "false");
         BooleanSupplier supplier = AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
-        assertThat(supplier.asBoolean()).isFalse();
+        assertThat(supplier.getAsBoolean()).isFalse();
     }
 
     @Test
@@ -52,7 +52,7 @@ public class AbstractInvocationEventHandlerTest {
         System.setProperty("instrument", "true");
         BooleanSupplier supplier = AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
-        assertThat(supplier.asBoolean()).isTrue();
+        assertThat(supplier.getAsBoolean()).isTrue();
     }
 
     @Test
@@ -60,7 +60,7 @@ public class AbstractInvocationEventHandlerTest {
         System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "false");
         BooleanSupplier supplier = AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
-        assertThat(supplier.asBoolean()).isFalse();
+        assertThat(supplier.getAsBoolean()).isFalse();
     }
 
     @Test
@@ -69,7 +69,7 @@ public class AbstractInvocationEventHandlerTest {
         System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "true");
         BooleanSupplier supplier = AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
-        assertThat(supplier.asBoolean()).isTrue();
+        assertThat(supplier.getAsBoolean()).isTrue();
     }
 
 }
