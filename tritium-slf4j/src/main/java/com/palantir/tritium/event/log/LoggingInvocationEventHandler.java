@@ -23,14 +23,14 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.api.functions.BooleanSupplier;
-import com.palantir.tritium.api.functions.LongPredicate;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
+import java.util.function.LongPredicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     private static final Logger CLASS_LOGGER = LoggerFactory.getLogger(LoggingInvocationEventHandler.class);
     private static final List<String> MESSAGE_PATTERNS = generateMessagePatterns(10);
 
-    public static final LongPredicate LOG_ALL_DURATIONS = LongPredicate.TRUE;
+    public static final LongPredicate LOG_ALL_DURATIONS = com.palantir.tritium.api.functions.LongPredicate.TRUE;
 
     public static final LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND = nanos ->
             TimeUnit.MICROSECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 1;
@@ -53,7 +53,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     public static final LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS = nanos ->
             TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 0;
 
-    public static final LongPredicate NEVER_LOG = LongPredicate.FALSE;
+    public static final LongPredicate NEVER_LOG = com.palantir.tritium.api.functions.LongPredicate.FALSE;
 
     private final Logger logger;
     private final LoggingLevel level;
@@ -152,10 +152,10 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     private static BooleanSupplier createEnabledSupplier(final Logger logger, final LoggingLevel level) {
         checkNotNull(logger, "logger");
         checkNotNull(level, "level");
-        if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).asBoolean()) {
+        if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).getAsBoolean()) {
             return () -> isEnabled(logger, level);
         } else {
-            return BooleanSupplier.FALSE;
+            return com.palantir.tritium.api.functions.BooleanSupplier.FALSE;
         }
     }
 

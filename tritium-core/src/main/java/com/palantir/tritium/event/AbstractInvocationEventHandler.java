@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.api.functions.BooleanSupplier;
+import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 
 /**
@@ -40,7 +40,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      * Always enabled instrumentation handler.
      */
     protected AbstractInvocationEventHandler() {
-        this(BooleanSupplier.TRUE);
+        this(com.palantir.tritium.api.functions.BooleanSupplier.TRUE);
     }
 
     protected AbstractInvocationEventHandler(BooleanSupplier isEnabledSupplier) {
@@ -54,7 +54,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      */
     @Override
     public final boolean isEnabled() {
-        return isEnabledSupplier.asBoolean();
+        return isEnabledSupplier.getAsBoolean();
     }
 
     /**

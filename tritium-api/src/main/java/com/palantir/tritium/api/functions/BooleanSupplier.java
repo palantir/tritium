@@ -17,7 +17,7 @@
 package com.palantir.tritium.api.functions;
 
 @FunctionalInterface
-public interface BooleanSupplier {
+public interface BooleanSupplier extends java.util.function.BooleanSupplier {
 
     /**
      * {@link BooleanSupplier} that always returns true.
@@ -34,6 +34,8 @@ public interface BooleanSupplier {
      *
      * @return a boolean result
      */
-    boolean asBoolean();
+    default boolean asBoolean() {
+        return getAsBoolean();
+    }
 
 }
