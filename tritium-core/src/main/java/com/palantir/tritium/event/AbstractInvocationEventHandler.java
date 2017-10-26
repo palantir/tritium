@@ -16,10 +16,8 @@
 
 package com.palantir.tritium.event;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Strings;
 import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.api.functions.BooleanSupplier;
@@ -34,7 +32,6 @@ import javax.annotation.Nullable;
 public abstract class AbstractInvocationEventHandler<C extends InvocationContext>
         implements InvocationEventHandler<C> {
 
-    private static final String INSTRUMENT_PREFIX = "instrument";
     private static final Object[] NO_ARGS = {};
 
     private final BooleanSupplier isEnabledSupplier;
@@ -68,17 +65,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
     protected static BooleanSupplier getSystemPropertySupplier(
             Class<? extends InvocationEventHandler<InvocationContext>> clazz) {
         checkNotNull(clazz, "clazz");
-        return getSystemPropertySupplier(clazz.getName());
-    }
-
-    protected static BooleanSupplier getSystemPropertySupplier(String name) {
-        checkArgument(!Strings.isNullOrEmpty(name), "name cannot be null or empty, was '%s'", name);
-        boolean isGloballyDisabled = "false".equalsIgnoreCase(System.getProperty(INSTRUMENT_PREFIX));
-        String qualifiedValue = System.getProperty(INSTRUMENT_PREFIX + "." + name);
-        boolean isSpecificallyEnabled = "true".equalsIgnoreCase(qualifiedValue);
-        final boolean instrumentationEnabled = !isGloballyDisabled
-                && (isSpecificallyEnabled || qualifiedValue == null);
-        return () -> instrumentationEnabled;
+        return InstrumentationProperties.getSystemPropertySupplier(clazz.getName());
     }
 
     public static Object[] nullToEmpty(@Nullable Object[] args) {

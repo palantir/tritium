@@ -20,6 +20,7 @@ package com.palantir.tritium.event.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.palantir.tritium.api.functions.BooleanSupplier;
+import com.palantir.tritium.event.InstrumentationProperties;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -71,6 +72,7 @@ public class MetricsBooleanSupplierTest {
         Set<Map.Entry<Object, Object>> entries = System.getProperties().entrySet();
         entries.removeIf(objectObjectEntry ->
                 String.valueOf(objectObjectEntry.getKey()).startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
+        InstrumentationProperties.reload();
     }
 
     @Test

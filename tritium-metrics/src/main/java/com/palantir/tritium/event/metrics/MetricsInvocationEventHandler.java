@@ -26,6 +26,7 @@ import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
+import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import java.lang.reflect.Method;
@@ -97,7 +98,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     static BooleanSupplier getEnabledSupplier(final String serviceName) {
-        return getSystemPropertySupplier(serviceName);
+        return InstrumentationProperties.getSystemPropertySupplier(serviceName);
     }
 
     @Override

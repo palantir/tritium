@@ -23,6 +23,7 @@ import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
+import com.palantir.tritium.event.InstrumentationProperties;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -76,7 +77,7 @@ public final class BraveLocalTracingInvocationEventHandler extends AbstractInvoc
     }
 
     static BooleanSupplier getEnabledSupplier(String component) {
-        return getSystemPropertySupplier(component);
+        return InstrumentationProperties.getSystemPropertySupplier(component);
     }
 
 }
