@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Palantir Technologies, Inc. All rights reserved.
+ * Copyright 2017 Palantir Technologies, Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 package com.palantir.tritium.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import org.junit.Before;
 import org.junit.Test;
 
-public class AbstractInvocationEventHandlerTest {
+public class InstrumentationPropertiesTest {
 
     @Before
     public void before() {
@@ -34,42 +35,50 @@ public class AbstractInvocationEventHandlerTest {
 
     @Test
     public void testSystemPropertySupplierEnabledByDefault() {
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isTrue();
     }
 
     @Test
     public void testSystemPropertySupplierInstrumentFalse() {
         System.setProperty("instrument", "false");
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        BooleanSupplier supplier = InstrumentationProperties
+                .getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isFalse();
     }
 
     @Test
     public void testSystemPropertySupplierInstrumentTrue() {
         System.setProperty("instrument", "true");
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        BooleanSupplier supplier = InstrumentationProperties
+                .getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isTrue();
     }
 
     @Test
     public void testSystemPropertySupplierInstrumentClassFalse() {
-        System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "false");
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        System.setProperty("instrument.test", "false");
+        BooleanSupplier supplier = InstrumentationProperties
+                .getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isFalse();
     }
 
     @Test
     public void testSystemPropertySupplierInstrumentClassTrue() {
         System.clearProperty("instrument");
-        System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "true");
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        System.setProperty("instrument.test", "true");
+        BooleanSupplier supplier = InstrumentationProperties
+                .getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isTrue();
     }
 
+    @Test
+    public void invalid() {
+        assertThatThrownBy(() -> InstrumentationProperties.getSystemPropertySupplier(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("name cannot be null or empty");
+        assertThatThrownBy(() -> InstrumentationProperties.getSystemPropertySupplier(""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("name cannot be null or empty");
+    }
 }
