@@ -34,9 +34,18 @@ import java.util.function.Supplier;
  */
 public final class TaggedMetricRegistry {
 
+    private static final TaggedMetricRegistry DEFAULT = new TaggedMetricRegistry();
+
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
 
     public TaggedMetricRegistry() {}
+
+    /**
+     * Get the global default {@link TaggedMetricRegistry}.
+     */
+    public TaggedMetricRegistry getDefault() {
+        return DEFAULT;
+    }
 
     public Counter counter(MetricName metric) {
         return getOrAdd(metric, Counter.class, Counter::new);
