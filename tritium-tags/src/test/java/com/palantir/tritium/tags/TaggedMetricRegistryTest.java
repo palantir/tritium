@@ -29,8 +29,8 @@ import org.junit.Test;
 
 public final class TaggedMetricRegistryTest {
 
-    private static final MetricName METRIC_1 = new MetricNameBuilder().name("name").build();
-    private static final MetricName METRIC_2 = new MetricNameBuilder().name("name").putTags("key", "val").build();
+    private static final MetricName METRIC_1 = MetricName.builder().name("name").build();
+    private static final MetricName METRIC_2 = MetricName.builder().name("name").putTags("key", "val").build();
 
     private TaggedMetricRegistry registry;
 

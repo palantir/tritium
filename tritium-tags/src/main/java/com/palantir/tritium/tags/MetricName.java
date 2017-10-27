@@ -25,15 +25,17 @@ import org.immutables.value.Value;
         jdkOnly = true,
         // detect 'get' and 'is' prefixes in accessor methods
         get = {"get*", "is*"},
-        // Try to avoid leaking Immutable prefixed objects to avoid
-        // api fallout when we switch to another processor.
-        // Side effect: Return the base type from builders.
-        // Side effect: Nest implementation class inside of builder class.
-        visibility = Value.Style.ImplementationVisibility.PRIVATE,
-        builderVisibility = Value.Style.BuilderVisibility.PUBLIC,
+        overshadowImplementation = true,
+        visibility = Value.Style.ImplementationVisibility.PACKAGE,
         // Default interface methods don't need to be annotated @Value.Default
         defaultAsDefault = true)
 public interface MetricName {
     String name();
     Map<String, String> tags();
+
+    static Builder builder() {
+        return new Builder();
+    }
+
+    class Builder extends ImmutableMetricName.Builder {}
 }
