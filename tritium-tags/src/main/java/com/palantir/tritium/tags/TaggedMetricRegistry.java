@@ -76,7 +76,7 @@ public final class TaggedMetricRegistry {
         Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
         if (!metricClass.isInstance(metric)) {
             throw new IllegalArgumentException(metricName.name()
-                    + " already used for a different type of metric. tags:" + metricName.tags());
+                    + " already used for a different type of metric. tags: " + metricName.tags());
         }
         return metricClass.cast(metric);
     }
