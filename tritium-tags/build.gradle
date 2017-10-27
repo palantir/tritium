@@ -3,6 +3,8 @@ apply from: "${rootDir}/gradle/publish-jars.gradle"
 dependencies {
     processor "org.immutables:value"
 
+    compile 'io.dropwizard.metrics:metrics-core'
+
     testCompile project(path: ':tritium-core', configuration: 'testArtifacts')
     testCompile 'com.google.guava:guava-testlib'
     testCompile 'junit:junit'
