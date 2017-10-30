@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.tags;
+package com.palantir.tritium.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

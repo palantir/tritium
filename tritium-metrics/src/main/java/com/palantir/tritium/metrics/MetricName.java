@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.tags;
+package com.palantir.tritium.metrics;
 
 import java.util.Map;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @Value.Style(
-        // Don't require GuavaModule
         jdkOnly = true,
-        // detect 'get' and 'is' prefixes in accessor methods
         get = {"get*", "is*"},
         overshadowImplementation = true,
-        visibility = Value.Style.ImplementationVisibility.PACKAGE,
-        // Default interface methods don't need to be annotated @Value.Default
-        defaultAsDefault = true)
+        visibility = Value.Style.ImplementationVisibility.PACKAGE)
 public interface MetricName {
     String name();
     Map<String, String> tags();

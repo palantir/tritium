@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.tags;
+package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
