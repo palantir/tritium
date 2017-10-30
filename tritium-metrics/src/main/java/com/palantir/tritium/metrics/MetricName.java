@@ -19,7 +19,7 @@ package com.palantir.tritium.metrics;
 import java.util.Map;
 import org.immutables.value.Value;
 
-@Value.Immutable
+@Value.Immutable(prehash = true)
 @Value.Style(
         jdkOnly = true,
         get = {"get*", "is*"},
