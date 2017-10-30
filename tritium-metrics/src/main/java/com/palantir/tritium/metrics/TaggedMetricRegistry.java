@@ -43,7 +43,7 @@ public final class TaggedMetricRegistry {
     /**
      * Get the global default {@link TaggedMetricRegistry}.
      */
-    public TaggedMetricRegistry getDefault() {
+    public static TaggedMetricRegistry getDefault() {
         return DEFAULT;
     }
 
