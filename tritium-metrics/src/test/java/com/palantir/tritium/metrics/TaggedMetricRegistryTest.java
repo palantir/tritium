@@ -112,6 +112,6 @@ public final class TaggedMetricRegistryTest {
 
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> registry.timer(METRIC_1))
-                .withMessage("name already used for a different type of metric. tags: {}");
+                .withMessage("'name' already used for a metric of type 'Counter' but wanted type 'Timer'. tags: {}");
     }
 }

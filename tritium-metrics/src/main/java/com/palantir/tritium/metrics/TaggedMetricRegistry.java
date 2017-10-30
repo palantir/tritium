@@ -75,8 +75,10 @@ public final class TaggedMetricRegistry {
     private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
         Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
         if (!metricClass.isInstance(metric)) {
-            throw new IllegalArgumentException(metricName.name()
-                    + " already used for a different type of metric. tags: " + metricName.tags());
+            throw new IllegalArgumentException(String.format(
+                    "'%s' already used for a metric of type '%s' but wanted type '%s'. tags: %s",
+                    metricName.name(), metric.getClass().getSimpleName(),
+                    metricClass.getSimpleName(), metricName.tags()));
         }
         return metricClass.cast(metric);
     }
