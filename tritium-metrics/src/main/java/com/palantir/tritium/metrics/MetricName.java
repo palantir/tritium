@@ -28,7 +28,7 @@ import org.immutables.value.Value;
 public interface MetricName {
 
     /**
-     * General/abstract measure with units (e.g. time of a request).
+     * General/abstract measure (e.g. server.response-time).
      * <p>
      * Names must be {@link com.palantir.logsafe.Safe} to log.
      */
