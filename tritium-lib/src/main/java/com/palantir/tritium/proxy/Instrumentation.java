@@ -111,8 +111,8 @@ public final class Instrumentation {
         public Builder<T, U> withMetrics(TaggedMetricRegistry metrics) {
             return withMetrics(metrics,
                     (serviceInterface, implementation) -> MetricName.builder()
-                            .name(MetricNames.internalServiceResponse())
-                            .putTags(Tags.SERVICE.key(), serviceInterface.getSimpleName())
+                            .safeName(MetricNames.internalServiceResponse())
+                            .putSafeTags(Tags.SERVICE.key(), serviceInterface.getSimpleName())
                             .build(),
                     (serviceInterface1, service) -> ImmutableMap.of());
         }

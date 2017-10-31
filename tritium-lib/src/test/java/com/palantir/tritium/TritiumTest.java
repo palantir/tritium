@@ -35,9 +35,9 @@ import org.junit.Test;
 public final class TritiumTest {
 
     private static final MetricName EXPECTED_METRIC_NAME = MetricName.builder()
-            .name(MetricNames.internalServiceResponse())
-            .putTags(Tags.METHOD.key(), "test")
-            .putTags(Tags.SERVICE.key(), "TestInterface")
+            .safeName(MetricNames.internalServiceResponse())
+            .putSafeTags(Tags.METHOD.key(), "test")
+            .putSafeTags(Tags.SERVICE.key(), "TestInterface")
             .build();
 
     private TestImplementation delegate = new TestImplementation();
@@ -85,10 +85,10 @@ public final class TritiumTest {
                 .hasMessage("Testing OOM");
 
         MetricName metricName = MetricName.builder()
-                .name(MetricNames.internalServiceResponse())
-                .putTags(Tags.METHOD.key(), "throwsOutOfMemoryError")
-                .putTags(Tags.SERVICE.key(), "TestInterface")
-                .putTags(Tags.ERROR.key(), "java.lang.OutOfMemoryError")
+                .safeName(MetricNames.internalServiceResponse())
+                .putSafeTags(Tags.METHOD.key(), "throwsOutOfMemoryError")
+                .putSafeTags(Tags.SERVICE.key(), "TestInterface")
+                .putSafeTags(Tags.ERROR.key(), "java.lang.OutOfMemoryError")
                 .build();
 
         assertThat(getTimers()).containsKeys(metricName);
@@ -124,9 +124,9 @@ public final class TritiumTest {
 
     static MetricName errorMetricName(String errorName) {
         return MetricName.builder()
-                .name(MetricNames.internalServiceResponse())
-                .putTags(Tags.SERVICE.key(), "TestInterface")
-                .putTags(Tags.ERROR.key(), errorName)
+                .safeName(MetricNames.internalServiceResponse())
+                .putSafeTags(Tags.SERVICE.key(), "TestInterface")
+                .putSafeTags(Tags.ERROR.key(), errorName)
                 .build();
     }
 }

@@ -81,8 +81,8 @@ final class CacheMetricSet {
 
     private MetricName cacheMetricName(String... args) {
         return MetricName.builder()
-                .name(MetricRegistry.name("cache", args))
-                .putTags(Tags.NAME.key(), cacheName)
+                .safeName(MetricRegistry.name("cache", args))
+                .putSafeTags(Tags.NAME.key(), cacheName)
                 .build();
     }
 

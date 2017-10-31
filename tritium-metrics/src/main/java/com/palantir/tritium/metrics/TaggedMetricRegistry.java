@@ -97,8 +97,8 @@ public final class TaggedMetricRegistry {
         if (existingMetric != null && !metricClass.isInstance(existingMetric)) {
             throw new IllegalArgumentException(String.format(
                     "'%s' already used for a metric of type '%s' but wanted type '%s'. tags: %s",
-                    metricName.name(), existingMetric.getClass().getSimpleName(),
-                    metricClass.getSimpleName(), metricName.tags()));
+                    metricName.safeName(), existingMetric.getClass().getSimpleName(),
+                    metricClass.getSimpleName(), metricName.safeTags()));
         }
     }
 

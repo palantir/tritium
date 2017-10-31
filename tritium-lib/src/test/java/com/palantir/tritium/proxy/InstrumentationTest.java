@@ -59,9 +59,9 @@ import org.slf4j.Logger;
 public class InstrumentationTest {
 
     private static final MetricName EXPECTED_METRIC_NAME = MetricName.builder()
-            .name(MetricNames.internalServiceResponse())
-            .putTags(Tags.NAME.key(), "test")
-            .putTags(Tags.SERVICE.key(), "TestInterface")
+            .safeName(MetricNames.internalServiceResponse())
+            .putSafeTags(Tags.NAME.key(), "test")
+            .putSafeTags(Tags.SERVICE.key(), "TestInterface")
             .build();
 
     // Exceed the HotSpot JIT thresholds
@@ -105,7 +105,7 @@ public class InstrumentationTest {
                 .build();
 
         assertThat(delegate.invocationCount()).isEqualTo(0);
-        MetricName metricName = MetricName.builder().name("foo").build();
+        MetricName metricName = MetricName.builder().safeName("foo").build();
         assertThat(metrics.getMetrics().get(metricName)).isNull();
 
         instrumentedService.test();
@@ -113,21 +113,21 @@ public class InstrumentationTest {
 
         Map<String, Metric> timers = metrics.getMetrics().entrySet().stream().filter(
                 e -> e.getValue() instanceof Timer).collect(
-                Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
-        assertThat(timers).containsOnlyKeys(EXPECTED_METRIC_NAME.name())
+                Collectors.toMap(e -> e.getKey().safeName(), Map.Entry::getValue));
+        assertThat(timers).containsOnlyKeys(EXPECTED_METRIC_NAME.safeName())
                 .hasSize(1)
-                .extracting(EXPECTED_METRIC_NAME.name())
+                .extracting(EXPECTED_METRIC_NAME.safeName())
                 .extracting("count")
                 .contains(1L);
 
         executeManyTimes(instrumentedService, INVOCATION_ITERATIONS);
 
         assertThat(timers)
-                .extracting(EXPECTED_METRIC_NAME.name())
+                .extracting(EXPECTED_METRIC_NAME.safeName())
                 .extracting("count")
                 .contains(Long.valueOf(delegate.invocationCount()));
         assertThat(timers)
-                .extracting(EXPECTED_METRIC_NAME.name())
+                .extracting(EXPECTED_METRIC_NAME.safeName())
                 .extracting("snapshot")
                 .extracting("max")
                 .isNotNull();

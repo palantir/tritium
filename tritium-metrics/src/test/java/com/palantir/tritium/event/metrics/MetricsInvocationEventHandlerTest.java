@@ -36,7 +36,7 @@ public final class MetricsInvocationEventHandlerTest {
 
     private TaggedMetricRegistry metrics = new TaggedMetricRegistry();
     private MetricsInvocationEventHandler handler = MetricsInvocationEventHandler.create(metrics,
-            () -> MetricName.builder().name("test").build());
+            () -> MetricName.builder().safeName("test").build());
 
     @After
     public void after() {
@@ -49,16 +49,16 @@ public final class MetricsInvocationEventHandlerTest {
         when(context.getMethod()).thenReturn(String.class.getDeclaredMethod("length"));
         Map<MetricName, Metric> errors = metrics.getMetrics().entrySet().stream()
                 .filter(e -> e.getValue() instanceof Meter)
-                .filter(e -> Tags.ERROR.key().equals(e.getKey().name()))
+                .filter(e -> Tags.ERROR.key().equals(e.getKey().safeName()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         assertThat(errors).isEmpty();
 
         handler.onFailure(context, new RuntimeException("unexpected"));
 
         MetricName metricName = MetricName.builder()
-                .name("test")
-                .putTags(Tags.METHOD.key(), "length")
-                .putTags(Tags.ERROR.key(), "java.lang.RuntimeException")
+                .safeName("test")
+                .putSafeTags(Tags.METHOD.key(), "length")
+                .putSafeTags(Tags.ERROR.key(), "java.lang.RuntimeException")
                 .build();
 
         MetricName exceptionSpecificMeter = errorMetricName("java.lang.RuntimeException");
@@ -104,8 +104,8 @@ public final class MetricsInvocationEventHandlerTest {
 
     static MetricName errorMetricName(String errorName) {
         return MetricName.builder()
-                .name("test")
-                .putTags(Tags.ERROR.key(), errorName)
+                .safeName("test")
+                .putSafeTags(Tags.ERROR.key(), errorName)
                 .build();
     }
 

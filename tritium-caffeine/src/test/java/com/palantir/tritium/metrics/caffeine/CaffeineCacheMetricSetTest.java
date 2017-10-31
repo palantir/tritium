@@ -54,8 +54,8 @@ public final class CaffeineCacheMetricSetTest {
     Map<String, Metric> getCacheGauges(TaggedMetricRegistry taggedMetricRegistry, String cacheName) {
         return taggedMetricRegistry.getMetrics().entrySet().stream()
                 .filter(e -> e.getValue() instanceof Gauge)
-                .filter(e -> cacheName.equals(e.getKey().tags().get("name")))
-                .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
+                .filter(e -> cacheName.equals(e.getKey().safeTags().get("name")))
+                .collect(Collectors.toMap(e -> e.getKey().safeName(), Map.Entry::getValue));
     }
 
     @Test

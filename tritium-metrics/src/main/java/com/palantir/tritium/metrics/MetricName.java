@@ -32,14 +32,14 @@ public interface MetricName {
      * <p>
      * Names must be {@link com.palantir.logsafe.Safe} to log.
      */
-    String name();
+    String safeName();
 
     /**
      * Metadata/coordinates for where a particular measure came from. Used for filtering & grouping.
      * <p>
      * All tags and keys must be {@link com.palantir.logsafe.Safe} to log.
      */
-    Map<String, String> tags();
+    Map<String, String> safeTags();
 
     static Builder builder() {
         return new Builder();

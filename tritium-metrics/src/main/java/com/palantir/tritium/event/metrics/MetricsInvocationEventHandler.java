@@ -52,7 +52,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private MetricsInvocationEventHandler(TaggedMetricRegistry metrics,
             MetricName metric,
             InvocationContextTagsFunction enrichWithContext) {
-        super(getEnabledSupplier(checkNotNull(metric, "metric").name()));
+        super(getEnabledSupplier(checkNotNull(metric, "metric").safeName()));
         this.metrics = checkNotNull(metrics, "metrics");
         this.metric = metric;
         this.enrichWithContext = enrichWithContext;
@@ -113,8 +113,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         long elapsedNanoseconds = System.nanoTime() - context.getStartTimeNanos();
         MetricName metricName = MetricName.builder()
                 .from(metric)
-                .putTags(Tags.METHOD.key(), context.getMethod().getName())
-                .putTags(Tags.ERROR.key(), cause.getClass().getName())
+                .putSafeTags(Tags.METHOD.key(), context.getMethod().getName())
+                .putSafeTags(Tags.ERROR.key(), cause.getClass().getName())
                 .build();
         metrics.timer(metricName)
                 .update(elapsedNanoseconds, TimeUnit.NANOSECONDS);
@@ -126,7 +126,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
                 ? metricName
                 : MetricName.builder()
                         .from(metricName)
-                        .putAllTags(tags)
+                        .putAllSafeTags(tags)
                         .build();
     }
 
@@ -138,7 +138,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private MetricName exceptionMetricName(@Nonnull Throwable cause) {
         return MetricName.builder()
                 .from(metric)
-                .putTags(Tags.ERROR.key(), cause.getClass().getName())
+                .putSafeTags(Tags.ERROR.key(), cause.getClass().getName())
                 .build();
     }
 

@@ -186,8 +186,8 @@ public final class MetricRegistriesTest {
     Map<String, Gauge> getCacheGauges(String cacheName) {
         return taggedMetricRegistry.getMetrics().entrySet().stream()
                 .filter(e -> e.getValue() instanceof Gauge)
-                .filter(e -> cacheName.equals(e.getKey().tags().get("name")))
-                .collect(Collectors.toMap(e -> e.getKey().name(), e -> (Gauge) e.getValue()));
+                .filter(e -> cacheName.equals(e.getKey().safeTags().get("name")))
+                .collect(Collectors.toMap(e -> e.getKey().safeName(), e -> (Gauge) e.getValue()));
     }
 
     @Test
