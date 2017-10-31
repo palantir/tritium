@@ -23,19 +23,18 @@ import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.Clock;
 import com.codahale.metrics.DerivativeGauge;
 import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.MetricSet;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.google.common.collect.ImmutableMap;
-import com.palantir.tritium.tags.TaggedMetric;
+import com.palantir.tritium.metrics.MetricName;
+import com.palantir.tritium.metrics.Tags;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
-final class CaffeineCacheMetricSet implements MetricSet {
+final class CaffeineCacheMetricSet {
 
     private final Cache<?, ?> cache;
     private final String cacheName;
@@ -80,14 +79,15 @@ final class CaffeineCacheMetricSet implements MetricSet {
         };
     }
 
-    private String cacheMetricName(String... args) {
-        return TaggedMetric.toCanonicalName(MetricRegistry.name("cache", args),
-                ImmutableMap.of("cache", cacheName));
+    private MetricName cacheMetricName(String... args) {
+        return MetricName.builder()
+                .name(MetricRegistry.name("cache", args))
+                .putTags(Tags.NAME.key(), cacheName)
+                .build();
     }
 
-    @Override
-    public Map<String, Metric> getMetrics() {
-        ImmutableMap.Builder<String, Metric> cacheMetrics = ImmutableMap.builder();
+    Map<MetricName, Gauge> createGauges() {
+        ImmutableMap.Builder<MetricName, Gauge> cacheMetrics = ImmutableMap.builder();
 
         cacheMetrics.put(cacheMetricName("estimated", "size"),
                 new CachedGauge<Long>(clock, 500, TimeUnit.MILLISECONDS) {

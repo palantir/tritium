@@ -29,11 +29,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
-import com.palantir.tritium.tags.TaggedMetric;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -127,14 +125,6 @@ public final class MetricRegistries {
         return (name, metric) -> name.startsWith(prefix);
     }
 
-    public static MetricFilter metricsWithTag(String key, String value) {
-        return (name, metric) -> Objects.equals(TaggedMetric.from(name).tags().get(key), value);
-    }
-
-    public static MetricFilter metricsWithTag(String key) {
-        return (name, metric) -> TaggedMetric.from(name).tags().containsKey(key);
-    }
-
     /**
      * Returns a sorted map of metrics from the specified registry matching the specified filter.
      *
@@ -160,20 +150,20 @@ public final class MetricRegistries {
      * @param name cache name
      * @throws IllegalArgumentException if name is blank
      */
-    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
+    public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, String name) {
         registerCache(registry, cache, name, Clock.defaultClock());
     }
 
     @VisibleForTesting
-    static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name, Clock clock) {
+    static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, String name, Clock clock) {
         checkNotNull(registry, "metric registry");
         checkNotNull(cache, "cache");
         checkNotNull(name, "name");
         checkNotNull(clock, "clock");
         checkArgument(!name.trim().isEmpty(), "Cache name cannot be blank or empty");
         CacheMetricSet.create(cache, name, clock)
-                .getMetrics()
-                .forEach((key, value) -> registerWithReplacement(registry, key, value));
+                .createGauges()
+                .forEach(registry::replaceGauge);
     }
 
     /**

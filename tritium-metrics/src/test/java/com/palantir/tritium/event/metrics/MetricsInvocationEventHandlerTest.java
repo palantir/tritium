@@ -20,96 +20,78 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.metrics.annotations.MetricGroup;
-import com.palantir.tritium.metrics.MetricRegistries;
-import com.palantir.tritium.tags.TaggedMetric;
-import java.util.SortedMap;
-import java.util.concurrent.TimeUnit;
+import com.palantir.tritium.metrics.MetricName;
+import com.palantir.tritium.metrics.TaggedMetricRegistry;
+import com.palantir.tritium.metrics.Tags;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public final class MetricsInvocationEventHandlerTest {
 
-    @MetricGroup("DEFAULT")
-    public interface AnnotatedTestInterface {
-
-        @MetricGroup("ONE")
-        String methodA();
-
-        @MetricGroup("ONE")
-        void methodB();
-
-        @MetricGroup("TWO")
-        void methodC();
-
-        //Should match the default
-        void methodD();
-    }
-
-    @MetricGroup("DEFAULT")
-    public interface AnnotatedOtherInterface {
-        void methodE();
-    }
-
-    private MetricRegistry metrics = new MetricRegistry();
+    private TaggedMetricRegistry metrics = new TaggedMetricRegistry();
+    private MetricsInvocationEventHandler handler = MetricsInvocationEventHandler.create(metrics,
+            () -> MetricName.builder().name("test").build());
 
     @After
     public void after() {
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
-                .convertDurationsTo(TimeUnit.MICROSECONDS)
-                .convertRatesTo(TimeUnit.MICROSECONDS)
-                .build();
-        reporter.report();
-        reporter.stop();
+        System.out.println(metrics.getMetrics());
     }
 
     @Test
     public void testFailure() throws Exception {
-        MetricsInvocationEventHandler handler = MetricsInvocationEventHandler.create(metrics, "test");
-
         InvocationContext context = mock(InvocationContext.class);
         when(context.getMethod()).thenReturn(String.class.getDeclaredMethod("length"));
-        assertThat(metrics.getMeters()).doesNotContainKeys("failures");
+        Map<MetricName, Metric> errors = metrics.getMetrics().entrySet().stream()
+                .filter(e -> e.getValue() instanceof Meter)
+                .filter(e -> Tags.ERROR.key().equals(e.getKey().name()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        assertThat(errors).isEmpty();
 
         handler.onFailure(context, new RuntimeException("unexpected"));
 
-        SortedMap<String, Metric> metricsMatching = MetricRegistries.metricsMatching(
-                metrics, MetricRegistries.metricsWithTag("error"));
-        assertThat(metricsMatching.get("test[error:java.lang.RuntimeException,method:length]"))
+        MetricName metricName = MetricName.builder()
+                .name("test")
+                .putTags(Tags.METHOD.key(), "length")
+                .putTags(Tags.ERROR.key(), "java.lang.RuntimeException")
+                .build();
+
+        MetricName exceptionSpecificMeter = errorMetricName("java.lang.RuntimeException");
+
+        assertThat(metrics.getMetrics()).containsOnlyKeys(metricName, exceptionSpecificMeter);
+
+        assertThat(metrics.getMetrics().get(metricName))
                 .isInstanceOf(Timer.class)
+                .extracting("count")
+                .contains(1L);
+
+        assertThat(metrics.getMetrics().get(exceptionSpecificMeter))
+                .isInstanceOf(Meter.class)
                 .extracting("count")
                 .contains(1L);
     }
 
     @Test
     public void testOnSuccessNullContext() {
-        MetricsInvocationEventHandler handler = MetricsInvocationEventHandler.create(metrics, "test");
-        assertThat(metrics.getMeters().get("failures")).isNull();
-
         handler.onSuccess(null, new Object());
 
-        assertThat(metrics.getMeters().get("failures")).isNull();
+        assertThat(getMeters()).isEmpty();
     }
 
     @Test
     public void testOnFailureNullContext() {
-        MetricsInvocationEventHandler handler = MetricsInvocationEventHandler.create(metrics, "test");
-        assertThat(metrics.getMeters().get("failures")).isNull();
-
         handler.onFailure(null, new RuntimeException("expected"));
 
-        SortedMap<String, Metric> metricsMatching = MetricRegistries.metricsMatching(
-                metrics, MetricRegistries.metricsWithTag("error"));
-        assertThat(metricsMatching.get("test[error:java.lang.RuntimeException]"))
+        MetricName exceptionSpecificMeter = errorMetricName("java.lang.RuntimeException");
+
+        assertThat(metrics.getMetrics()).containsOnlyKeys(exceptionSpecificMeter);
+
+        assertThat(metrics.getMetrics().get(exceptionSpecificMeter))
                 .isInstanceOf(Meter.class)
                 .extracting("count")
                 .contains(1L);
@@ -120,56 +102,17 @@ public final class MetricsInvocationEventHandlerTest {
         assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
     }
 
-    // TODO (davids): remove or migrate to tags?
-    @Ignore
-    @Test
-    public void testMetricGroupAnnotations() throws Exception {
-        AnnotatedTestInterface obj = mock(AnnotatedTestInterface.class);
-        when(obj.methodA()).thenReturn("ok");
-
-        AnnotatedOtherInterface other = mock(AnnotatedOtherInterface.class);
-
-        String globalPrefix = "com.business.myservice";
-
-        String name = TaggedMetric.toCanonicalName(obj.getClass().getName(), ImmutableMap.of("x1", globalPrefix));
-        MetricsInvocationEventHandler handler =
-                MetricsInvocationEventHandler.create(metrics, name);
-
-        String name2 = TaggedMetric.toCanonicalName(other.getClass().getName(), ImmutableMap.of("x1", globalPrefix));
-        MetricsInvocationEventHandler otherHandler =
-                MetricsInvocationEventHandler.create(metrics, name2);
-
-        //AnnotatedTestInterface
-        callVoidMethod(handler, obj, "methodA", true);
-        callVoidMethod(handler, obj, "methodB", true);
-        callVoidMethod(handler, obj, "methodC", true);
-        callVoidMethod(handler, obj, "methodD", true);
-        callVoidMethod(handler, obj, "methodA", false);
-
-        assertThat(metrics.timer(obj.getClass().getName() + ".ONE").getCount()).isEqualTo(2L);
-        assertThat(metrics.timer(obj.getClass().getName() + ".TWO").getCount()).isEqualTo(1L);
-        assertThat(metrics.timer(obj.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
-        assertThat(metrics.timer(obj.getClass().getName() + ".ONE.failures").getCount()).isEqualTo(1L);
-
-        //AnnotatedOtherInterface
-        callVoidMethod(otherHandler, other, "methodE", true);
-        assertThat(metrics.timer(other.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
-
-        //GlobalPrefix Tests
-        assertThat(metrics.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(2L);
-        assertThat(metrics.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
+    static MetricName errorMetricName(String errorName) {
+        return MetricName.builder()
+                .name("test")
+                .putTags(Tags.ERROR.key(), errorName)
+                .build();
     }
 
-    private void callVoidMethod(
-            MetricsInvocationEventHandler handler, Object obj, String methodName, boolean success) throws Exception {
-
-        InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
-        if (success) {
-            handler.onSuccess(context, null);
-        } else {
-            handler.onFailure(context, new RuntimeException("test failure"));
-        }
-
+    Map<MetricName, Meter> getMeters() {
+        return metrics.getMetrics().entrySet().stream()
+                .filter(e -> e.getValue() instanceof Meter)
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> (Meter) e.getValue()));
     }
 
 }

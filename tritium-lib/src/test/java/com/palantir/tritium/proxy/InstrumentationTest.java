@@ -17,7 +17,6 @@
 package com.palantir.tritium.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -25,10 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Slf4jReporter;
-import com.codahale.metrics.Slf4jReporter.LoggingLevel;
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
@@ -38,7 +34,10 @@ import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
-import com.palantir.tritium.event.metrics.annotations.MetricGroup;
+import com.palantir.tritium.metrics.MetricName;
+import com.palantir.tritium.metrics.MetricNames;
+import com.palantir.tritium.metrics.TaggedMetricRegistry;
+import com.palantir.tritium.metrics.Tags;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Constructor;
@@ -46,10 +45,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
+import java.util.stream.Collectors;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -59,18 +58,11 @@ import org.slf4j.Logger;
 @RunWith(MockitoJUnitRunner.class)
 public class InstrumentationTest {
 
-    @MetricGroup("DEFAULT")
-    interface AnnotatedInterface {
-        @MetricGroup("ONE")
-        void method();
-
-        @MetricGroup("ONE")
-        void otherMethod();
-
-        void defaultMethod();
-    }
-
-    private static final String EXPECTED_METRIC_NAME = "service.response[method:test,service-name:TestInterface]";
+    private static final MetricName EXPECTED_METRIC_NAME = MetricName.builder()
+            .name(MetricNames.internalServiceResponse())
+            .putTags(Tags.NAME.key(), "test")
+            .putTags(Tags.SERVICE.key(), "TestInterface")
+            .build();
 
     // Exceed the HotSpot JIT thresholds
     private static final int INVOCATION_ITERATIONS = 150000;
@@ -78,13 +70,11 @@ public class InstrumentationTest {
     @Mock
     private InvocationEventHandler<InvocationContext> mockHandler;
 
-    private MetricRegistry metrics = new MetricRegistry();
+    private TaggedMetricRegistry metrics = new TaggedMetricRegistry();
 
     @After
     public void after() {
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build();
-        reporter.report();
-        reporter.close();
+        System.out.println(metrics.getMetrics());
     }
 
     @Test
@@ -115,48 +105,32 @@ public class InstrumentationTest {
                 .build();
 
         assertThat(delegate.invocationCount()).isEqualTo(0);
-        assertThat(metrics.getTimers().get(Runnable.class.getName())).isNull();
+        MetricName metricName = MetricName.builder().name("foo").build();
+        assertThat(metrics.getMetrics().get(metricName)).isNull();
 
         instrumentedService.test();
         assertThat(delegate.invocationCount()).isEqualTo(1);
 
-        SortedMap<String, Timer> timers = metrics.getTimers();
-        assertThat(timers).containsOnlyKeys(EXPECTED_METRIC_NAME)
+        Map<String, Metric> timers = metrics.getMetrics().entrySet().stream().filter(
+                e -> e.getValue() instanceof Timer).collect(
+                Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
+        assertThat(timers).containsOnlyKeys(EXPECTED_METRIC_NAME.name())
                 .hasSize(1)
-                .extracting(EXPECTED_METRIC_NAME)
+                .extracting(EXPECTED_METRIC_NAME.name())
                 .extracting("count")
                 .contains(1L);
 
         executeManyTimes(instrumentedService, INVOCATION_ITERATIONS);
-        Slf4jReporter.forRegistry(metrics).withLoggingLevel(LoggingLevel.INFO).build().report();
 
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
-        assertTrue(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax() >= 0L);
-
-        Slf4jReporter.forRegistry(metrics).withLoggingLevel(LoggingLevel.INFO).build().report();
-    }
-
-    // TODO (davids): remove
-    @Ignore
-    @Test
-    public void testMetricGroupBuilder() {
-        AnnotatedInterface delegate = mock(AnnotatedInterface.class);
-        String globalPrefix = "com.business.service";
-
-        AnnotatedInterface instrumentedService = Instrumentation.builder(AnnotatedInterface.class, delegate)
-                .withMetrics(metrics)
-                .withPerformanceTraceLogging()
-                .build();
-        //call
-        instrumentedService.method();
-        instrumentedService.otherMethod();
-        instrumentedService.defaultMethod();
-
-        assertThat(metrics.timer(AnnotatedInterface.class.getName() + ".ONE").getCount()).isEqualTo(2L);
-        assertThat(metrics.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
-        assertThat(metrics.timer(AnnotatedInterface.class.getName() + ".DEFAULT").getCount()).isEqualTo(1L);
-        assertThat(metrics.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(1L);
-        assertThat(metrics.timer(AnnotatedInterface.class.getName() + ".method").getCount()).isEqualTo(1L);
+        assertThat(timers)
+                .extracting(EXPECTED_METRIC_NAME.name())
+                .extracting("count")
+                .contains(Long.valueOf(delegate.invocationCount()));
+        assertThat(timers)
+                .extracting(EXPECTED_METRIC_NAME.name())
+                .extracting("snapshot")
+                .extracting("max")
+                .isNotNull();
     }
 
     private void executeManyTimes(TestInterface instrumentedService, int invocations) {

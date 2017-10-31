@@ -19,10 +19,9 @@ package com.palantir.tritium.metrics.caffeine;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Clock;
-import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.annotations.VisibleForTesting;
-import com.palantir.tritium.metrics.MetricRegistries;
+import com.palantir.tritium.metrics.TaggedMetricRegistry;
 
 public final class CaffeineCacheStats {
 
@@ -37,19 +36,23 @@ public final class CaffeineCacheStats {
      * @param cache cache to instrument
      * @param name cache name
      */
-    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
+    public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, String name) {
         registerCache(registry, cache, name, Clock.defaultClock());
     }
 
     @VisibleForTesting
-    static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name, @VisibleForTesting Clock clock) {
+    static void registerCache(TaggedMetricRegistry registry,
+            Cache<?, ?> cache,
+            String name,
+            @VisibleForTesting Clock clock) {
+
         checkNotNull(registry, "registry");
         checkNotNull(cache, "cache");
         checkNotNull(name, "name");
         checkNotNull(clock, "clock");
         CaffeineCacheMetricSet.create(cache, name, clock)
-                .getMetrics()
-                .forEach((key, value) -> MetricRegistries.registerWithReplacement(registry, key, value));
+                .createGauges()
+                .forEach(registry::replaceGauge);
     }
 
 }

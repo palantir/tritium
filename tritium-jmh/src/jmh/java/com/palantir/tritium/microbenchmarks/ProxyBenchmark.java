@@ -22,7 +22,7 @@ import com.github.kristofa.brave.Sampler;
 import com.palantir.remoting3.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.remoting3.tracing.Tracer;
 import com.palantir.tritium.brave.BraveLocalTracingInvocationEventHandler;
-import com.palantir.tritium.metrics.MetricRegistries;
+import com.palantir.tritium.metrics.TaggedMetricRegistry;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.util.concurrent.ExecutorService;
@@ -79,8 +79,9 @@ public class ProxyBenchmark {
                 .withPerformanceTraceLogging()
                 .build();
 
+        TaggedMetricRegistry taggedMetricRegistry = TaggedMetricRegistry.getDefault();
         instrumentedWithMetrics = Instrumentation.builder(Service.class, raw)
-                .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
+                .withMetrics(taggedMetricRegistry)
                 .build();
 
         BraveLocalTracingInvocationEventHandler braveLocalTracingInvocationEventHandler =
@@ -103,7 +104,7 @@ public class ProxyBenchmark {
                 .build();
 
         instrumentedWithEverything = Instrumentation.builder(Service.class, raw)
-                .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
+                .withMetrics(taggedMetricRegistry)
                 .withPerformanceTraceLogging()
                 .withHandler(braveLocalTracingInvocationEventHandler)
                 .withHandler(tracingInvocationEventHandler)
@@ -111,7 +112,7 @@ public class ProxyBenchmark {
     }
 
     @TearDown
-    public void after() throws Exception {
+    public void after() {
         executor.shutdown();
         if (previousLogLevel == null) {
             System.clearProperty(DEFAULT_LOG_LEVEL);

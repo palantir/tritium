@@ -29,8 +29,8 @@ import org.junit.Test;
 
 public final class TaggedMetricRegistryTest {
 
-    private static final MetricName METRIC_1 = MetricName.builder().name("name").build();
-    private static final MetricName METRIC_2 = MetricName.builder().name("name").putTags("key", "val").build();
+    private static final MetricName METRIC_NO_TAGS = MetricName.builder().name("name").build();
+    private static final MetricName METRIC_WITH_TAG = MetricName.builder().name("name").putTags("key", "val").build();
 
     private TaggedMetricRegistry registry;
 
@@ -41,8 +41,8 @@ public final class TaggedMetricRegistryTest {
 
     @Test
     public void testCounter() {
-        Counter counter1 = registry.counter(METRIC_1);
-        Counter counter2 = registry.counter(METRIC_2);
+        Counter counter1 = registry.counter(METRIC_NO_TAGS);
+        Counter counter2 = registry.counter(METRIC_WITH_TAG);
 
         // ensure new counters are created
         assertThat(counter1.getCount()).isEqualTo(0);
@@ -50,68 +50,82 @@ public final class TaggedMetricRegistryTest {
 
         // ensure they're not the same and can be retrieved using the same name
         assertThat(counter1).isNotSameAs(counter2);
-        assertThat(registry.counter(METRIC_1)).isSameAs(counter1);
-        assertThat(registry.counter(METRIC_2)).isSameAs(counter2);
+        assertThat(registry.counter(METRIC_NO_TAGS)).isSameAs(counter1);
+        assertThat(registry.counter(METRIC_WITH_TAG)).isSameAs(counter2);
     }
 
     @Test
     public void testGauge() {
-        Gauge gauge1 = registry.gauge(METRIC_1, () -> 1);
-        Gauge gauge2 = registry.gauge(METRIC_2, () -> 2);
+        Gauge gauge1 = registry.gauge(METRIC_NO_TAGS, () -> 1);
+        Gauge gauge2 = registry.gauge(METRIC_WITH_TAG, () -> 2);
 
         assertThat(gauge1.getValue()).isEqualTo(1);
         assertThat(gauge2.getValue()).isEqualTo(2);
 
         assertThat(gauge1).isNotSameAs(gauge2);
-        assertThat(registry.gauge(METRIC_1, () -> 3)).isSameAs(gauge1);
-        assertThat(registry.gauge(METRIC_2, () -> 4)).isSameAs(gauge2);
+        assertThat(registry.gauge(METRIC_NO_TAGS, () -> 3)).isSameAs(gauge1);
+        assertThat(registry.gauge(METRIC_WITH_TAG, () -> 4)).isSameAs(gauge2);
+    }
+
+    @Test
+    public void testReplaceGauge() {
+        Gauge gauge1 = registry.replaceGauge(METRIC_NO_TAGS, () -> 1);
+        assertThat(gauge1.getValue()).isEqualTo(1);
+
+        Gauge gauge2 = registry.replaceGauge(METRIC_NO_TAGS, () -> 2);
+        assertThat(gauge1).isNotSameAs(gauge2);
+
+        assertThat(gauge2.getValue()).isEqualTo(2);
+
+        assertThat(registry.gauge(METRIC_NO_TAGS, () -> 3)).isSameAs(gauge2);
+        assertThat(registry.gauge(METRIC_NO_TAGS, () -> 1).getValue()).isEqualTo(2);
     }
 
     @Test
     public void testHistogram() {
-        Histogram histogram1 = registry.histogram(METRIC_1);
-        Histogram histogram2 = registry.histogram(METRIC_2);
+        Histogram histogram1 = registry.histogram(METRIC_NO_TAGS);
+        Histogram histogram2 = registry.histogram(METRIC_WITH_TAG);
 
         assertThat(histogram1.getCount()).isEqualTo(0);
         assertThat(histogram2.getCount()).isEqualTo(0);
 
         assertThat(histogram1).isNotSameAs(histogram2);
-        assertThat(registry.histogram(METRIC_1)).isSameAs(histogram1);
-        assertThat(registry.histogram(METRIC_2)).isSameAs(histogram2);
+        assertThat(registry.histogram(METRIC_NO_TAGS)).isSameAs(histogram1);
+        assertThat(registry.histogram(METRIC_WITH_TAG)).isSameAs(histogram2);
     }
 
     @Test
     public void testMeter() {
-        Meter meter1 = registry.meter(METRIC_1);
-        Meter meter2 = registry.meter(METRIC_2);
+        Meter meter1 = registry.meter(METRIC_NO_TAGS);
+        Meter meter2 = registry.meter(METRIC_WITH_TAG);
 
         assertThat(meter1.getCount()).isEqualTo(0);
         assertThat(meter2.getCount()).isEqualTo(0);
 
         assertThat(meter1).isNotSameAs(meter2);
-        assertThat(registry.meter(METRIC_1)).isSameAs(meter1);
-        assertThat(registry.meter(METRIC_2)).isSameAs(meter2);
+        assertThat(registry.meter(METRIC_NO_TAGS)).isSameAs(meter1);
+        assertThat(registry.meter(METRIC_WITH_TAG)).isSameAs(meter2);
     }
 
     @Test
     public void testTimer() {
-        Timer timer1 = registry.timer(METRIC_1);
-        Timer timer2 = registry.timer(METRIC_2);
+        Timer timer1 = registry.timer(METRIC_NO_TAGS);
+        Timer timer2 = registry.timer(METRIC_WITH_TAG);
 
         assertThat(timer1.getCount()).isEqualTo(0);
         assertThat(timer2.getCount()).isEqualTo(0);
 
         assertThat(timer1).isNotSameAs(timer2);
-        assertThat(registry.timer(METRIC_1)).isSameAs(timer1);
-        assertThat(registry.timer(METRIC_2)).isSameAs(timer2);
+        assertThat(registry.timer(METRIC_NO_TAGS)).isSameAs(timer1);
+        assertThat(registry.timer(METRIC_WITH_TAG)).isSameAs(timer2);
     }
 
     @Test
     public void testExistingMetric() {
-        registry.counter(METRIC_1);
+        registry.counter(METRIC_NO_TAGS);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> registry.timer(METRIC_1))
+                .isThrownBy(() -> registry.timer(METRIC_NO_TAGS))
                 .withMessage("'name' already used for a metric of type 'Counter' but wanted type 'Timer'. tags: {}");
     }
 }

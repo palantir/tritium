@@ -35,13 +35,13 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
-import com.palantir.tritium.tags.TaggedMetric;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,9 +50,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MetricRegistriesTest {
+public final class MetricRegistriesTest {
 
     private MetricRegistry metrics = new MetricRegistry();
+    private TaggedMetricRegistry taggedMetricRegistry = new TaggedMetricRegistry();
     private final TestClock clock = new TestClock();
 
     @Mock
@@ -97,34 +98,74 @@ public class MetricRegistriesTest {
 
     @Test
     public void testRegisterCache() {
-        MetricRegistries.registerCache(metrics, cache, "test", clock);
-        assertThat(metrics.getGauges(MetricRegistries.metricsWithTag("cache", "test"))).containsOnlyKeys(
-                "cache.estimated.size[cache:test]",
-                "cache.eviction.count[cache:test]",
-                "cache.hit.count[cache:test]",
-                "cache.hit.ratio[cache:test]",
-                "cache.load.average.millis[cache:test]",
-                "cache.load.failure.count[cache:test]",
-                "cache.load.success.count[cache:test]",
-                "cache.miss.count[cache:test]",
-                "cache.miss.ratio[cache:test]",
-                "cache.request.count[cache:test]"
+        final String cacheName = "test";
+        MetricRegistries.registerCache(taggedMetricRegistry, cache, cacheName, clock);
+        Map<String, Gauge> gauges = getCacheGauges(cacheName);
+        assertThat(gauges).containsOnlyKeys(
+                "cache.estimated.size",
+                "cache.eviction.count",
+                "cache.hit.count",
+                "cache.hit.ratio",
+                "cache.load.average.millis",
+                "cache.load.failure.count",
+                "cache.load.success.count",
+                "cache.miss.count",
+                "cache.miss.ratio",
+                "cache.request.count"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(1, 2, 3, 4, 5, 6));
         when(cache.size()).thenReturn(42L);
 
-        SortedMap<String, Gauge> gauges = metrics.getGauges();
-        assertThat(gauges.get("cache.request.count[cache:test]").getValue()).isEqualTo(3L);
-        assertThat(gauges.get("cache.hit.count[cache:test]").getValue()).isEqualTo(1L);
-        assertThat(gauges.get("cache.hit.ratio[cache:test]").getValue()).isEqualTo(1.0 / 3.0);
-        assertThat(gauges.get("cache.miss.count[cache:test]").getValue()).isEqualTo(2L);
-        assertThat(gauges.get("cache.miss.ratio[cache:test]").getValue()).isEqualTo(2.0 / 3.0);
-        assertThat(gauges.get("cache.estimated.size[cache:test]").getValue()).isEqualTo(42L);
-        assertThat(gauges.get("cache.eviction.count[cache:test]").getValue()).isEqualTo(6L);
-        assertThat(gauges.get("cache.load.average.millis[cache:test]").getValue()).isNotEqualTo(5.0 / 3.0);
-        assertThat(gauges.get("cache.load.failure.count[cache:test]").getValue()).isEqualTo(4L);
-        assertThat(gauges.get("cache.load.success.count[cache:test]").getValue()).isEqualTo(3L);
+        assertThat(gauges)
+                .extracting("cache.request.count")
+                .extracting("value")
+                .contains(3L);
+        assertThat(gauges)
+                .containsKey("cache.hit.count")
+                .extracting("cache.hit.count")
+                .extracting("value")
+                .contains(1L);
+        assertThat(gauges)
+                .containsKey("cache.hit.ratio")
+                .extracting("cache.hit.ratio")
+                .extracting("value")
+                .contains(1.0 / 3.0);
+        assertThat(gauges)
+                .containsKey("cache.miss.count")
+                .extracting("cache.miss.count")
+                .extracting("value")
+                .contains(2L);
+        assertThat(gauges)
+                .containsKey("cache.miss.ratio")
+                .extracting("cache.miss.ratio")
+                .extracting("value")
+                .contains(2.0 / 3.0);
+        assertThat(gauges)
+                .containsKey("cache.estimated.size")
+                .extracting("cache.estimated.size")
+                .extracting("value")
+                .contains(42L);
+        assertThat(gauges)
+                .containsKey("cache.eviction.count")
+                .extracting("cache.eviction.count")
+                .extracting("value")
+                .contains(6L);
+        assertThat(gauges)
+                .containsKey("cache.load.average.millis")
+                .extracting("cache.load.average.millis")
+                .extracting("value")
+                .isNotNull();
+        assertThat(gauges)
+                .containsKey("cache.load.failure.count")
+                .extracting("cache.load.failure.count")
+                .extracting("value")
+                .contains(4L);
+        assertThat(gauges)
+                .containsKey("cache.load.success.count")
+                .extracting("cache.load.success.count")
+                .extracting("value")
+                .contains(3L);
         verify(cache, times(1)).stats();
 
         clock.advance(1, TimeUnit.MINUTES); // let stats snapshot cache expire
@@ -132,53 +173,60 @@ public class MetricRegistriesTest {
         when(cache.stats()).thenReturn(new CacheStats(11L, 12L, 13L, 14L, 15L, 16L));
         when(cache.size()).thenReturn(37L);
 
-        gauges = metrics.getGauges();
-        assertThat(gauges.get("cache.request.count[cache:test]").getValue()).isEqualTo(23L);
-        assertThat(gauges.get("cache.hit.count[cache:test]").getValue()).isEqualTo(11L);
-        assertThat(gauges.get("cache.miss.count[cache:test]").getValue()).isEqualTo(12L);
-        assertThat(gauges.get("cache.eviction.count[cache:test]").getValue()).isEqualTo(16L);
-        assertThat(gauges.get("cache.load.average.millis[cache:test]").getValue()).isNotEqualTo(15.0 / 23.0);
-        assertThat(gauges.get("cache.load.failure.count[cache:test]").getValue()).isEqualTo(14L);
-        assertThat(gauges.get("cache.load.success.count[cache:test]").getValue()).isEqualTo(13L);
+        assertThat(gauges).extracting("cache.request.count").extracting("value").contains(23L);
+        assertThat(gauges).extracting("cache.hit.count").extracting("value").contains(11L);
+        assertThat(gauges).extracting("cache.miss.count").extracting("value").contains(12L);
+        assertThat(gauges).extracting("cache.eviction.count").extracting("value").contains(16L);
+        assertThat(gauges).extracting("cache.load.average.millis").extracting("value").isNotNull();
+        assertThat(gauges).extracting("cache.load.failure.count").extracting("value").contains(14L);
+        assertThat(gauges).extracting("cache.load.success.count").extracting("value").contains(13L);
         verify(cache, times(2)).stats();
+    }
+
+    Map<String, Gauge> getCacheGauges(String cacheName) {
+        return taggedMetricRegistry.getMetrics().entrySet().stream()
+                .filter(e -> e.getValue() instanceof Gauge)
+                .filter(e -> cacheName.equals(e.getKey().tags().get("name")))
+                .collect(Collectors.toMap(e -> e.getKey().name(), e -> (Gauge) e.getValue()));
     }
 
     @Test
     public void testRegisterCacheReplacement() {
         Cache cache1 = CacheBuilder.newBuilder().build();
-        MetricRegistries.registerCache(metrics, cache1, "test");
+        MetricRegistries.registerCache(taggedMetricRegistry, cache1, "test");
 
         Cache cache2 = CacheBuilder.newBuilder().build();
-        MetricRegistries.registerCache(metrics, cache2, "test");
+        MetricRegistries.registerCache(taggedMetricRegistry, cache2, "test");
     }
 
     @Test
     public void testNoStats() throws Exception {
-        MetricRegistries.registerCache(metrics, cache, "test");
-
-        assertThat(metrics.getGauges(MetricRegistries.metricsWithTag("cache", "test"))).containsOnlyKeys(
-                "cache.estimated.size[cache:test]",
-                "cache.eviction.count[cache:test]",
-                "cache.hit.count[cache:test]",
-                "cache.hit.ratio[cache:test]",
-                "cache.load.average.millis[cache:test]",
-                "cache.load.failure.count[cache:test]",
-                "cache.load.success.count[cache:test]",
-                "cache.miss.count[cache:test]",
-                "cache.miss.ratio[cache:test]",
-                "cache.request.count[cache:test]"
+        final String cacheName = "empty";
+        MetricRegistries.registerCache(taggedMetricRegistry, cache, cacheName);
+        Map<String, Gauge> gauges = getCacheGauges(cacheName);
+        assertThat(gauges).containsOnlyKeys(
+                "cache.estimated.size",
+                "cache.eviction.count",
+                "cache.hit.count",
+                "cache.hit.ratio",
+                "cache.load.average.millis",
+                "cache.load.failure.count",
+                "cache.load.success.count",
+                "cache.miss.count",
+                "cache.miss.ratio",
+                "cache.request.count"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
-        assertThat(metrics.getGauges().get("cache.request.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.hit.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.hit.ratio[cache:test]").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("cache.miss.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.miss.ratio[cache:test]").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("cache.eviction.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.load.average.millis[cache:test]").getValue()).isEqualTo(0.0d);
-        assertThat(metrics.getGauges().get("cache.load.failure.count[cache:test]").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("cache.load.success.count[cache:test]").getValue()).isEqualTo(0L);
+        assertThat(gauges).extracting("cache.request.count").extracting("value").contains(0L);
+        assertThat(gauges).extracting("cache.hit.count").extracting("value").contains(0L);
+        assertThat(gauges).extracting("cache.hit.ratio").extracting("value").contains(Double.NaN);
+        assertThat(gauges).extracting("cache.miss.count").extracting("value").contains(0L);
+        assertThat(gauges).extracting("cache.miss.ratio").extracting("value").contains(Double.NaN);
+        assertThat(gauges).extracting("cache.eviction.count").extracting("value").contains(0L);
+        assertThat(gauges).extracting("cache.load.average.millis").extracting("value").contains(0.0d);
+        assertThat(gauges).extracting("cache.load.failure.count").extracting("value").contains(0L);
+        assertThat(gauges).extracting("cache.load.success.count").extracting("value").contains(0L);
     }
 
     @Test
@@ -271,21 +319,6 @@ public class MetricRegistriesTest {
     @Test
     public void testNullPrefixMetricsPrefixedBy() {
         assertThatThrownBy(() -> MetricRegistries.metricsPrefixedBy(null)).isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    public void testMetricsWithTags() {
-        MetricFilter metricFilter = MetricRegistries.metricsWithTag("key", "value");
-
-        Metric metric = mock(Metric.class);
-        assertThat(metricFilter.matches(
-                TaggedMetric.toCanonicalName("test", ImmutableMap.of("key", "value")), metric)).isTrue();
-
-        assertThat(metricFilter.matches(
-                TaggedMetric.toCanonicalName("test", ImmutableMap.of("key", "foo")), metric)).isFalse();
-
-        assertThat(metricFilter.matches("test", metric)).isFalse();
-        assertThat(metricFilter.matches(TaggedMetric.toCanonicalName("test", ImmutableMap.of()), metric)).isFalse();
     }
 
     @Test

@@ -56,6 +56,10 @@ public final class TaggedMetricRegistry {
         return getOrAdd(metric, Gauge.class, () -> gauge);
     }
 
+    public Gauge replaceGauge(MetricName metric, Gauge gauge) {
+        return replaceOrAdd(metric, Gauge.class, () -> gauge);
+    }
+
     public Histogram histogram(MetricName metric) {
         return getOrAdd(metric, Histogram.class, () -> new Histogram(new ExponentiallyDecayingReservoir()));
     }
@@ -74,12 +78,28 @@ public final class TaggedMetricRegistry {
 
     private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
         Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
-        if (!metricClass.isInstance(metric)) {
-            throw new IllegalArgumentException(String.format(
-                    "'%s' already used for a metric of type '%s' but wanted type '%s'. tags: %s",
-                    metricName.name(), metric.getClass().getSimpleName(),
-                    metricClass.getSimpleName(), metricName.tags()));
-        }
+        checkSameMetricType(metric, metricName, metricClass);
         return metricClass.cast(metric);
     }
+
+    private <T extends Metric> T replaceOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
+        T metric = metricSupplier.get();
+        Metric previous = registry.replace(metricName, metric);
+        if (previous == null) {
+            previous = registry.putIfAbsent(metricName, metric);
+        }
+        checkSameMetricType(previous, metricName, metricClass);
+        return metric;
+    }
+
+    private <T extends Metric> void checkSameMetricType(Metric existingMetric, MetricName metricName,
+            Class<T> metricClass) {
+        if (existingMetric != null && !metricClass.isInstance(existingMetric)) {
+            throw new IllegalArgumentException(String.format(
+                    "'%s' already used for a metric of type '%s' but wanted type '%s'. tags: %s",
+                    metricName.name(), existingMetric.getClass().getSimpleName(),
+                    metricClass.getSimpleName(), metricName.tags()));
+        }
+    }
+
 }

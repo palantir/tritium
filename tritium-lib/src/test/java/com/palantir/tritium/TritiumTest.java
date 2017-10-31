@@ -19,53 +19,56 @@ package com.palantir.tritium;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Slf4jReporter;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
-import com.palantir.tritium.metrics.MetricRegistries;
+import com.palantir.tritium.metrics.MetricName;
+import com.palantir.tritium.metrics.MetricNames;
+import com.palantir.tritium.metrics.TaggedMetricRegistry;
+import com.palantir.tritium.metrics.Tags;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
-import java.util.SortedMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Test;
 
-public class TritiumTest {
+public final class TritiumTest {
 
-    private static final String EXPECTED_METRIC_NAME = "service.response[method:test,service-name:TestInterface]";
+    private static final MetricName EXPECTED_METRIC_NAME = MetricName.builder()
+            .name(MetricNames.internalServiceResponse())
+            .putTags(Tags.METHOD.key(), "test")
+            .putTags(Tags.SERVICE.key(), "TestInterface")
+            .build();
 
     private TestImplementation delegate = new TestImplementation();
-    private MetricRegistry metrics = new MetricRegistry();
+    private TaggedMetricRegistry metrics = new TaggedMetricRegistry();
     private TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metrics);
 
     @After
     public void after() {
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build();
-        reporter.report();
-        reporter.stop();
+        System.out.println(metrics.getMetrics());
     }
 
     @Test
     public void testInstrument() {
         assertThat(delegate.invocationCount()).isEqualTo(0);
-        assertThat(metrics.getTimers().get(Runnable.class.getName())).isNull();
+        assertThat(getTimers()).extracting(Runnable.class.getName()).containsNull();
 
         instrumentedService.test();
         assertThat(delegate.invocationCount()).isEqualTo(1);
 
-        SortedMap<String, Timer> timers = metrics.getTimers();
+        Map<MetricName, Timer> timers = getTimers();
         assertThat(timers).containsOnlyKeys(EXPECTED_METRIC_NAME)
-                .hasSize(1)
-                .extracting(EXPECTED_METRIC_NAME)
+                .hasSize(1);
+        assertThat(timers.get(EXPECTED_METRIC_NAME))
                 .extracting("count")
                 .contains(1L);
 
         instrumentedService.test();
 
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax()).isGreaterThan(-1L);
-
-        Slf4jReporter.forRegistry(metrics).withLoggingLevel(Slf4jReporter.LoggingLevel.INFO).build().report();
+        assertThat(timers.get(EXPECTED_METRIC_NAME))
+                .extracting("count")
+                .contains(Long.valueOf(delegate.invocationCount()));
     }
 
     @Test
@@ -77,43 +80,53 @@ public class TritiumTest {
 
     @Test
     public void rethrowOutOfMemoryErrorMetrics() {
-        String methodMetricName = MetricRegistry.name(TestInterface.class, "throwsOutOfMemoryError");
-
-        assertThat(metrics.getMeters()).doesNotContainKeys(
-                MetricRegistry.name(methodMetricName, "failures"));
-
-        assertThat(metrics.getMeters()).doesNotContainKeys(
-                MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"));
-
         assertThatThrownBy(() -> instrumentedService.throwsOutOfMemoryError())
                 .isInstanceOf(OutOfMemoryError.class)
                 .hasMessage("Testing OOM");
 
-        assertThat(MetricRegistries.metricsMatching(metrics,
-                MetricRegistries.metricsWithTag("error"))).containsOnlyKeys(
-                "service.response"
-                        + "["
-                        + "error:java.lang.OutOfMemoryError,"
-                        + "method:throwsOutOfMemoryError,"
-                        + "service-name:TestInterface"
-                        + "]");
+        MetricName metricName = MetricName.builder()
+                .name(MetricNames.internalServiceResponse())
+                .putTags(Tags.METHOD.key(), "throwsOutOfMemoryError")
+                .putTags(Tags.SERVICE.key(), "TestInterface")
+                .putTags(Tags.ERROR.key(), "java.lang.OutOfMemoryError")
+                .build();
 
-        assertThat(metrics.getMeters((name, metric) -> name.contains("failures"))).isEmpty();
+        assertThat(getTimers()).containsKeys(metricName);
 
-        SortedMap<String, Timer> errors = metrics.getTimers(MetricRegistries.metricsWithTag("error"));
-        assertThat(errors).containsOnlyKeys("service.response"
-                + "["
-                + "error:java.lang.OutOfMemoryError,"
-                + "method:throwsOutOfMemoryError,"
-                + "service-name:TestInterface"
-                + "]");
+        MetricName exceptionSpecificMeter = errorMetricName("java.lang.OutOfMemoryError");
 
-        assertThat(errors.get("service.response"
-                + "["
-                + "error:java.lang.OutOfMemoryError,"
-                + "method:throwsOutOfMemoryError,"
-                + "service-name:TestInterface"
-                + "]").getCount())
-                .isEqualTo(1);
+        assertThat(getMeters()).containsKeys(exceptionSpecificMeter);
+
+        assertThat(metrics.getMetrics()).containsOnlyKeys(metricName, exceptionSpecificMeter);
+
+        assertThat(metrics.getMetrics().get(metricName))
+                .isInstanceOf(Timer.class)
+                .extracting("count")
+                .contains(1L);
+
+        assertThat(metrics.getMetrics().get(exceptionSpecificMeter))
+                .isInstanceOf(Meter.class)
+                .extracting("count")
+                .contains(1L);
+    }
+
+    Map<MetricName, Timer> getTimers() {
+        return metrics.getMetrics().entrySet().stream()
+                .filter(e -> e.getValue() instanceof Timer)
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> (Timer) e.getValue()));
+    }
+
+    Map<MetricName, Meter> getMeters() {
+        return metrics.getMetrics().entrySet().stream()
+                .filter(e -> e.getValue() instanceof Meter)
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> (Meter) e.getValue()));
+    }
+
+    static MetricName errorMetricName(String errorName) {
+        return MetricName.builder()
+                .name(MetricNames.internalServiceResponse())
+                .putTags(Tags.SERVICE.key(), "TestInterface")
+                .putTags(Tags.ERROR.key(), errorName)
+                .build();
     }
 }

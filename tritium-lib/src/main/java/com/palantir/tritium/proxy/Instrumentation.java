@@ -18,7 +18,6 @@ package com.palantir.tritium.proxy;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.api.event.InstrumentationFilter;
@@ -28,13 +27,18 @@ import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
-import com.palantir.tritium.tags.TaggedMetric;
+import com.palantir.tritium.event.metrics.ServiceMetricNameFunction;
+import com.palantir.tritium.event.metrics.TagsFunction;
+import com.palantir.tritium.metrics.MetricName;
+import com.palantir.tritium.metrics.MetricNames;
+import com.palantir.tritium.metrics.TaggedMetricRegistry;
+import com.palantir.tritium.metrics.Tags;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.LongPredicate;
 import java.util.function.BiFunction;
+import java.util.function.LongPredicate;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +47,6 @@ import org.slf4j.LoggerFactory;
  * Instrument arbitrary service interfaces with optional metrics and invocation logging.
  */
 public final class Instrumentation {
-
-    // TODO (davids): verify naming
-    public static final String METRIC_NAME_SERVICE = "service.response";
-    public static final String TAG_SERVICE_NAME = "service-name";
 
     private Instrumentation() {
         throw new UnsupportedOperationException();
@@ -84,25 +84,6 @@ public final class Instrumentation {
         return wrap(interfaceClass, delegate, InstrumentationFilters.INSTRUMENT_ALL, handlers);
     }
 
-    /**
-     * Return an instrumented proxy of the specified service interface and delegate that records aggregated invocation
-     * metrics and performance trace logging.
-     *
-     * @param serviceInterface service interface
-     * @param delegate delegate to instrument
-     * @param metrics metric registry
-     * @return instrumented proxy implementing specified service interface
-     * @deprecated use {@link com.palantir.tritium.Tritium#instrument(Class, Object, MetricRegistry)}
-     */
-    @Deprecated
-    public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metrics) {
-        return builder(serviceInterface, delegate)
-                .withFilter(InstrumentationFilters.INSTRUMENT_ALL)
-                .withMetrics(metrics)
-                .withPerformanceTraceLogging()
-                .build();
-    }
-
     public static <T> Logger getPerformanceLoggerForInterface(Class<T> serviceInterface) {
         return LoggerFactory.getLogger("performance." + serviceInterface.getName());
     }
@@ -127,29 +108,30 @@ public final class Instrumentation {
             this.delegate = checkNotNull(delegate, "delegate");
         }
 
-        // TODO (davids): JavaDoc
-        public Builder<T, U> withMetrics(MetricRegistry metrics) {
-            return withMetrics(metrics, (serviceInterface, service) -> ImmutableMap.of());
+        public Builder<T, U> withMetrics(TaggedMetricRegistry metrics) {
+            return withMetrics(metrics,
+                    (serviceInterface, implementation) -> MetricName.builder()
+                            .name(MetricNames.internalServiceResponse())
+                            .putTags(Tags.SERVICE.key(), serviceInterface.getSimpleName())
+                            .build(),
+                    (serviceInterface1, service) -> ImmutableMap.of());
         }
 
-        // TODO (davids): tags, make public & JavaDoc
-        public Builder<T, U> withMetrics(MetricRegistry metrics,
-                BiFunction<Class<?>, Object, Map<String, String>> tagsFunction) {
+        public Builder<T, U> withMetrics(
+                TaggedMetricRegistry metrics,
+                ServiceMetricNameFunction serviceMetricNameFunction,
+                TagsFunction tagsFunction) {
+
             checkNotNull(metrics, "metrics");
+            checkNotNull(serviceMetricNameFunction, "serviceMetricNameFunction");
             checkNotNull(tagsFunction, "tagsFunction");
 
-            // TODO (davids): metric namer
-            BiFunction<Class<?>, Object, TaggedMetric> metricFunction = serviceToMetric()
+            BiFunction<Class<?>, Object, MetricName> metricFunction = serviceMetricNameFunction
                     .andThen(taggedMetric -> {
                         Map<String, String> tags = tagsFunction.apply(interfaceClass, delegate);
-                        return tags.isEmpty()
-                                ? taggedMetric
-                                : TaggedMetric.builder()
-                                        .from(taggedMetric)
-                                        .putAllTags(tags)
-                                        .build();
+                        return MetricsInvocationEventHandler.metricNameWithTags(taggedMetric, tags);
                     });
-            Supplier<TaggedMetric> taggedMetricSupplier = () -> metricFunction.apply(interfaceClass, delegate);
+            Supplier<MetricName> taggedMetricSupplier = () -> metricFunction.apply(interfaceClass, delegate);
             this.handlers.add(MetricsInvocationEventHandler.create(metrics, taggedMetricSupplier));
             return this;
         }
@@ -185,16 +167,6 @@ public final class Instrumentation {
         public T build() {
             return wrap(interfaceClass, delegate, filter, handlers.build());
         }
-    }
-
-    // TODO (davids): should we expose this or compose on top of this?
-    static BiFunction<Class<?>, Object, TaggedMetric> serviceToMetric() {
-        return (serviceInterface, implementation) -> TaggedMetric.builder()
-                // TODO (davids): metric namer
-                .name(METRIC_NAME_SERVICE)
-                .putTags(TAG_SERVICE_NAME, serviceInterface.getSimpleName())
-                // TODO (davids): inject annotations as tags?
-                .build();
     }
 
 }
