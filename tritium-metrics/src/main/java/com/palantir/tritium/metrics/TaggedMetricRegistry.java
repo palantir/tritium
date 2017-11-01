@@ -77,8 +77,8 @@ public final class TaggedMetricRegistry {
         if (!metricClass.isInstance(metric)) {
             throw new IllegalArgumentException(String.format(
                     "'%s' already used for a metric of type '%s' but wanted type '%s'. tags: %s",
-                    metricName.name(), metric.getClass().getSimpleName(),
-                    metricClass.getSimpleName(), metricName.tags()));
+                    metricName.safeName(), metric.getClass().getSimpleName(),
+                    metricClass.getSimpleName(), metricName.safeTags()));
         }
         return metricClass.cast(metric);
     }
