@@ -23,11 +23,13 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
+import com.google.auto.service.AutoService;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+@AutoService(TaggedMetricRegistry.class)
 public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
 
     private static final TaggedMetricRegistry DEFAULT = new DefaultTaggedMetricRegistry();
