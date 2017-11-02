@@ -1,0 +1,13 @@
+apply from: "${rootDir}/gradle/publish-jars.gradle"
+
+dependencies {
+    processor "org.immutables:value"
+
+    compile 'com.palantir.safe-logging:safe-logging'
+    compile 'io.dropwizard.metrics:metrics-core'
+
+    testCompile 'junit:junit'
+    testCompile 'org.assertj:assertj-core'
+    testCompile 'org.mockito:mockito-all'
+}
+
