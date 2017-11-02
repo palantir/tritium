@@ -17,69 +17,28 @@
 package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
- * Similar to {@link MetricRegistry} but allows tagging of {@link Metric}s.
+ * Similar to {@link com.codahale.metrics.MetricRegistry} but allows tagging of {@link Metric}s.
  */
-public final class TaggedMetricRegistry {
+public interface TaggedMetricRegistry {
 
-    private static final TaggedMetricRegistry DEFAULT = new TaggedMetricRegistry();
+    Timer timer(MetricName metric);
 
-    private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
+    Meter meter(MetricName metric);
 
-    public TaggedMetricRegistry() {}
-
-    /**
-     * Get the global default {@link TaggedMetricRegistry}.
-     */
-    public static TaggedMetricRegistry getDefault() {
-        return DEFAULT;
-    }
-
-    public Counter counter(MetricName metric) {
-        return getOrAdd(metric, Counter.class, Counter::new);
-    }
+    Histogram histogram(MetricName metric);
 
     // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
-    public Gauge gauge(MetricName metric, Gauge gauge) {
-        return getOrAdd(metric, Gauge.class, () -> gauge);
-    }
+    Gauge gauge(MetricName metric, Gauge gauge);
 
-    public Histogram histogram(MetricName metric) {
-        return getOrAdd(metric, Histogram.class, () -> new Histogram(new ExponentiallyDecayingReservoir()));
-    }
+    Counter counter(MetricName metric);
 
-    public Meter meter(MetricName metric) {
-        return getOrAdd(metric, Meter.class, Meter::new);
-    }
-
-    public Timer timer(MetricName metric) {
-        return getOrAdd(metric, Timer.class, Timer::new);
-    }
-
-    public Map<MetricName, Metric> getMetrics() {
-        return Collections.unmodifiableMap(registry);
-    }
-
-    private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
-        Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
-        if (!metricClass.isInstance(metric)) {
-            throw new IllegalArgumentException(String.format(
-                    "'%s' already used for a metric of type '%s' but wanted type '%s'. tags: %s",
-                    metricName.safeName(), metric.getClass().getSimpleName(),
-                    metricClass.getSimpleName(), metricName.safeTags()));
-        }
-        return metricClass.cast(metric);
-    }
+    Map<MetricName, Metric> getMetrics();
 }

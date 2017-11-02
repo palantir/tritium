@@ -36,7 +36,7 @@ public final class TaggedMetricRegistryTest {
 
     @Before
     public void before() {
-        registry = new TaggedMetricRegistry();
+        registry = new DefaultTaggedMetricRegistry();
     }
 
     @Test
