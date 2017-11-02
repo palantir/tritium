@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics;
+package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
@@ -22,52 +22,55 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.google.auto.service.AutoService;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-/**
- * Similar to {@link MetricRegistry} but allows tagging of {@link Metric}s.
- */
-public final class TaggedMetricRegistry {
+@AutoService(TaggedMetricRegistry.class)
+public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
 
-    private static final TaggedMetricRegistry DEFAULT = new TaggedMetricRegistry();
+    private static final TaggedMetricRegistry DEFAULT = new DefaultTaggedMetricRegistry();
 
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
 
-    public TaggedMetricRegistry() {}
+    public DefaultTaggedMetricRegistry() {}
 
     /**
      * Get the global default {@link TaggedMetricRegistry}.
      */
     public static TaggedMetricRegistry getDefault() {
-        return DEFAULT;
+        return DefaultTaggedMetricRegistry.DEFAULT;
     }
 
+    @Override
     public Counter counter(MetricName metric) {
         return getOrAdd(metric, Counter.class, Counter::new);
     }
 
-    // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
+    @Override
     public Gauge gauge(MetricName metric, Gauge gauge) {
         return getOrAdd(metric, Gauge.class, () -> gauge);
     }
 
+    @Override
     public Histogram histogram(MetricName metric) {
         return getOrAdd(metric, Histogram.class, () -> new Histogram(new ExponentiallyDecayingReservoir()));
     }
 
+    @Override
     public Meter meter(MetricName metric) {
         return getOrAdd(metric, Meter.class, Meter::new);
     }
 
+    @Override
     public Timer timer(MetricName metric) {
         return getOrAdd(metric, Timer.class, Timer::new);
     }
 
+    @Override
     public Map<MetricName, Metric> getMetrics() {
         return Collections.unmodifiableMap(registry);
     }

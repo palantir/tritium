@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics;
+package com.palantir.tritium.metrics.registry;
 
 import java.util.Map;
 import org.immutables.value.Value;
