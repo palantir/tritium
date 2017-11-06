@@ -16,10 +16,7 @@
 
 package com.palantir.tritium.event.log;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -116,10 +113,10 @@ public class LoggingInvocationEventHandlerTest {
 
     @Test
     public void testGenerateMessagePattern() {
-        assertThat(LoggingInvocationEventHandler.generateMessagePattern(0), equalTo("{}.{}() took {}ms"));
-        assertThat(LoggingInvocationEventHandler.generateMessagePattern(1), equalTo("{}.{}({}) took {}ms"));
-        assertThat(LoggingInvocationEventHandler.generateMessagePattern(2), equalTo("{}.{}({}, {}) took {}ms"));
-        assertThat(LoggingInvocationEventHandler.generateMessagePattern(3), equalTo("{}.{}({}, {}, {}) took {}ms"));
+        assertThat(LoggingInvocationEventHandler.generateMessagePattern(0)).isEqualTo("{}.{}() took {}ms");
+        assertThat(LoggingInvocationEventHandler.generateMessagePattern(1)).isEqualTo("{}.{}({}) took {}ms");
+        assertThat(LoggingInvocationEventHandler.generateMessagePattern(2)).isEqualTo("{}.{}({}, {}) took {}ms");
+        assertThat(LoggingInvocationEventHandler.generateMessagePattern(3)).isEqualTo("{}.{}({}, {}, {}) took {}ms");
     }
 
     @Test
@@ -138,8 +135,7 @@ public class LoggingInvocationEventHandlerTest {
 
         Object[] logParams = LoggingInvocationEventHandler.getLogParams(method, args, durationNanoseconds, level);
         String logMessage = MessageFormatter.arrayFormat(messagePattern, logParams).getMessage();
-        assertThat(logMessage,
-                startsWith("TestInterface.multiArgumentMethod(String, int, Collection[3]) took 1.235ms"));
+        assertThat(logMessage).startsWith("TestInterface.multiArgumentMethod(String, int, Collection[3]) took 1.235ms");
     }
 
     @Test
@@ -154,16 +150,23 @@ public class LoggingInvocationEventHandlerTest {
         args[0] = ImmutableSet.of("a", "b");
         Object[] logParams = LoggingInvocationEventHandler.getLogParams(method, args, durationNanoseconds, level);
         String logMessage = MessageFormatter.arrayFormat(messagePattern, logParams).getMessage();
-        assertThat(logMessage,
-                startsWith("TestInterface.bulk(Set[2]) took 1.235ms"));
+        assertThat(logMessage).startsWith("TestInterface.bulk(Set[2]) took 1.235ms");
     }
 
     @Test
     public void testGetMessagePattern() {
         for (int i = 0; i < 20; i++) {
-            assertThat(LoggingInvocationEventHandler.getMessagePattern(new Object[i]),
-                    containsString("{}"));
+            assertThat(LoggingInvocationEventHandler.getMessagePattern(new Object[i])).contains("{}");
         }
+    }
+
+    @Test
+    public void testBackwardCompatibility() {
+        assertThat(LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND)
+                .isInstanceOf(com.palantir.tritium.api.functions.LongPredicate.class);
+
+        com.palantir.tritium.api.functions.LongPredicate legacyPredicate = input -> false;
+        assertThat(new LoggingInvocationEventHandler(getLogger(), LoggingLevel.TRACE, legacyPredicate)).isNotNull();
     }
 
 }
