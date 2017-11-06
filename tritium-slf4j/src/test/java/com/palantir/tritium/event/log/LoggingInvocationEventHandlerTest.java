@@ -23,8 +23,8 @@ import static org.junit.Assert.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.event.DefaultInvocationContext;
+import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.test.TestInterface;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Method;

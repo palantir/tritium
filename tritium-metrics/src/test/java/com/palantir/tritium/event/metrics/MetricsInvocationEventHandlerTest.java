@@ -21,8 +21,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.MetricRegistry;
-import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.event.DefaultInvocationContext;
+import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import org.junit.Test;
 

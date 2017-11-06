@@ -18,11 +18,11 @@ package com.palantir.tritium.tracing;
 
 import com.google.common.base.Strings;
 import com.palantir.remoting3.tracing.Tracer;
-import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
+import com.palantir.tritium.event.InvocationContext;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

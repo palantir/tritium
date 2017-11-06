@@ -18,7 +18,6 @@ package com.palantir.tritium.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.tritium.api.event.InvocationContext;
 import org.junit.Test;
 
 public class DefaultInvocationContextTest {
