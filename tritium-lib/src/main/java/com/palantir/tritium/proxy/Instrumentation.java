@@ -30,7 +30,6 @@ import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.LongPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -162,7 +161,16 @@ public final class Instrumentation {
                     LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND);
         }
 
-        public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel, LongPredicate durationPredicate) {
+        /**
+         * Bridge for backward compatibility.
+         */
+        public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel,
+                com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
+            return withLogging(logger, loggingLevel, (java.util.function.LongPredicate) durationPredicate);
+        }
+
+        public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel,
+                java.util.function.LongPredicate durationPredicate) {
             this.handlers.add(new LoggingInvocationEventHandler(logger, loggingLevel, durationPredicate));
             return this;
         }
