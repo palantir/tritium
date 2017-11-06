@@ -18,21 +18,19 @@ package com.palantir.tritium.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 
 /**
  * Abstract invocation event handler implementation.
  *
- * @param <C>
- *        invocation context
+ * @param <C> invocation context
  */
 public abstract class AbstractInvocationEventHandler<C extends InvocationContext>
         implements InvocationEventHandler<C> {
 
     private static final Object[] NO_ARGS = {};
 
-    private final BooleanSupplier isEnabledSupplier;
+    private final java.util.function.BooleanSupplier isEnabledSupplier;
 
     /**
      * Always enabled instrumentation handler.
@@ -41,7 +39,14 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
         this(com.palantir.tritium.api.functions.BooleanSupplier.TRUE);
     }
 
-    protected AbstractInvocationEventHandler(BooleanSupplier isEnabledSupplier) {
+    /**
+     * Bridge for backward compatibility.
+     */
+    protected AbstractInvocationEventHandler(com.palantir.tritium.api.functions.BooleanSupplier isEnabledSupplier) {
+        this((java.util.function.BooleanSupplier) isEnabledSupplier);
+    }
+
+    protected AbstractInvocationEventHandler(java.util.function.BooleanSupplier isEnabledSupplier) {
         this.isEnabledSupplier = checkNotNull(isEnabledSupplier, "isEnabledSupplier");
     }
 
@@ -60,7 +65,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      *        instrumentation handler class
      * @return false if "instrument.fully.qualified.class.Name" is set to "false", otherwise true
      */
-    protected static BooleanSupplier getSystemPropertySupplier(
+    protected static com.palantir.tritium.api.functions.BooleanSupplier getSystemPropertySupplier(
             Class<? extends InvocationEventHandler<InvocationContext>> clazz) {
         checkNotNull(clazz, "clazz");
         return InstrumentationProperties.getSystemPropertySupplier(clazz.getName());

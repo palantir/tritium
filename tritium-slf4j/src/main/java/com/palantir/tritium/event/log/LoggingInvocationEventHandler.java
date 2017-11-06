@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.SafeArg;
+import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
@@ -29,8 +30,6 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
-import java.util.function.LongPredicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -45,25 +44,36 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     private static final Logger CLASS_LOGGER = LoggerFactory.getLogger(LoggingInvocationEventHandler.class);
     private static final List<String> MESSAGE_PATTERNS = generateMessagePatterns(10);
 
-    public static final LongPredicate LOG_ALL_DURATIONS = com.palantir.tritium.api.functions.LongPredicate.TRUE;
+    public static final com.palantir.tritium.api.functions.LongPredicate LOG_ALL_DURATIONS =
+            com.palantir.tritium.api.functions.LongPredicate.TRUE;
 
-    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND = nanos ->
-            TimeUnit.MICROSECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 1;
+    public static final com.palantir.tritium.api.functions.LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND =
+            nanos -> TimeUnit.MICROSECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 1;
 
-    public static final LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS = nanos ->
-            TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 0;
+    public static final com.palantir.tritium.api.functions.LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS =
+            nanos -> TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 0;
 
-    public static final LongPredicate NEVER_LOG = com.palantir.tritium.api.functions.LongPredicate.FALSE;
+    public static final com.palantir.tritium.api.functions.LongPredicate NEVER_LOG =
+            com.palantir.tritium.api.functions.LongPredicate.FALSE;
 
     private final Logger logger;
     private final LoggingLevel level;
-    private final LongPredicate durationPredicate;
+    private final java.util.function.LongPredicate durationPredicate;
 
     public LoggingInvocationEventHandler(Logger logger, LoggingLevel level) {
         this(logger, level, LOG_ALL_DURATIONS);
     }
 
-    public LoggingInvocationEventHandler(Logger logger, LoggingLevel level, LongPredicate durationPredicate) {
+    /**
+     * Bridge for backward compatibility.
+     */
+    public LoggingInvocationEventHandler(Logger logger, LoggingLevel level,
+            com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
+        this(logger, level, (java.util.function.LongPredicate) durationPredicate);
+    }
+
+    public LoggingInvocationEventHandler(Logger logger, LoggingLevel level,
+            java.util.function.LongPredicate durationPredicate) {
         super(createEnabledSupplier(logger, level));
         this.logger = checkNotNull(logger, "logger");
         this.level = checkNotNull(level, "level");
@@ -155,7 +165,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).getAsBoolean()) {
             return () -> isEnabled(logger, level);
         } else {
-            return com.palantir.tritium.api.functions.BooleanSupplier.FALSE;
+            return BooleanSupplier.FALSE;
         }
     }
 
