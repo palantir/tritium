@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.api.event;
+package com.palantir.tritium.event;
 
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
@@ -24,8 +24,7 @@ import javax.annotation.Nullable;
  * Interface for handing invocation events.
  *
  * @see java.lang.reflect.InvocationHandler
- * @param <C>
- *        invocation context
+ * @param <C> invocation context
  */
 public interface InvocationEventHandler<C extends InvocationContext> {
 

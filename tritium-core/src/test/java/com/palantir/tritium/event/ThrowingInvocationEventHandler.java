@@ -16,8 +16,6 @@
 
 package com.palantir.tritium.event;
 
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,7 +29,7 @@ class ThrowingInvocationEventHandler implements InvocationEventHandler<Invocatio
     }
 
     @Override
-    public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+    public com.palantir.tritium.event.InvocationContext preInvocation(Object instance, Method method, Object[] args) {
         throw new IllegalStateException("preInvocation always throws");
     }
 

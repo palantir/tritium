@@ -21,10 +21,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import com.google.common.collect.ImmutableList;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.DefaultInvocationContext;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
