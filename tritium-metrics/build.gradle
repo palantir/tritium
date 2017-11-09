@@ -10,7 +10,9 @@ dependencies {
     compile 'com.google.guava:guava'
     compile 'com.palantir.safe-logging:safe-logging'
     compile 'io.dropwizard.metrics:metrics-core'
-    compile 'org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir'
+    compile ('org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir') {
+        exclude group: 'org.hdrhistogram', module: 'HdrHistogram'
+    }
     compile 'org.hdrhistogram:HdrHistogram'
     compile 'org.slf4j:slf4j-api'
 
