@@ -29,8 +29,8 @@ allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
 
+    apply plugin: 'com.palantir.configuration-resolver'
     apply plugin: 'nebula.dependency-recommender'
-    apply plugin: "nebula.maven-resolved-dependencies"
     apply from: "${rootDir}/gradle/java.gradle"
 
     dependencyRecommendations {
@@ -74,6 +74,14 @@ allprojects {
             events "started", "passed", "skipped", "failed"
         }
     }
+
+    tasks.withType(Javadoc) {
+        // suppress Javadoc doclint warnings in Java 8+
+        if (!System.getProperty("java.version").startsWith("1.7")) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+    tasks.check.dependsOn(javadoc)
 
     if (System.env.CIRCLE_TEST_REPORTS) {
         test.reports.junitXml.destination = new File(System.env.CIRCLE_TEST_REPORTS, it.getName())
