@@ -29,8 +29,8 @@ allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
 
+    apply plugin: 'com.palantir.configuration-resolver'
     apply plugin: 'nebula.dependency-recommender'
-    apply plugin: "nebula.maven-resolved-dependencies"
     apply from: "${rootDir}/gradle/java.gradle"
 
     dependencyRecommendations {
