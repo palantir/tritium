@@ -10,6 +10,7 @@ buildscript {
     }
 
     dependencies {
+        classpath 'gradle.plugin.com.palantir:gradle-circle-style:1.1.1'
         classpath 'com.netflix.nebula:nebula-dependency-recommender:5.0.0'
         classpath 'com.netflix.nebula:nebula-publishing-plugin:5.1.4'
         classpath 'com.palantir.baseline:gradle-baseline-java:0.16.0'
@@ -24,6 +25,7 @@ apply plugin: 'java'
 apply plugin: 'com.palantir.baseline-config'
 apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.git-version'
+apply plugin: 'com.palantir.circle.style'
 
 allprojects {
     group 'com.palantir.tritium'
