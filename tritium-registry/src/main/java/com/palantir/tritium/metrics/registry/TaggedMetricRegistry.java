@@ -23,6 +23,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Similar to {@link com.codahale.metrics.MetricRegistry} but allows tagging of {@link Metric}s.
@@ -77,4 +78,13 @@ public interface TaggedMetricRegistry {
      * @return map of registered metrics
      */
     Map<MetricName, Metric> getMetrics();
+
+    /**
+     * Removes the tagged metric with the specified metric name.
+     *
+     * @param metricName metric name
+     * @return the removed metric
+     */
+    Optional<Metric> remove(MetricName metricName);
+
 }
