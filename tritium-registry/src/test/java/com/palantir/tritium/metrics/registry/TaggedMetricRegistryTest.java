@@ -23,7 +23,9 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -113,5 +115,18 @@ public final class TaggedMetricRegistryTest {
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> registry.timer(METRIC_1))
                 .withMessage("'name' already used for a metric of type 'Counter' but wanted type 'Timer'. tags: {}");
+    }
+
+    @Test
+    public void testRemoveMetric() {
+        Gauge<Integer> gauge = () -> 42;
+        Gauge registeredGauge = registry.gauge(METRIC_1, gauge);
+        assertThat(registeredGauge).isSameAs(gauge);
+
+        Optional<Metric> removedGauge = registry.remove(METRIC_1);
+        assertThat(removedGauge.isPresent()).isTrue();
+        assertThat(removedGauge.get()).isSameAs(gauge);
+
+        assertThat(registry.remove(METRIC_1).isPresent()).isFalse();
     }
 }
