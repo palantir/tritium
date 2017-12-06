@@ -30,17 +30,53 @@ import java.util.Optional;
  */
 public interface TaggedMetricRegistry {
 
-    Timer timer(MetricName metric);
+    /**
+     * Returns existing or new timer metric for the specified metric name.
+     *
+     * @param metricName metric name
+     * @return timer metric
+     */
+    Timer timer(MetricName metricName);
 
-    Meter meter(MetricName metric);
+    /**
+     * Returns existing or new meter metric for the specified metric name.
+     *
+     * @param metricName metric name
+     * @return meter metric
+     */
+    Meter meter(MetricName metricName);
 
-    Histogram histogram(MetricName metric);
+    /**
+     * Returns existing or new histogram metric for the specified metric name.
+     *
+     * @param metricName metric name
+     * @return histogram metric
+     */
+    Histogram histogram(MetricName metricName);
 
+    /**
+     * Returns existing or new gauge metric for the specified metric name.
+     *
+     * @param metricName metric name
+     * @param gauge gauge
+     * @return gauge metric
+     */
     // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
-    Gauge gauge(MetricName metric, Gauge gauge);
+    Gauge gauge(MetricName metricName, Gauge gauge);
 
-    Counter counter(MetricName metric);
+    /**
+     * Returns existing or new counter metric for the specified metric name.
+     *
+     * @param metricName metric name
+     * @return counter metric
+     */
+    Counter counter(MetricName metricName);
 
+    /**
+     * Returns a map of registered metrics.
+     *
+     * @return map of registered metrics
+     */
     Map<MetricName, Metric> getMetrics();
 
     /**
