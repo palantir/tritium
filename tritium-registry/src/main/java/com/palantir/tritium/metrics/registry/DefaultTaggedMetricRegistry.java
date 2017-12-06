@@ -46,28 +46,28 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     }
 
     @Override
-    public Counter counter(MetricName metric) {
-        return getOrAdd(metric, Counter.class, Counter::new);
+    public Counter counter(MetricName metricName) {
+        return getOrAdd(metricName, Counter.class, Counter::new);
     }
 
     @Override
-    public Gauge gauge(MetricName metric, Gauge gauge) {
-        return getOrAdd(metric, Gauge.class, () -> gauge);
+    public Gauge gauge(MetricName metricName, Gauge gauge) {
+        return getOrAdd(metricName, Gauge.class, () -> gauge);
     }
 
     @Override
-    public Histogram histogram(MetricName metric) {
-        return getOrAdd(metric, Histogram.class, () -> new Histogram(new ExponentiallyDecayingReservoir()));
+    public Histogram histogram(MetricName metricName) {
+        return getOrAdd(metricName, Histogram.class, () -> new Histogram(new ExponentiallyDecayingReservoir()));
     }
 
     @Override
-    public Meter meter(MetricName metric) {
-        return getOrAdd(metric, Meter.class, Meter::new);
+    public Meter meter(MetricName metricName) {
+        return getOrAdd(metricName, Meter.class, Meter::new);
     }
 
     @Override
-    public Timer timer(MetricName metric) {
-        return getOrAdd(metric, Timer.class, Timer::new);
+    public Timer timer(MetricName metricName) {
+        return getOrAdd(metricName, Timer.class, Timer::new);
     }
 
     @Override
