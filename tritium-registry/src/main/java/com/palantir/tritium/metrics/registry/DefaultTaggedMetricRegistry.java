@@ -25,6 +25,7 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import com.google.auto.service.AutoService;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -73,6 +74,11 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     @Override
     public Map<MetricName, Metric> getMetrics() {
         return Collections.unmodifiableMap(registry);
+    }
+
+    @Override
+    public void removeMetrics(List<MetricName> metricNameList) {
+        metricNameList.forEach(registry::remove);
     }
 
     private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
