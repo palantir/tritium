@@ -22,8 +22,8 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Similar to {@link com.codahale.metrics.MetricRegistry} but allows tagging of {@link Metric}s.
@@ -43,5 +43,12 @@ public interface TaggedMetricRegistry {
 
     Map<MetricName, Metric> getMetrics();
 
-    void removeMetrics(List<MetricName> metricNameList);
+    /**
+     * Removes the tagged metric with the specified metric name.
+     *
+     * @param metricName metric name
+     * @return the removed metric
+     */
+    Optional<Metric> remove(MetricName metricName);
+
 }
