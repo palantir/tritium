@@ -5,6 +5,7 @@ apply plugin: 'com.palantir.baseline-error-prone'
 apply plugin: 'com.palantir.baseline-checkstyle'
 apply plugin: 'com.palantir.baseline-eclipse'
 apply plugin: 'com.palantir.baseline-idea'
+apply plugin: 'com.palantir.baseline-class-uniqueness'
 apply plugin: 'com.palantir.configuration-resolver'
 
 jacocoTestReport {
