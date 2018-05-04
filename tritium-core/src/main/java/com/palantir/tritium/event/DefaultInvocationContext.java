@@ -18,7 +18,6 @@ package com.palantir.tritium.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import javax.annotation.Nullable;
@@ -67,7 +66,6 @@ public class DefaultInvocationContext implements InvocationContext {
     }
 
     @Override
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public final Object[] getArgs() {
         return args;
     }
