@@ -2,7 +2,6 @@ apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
     compile 'com.google.code.findbugs:jsr305'
-    compile 'com.google.code.findbugs:findbugs-annotations'
 
     testCompile 'com.google.guava:guava-testlib'
     testCompile 'junit:junit'
