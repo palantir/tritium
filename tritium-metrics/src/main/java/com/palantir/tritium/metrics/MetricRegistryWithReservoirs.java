@@ -23,9 +23,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Supplier;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressFBWarnings("PT_EXTENDS_CONCRETE_TYPE")
 final class MetricRegistryWithReservoirs extends MetricRegistry {
 
     private final Supplier<Reservoir> reservoirSupplier;

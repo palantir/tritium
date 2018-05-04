@@ -8,7 +8,6 @@ dependencies {
     compile project(':tritium-core')
     compile project(':tritium-metrics')
     compile 'com.github.ben-manes.caffeine:caffeine'
-    compile 'com.google.code.findbugs:annotations'
     compile 'com.google.guava:guava'
     compile 'com.palantir.safe-logging:safe-logging'
     compile 'io.dropwizard.metrics:metrics-core'

@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.test.TestInterface;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
@@ -98,14 +97,12 @@ public class LoggingInvocationEventHandlerTest {
     }
 
     @Test(expected = NullPointerException.class)
-    @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION")
     public void testNullIsEnabled() {
         //noinspection ConstantConditions
         LoggingInvocationEventHandler.isEnabled(getLogger(), null);
     }
 
     @Test(expected = NullPointerException.class)
-    @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION")
     public void testNullLevel() {
         //noinspection ConstantConditions
         new LoggingInvocationEventHandler(getLogger(), null);

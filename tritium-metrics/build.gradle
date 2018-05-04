@@ -6,12 +6,10 @@ dependencies {
     compile project(':tritium-api')
     compile project(':tritium-core')
 
-    compile 'com.google.code.findbugs:annotations'
     compile 'com.google.guava:guava'
     compile 'com.palantir.safe-logging:safe-logging'
     compile 'io.dropwizard.metrics:metrics-core'
     compile ('org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir') {
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
         exclude group: 'io.dropwizard.metrics', module: 'metrics-core'
         exclude group: 'org.hdrhistogram', module: 'HdrHistogram'
     }
