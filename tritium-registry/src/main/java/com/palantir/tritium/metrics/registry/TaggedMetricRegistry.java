@@ -24,6 +24,7 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Similar to {@link com.codahale.metrics.MetricRegistry} but allows tagging of {@link Metric}s.
@@ -38,6 +39,8 @@ public interface TaggedMetricRegistry {
      */
     Timer timer(MetricName metricName);
 
+    Timer timer(MetricName metricName, Supplier<Timer> timerSupplier);
+
     /**
      * Returns existing or new meter metric for the specified metric name.
      *
@@ -46,6 +49,8 @@ public interface TaggedMetricRegistry {
      */
     Meter meter(MetricName metricName);
 
+    Meter meter(MetricName metricName, Supplier<Meter> meterSupplier);
+
     /**
      * Returns existing or new histogram metric for the specified metric name.
      *
@@ -53,6 +58,8 @@ public interface TaggedMetricRegistry {
      * @return histogram metric
      */
     Histogram histogram(MetricName metricName);
+
+    Histogram histogram(MetricName metricName, Supplier<Histogram> histogramSupplier);
 
     /**
      * Returns existing or new gauge metric for the specified metric name.
@@ -71,6 +78,8 @@ public interface TaggedMetricRegistry {
      * @return counter metric
      */
     Counter counter(MetricName metricName);
+
+    Counter counter(MetricName metricName, Supplier<Counter> counterSupplier);
 
     /**
      * Returns a map of registered metrics.

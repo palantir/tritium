@@ -39,6 +39,10 @@ public final class Tritium {
      * @return instrumented proxy implementing specified service interface
      */
     public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
+        return instrument(serviceInterface, delegate, metricRegistry, false);
+    }
+
+    public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry, boolean useTagsForMethods) {
         return Instrumentation.builder(serviceInterface, delegate)
                 .withMetrics(metricRegistry)
                 .withPerformanceTraceLogging()
