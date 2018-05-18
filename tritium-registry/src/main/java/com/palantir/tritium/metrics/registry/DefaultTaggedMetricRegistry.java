@@ -48,7 +48,12 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
 
     @Override
     public Counter counter(MetricName metricName) {
-        return getOrAdd(metricName, Counter.class, Counter::new);
+        return counter(metricName, Counter::new);
+    }
+
+    @Override
+    public Counter counter(MetricName metricName, Supplier<Counter> counterSupplier) {
+        return getOrAdd(metricName, Counter.class, counterSupplier);
     }
 
     @Override
@@ -58,17 +63,32 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
 
     @Override
     public Histogram histogram(MetricName metricName) {
-        return getOrAdd(metricName, Histogram.class, () -> new Histogram(new ExponentiallyDecayingReservoir()));
+        return histogram(metricName, () -> new Histogram(new ExponentiallyDecayingReservoir()));
+    }
+
+    @Override
+    public Histogram histogram(MetricName metricName, Supplier<Histogram> histogramSupplier) {
+        return getOrAdd(metricName, Histogram.class, histogramSupplier);
     }
 
     @Override
     public Meter meter(MetricName metricName) {
-        return getOrAdd(metricName, Meter.class, Meter::new);
+        return meter(metricName, Meter::new);
+    }
+
+    @Override
+    public Meter meter(MetricName metricName, Supplier<Meter> meterSupplier) {
+        return getOrAdd(metricName, Meter.class, meterSupplier);
     }
 
     @Override
     public Timer timer(MetricName metricName) {
-        return getOrAdd(metricName, Timer.class, Timer::new);
+        return timer(metricName, Timer::new);
+    }
+
+    @Override
+    public Timer timer(MetricName metricName, Supplier<Timer> timerSupplier) {
+        return getOrAdd(metricName, Timer.class, timerSupplier);
     }
 
     @Override
