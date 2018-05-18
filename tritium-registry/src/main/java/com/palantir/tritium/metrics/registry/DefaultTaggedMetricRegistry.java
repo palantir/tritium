@@ -68,7 +68,7 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
 
     @Override
     public Histogram histogram(MetricName metricName, Supplier<Histogram> histogramSupplier) {
-        return getOrAdd(metricName, Histogram.class, () -> new Histogram(new ExponentiallyDecayingReservoir()));
+        return getOrAdd(metricName, Histogram.class, histogramSupplier);
     }
 
     @Override

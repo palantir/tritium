@@ -18,16 +18,22 @@ package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public final class TaggedMetricRegistryTest {
 
@@ -41,20 +47,45 @@ public final class TaggedMetricRegistryTest {
         registry = new DefaultTaggedMetricRegistry();
     }
 
+    interface SuppliedMetricMethod<T extends Metric> {
+        T metric(MetricName metricName, Supplier<T> supplier);
+    }
+
+    interface MetricMethod<T extends Metric> {
+        T metric(MetricName metricName);
+    }
+
+    private <T extends Metric> void testNonsuppliedCall(MetricMethod<T> registryMethod) {
+        T metric1 = registryMethod.metric(METRIC_1);
+        T metric2 = registryMethod.metric(METRIC_2);
+
+        assertThat(metric1).isNotSameAs(metric2);
+        assertThat(registryMethod.metric(METRIC_1)).isSameAs(metric1);
+        assertThat(registryMethod.metric(METRIC_2)).isSameAs(metric2);
+    }
+
+    private <T extends Metric> void testSuppliedCall(SuppliedMetricMethod<T> registryMethod, T mock1, T mock2) {
+        Supplier<T> mockSupplier = mock(Supplier.class);
+        when(mockSupplier.get()).thenReturn(mock1).thenReturn(mock2);
+
+        assertThat(registryMethod.metric(METRIC_1, mockSupplier)).isSameAs(mock1);
+        assertThat(registryMethod.metric(METRIC_2, mockSupplier)).isSameAs(mock2);
+        assertThat(registryMethod.metric(METRIC_1, mockSupplier)).isSameAs(mock1); // should be memoized
+        assertThat(registryMethod.metric(METRIC_2, mockSupplier)).isSameAs(mock2); // should be memoized
+
+        Mockito.verify(mockSupplier, times(2)).get();
+    }
+
     @Test
     public void testCounter() {
-        Counter counter1 = registry.counter(METRIC_1);
-        Counter counter2 = registry.counter(METRIC_2);
-
-        // ensure new counters are created
-        assertThat(counter1.getCount()).isEqualTo(0);
-        assertThat(counter2.getCount()).isEqualTo(0);
-
-        // ensure they're not the same and can be retrieved using the same name
-        assertThat(counter1).isNotSameAs(counter2);
-        assertThat(registry.counter(METRIC_1)).isSameAs(counter1);
-        assertThat(registry.counter(METRIC_2)).isSameAs(counter2);
+        testNonsuppliedCall(registry::counter);
     }
+
+    @Test
+    public void testSuppliedCounter() {
+        testSuppliedCall(registry::counter, new Counter(), new Counter());
+    }
+
 
     @Test
     public void testGauge() {
@@ -71,41 +102,34 @@ public final class TaggedMetricRegistryTest {
 
     @Test
     public void testHistogram() {
-        Histogram histogram1 = registry.histogram(METRIC_1);
-        Histogram histogram2 = registry.histogram(METRIC_2);
+        testNonsuppliedCall(registry::histogram);
+    }
 
-        assertThat(histogram1.getCount()).isEqualTo(0);
-        assertThat(histogram2.getCount()).isEqualTo(0);
-
-        assertThat(histogram1).isNotSameAs(histogram2);
-        assertThat(registry.histogram(METRIC_1)).isSameAs(histogram1);
-        assertThat(registry.histogram(METRIC_2)).isSameAs(histogram2);
+    @Test
+    public void testSuppliedHistogram() {
+        testSuppliedCall(registry::histogram,
+                new Histogram(new ExponentiallyDecayingReservoir()),
+                new Histogram(new ExponentiallyDecayingReservoir()));
     }
 
     @Test
     public void testMeter() {
-        Meter meter1 = registry.meter(METRIC_1);
-        Meter meter2 = registry.meter(METRIC_2);
+        testNonsuppliedCall(registry::meter);
+    }
 
-        assertThat(meter1.getCount()).isEqualTo(0);
-        assertThat(meter2.getCount()).isEqualTo(0);
-
-        assertThat(meter1).isNotSameAs(meter2);
-        assertThat(registry.meter(METRIC_1)).isSameAs(meter1);
-        assertThat(registry.meter(METRIC_2)).isSameAs(meter2);
+    @Test
+    public void testSuppliedMeter() {
+        testSuppliedCall(registry::meter, new Meter(), new Meter());
     }
 
     @Test
     public void testTimer() {
-        Timer timer1 = registry.timer(METRIC_1);
-        Timer timer2 = registry.timer(METRIC_2);
+        testNonsuppliedCall(registry::timer);
+    }
 
-        assertThat(timer1.getCount()).isEqualTo(0);
-        assertThat(timer2.getCount()).isEqualTo(0);
-
-        assertThat(timer1).isNotSameAs(timer2);
-        assertThat(registry.timer(METRIC_1)).isSameAs(timer1);
-        assertThat(registry.timer(METRIC_2)).isSameAs(timer2);
+    @Test
+    public void testSuppliedTimer() {
+        testSuppliedCall(registry::timer, new Timer(), new Timer());
     }
 
     @Test
