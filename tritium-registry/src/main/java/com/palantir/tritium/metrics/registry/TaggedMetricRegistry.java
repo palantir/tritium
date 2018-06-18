@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 /**
  * Similar to {@link com.codahale.metrics.MetricRegistry} but allows tagging of {@link Metric}s.
  */
-public interface TaggedMetricRegistry {
+public interface TaggedMetricRegistry extends TaggedMetricSet {
 
     /**
      * Returns existing or new timer metric for the specified metric name.
@@ -82,13 +82,6 @@ public interface TaggedMetricRegistry {
     Counter counter(MetricName metricName, Supplier<Counter> counterSupplier);
 
     /**
-     * Returns a map of registered metrics.
-     *
-     * @return map of registered metrics
-     */
-    Map<MetricName, Metric> getMetrics();
-
-    /**
      * Removes the tagged metric with the specified metric name.
      *
      * @param metricName metric name
@@ -96,4 +89,20 @@ public interface TaggedMetricRegistry {
      */
     Optional<Metric> remove(MetricName metricName);
 
+    /**
+     * Adds a set of metrics to this TaggedMetricRegistry's metric set,
+     * which are to be uniquely identified by the tags provided.
+     * <p>
+     * So, if I have a metric registry with a single metric called 'foo', and I add it
+     * with tag (bar, baz), this registry will now contain 'foo', tagged with (bar, baz).
+     *
+     * @param tags the tags which will be added to all the metrics in the metric set
+     * @param metrics the metrics which should be added
+     */
+    void addMetrics(Map<String, String> tags, TaggedMetricSet metrics);
+
+    /**
+     * Removes a TaggedMetricsSet added via addMetrics from this metrics set.
+     */
+    void removeMetrics(Map<String, String> tags);
 }
