@@ -16,8 +16,6 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import static java.util.stream.Collectors.toMap;
-
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Gauge;
@@ -26,6 +24,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import com.google.auto.service.AutoService;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
@@ -97,12 +96,17 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
 
     @Override
     public Map<MetricName, Metric> getMetrics() {
-        return Stream.concat(registry.entrySet().stream(),
-                taggedRegistries.entrySet().stream().flatMap(entry -> addTag(
-                        entry.getKey().getKey(),
-                        entry.getKey().getValue(),
-                        entry.getValue().getMetrics().entrySet().stream())))
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
+        ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.<MetricName, Metric>builder()
+                .putAll(registry);
+        taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
+                .forEach((metricName, metric) -> result.put(
+                        MetricName.builder()
+                                .from(metricName)
+                                .putSafeTags(tag.getKey(), tag.getValue())
+                                .build(),
+                        metric)));
+
+        return result.build();
     }
 
     private Stream<Map.Entry<MetricName, Metric>> addTag(
