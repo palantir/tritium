@@ -164,5 +164,7 @@ public final class TaggedMetricRegistryTest {
         registry.addMetrics(tagKey, tagValue, child);
         assertThat(registry.getMetrics())
                 .containsEntry(MetricName.builder().safeName(name).putSafeTags(tagKey, tagValue).build(), meter);
+        registry.removeMetrics(tagKey, tagValue);
+        assertThat(registry.getMetrics()).isEmpty();
     }
 }

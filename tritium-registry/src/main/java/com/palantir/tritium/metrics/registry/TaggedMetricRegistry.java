@@ -95,7 +95,8 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * So, if I have a metric registry with a single metric called 'foo', and I add it
      * with tag (bar, baz), this registry will now contain 'foo', tagged with (bar, baz).
      * <p>
-     *
+     * If a metric exists with duplicate tags, then calling {@link TaggedMetricSet#getMetrics}
+     * will be impossible.
      *
      * @param safeTagName a tag key which should be added to all metrics in the metrics set
      * @param safeTagValue a tag value which should be added to all metrics in the metrics set
