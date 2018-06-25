@@ -99,10 +99,10 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * @param tags the tags which will be added to all the metrics in the metric set
      * @param metrics the metrics which should be added
      */
-    void addMetrics(Map<String, String> tags, TaggedMetricSet metrics);
+    void addMetrics(String safeTagName, String safeTagValue, TaggedMetricSet metrics);
 
     /**
      * Removes a TaggedMetricsSet added via addMetrics from this metrics set.
      */
-    void removeMetrics(Map<String, String> tags);
+    void removeMetrics(String safeTagName, String safeTagValue);
 }

@@ -153,4 +153,16 @@ public final class TaggedMetricRegistryTest {
 
         assertThat(registry.remove(METRIC_1).isPresent()).isFalse();
     }
+
+    @Test
+    public void testAddMetricRegistry() {
+        String name = "name";
+        String tagKey = "tagKey";
+        String tagValue = "tagValue";
+        TaggedMetricRegistry child = new DefaultTaggedMetricRegistry();
+        Meter meter = child.meter(MetricName.builder().safeName(name).build());
+        registry.addMetrics(tagKey, tagValue, child);
+        assertThat(registry.getMetrics())
+                .containsEntry(MetricName.builder().safeName(name).putSafeTags(tagKey, tagValue).build(), meter);
+    }
 }

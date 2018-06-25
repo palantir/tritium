@@ -25,6 +25,7 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,7 +37,7 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     private static final TaggedMetricRegistry DEFAULT = new DefaultTaggedMetricRegistry();
 
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
-    private final Map<Map<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
+    private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
 
     public DefaultTaggedMetricRegistry() {}
 
@@ -96,11 +97,11 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     public Map<MetricName, Metric> getMetrics() {
         ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.<MetricName, Metric>builder()
                 .putAll(registry);
-        taggedRegistries.forEach((tags, metrics) -> metrics.getMetrics()
+        taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
                 .forEach((metricName, metric) -> result.put(
                         MetricName.builder()
                                 .from(metricName)
-                                .putAllSafeTags(tags)
+                                .putSafeTags(tag.getKey(), tag.getValue())
                                 .build(),
                         metric)));
 
@@ -113,13 +114,13 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     }
 
     @Override
-    public void addMetrics(Map<String, String> tags, TaggedMetricSet other) {
-        taggedRegistries.put(tags, other);
+    public void addMetrics(String safeTagName, String safeTagValue, TaggedMetricSet other) {
+        taggedRegistries.put(Maps.immutableEntry(safeTagName, safeTagValue), other);
     }
 
     @Override
-    public void removeMetrics(Map<String, String> tags) {
-        taggedRegistries.remove(tags);
+    public void removeMetrics(String safeTagName, String safeTagValue) {
+        taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue));
     }
 
     private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
