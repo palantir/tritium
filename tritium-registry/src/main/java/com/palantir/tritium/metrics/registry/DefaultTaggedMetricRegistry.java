@@ -109,15 +109,6 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
         return result.build();
     }
 
-    private Stream<Map.Entry<MetricName, Metric>> addTag(
-            String tagKey, String tagValue, Stream<Map.Entry<MetricName, Metric>> untagged) {
-        return untagged.map(entry -> Maps.immutableEntry(
-                MetricName.builder().from(entry.getKey())
-                        .putSafeTags(tagKey, tagValue)
-                        .build(),
-                entry.getValue()));
-    }
-
     @Override
     public Optional<Metric> remove(MetricName metricName) {
         return Optional.ofNullable(registry.remove(metricName));
