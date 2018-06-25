@@ -19,19 +19,19 @@ package com.palantir.tritium.metrics.registry;
 import static java.util.stream.Collectors.toMap;
 
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.MetricSet;
 import java.util.Map;
 
 public final class DropwizardTaggedMetricSet implements TaggedMetricSet {
-    private final MetricRegistry metricRegistry;
+    private final MetricSet metricSet;
 
-    public DropwizardTaggedMetricSet(MetricRegistry metricRegistry) {
-        this.metricRegistry = metricRegistry;
+    public DropwizardTaggedMetricSet(MetricSet metricSet) {
+        this.metricSet = metricSet;
     }
 
     @Override
     public Map<MetricName, Metric> getMetrics() {
-        return metricRegistry.getMetrics().entrySet().stream()
+        return metricSet.getMetrics().entrySet().stream()
                 .collect(toMap(entry -> MetricName.builder().safeName(entry.getKey()).build(), Map.Entry::getValue));
     }
 }

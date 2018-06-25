@@ -119,8 +119,8 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     }
 
     @Override
-    public void removeMetrics(String safeTagName, String safeTagValue) {
-        taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue));
+    public Optional<TaggedMetricSet> removeMetrics(String safeTagName, String safeTagValue) {
+        return Optional.ofNullable(taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue)));
     }
 
     private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {

@@ -94,8 +94,11 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * <p>
      * So, if I have a metric registry with a single metric called 'foo', and I add it
      * with tag (bar, baz), this registry will now contain 'foo', tagged with (bar, baz).
+     * <p>
      *
-     * @param tags the tags which will be added to all the metrics in the metric set
+     *
+     * @param safeTagName a tag key which should be added to all metrics in the metrics set
+     * @param safeTagValue a tag value which should be added to all metrics in the metrics set
      * @param metrics the metrics which should be added
      */
     void addMetrics(String safeTagName, String safeTagValue, TaggedMetricSet metrics);
@@ -103,5 +106,5 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
     /**
      * Removes a TaggedMetricsSet added via addMetrics from this metrics set.
      */
-    void removeMetrics(String safeTagName, String safeTagValue);
+    Optional<TaggedMetricSet> removeMetrics(String safeTagName, String safeTagValue);
 }
