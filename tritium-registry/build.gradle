@@ -4,6 +4,7 @@ dependencies {
     processor 'com.google.auto.service:auto-service'
     processor 'org.immutables:value'
 
+    compile 'com.google.guava:guava'
     compile 'com.palantir.safe-logging:safe-logging'
     compile 'io.dropwizard.metrics:metrics-core'
 
