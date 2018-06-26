@@ -27,7 +27,7 @@ class InstrumentationProxy<T> extends InvocationEventProxy<InvocationContext> {
 
     InstrumentationProxy(InstrumentationFilter instrumentationFilter,
             List<InvocationEventHandler<InvocationContext>> handlers, T delegate) {
-        super(instrumentationFilter, handlers);
+        super(handlers, instrumentationFilter);
         this.delegate = delegate;
     }
 

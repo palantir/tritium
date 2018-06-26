@@ -131,7 +131,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
                 exception);
     }
 
-    private void handleSuccess(InvocationEventHandler<?> handler,
+    private static void handleSuccess(InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             @Nullable Object result) {
 
@@ -146,7 +146,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
-    private void handleFailure(InvocationEventHandler<?> handler,
+    private static void handleFailure(InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             Throwable cause) {
 

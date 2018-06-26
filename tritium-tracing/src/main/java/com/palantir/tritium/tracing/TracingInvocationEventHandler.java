@@ -36,7 +36,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     private final String component;
 
     public TracingInvocationEventHandler(String component) {
-        super(getEnabledSupplier(component));
+        super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
         this.component = component;
     }
 
@@ -65,7 +65,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         Tracer.fastCompleteSpan();
     }
 
-    private void debugIfNullContext(@Nullable InvocationContext context) {
+    private static void debugIfNullContext(@Nullable InvocationContext context) {
         if (context == null) {
             logger.debug("Encountered null metric context likely due to exception in preInvocation");
         }

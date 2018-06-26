@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
@@ -28,9 +27,9 @@ import org.junit.Test;
 
 public class InstrumentationFiltersTest {
 
-    private TestInterface instance = mock(TestImplementation.class);
-    private Method method = testMethod();
-    private Object[] args = new Object[0];
+    private final TestInterface instance = mock(TestImplementation.class);
+    private final Method method = testMethod();
+    private final Object[] args = new Object[0];
 
     @Test
     public void testInstrumentAll() {
@@ -44,13 +43,13 @@ public class InstrumentationFiltersTest {
 
     @Test
     public void testFromTrueSupplier() {
-        InstrumentationFilter filter = InstrumentationFilters.from(BooleanSupplier.TRUE);
+        InstrumentationFilter filter = InstrumentationFilters.from((java.util.function.BooleanSupplier) () -> true);
         assertThat(filter.shouldInstrument(instance, method, args)).isTrue();
     }
 
     @Test
     public void testFromFalseSupplier() {
-        InstrumentationFilter filter = InstrumentationFilters.from(BooleanSupplier.FALSE);
+        InstrumentationFilter filter = InstrumentationFilters.from((java.util.function.BooleanSupplier) () -> false);
         assertThat(filter.shouldInstrument(instance, method, args)).isFalse();
     }
 

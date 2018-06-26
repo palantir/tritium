@@ -22,7 +22,6 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.logsafe.UnsafeArg;
-import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -97,7 +96,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         return builder.build();
     }
 
-    static BooleanSupplier getEnabledSupplier(final String serviceName) {
+    static java.util.function.BooleanSupplier getEnabledSupplier(String serviceName) {
         return InstrumentationProperties.getSystemPropertySupplier(serviceName);
     }
 

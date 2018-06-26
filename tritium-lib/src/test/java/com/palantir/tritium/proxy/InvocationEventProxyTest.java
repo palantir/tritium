@@ -19,13 +19,14 @@ package com.palantir.tritium.proxy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
-import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.DefaultInvocationContext;
+import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.junit.Test;
@@ -37,9 +38,8 @@ public class InvocationEventProxyTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testDisabled() throws Throwable {
-        BooleanSupplier disabled = BooleanSupplier.FALSE;
         InvocationEventProxy<InvocationContext> proxy = new InvocationEventProxy<InvocationContext>(
-                disabled, Collections.emptyList()) {
+                Collections.emptyList(), InstrumentationFilters.from((BooleanSupplier) () -> false)) {
             @Override
             Object getDelegate() {
                 return "disabled";
@@ -54,15 +54,15 @@ public class InvocationEventProxyTest {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler();
         InvocationEventProxy<InvocationContext> proxy = createTestProxy(ImmutableList.of(testHandler));
 
-        Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object result1 = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
-        assertThat(result).isNotNull();
-        assertThat(result.toString()).isEqualTo("test");
+        assertThat(result1).isNotNull();
+        assertThat(result1.toString()).isEqualTo("test");
 
-        result = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertThat(result).isNotNull();
-        assertThat(result).isInstanceOf(DefaultInvocationContext.class);
-        assertThat(result.toString()).contains(InvocationEventProxyTest.class.getName());
+        Object result2 = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        assertThat(result2).isNotNull();
+        assertThat(result2).isInstanceOf(DefaultInvocationContext.class);
+        assertThat(result2.toString()).contains(InvocationEventProxyTest.class.getName());
 
         InvocationContext context = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
         assertThat(context).isNotNull();
@@ -110,7 +110,7 @@ public class InvocationEventProxyTest {
         proxy.handleOnSuccess(context, result);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testInstrumentOnFailureThrows() throws Throwable {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler() {
@@ -133,7 +133,9 @@ public class InvocationEventProxyTest {
         assertThat(result.toString()).isEqualTo("test");
 
         InvocationContext context = DefaultInvocationContext.of(this, getToStringMethod(), null);
-        throw proxy.handleOnFailure(context, new RuntimeException("expected"));
+        RuntimeException expected = new RuntimeException("expected");
+        Throwable throwable = proxy.handleOnFailure(context, expected);
+        assertThat(throwable).isSameAs(expected);
     }
 
     @Test
@@ -155,7 +157,7 @@ public class InvocationEventProxyTest {
         assertThat(proxy.toString()).isEqualTo("Hello, world");
     }
 
-    private InvocationEventProxy<InvocationContext> createTestProxy(
+    private static InvocationEventProxy<InvocationContext> createTestProxy(
             List<InvocationEventHandler<InvocationContext>> handlers) {
         return new InvocationEventProxy<InvocationContext>(handlers) {
             @Override

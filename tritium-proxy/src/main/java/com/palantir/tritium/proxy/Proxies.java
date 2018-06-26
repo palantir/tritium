@@ -56,14 +56,14 @@ public final class Proxies {
      * Determine the superset of interfaces for the specified arguments.
      *
      * @param iface primary interface class
-     * @param additionalInterfaces additional interfaces
      * @param delegateClass delegate class
+     * @param additionalInterfaces additional interfaces
      * @return the set of interfaces for the specified classes
      * @throws IllegalArgumentException if the specified interface class is not an interface
      */
     static Class<?>[] interfaces(Class<?> iface,
-                                 Collection<Class<?>> additionalInterfaces,
-                                 Class<?> delegateClass) {
+                                 Class<?> delegateClass,
+                                 Collection<Class<?>> additionalInterfaces) {
         checkIsInterface(iface);
         Objects.requireNonNull(additionalInterfaces, "additionalInterfaces");
         Objects.requireNonNull(delegateClass, "delegateClass");
@@ -89,7 +89,7 @@ public final class Proxies {
      * @throws IllegalArgumentException if the specified interface class is not an interface
      */
     static Class<?>[] interfaces(Class<?> iface, Class<?> delegateClass) {
-        return interfaces(iface, Collections.emptySet(), delegateClass);
+        return interfaces(iface, delegateClass, Collections.emptySet());
     }
 
     static void checkIsInterface(Class<?> iface) {

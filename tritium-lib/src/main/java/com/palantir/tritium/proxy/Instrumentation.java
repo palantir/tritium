@@ -29,6 +29,7 @@ import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.LongPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +42,10 @@ public final class Instrumentation {
         throw new UnsupportedOperationException();
     }
 
-    static <T, U extends T> T wrap(
-            Class<T> interfaceClass,
-            final U delegate,
-            final InstrumentationFilter instrumentationFilter,
-            final List<InvocationEventHandler<InvocationContext>> handlers) {
+    static <T, U extends T> T wrap(Class<T> interfaceClass,
+                                   U delegate,
+                                   List<InvocationEventHandler<InvocationContext>> handlers,
+                                   InstrumentationFilter instrumentationFilter) {
 
         checkNotNull(interfaceClass, "interfaceClass");
         checkNotNull(delegate, "delegate");
@@ -63,14 +63,13 @@ public final class Instrumentation {
     /**
      * Wraps delegate with instrumentation.
      *
-     * @deprecated Use {@link #wrap(Class, Object, InstrumentationFilter, List)}
+     * @deprecated Use {@link #wrap(Class, Object, List, InstrumentationFilter)}
      */
     @Deprecated
-    static <T, U extends T> T wrap(
-            Class<T> interfaceClass,
-            final U delegate,
-            final List<InvocationEventHandler<InvocationContext>> handlers) {
-        return wrap(interfaceClass, delegate, InstrumentationFilters.INSTRUMENT_ALL, handlers);
+    static <T, U extends T> T wrap(Class<T> interfaceClass,
+                                   U delegate,
+                                   List<InvocationEventHandler<InvocationContext>> handlers) {
+        return wrap(interfaceClass, delegate, handlers, InstrumentationFilters.INSTRUMENT_ALL);
     }
 
     /**
@@ -139,17 +138,21 @@ public final class Instrumentation {
             return withLogging(
                     getPerformanceLoggerForInterface(interfaceClass),
                     LoggingLevel.TRACE,
-                    LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND);
+                    (LongPredicate) LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND);
         }
 
         /**
          * Bridge for backward compatibility.
+         * @deprecated use {@link #withLogging(Logger, LoggingLevel, java.util.function.LongPredicate)}
          */
+        @Deprecated
+        @SuppressWarnings("FunctionalInterfaceClash") // back compat
         public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel,
                 com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
             return withLogging(logger, loggingLevel, (java.util.function.LongPredicate) durationPredicate);
         }
 
+        @SuppressWarnings("FunctionalInterfaceClash")
         public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel,
                 java.util.function.LongPredicate durationPredicate) {
             this.handlers.add(new LoggingInvocationEventHandler(logger, loggingLevel, durationPredicate));
@@ -173,7 +176,7 @@ public final class Instrumentation {
         }
 
         public T build() {
-            return wrap(interfaceClass, delegate, filter, handlers.build());
+            return wrap(interfaceClass, delegate, handlers.build(), filter);
         }
     }
 

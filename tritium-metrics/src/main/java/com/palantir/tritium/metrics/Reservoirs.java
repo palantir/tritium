@@ -47,7 +47,7 @@ final class Reservoirs {
         return hdrHistogramReservoirSupplier(twoSignificantDigits());
     }
 
-    static Supplier<Reservoir> hdrHistogramReservoirSupplier(final Supplier<Recorder> recorder) {
+    static Supplier<Reservoir> hdrHistogramReservoirSupplier(Supplier<Recorder> recorder) {
         checkNotNull(recorder, "recorder");
         return () -> new HdrHistogramReservoir(recorder.get());
     }

@@ -17,6 +17,7 @@
 package com.palantir.tritium.event.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -92,20 +93,22 @@ public class LoggingInvocationEventHandlerTest {
 
     }
 
-    private Logger getLogger() {
+    private static Logger getLogger() {
         return LoggerFactory.getLogger(LoggingInvocationEventHandlerTest.class);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullIsEnabled() {
-        //noinspection ConstantConditions
-        LoggingInvocationEventHandler.isEnabled(getLogger(), null);
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
+            //noinspection ConstantConditions
+            LoggingInvocationEventHandler.isEnabled(getLogger(), null);
+        });
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullLevel() {
-        //noinspection ConstantConditions
-        new LoggingInvocationEventHandler(getLogger(), null);
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
+                new LoggingInvocationEventHandler(getLogger(), null));
     }
 
     @Test
@@ -162,7 +165,7 @@ public class LoggingInvocationEventHandlerTest {
         assertThat(LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND)
                 .isInstanceOf(com.palantir.tritium.api.functions.LongPredicate.class);
 
-        com.palantir.tritium.api.functions.LongPredicate legacyPredicate = input -> false;
+        java.util.function.LongPredicate legacyPredicate = input -> false;
         assertThat(new LoggingInvocationEventHandler(getLogger(), LoggingLevel.TRACE, legacyPredicate)).isNotNull();
     }
 

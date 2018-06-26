@@ -18,9 +18,10 @@ package com.palantir.tritium.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -32,7 +33,6 @@ import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Slf4jReporter.LoggingLevel;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.InstrumentationFilters;
@@ -56,6 +56,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
 public class InstrumentationTest {
@@ -79,7 +80,7 @@ public class InstrumentationTest {
     @Mock
     private InvocationEventHandler<InvocationContext> mockHandler;
 
-    private MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
+    private final MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
 
     @After
     public void after() {
@@ -92,7 +93,7 @@ public class InstrumentationTest {
     public void testEmptyHandlers() {
         TestInterface delegate = new TestImplementation();
         TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate,
-                InstrumentationFilters.INSTRUMENT_NONE, Collections.emptyList());
+                Collections.emptyList(), InstrumentationFilters.INSTRUMENT_NONE);
         assertThat(instrumented).isEqualTo(delegate);
         assertThat(Proxy.isProxyClass(instrumented.getClass())).isFalse();
     }
@@ -263,57 +264,68 @@ public class InstrumentationTest {
         verifyNoMoreInteractions(mockHandler);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullInterface() {
-        //noinspection ConstantConditions
-        Instrumentation.builder(null, new Object());
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> Instrumentation.builder(null, new Object()))
+                .withMessage("class");
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullDelegate() {
-        //noinspection ConstantConditions
-        Instrumentation.builder(Runnable.class, null);
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> Instrumentation.builder(Runnable.class, null))
+                .withMessage("delegate");
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullMetricRegistry() {
-        //noinspection ConstantConditions
-        Instrumentation.builder(Runnable.class, new TestImplementation()).withMetrics(null);
+        Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(Runnable.class,
+                new TestImplementation());
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> builder.withMetrics(null))
+                .withMessage("metricRegistry");
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullLogger() {
-        //noinspection ConstantConditions
-        Instrumentation.builder(Runnable.class, new TestImplementation())
-                .withLogging(null, null, LoggingInvocationEventHandler.NEVER_LOG);
+        Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(
+                Runnable.class, new TestImplementation());
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> builder.withLogging(null,
+                        com.palantir.tritium.event.log.LoggingLevel.INFO, LoggingInvocationEventHandler.NEVER_LOG))
+                .withMessage("logger");
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
+    public void testNullLogLevel() {
+        Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(
+                Runnable.class, new TestImplementation());
+        Logger logger = LoggerFactory.getLogger(InstrumentationTest.class);
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> builder.withLogging(logger, null, LoggingInvocationEventHandler.NEVER_LOG))
+                .withMessage("level");
+    }
+
+    @Test
     public void testNullFilter() {
-        //noinspection ConstantConditions
-        Instrumentation.builder(Runnable.class, new TestImplementation())
-                .withFilter(null);
+        Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(Runnable.class,
+                new TestImplementation());
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> builder.withFilter(null))
+                .withMessage("instrumentationFilter");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testInaccessibleConstructor() {
-        Constructor<?> constructor = null;
-        try {
-            constructor = Instrumentation.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            constructor.newInstance();
-        } catch (InvocationTargetException expected) {
-            throw Throwables.propagate(expected.getCause());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (constructor != null) {
-                constructor.setAccessible(false);
-            }
-        }
+    @Test
+    public void testInaccessibleConstructor() throws NoSuchMethodException {
+        Constructor<Instrumentation> constructor = Instrumentation.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        assertThatThrownBy(constructor::newInstance)
+                .isInstanceOf(InvocationTargetException.class)
+                .hasRootCauseExactlyInstanceOf(UnsupportedOperationException.class);
     }
 
-    private static InstrumentationFilter methodNameFilter(final String methodName) {
+    private static InstrumentationFilter methodNameFilter(String methodName) {
         return (instance, method, args) -> method.getName().equals(methodName);
     }
 }

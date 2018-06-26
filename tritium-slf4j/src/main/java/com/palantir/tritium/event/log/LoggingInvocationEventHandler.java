@@ -61,20 +61,24 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     private final java.util.function.LongPredicate durationPredicate;
 
     public LoggingInvocationEventHandler(Logger logger, LoggingLevel level) {
-        this(logger, level, LOG_ALL_DURATIONS);
+        this(logger, level, (java.util.function.LongPredicate) LOG_ALL_DURATIONS);
     }
 
     /**
      * Bridge for backward compatibility.
+     * @deprecated uSe {@link #LoggingInvocationEventHandler(Logger, LoggingLevel, java.util.function.LongPredicate)}
      */
+    @Deprecated
+    @SuppressWarnings("FunctionalInterfaceClash") // back compat
     public LoggingInvocationEventHandler(Logger logger, LoggingLevel level,
             com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
         this(logger, level, (java.util.function.LongPredicate) durationPredicate);
     }
 
+    @SuppressWarnings("FunctionalInterfaceClash") // back compat
     public LoggingInvocationEventHandler(Logger logger, LoggingLevel level,
             java.util.function.LongPredicate durationPredicate) {
-        super(createEnabledSupplier(logger, level));
+        super((java.util.function.BooleanSupplier) createEnabledSupplier(logger, level));
         this.logger = checkNotNull(logger, "logger");
         this.level = checkNotNull(level, "level");
         this.durationPredicate = checkNotNull(durationPredicate, "durationPredicate");
@@ -114,8 +118,8 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         }
     }
 
-    @SuppressWarnings({"Slf4jConstantLogMessage", "Slf4jLogsafeArgs"})
-    // All message formats are generated with placeholders
+    // All message formats are generated with placeholders and safe args
+    @SuppressWarnings({"Slf4jConstantLogMessage", "Slf4jLogsafeArgs", "Var"})
     private void log(final String messageFormat, Object... args) {
         switch (level) {
             case TRACE:
@@ -159,7 +163,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         return new IllegalArgumentException("Unsupported logging level " + level);
     }
 
-    private static BooleanSupplier createEnabledSupplier(final Logger logger, final LoggingLevel level) {
+    private static BooleanSupplier createEnabledSupplier(Logger logger, LoggingLevel level) {
         checkNotNull(logger, "logger");
         checkNotNull(level, "level");
         if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).getAsBoolean()) {

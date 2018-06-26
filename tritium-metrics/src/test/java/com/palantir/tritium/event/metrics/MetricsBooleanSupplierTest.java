@@ -19,12 +19,12 @@ package com.palantir.tritium.event.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.InstrumentationProperties;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,7 +92,7 @@ public class MetricsBooleanSupplierTest {
         System.setProperty("instrument.test", String.valueOf(service));
         InstrumentationProperties.reload();
         BooleanSupplier supplier = MetricsInvocationEventHandler.getEnabledSupplier("test");
-        assertThat(supplier.asBoolean()).isEqualTo(expected);
+        assertThat(supplier.getAsBoolean()).isEqualTo(expected);
     }
 
 }

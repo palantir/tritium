@@ -17,7 +17,6 @@
 package com.palantir.tritium.event;
 
 import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 
@@ -37,8 +36,20 @@ public enum InstrumentationFilters implements InstrumentationFilter {
         }
     };
 
-    public static InstrumentationFilter from(final BooleanSupplier isEnabledSupplier) {
+    @SuppressWarnings("FunctionalInterfaceClash")
+    public static InstrumentationFilter from(java.util.function.BooleanSupplier isEnabledSupplier) {
         return (instance, method, args) ->
-                isEnabledSupplier.asBoolean();
+                isEnabledSupplier.getAsBoolean();
     }
+
+    /**
+     * Bridge for backward compatibility.
+     * @deprecated use {@link #from(java.util.function.BooleanSupplier)}
+     */
+    @Deprecated
+    @SuppressWarnings("FunctionalInterfaceClash") // back compat
+    public static InstrumentationFilter from(com.palantir.tritium.api.functions.BooleanSupplier isEnabledSupplier) {
+        return from((java.util.function.BooleanSupplier) isEnabledSupplier);
+    }
+
 }

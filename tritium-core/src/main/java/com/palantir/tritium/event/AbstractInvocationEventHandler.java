@@ -36,16 +36,24 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      * Always enabled instrumentation handler.
      */
     protected AbstractInvocationEventHandler() {
-        this(com.palantir.tritium.api.functions.BooleanSupplier.TRUE);
+        this((java.util.function.BooleanSupplier) () -> true);
     }
 
     /**
      * Bridge for backward compatibility.
+     * @deprecated Use {@link #AbstractInvocationEventHandler(java.util.function.BooleanSupplier)}
      */
+    @Deprecated
+    @SuppressWarnings("FunctionalInterfaceClash") // back compat
     protected AbstractInvocationEventHandler(com.palantir.tritium.api.functions.BooleanSupplier isEnabledSupplier) {
         this((java.util.function.BooleanSupplier) isEnabledSupplier);
     }
 
+    /**
+     * Constructs {@link AbstractInvocationEventHandler} with specified enabled supplier.
+     * @param isEnabledSupplier enabled supplier
+     */
+    @SuppressWarnings("FunctionalInterfaceClash")
     protected AbstractInvocationEventHandler(java.util.function.BooleanSupplier isEnabledSupplier) {
         this.isEnabledSupplier = checkNotNull(isEnabledSupplier, "isEnabledSupplier");
     }
