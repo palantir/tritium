@@ -24,7 +24,8 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import com.google.auto.service.AutoService;
-import java.util.Collections;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +37,7 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     private static final TaggedMetricRegistry DEFAULT = new DefaultTaggedMetricRegistry();
 
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
+    private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
 
     public DefaultTaggedMetricRegistry() {}
 
@@ -93,12 +95,32 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
 
     @Override
     public Map<MetricName, Metric> getMetrics() {
-        return Collections.unmodifiableMap(registry);
+        ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.<MetricName, Metric>builder()
+                .putAll(registry);
+        taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
+                .forEach((metricName, metric) -> result.put(
+                        MetricName.builder()
+                                .from(metricName)
+                                .putSafeTags(tag.getKey(), tag.getValue())
+                                .build(),
+                        metric)));
+
+        return result.build();
     }
 
     @Override
     public Optional<Metric> remove(MetricName metricName) {
         return Optional.ofNullable(registry.remove(metricName));
+    }
+
+    @Override
+    public void addMetrics(String safeTagName, String safeTagValue, TaggedMetricSet other) {
+        taggedRegistries.put(Maps.immutableEntry(safeTagName, safeTagValue), other);
+    }
+
+    @Override
+    public Optional<TaggedMetricSet> removeMetrics(String safeTagName, String safeTagValue) {
+        return Optional.ofNullable(taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue)));
     }
 
     private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
