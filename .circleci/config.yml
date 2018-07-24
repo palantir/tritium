@@ -38,18 +38,6 @@ jobs:
           when: always
       - store_test_results:
           path: ~/junit
-      - store_artifacts:
-          path: ~/junit
-
-      - run:
-          command: |
-            mkdir -p ~/reports
-            find . -type f -regex ".*/build/reports/.*" -exec cp --parents {} ~/reports/ \;
-          when: always
-      - store_test_results:
-          path: ~/reports
-      - store_artifacts:
-          path: ~/reports
 
       - deploy:
           command: |
@@ -74,4 +62,3 @@ workflows:
             # CircleCI2 will ignore tags without this. https://circleci.com/docs/2.0/workflows/#git-tag-job-execution
             tags:
               only: /.*/
-
