@@ -100,4 +100,12 @@ public class TritiumTest {
                 .getCount())
                 .isEqualTo(1);
     }
+
+    @Test
+    public void testToString() {
+        assertThat(instrumentedService.toString()).isEqualTo(TestImplementation.class.getName());
+
+        assertThat(Tritium.instrument(TestInterface.class, instrumentedService, metricRegistry).toString())
+                .isEqualTo(TestImplementation.class.getName());
+    }
 }

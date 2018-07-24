@@ -138,9 +138,21 @@ public class InvocationEventProxyTest {
 
     @Test
     public void testToInvocationDebugString() throws Exception {
-
         Throwable cause = new RuntimeException("cause");
         InvocationEventProxy.logInvocationWarning("test", this, getToStringMethod(), null, cause);
+    }
+
+    @Test
+    public void testInstrumentToString() {
+        List<InvocationEventHandler<InvocationContext>> handlers = Collections.emptyList();
+        InvocationEventProxy<InvocationContext> proxy = new InvocationEventProxy<InvocationContext>(handlers) {
+            @Override
+            Object getDelegate() {
+                return "Hello, world";
+            }
+        };
+
+        assertThat(proxy.toString()).isEqualTo("Hello, world");
     }
 
     private InvocationEventProxy<InvocationContext> createTestProxy(

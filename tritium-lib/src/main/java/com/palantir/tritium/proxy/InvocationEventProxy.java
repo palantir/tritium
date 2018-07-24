@@ -73,6 +73,11 @@ abstract class InvocationEventProxy<C extends InvocationContext>
      */
     abstract Object getDelegate();
 
+    @Override
+    public String toString() {
+        return String.valueOf(getDelegate());
+    }
+
     /**
      * Returns true if instrumentation handling is enabled, otherwise false.
      *
