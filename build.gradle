@@ -52,10 +52,6 @@ allprojects {
         }
     }
 
-    configurations {
-        testArtifacts.extendsFrom testCompile
-    }
-
     repositories {
         mavenCentral()
         maven {

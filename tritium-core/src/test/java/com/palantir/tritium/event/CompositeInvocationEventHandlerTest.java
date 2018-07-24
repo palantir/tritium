@@ -19,6 +19,7 @@ package com.palantir.tritium.event;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.palantir.tritium.test.event.ThrowingInvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
