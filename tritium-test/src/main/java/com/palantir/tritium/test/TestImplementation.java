@@ -73,4 +73,9 @@ public class TestImplementation implements TestInterface, Runnable {
             super(message);
         }
     }
+
+    @Override
+    public String toString() {
+        return TestImplementation.class.getName();
+    }
 }
