@@ -1,7 +1,7 @@
 apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
-    testCompile project(path: ':tritium-core', configuration: 'testArtifacts')
+    testCompile project(':tritium-test')
     testCompile 'com.google.guava:guava-testlib'
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'

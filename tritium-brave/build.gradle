@@ -7,7 +7,7 @@ dependencies {
     compile 'io.zipkin.brave:brave-core'
     compile 'org.slf4j:slf4j-api'
 
-    testCompile project(path: ':tritium-core', configuration: 'testArtifacts')
+    testCompile project(':tritium-test')
     testCompile 'com.google.guava:guava-testlib'
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'

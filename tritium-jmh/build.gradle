@@ -40,7 +40,7 @@ dependencies {
     compile 'org.openjdk.jmh:jmh-generator-annprocess'
     compile 'org.slf4j:slf4j-api'
 
-    testCompile project(path: ':tritium-core', configuration: 'testArtifacts')
+    testCompile project(':tritium-test')
     testCompile 'io.zipkin.brave:brave-spancollector-http'
     testCompile 'io.zipkin.java:zipkin-junit'
     testCompile 'com.google.guava:guava-testlib'
