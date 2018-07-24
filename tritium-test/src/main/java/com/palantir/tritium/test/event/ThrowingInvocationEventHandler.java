@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2016 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2018 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.event;
+package com.palantir.tritium.test.event;
 
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-class ThrowingInvocationEventHandler implements InvocationEventHandler<InvocationContext> {
+@SuppressWarnings("DesignForExtension")
+public class ThrowingInvocationEventHandler implements InvocationEventHandler<InvocationContext> {
 
     private final boolean isEnabled;
 
-    ThrowingInvocationEventHandler(boolean isEnabled) {
+    public ThrowingInvocationEventHandler(boolean isEnabled) {
         this.isEnabled = isEnabled;
     }
 

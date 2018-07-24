@@ -1,20 +1,14 @@
-apply from: "${rootDir}/gradle/publish.gradle"
-
 dependencies {
-    compile project(':tritium-api')
     compile project(':tritium-core')
-
-    compile 'com.palantir.remoting3:tracing'
+    compile 'com.google.guava:guava'
     compile 'com.palantir.safe-logging:safe-logging'
+    compile 'io.dropwizard.metrics:metrics-core'
     compile 'org.slf4j:slf4j-api'
 
-    testCompile project(':tritium-test')
-
-    testCompile 'ch.qos.logback:logback-classic'
     testCompile 'com.google.guava:guava-testlib'
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.hamcrest:hamcrest-all'
     testCompile 'org.mockito:mockito-all'
+    testCompile 'org.slf4j:slf4j-simple'
 }
-

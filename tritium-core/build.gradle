@@ -6,12 +6,11 @@ dependencies {
     compile 'com.palantir.safe-logging:safe-logging'
     compile 'org.slf4j:slf4j-api'
 
+    testCompile project(':tritium-test')
     testCompile 'com.google.guava:guava-testlib'
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.hamcrest:hamcrest-all'
     testCompile 'org.mockito:mockito-all'
     testCompile 'org.slf4j:slf4j-simple'
-
-    testArtifacts sourceSets.test.output
 }

@@ -16,13 +16,12 @@ dependencies {
     compile 'org.hdrhistogram:HdrHistogram'
     compile 'org.slf4j:slf4j-api'
 
+    testCompile project(':tritium-test')
     testCompile 'ch.qos.logback:logback-classic'
     testCompile 'com.google.guava:guava-testlib'
     testCompile 'junit:junit'
     testCompile 'org.assertj:assertj-core'
     testCompile 'org.hamcrest:hamcrest-all'
     testCompile 'org.mockito:mockito-all'
-
-    testArtifacts sourceSets.test.output
 }
 
