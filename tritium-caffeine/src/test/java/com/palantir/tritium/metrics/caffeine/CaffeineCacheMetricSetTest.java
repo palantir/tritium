@@ -26,12 +26,15 @@ import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.TestClock;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -45,6 +48,19 @@ public class CaffeineCacheMetricSetTest {
 
     @Mock
     private LoadingCache<Integer, String> cache;
+
+    @Mock
+    private Policy<Integer, String> policy;
+
+    @Mock
+    private Policy.Eviction<Integer, String> evictionPolicy;
+
+    @Before
+    public void before() throws Exception {
+        when(cache.policy()).thenReturn(policy);
+        when(policy.eviction()).thenReturn(Optional.of(evictionPolicy));
+        when(evictionPolicy.getMaximum()).thenReturn(1234L);
+    }
 
     @After
     public void after() {
@@ -68,6 +84,7 @@ public class CaffeineCacheMetricSetTest {
                 "test1.cache.load.average.millis",
                 "test1.cache.load.failure.count",
                 "test1.cache.load.success.count",
+                "test1.cache.maximum.size",
                 "test1.cache.miss.count",
                 "test1.cache.miss.ratio",
                 "test1.cache.request.count"
@@ -116,6 +133,7 @@ public class CaffeineCacheMetricSetTest {
                 "test2.cache.load.average.millis",
                 "test2.cache.load.failure.count",
                 "test2.cache.load.success.count",
+                "test2.cache.maximum.size",
                 "test2.cache.miss.count",
                 "test2.cache.miss.ratio",
                 "test2.cache.request.count");
