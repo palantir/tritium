@@ -16,9 +16,7 @@
 
 package com.palantir.tritium.proxy;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.api.functions.BooleanSupplier;
@@ -41,10 +39,10 @@ public class InvocationEventProxyTest {
     public void testDisabled() throws Throwable {
         BooleanSupplier disabled = BooleanSupplier.FALSE;
         InvocationEventProxy<InvocationContext> proxy = new InvocationEventProxy<InvocationContext>(
-                disabled, Collections.<InvocationEventHandler<InvocationContext>>emptyList()) {
+                disabled, Collections.emptyList()) {
             @Override
             Object getDelegate() {
-                return this;
+                return "disabled";
             }
         };
         proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
@@ -54,23 +52,24 @@ public class InvocationEventProxyTest {
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testInstrumentPreInvocation() throws Throwable {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler();
-        InvocationEventProxy<InvocationContext> proxy = createBasicProxy(ImmutableList.of(testHandler));
+        InvocationEventProxy<InvocationContext> proxy = createTestProxy(ImmutableList.of(testHandler));
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
-        assertNotNull(result);
-        assertThat(result.toString(), containsString(InvocationEventProxyTest.class.getName()));
+        assertThat(result).isNotNull();
+        assertThat(result.toString()).isEqualTo("test");
 
         result = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertNotNull(result);
-        assertThat(result.toString(), containsString(InvocationEventProxyTest.class.getName()));
+        assertThat(result).isNotNull();
+        assertThat(result).isInstanceOf(DefaultInvocationContext.class);
+        assertThat(result.toString()).contains(InvocationEventProxyTest.class.getName());
 
         InvocationContext context = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertNotNull(context);
-        assertThat(context.toString(), containsString("startTimeNanos"));
-        assertThat(context.toString(), containsString("instance"));
-        assertThat(context.toString(), containsString("method"));
-        assertThat(context.toString(), containsString("args"));
+        assertThat(context).isNotNull();
+        assertThat(context.toString()).contains("startTimeNanos");
+        assertThat(context.toString()).contains("instance");
+        assertThat(context.toString()).contains("method");
+        assertThat(context.toString()).contains("args");
     }
 
     @Test
@@ -82,12 +81,12 @@ public class InvocationEventProxyTest {
                 throw new IllegalStateException("expected");
             }
         };
-        InvocationEventProxy<InvocationContext> proxy = createBasicProxy(ImmutableList.of(testHandler));
+        InvocationEventProxy<InvocationContext> proxy = createTestProxy(ImmutableList.of(testHandler));
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
-        assertNotNull(result);
-        assertThat(result.toString(), containsString(InvocationEventProxyTest.class.getName()));
+        assertThat(result).isNotNull();
+        assertThat(result.toString()).isEqualTo("test");
     }
 
     @Test
@@ -100,12 +99,12 @@ public class InvocationEventProxyTest {
             }
         };
 
-        InvocationEventProxy<InvocationContext> proxy = createBasicProxy(ImmutableList.of(testHandler));
+        InvocationEventProxy<InvocationContext> proxy = createTestProxy(ImmutableList.of(testHandler));
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
-        assertNotNull(result);
-        assertThat(result.toString(), containsString(InvocationEventProxyTest.class.getName()));
+        assertThat(result).isNotNull();
+        assertThat(result.toString()).isEqualTo("test");
 
         InvocationContext context = DefaultInvocationContext.of(this, getToStringMethod(), null);
         proxy.handleOnSuccess(context, result);
@@ -126,12 +125,12 @@ public class InvocationEventProxyTest {
             }
         };
 
-        InvocationEventProxy<InvocationContext> proxy = createBasicProxy(ImmutableList.of(testHandler));
+        InvocationEventProxy<InvocationContext> proxy = createTestProxy(ImmutableList.of(testHandler));
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
-        assertNotNull(result);
-        assertThat(result.toString(), containsString(InvocationEventProxyTest.class.getName()));
+        assertThat(result).isNotNull();
+        assertThat(result.toString()).isEqualTo("test");
 
         InvocationContext context = DefaultInvocationContext.of(this, getToStringMethod(), null);
         throw proxy.handleOnFailure(context, new RuntimeException("expected"));
@@ -139,19 +138,17 @@ public class InvocationEventProxyTest {
 
     @Test
     public void testToInvocationDebugString() throws Exception {
-        InvocationEventProxy<InvocationContext> proxy = createBasicProxy(
-                Collections.<InvocationEventHandler<InvocationContext>>emptyList());
 
         Throwable cause = new RuntimeException("cause");
-        proxy.logInvocationWarning("test", this, getToStringMethod(), null, cause);
+        InvocationEventProxy.logInvocationWarning("test", this, getToStringMethod(), null, cause);
     }
 
-    private InvocationEventProxy<InvocationContext> createBasicProxy(
+    private InvocationEventProxy<InvocationContext> createTestProxy(
             List<InvocationEventHandler<InvocationContext>> handlers) {
         return new InvocationEventProxy<InvocationContext>(handlers) {
             @Override
             Object getDelegate() {
-                return this;
+                return "test";
             }
         };
     }
