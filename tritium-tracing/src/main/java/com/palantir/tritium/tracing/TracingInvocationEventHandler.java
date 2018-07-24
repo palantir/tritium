@@ -61,7 +61,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
-        // TODO (davids): add Error event
+        // TODO(davids): add Error event
         Tracer.fastCompleteSpan();
     }
 
