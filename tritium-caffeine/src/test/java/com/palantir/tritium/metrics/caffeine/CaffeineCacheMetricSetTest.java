@@ -31,6 +31,7 @@ import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.TestClock;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
@@ -42,6 +43,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CaffeineCacheMetricSetTest {
+    private static final long MAXIMUM_CACHE_SIZE = 1234L;
+    private static final long WEIGHTED_CACHE_SIZE = 123L;
 
     private final MetricRegistry metrics = new MetricRegistry();
     private final TestClock clock = new TestClock();
@@ -56,10 +59,11 @@ public class CaffeineCacheMetricSetTest {
     private Policy.Eviction<Integer, String> evictionPolicy;
 
     @Before
-    public void before() throws Exception {
+    public void before() {
         when(cache.policy()).thenReturn(policy);
         when(policy.eviction()).thenReturn(Optional.of(evictionPolicy));
-        when(evictionPolicy.getMaximum()).thenReturn(1234L);
+        when(evictionPolicy.getMaximum()).thenReturn(MAXIMUM_CACHE_SIZE);
+        when(evictionPolicy.weightedSize()).thenReturn(OptionalLong.of(WEIGHTED_CACHE_SIZE));
     }
 
     @After
@@ -87,7 +91,8 @@ public class CaffeineCacheMetricSetTest {
                 "test1.cache.maximum.size",
                 "test1.cache.miss.count",
                 "test1.cache.miss.ratio",
-                "test1.cache.request.count"
+                "test1.cache.request.count",
+                "test1.cache.weighted.size"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(1L, 2L, 3L, 4L, 5L, 6L));
@@ -99,7 +104,9 @@ public class CaffeineCacheMetricSetTest {
         assertThat(gauges.get("test1.cache.hit.ratio").getValue()).isEqualTo(1.0 / 3.0);
         assertThat(gauges.get("test1.cache.miss.count").getValue()).isEqualTo(2L);
         assertThat(gauges.get("test1.cache.miss.ratio").getValue()).isEqualTo(2.0 / 3.0);
+        assertThat(gauges.get("test1.cache.maximum.size").getValue()).isEqualTo(MAXIMUM_CACHE_SIZE);
         assertThat(gauges.get("test1.cache.estimated.size").getValue()).isEqualTo(42L);
+        assertThat(gauges.get("test1.cache.weighted.size").getValue()).isEqualTo(WEIGHTED_CACHE_SIZE);
         assertThat(gauges.get("test1.cache.eviction.count").getValue()).isEqualTo(6L);
         assertThat(gauges.get("test1.cache.load.average.millis").getValue()).isNotEqualTo(5.0 / 3.0);
         assertThat(gauges.get("test1.cache.load.failure.count").getValue()).isEqualTo(4L);
@@ -136,7 +143,9 @@ public class CaffeineCacheMetricSetTest {
                 "test2.cache.maximum.size",
                 "test2.cache.miss.count",
                 "test2.cache.miss.ratio",
-                "test2.cache.request.count");
+                "test2.cache.request.count",
+                "test2.cache.weighted.size"
+        );
 
         when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
         assertThat(metrics.getGauges().get("test2.cache.request.count").getValue()).isEqualTo(0L);
