@@ -95,6 +95,20 @@ final class CaffeineCacheMetricSet implements MetricSet {
                     }
                 });
 
+        cache.policy().eviction().ifPresent(eviction -> {
+            eviction.weightedSize().ifPresent(weightedSize -> cacheMetrics.put(
+                    cacheMetricName("weighted", "size"),
+                    (Gauge<Long>) () -> weightedSize));
+            cacheMetrics.put(
+                    cacheMetricName("maximum", "size"),
+                    new CachedGauge<Long>(clock, 500, TimeUnit.MILLISECONDS) {
+                        @Override
+                        protected Long loadValue() {
+                            return eviction.getMaximum();
+                        }
+                    });
+        });
+
         cacheMetrics.put(cacheMetricName("request", "count"),
                 derivedGauge(CacheStats::requestCount));
 
