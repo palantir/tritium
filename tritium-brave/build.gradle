@@ -1,18 +1,20 @@
 apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
-    compile project(':tritium-api')
-    compile project(':tritium-core')
+
+    api project(':tritium-api')
+    api project(':tritium-core')
+    api 'io.zipkin.brave:brave-core'
+
     compile 'com.palantir.safe-logging:safe-logging'
-    compile 'io.zipkin.brave:brave-core'
     compile 'org.slf4j:slf4j-api'
 
-    testCompile project(':tritium-test')
-    testCompile 'com.google.guava:guava-testlib'
-    testCompile 'junit:junit'
-    testCompile 'org.assertj:assertj-core'
-    testCompile 'org.hamcrest:hamcrest-all'
-    testCompile 'org.mockito:mockito-all'
-    testCompile 'org.slf4j:slf4j-simple'
+    testImplementation project(':tritium-test')
+    testImplementation 'com.google.guava:guava-testlib'
+    testImplementation 'junit:junit'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-all'
+    testImplementation 'org.slf4j:slf4j-simple'
+
 }
 

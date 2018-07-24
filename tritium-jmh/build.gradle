@@ -23,32 +23,32 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 dependencies {
-    compile project(':tritium-api')
-    compile project(':tritium-brave')
-    compile project(':tritium-core')
-    compile project(':tritium-lib')
-    compile project(':tritium-metrics')
-    compile project(':tritium-slf4j')
-    compile project(':tritium-tracing')
 
-    compile 'com.google.guava:guava'
-    compile 'io.dropwizard.metrics:metrics-core'
-    compile ('org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir') {
+    implementation project(':tritium-api')
+    implementation project(':tritium-brave')
+    implementation project(':tritium-core')
+    implementation project(':tritium-lib')
+    implementation project(':tritium-metrics')
+    implementation project(':tritium-slf4j')
+    implementation project(':tritium-tracing')
+
+    implementation 'com.google.guava:guava'
+    implementation 'io.dropwizard.metrics:metrics-core'
+    implementation ('org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir') {
         exclude group: 'org.hdrhistogram', module: 'HdrHistogram'
     }
-    compile 'org.openjdk.jmh:jmh-core'
-    compile 'org.openjdk.jmh:jmh-generator-annprocess'
-    compile 'org.slf4j:slf4j-api'
+    implementation 'org.openjdk.jmh:jmh-core'
+    implementation 'org.openjdk.jmh:jmh-generator-annprocess'
+    implementation 'org.slf4j:slf4j-api'
 
-    testCompile project(':tritium-test')
-    testCompile 'io.zipkin.brave:brave-spancollector-http'
-    testCompile 'io.zipkin.java:zipkin-junit'
-    testCompile 'com.google.guava:guava-testlib'
-    testCompile 'junit:junit'
-    testCompile 'org.assertj:assertj-core'
-    testCompile 'org.hamcrest:hamcrest-all'
-    testCompile 'org.mockito:mockito-all'
-    testCompile 'org.slf4j:slf4j-simple'
+    testImplementation project(':tritium-test')
+    testImplementation 'io.zipkin.brave:brave-spancollector-http'
+    testImplementation 'io.zipkin.java:zipkin-junit'
+    testImplementation 'com.google.guava:guava-testlib'
+    testImplementation 'junit:junit'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-all'
+    testImplementation 'org.slf4j:slf4j-simple'
 
     jmhCompile 'ch.qos.logback:logback-classic'
     jmhCompile 'io.zipkin.brave:brave-spancollector-http'
