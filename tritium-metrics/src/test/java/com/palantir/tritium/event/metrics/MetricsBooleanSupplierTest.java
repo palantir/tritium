@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -67,6 +68,14 @@ public class MetricsBooleanSupplierTest {
     @Parameterized.Parameter(value = 3)
     public boolean service;
 
+    @Before
+    public void before() {
+        System.clearProperty("instrument");
+        System.getProperties().entrySet().removeIf(entry ->
+                entry.getKey().toString().startsWith("instrument"));
+        InstrumentationProperties.reload();
+    }
+
     @After
     public void after() {
         Set<Map.Entry<Object, Object>> entries = System.getProperties().entrySet();
@@ -81,6 +90,7 @@ public class MetricsBooleanSupplierTest {
         System.setProperty("instrument.com.palantir.tritium.event.metrics.MetricsInvocationEventHandler",
                 String.valueOf(handler));
         System.setProperty("instrument.test", String.valueOf(service));
+        InstrumentationProperties.reload();
         BooleanSupplier supplier = MetricsInvocationEventHandler.getEnabledSupplier("test");
         assertThat(supplier.asBoolean()).isEqualTo(expected);
     }
