@@ -16,9 +16,8 @@
 
 package com.palantir.tritium.event.log;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.test.TestImplementation;
@@ -67,9 +66,9 @@ public class LoggingInstrumentationTest {
         Runnable instrumentedService = Instrumentation.builder(Runnable.class, delegate)
                 .withLogging(logger, LoggingLevel.TRACE, LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
                 .build();
-        assertThat(delegate.invocationCount(), equalTo(0));
+        assertThat(delegate.invocationCount()).isEqualTo(0);
         instrumentedService.run();
-        assertThat(delegate.invocationCount(), equalTo(1));
+        assertThat(delegate.invocationCount()).isEqualTo(1);
     }
 
     @Test
@@ -85,13 +84,13 @@ public class LoggingInstrumentationTest {
         TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
                 .withLogging(logger, LoggingLevel.ERROR, LoggingInvocationEventHandler.NEVER_LOG)
                 .build();
-        assertThat(delegate.invocationCount(), equalTo(0));
+        assertThat(delegate.invocationCount()).isEqualTo(0);
         try {
             instrumentedService.test();
         } catch (RuntimeException expected) {
-            assertThat(expected.getMessage(), equalTo("expected"));
+            assertThat(expected.getMessage()).isEqualTo("expected");
         }
-        assertThat(delegate.invocationCount(), equalTo(1));
+        assertThat(delegate.invocationCount()).isEqualTo(1);
     }
 
 
@@ -105,34 +104,34 @@ public class LoggingInstrumentationTest {
                 .withHandler(handler)
                 .build();
 
-        assertThat(LoggingInvocationEventHandler.isEnabled(logger, level), equalTo(true));
+        assertThat(LoggingInvocationEventHandler.isEnabled(logger, level)).isTrue();
 
-        assertThat(delegate.invocationCount(), equalTo(0));
+        assertThat(delegate.invocationCount()).isEqualTo(0);
 
         instrumented.multiArgumentMethod("test", 1, Collections.singletonList("hello"));
 
         switch (level) {
             case ERROR:
-                assertThat(logger.isErrorEnabled(), equalTo(true));
+                assertThat(logger.isErrorEnabled()).isTrue();
                 break;
             case WARN:
-                assertThat(logger.isWarnEnabled(), equalTo(true));
+                assertThat(logger.isWarnEnabled()).isTrue();
                 break;
             case INFO:
-                assertThat(logger.isInfoEnabled(), equalTo(true));
+                assertThat(logger.isInfoEnabled()).isTrue();
                 break;
             case DEBUG:
-                assertThat(logger.isDebugEnabled(), equalTo(true));
+                assertThat(logger.isDebugEnabled()).isTrue();
                 break;
             case TRACE:
-                assertThat(logger.isTraceEnabled(), equalTo(true));
+                assertThat(logger.isTraceEnabled()).isTrue();
                 break;
 
             default:
                 fail("Invalid level: " + level);
                 break;
         }
-        assertThat(delegate.invocationCount(), equalTo(1));
+        assertThat(delegate.invocationCount()).isEqualTo(1);
     }
 
 

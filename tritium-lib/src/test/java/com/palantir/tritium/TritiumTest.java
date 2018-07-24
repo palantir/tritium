@@ -17,7 +17,7 @@
 package com.palantir.tritium;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
@@ -29,9 +29,7 @@ import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.util.SortedMap;
 import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class TritiumTest {
 
@@ -40,9 +38,6 @@ public class TritiumTest {
     private TestImplementation delegate = new TestImplementation();
     private MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
     private TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metricRegistry);
-
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
 
     @After
     public void after() {
@@ -75,9 +70,9 @@ public class TritiumTest {
 
     @Test
     public void rethrowOutOfMemoryError() {
-        expectedException.expect(OutOfMemoryError.class);
-        expectedException.expectMessage("Testing OOM");
-        instrumentedService.throwsOutOfMemoryError();
+        assertThatThrownBy(() -> instrumentedService.throwsOutOfMemoryError())
+                .isInstanceOf(OutOfMemoryError.class)
+                .hasMessage("Testing OOM");
     }
 
     @Test
@@ -92,13 +87,9 @@ public class TritiumTest {
                 .getCount())
                 .isEqualTo(0);
 
-        try {
-            instrumentedService.throwsOutOfMemoryError();
-            fail("Should have thrown OutOfMemoryError");
-        } catch (OutOfMemoryError expected) {
-            assertThat(expected.getMessage()).isEqualTo("Testing OOM");
-
-        }
+        assertThatThrownBy(() -> instrumentedService.throwsOutOfMemoryError())
+                .isInstanceOf(OutOfMemoryError.class)
+                .hasMessage("Testing OOM");
 
         assertThat(metricRegistry.meter(
                 MetricRegistry.name(methodMetricName, "failures"))

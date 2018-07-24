@@ -1,27 +1,28 @@
 apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
+
     processor "org.immutables:value"
 
-    compile project(':tritium-api')
-    compile project(':tritium-core')
+    api project(':tritium-api')
+    api project(':tritium-core')
+    api 'io.dropwizard.metrics:metrics-core'
 
-    compile 'com.google.guava:guava'
-    compile 'com.palantir.safe-logging:safe-logging'
-    compile 'io.dropwizard.metrics:metrics-core'
-    compile ('org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir') {
+    implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:safe-logging'
+    implementation ('org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir') {
         exclude group: 'io.dropwizard.metrics', module: 'metrics-core'
         exclude group: 'org.hdrhistogram', module: 'HdrHistogram'
     }
-    compile 'org.hdrhistogram:HdrHistogram'
-    compile 'org.slf4j:slf4j-api'
+    implementation 'org.hdrhistogram:HdrHistogram'
+    implementation 'org.slf4j:slf4j-api'
 
-    testCompile project(':tritium-test')
-    testCompile 'ch.qos.logback:logback-classic'
-    testCompile 'com.google.guava:guava-testlib'
-    testCompile 'junit:junit'
-    testCompile 'org.assertj:assertj-core'
-    testCompile 'org.hamcrest:hamcrest-all'
-    testCompile 'org.mockito:mockito-all'
+    testImplementation project(':tritium-test')
+    testImplementation 'ch.qos.logback:logback-classic'
+    testImplementation 'com.google.guava:guava-testlib'
+    testImplementation 'junit:junit'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-all'
+
 }
 

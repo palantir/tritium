@@ -4,22 +4,24 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-    compile project(':tritium-api')
-    compile project(':tritium-core')
-    compile project(':tritium-metrics')
-    compile 'com.github.ben-manes.caffeine:caffeine'
-    compile 'com.google.guava:guava'
-    compile 'com.palantir.safe-logging:safe-logging'
-    compile 'io.dropwizard.metrics:metrics-core'
-    compile 'org.slf4j:slf4j-api'
 
-    testCompile project(':tritium-test')
-    testCompile 'ch.qos.logback:logback-classic'
-    testCompile 'com.google.guava:guava-testlib'
-    testCompile 'junit:junit'
-    testCompile 'org.assertj:assertj-core'
-    testCompile 'org.hamcrest:hamcrest-all'
-    testCompile 'org.mockito:mockito-all'
-    testCompile 'org.slf4j:slf4j-simple'
+    api project(':tritium-api')
+    api project(':tritium-core')
+    api project(':tritium-metrics')
+    api 'com.github.ben-manes.caffeine:caffeine'
+
+    implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:safe-logging'
+    implementation 'io.dropwizard.metrics:metrics-core'
+    implementation 'org.slf4j:slf4j-api'
+
+    testImplementation project(':tritium-test')
+    testImplementation 'ch.qos.logback:logback-classic'
+    testImplementation 'com.google.guava:guava-testlib'
+    testImplementation 'junit:junit'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-all'
+    testImplementation 'org.slf4j:slf4j-simple'
+
 }
 

@@ -1,14 +1,16 @@
 dependencies {
-    compile project(':tritium-core')
-    compile 'com.google.guava:guava'
-    compile 'com.palantir.safe-logging:safe-logging'
-    compile 'io.dropwizard.metrics:metrics-core'
-    compile 'org.slf4j:slf4j-api'
 
-    testCompile 'com.google.guava:guava-testlib'
-    testCompile 'junit:junit'
-    testCompile 'org.assertj:assertj-core'
-    testCompile 'org.hamcrest:hamcrest-all'
-    testCompile 'org.mockito:mockito-all'
-    testCompile 'org.slf4j:slf4j-simple'
+    api 'org.slf4j:slf4j-api'
+
+    implementation project(':tritium-core')
+    implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:safe-logging'
+    implementation 'io.dropwizard.metrics:metrics-core'
+
+    testImplementation 'com.google.guava:guava-testlib'
+    testImplementation 'junit:junit'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.mockito:mockito-all'
+    testImplementation 'org.slf4j:slf4j-simple'
+
 }
