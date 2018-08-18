@@ -61,6 +61,8 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
     }
 
     /**
+     * Returns system property based boolean supplier for the specified class.
+     *
      * @param clazz
      *        instrumentation handler class
      * @return false if "instrument.fully.qualified.class.Name" is set to "false", otherwise true

@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.UnsafeArg;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -121,12 +122,12 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             Object instance, Method method, Object[] args, Exception exception) {
         logger.warn("Exception handling preInvocation({}): "
                         + "invocation of {}.{} with arguments {} on {} threw: {}",
-                handler,
+                UnsafeArg.of("handler", handler),
                 SafeArg.of("class", method.getDeclaringClass().getCanonicalName()),
                 SafeArg.of("method", method.getName()),
-                Arrays.toString(args),
-                instance,
-                exception,
+                UnsafeArg.of("args", Arrays.toString(args)),
+                UnsafeArg.of("instance", instance),
+                UnsafeArg.of("exception", exception),
                 exception);
     }
 
@@ -136,9 +137,12 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
         try {
             handler.onSuccess(context, result);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException exception) {
             logger.warn("Exception handling onSuccess({}, {}): {}",
-                    context, result, e, e);
+                    UnsafeArg.of("context", context),
+                    UnsafeArg.of("result", result),
+                    UnsafeArg.of("exception", exception),
+                    exception);
         }
     }
 
@@ -148,9 +152,12 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
         try {
             handler.onFailure(context, cause);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException exception) {
             logger.warn("Exception handling onFailure({}, {}): {}",
-                    context, cause, e, e);
+                    UnsafeArg.of("context", context),
+                    UnsafeArg.of("cause", cause),
+                    UnsafeArg.of("exception", exception),
+                    exception);
         }
     }
 

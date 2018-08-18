@@ -13,7 +13,7 @@ buildscript {
         classpath 'gradle.plugin.com.palantir:gradle-circle-style:1.1.4'
         classpath 'com.netflix.nebula:nebula-dependency-recommender:6.0.0'
         classpath 'com.netflix.nebula:nebula-publishing-plugin:8.2.0'
-        classpath 'com.palantir.baseline:gradle-baseline-java:0.26.1'
+        classpath 'com.palantir.baseline:gradle-baseline-java:0.29.4'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.11.0'
         classpath 'com.palantir.configurationresolver:gradle-configuration-resolver-plugin:0.3.0'
@@ -46,9 +46,17 @@ allprojects {
         }
     }
 
+    configurations.checkstyle {
+        resolutionStrategy {
+            // checkstyle requires different Guava
+            force 'com.google.guava:guava:25.1-jre'
+        }
+    }
+
     configurations.errorprone {
         resolutionStrategy {
-            force 'com.google.guava:guava:21.0'
+            // error requires different Guava
+            force 'com.google.guava:guava:23.6.1-jre'
         }
     }
 

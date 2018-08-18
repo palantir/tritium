@@ -29,6 +29,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.logsafe.SafeArg;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -150,11 +151,13 @@ public final class MetricRegistries {
      *
      * @throws IllegalArgumentException if name is blank
      */
+    @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
     public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
         registerCache(registry, cache, name, Clock.defaultClock());
     }
 
     @VisibleForTesting
+    @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
     static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name, Clock clock) {
         checkNotNull(registry, "metric registry");
         checkNotNull(cache, "cache");
@@ -207,12 +210,15 @@ public final class MetricRegistries {
                 }
 
                 if (replace && registry.remove(name)) {
-                    logger.info("Removed existing registered metric with name {}: {}", name, existingMetric);
+                    logger.info("Removed existing registered metric with name {}: {}",
+                            SafeArg.of("name", name),
+                            SafeArg.of("existingMetric", existingMetric));
                     registry.register(name, metric);
                     return metric;
                 } else {
-                    logger.warn("Metric already registered at this name."
-                            + " Name: {}, existing metric: {}", name, existingMetric);
+                    logger.warn("Metric already registered at this name. Name: {}, existing metric: {}",
+                            SafeArg.of("name", name),
+                            SafeArg.of("existingMetric", existingMetric));
                     @SuppressWarnings("unchecked")
                     T registeredMetric = (T) existingMetric;
                     return registeredMetric;

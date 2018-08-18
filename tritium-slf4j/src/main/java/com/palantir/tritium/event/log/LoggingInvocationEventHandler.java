@@ -114,7 +114,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         }
     }
 
-    @SuppressWarnings("Slf4jConstantLogMessage")
+    @SuppressWarnings({"Slf4jConstantLogMessage", "Slf4jLogsafeArgs"})
     // All message formats are generated with placeholders
     private void log(final String messageFormat, Object... args) {
         switch (level) {
@@ -202,7 +202,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     static Object[] getLogParams(Method method, Object[] args, long durationNanos, LoggingLevel level) {
-        Object[] logParams = new Object[3 + args.length];
+        SafeArg[] logParams = new SafeArg[3 + args.length];
         logParams[0] = SafeArg.of("class", method.getDeclaringClass().getSimpleName());
         logParams[1] = SafeArg.of("method", method.getName());
         logParams[logParams.length - 1] = SafeArg.of("milliseconds", String.format("%.3f", durationNanos / 1000000.0d));
