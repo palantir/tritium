@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
+@SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
 final class CacheMetricSet implements MetricSet {
 
     private final Cache<?, ?> cache;

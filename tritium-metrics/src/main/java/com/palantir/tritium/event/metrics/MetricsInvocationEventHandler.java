@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
@@ -38,8 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link InvocationEventHandler} that records method timing and failures using Dropwizard
- * metrics.
+ * {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics.
  */
 public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
@@ -71,7 +71,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry, Class serviceClass, @Nullable String globalGroupPrefix) {
-       this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
+        this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
     }
 
     private static String failuresMetricName() {
@@ -132,7 +132,9 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         if (context == null) {
             markGlobalFailure();
-            logger.debug("Encountered null metric context likely due to exception in preInvocation: {}", cause, cause);
+            logger.debug("Encountered null metric context likely due to exception in preInvocation: {}",
+                    UnsafeArg.of("cause", cause),
+                    cause);
             return;
         }
 
