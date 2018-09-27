@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Reservoir;
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 abstract class AbstractReservoirMetricBuilder<T extends Metric> extends AbstractMetricBuilder<T> {
 

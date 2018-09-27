@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Timer;
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

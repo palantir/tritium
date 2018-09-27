@@ -2,8 +2,8 @@ apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
 
-    processor 'com.google.auto.service:auto-service'
-    processor 'org.immutables:value'
+    annotationProcessor 'com.google.auto.service:auto-service'
+    annotationProcessor 'org.immutables:value'
 
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:safe-logging'

@@ -2,7 +2,5 @@ apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
 
-    api 'com.google.code.findbugs:jsr305'
-
 }
 
