@@ -18,7 +18,7 @@ package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Reservoir;
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 final class HistogramMetricBuilder extends AbstractReservoirMetricBuilder<Histogram> {
 

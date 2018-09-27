@@ -22,6 +22,7 @@ buildscript {
 }
 
 apply plugin: 'java'
+apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
 apply plugin: 'com.palantir.baseline-config'
 apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.git-version'
@@ -40,23 +41,18 @@ allprojects {
         propertiesFile file: project.rootProject.file('versions.props')
     }
 
-    configurations.all {
-        resolutionStrategy {
-            failOnVersionConflict()
+    configurations {
+        all {
+            resolutionStrategy {
+                failOnVersionConflict()
+            }
         }
-    }
 
-    configurations.checkstyle {
-        resolutionStrategy {
-            // checkstyle requires different Guava
-            force 'com.google.guava:guava:25.1-jre'
-        }
-    }
-
-    configurations.errorprone {
-        resolutionStrategy {
-            // error requires different Guava
-            force 'com.google.guava:guava:23.6.1-jre'
+        checkstyle {
+            resolutionStrategy {
+                // checkstyle requires different Guava
+                force 'com.google.guava:guava:25.1-jre'
+            }
         }
     }
 

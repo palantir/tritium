@@ -19,7 +19,7 @@ package com.palantir.tritium.metrics;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Reservoir;
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 import org.HdrHistogram.Recorder;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
