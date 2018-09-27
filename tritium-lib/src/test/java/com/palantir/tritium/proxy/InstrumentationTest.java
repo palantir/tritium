@@ -17,6 +17,7 @@
 package com.palantir.tritium.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -216,14 +217,11 @@ public class InstrumentationTest {
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
                         .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
-                try {
-                    instrumentedService.throwsThrowable();
-                    fail("Expected throwable");
-                } catch (Throwable throwable) {
-                    assertThat(Throwables.getRootCause(throwable)).isInstanceOf(AssertionError.class);
-                    assertThat(throwable).isInstanceOf(AssertionError.class);
-                    assertThat(throwable.getCause()).isNull();
-                }
+
+                assertThatExceptionOfType(TestImplementation.TestThrowable.class)
+                        .isThrownBy(instrumentedService::throwsThrowable)
+                        .withMessage("TestThrowable")
+                        .withNoCause();
             }
         }
     }

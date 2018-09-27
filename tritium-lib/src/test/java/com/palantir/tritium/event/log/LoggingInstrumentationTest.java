@@ -17,6 +17,7 @@
 package com.palantir.tritium.event.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.fail;
 
 import com.palantir.tritium.proxy.Instrumentation;
@@ -85,11 +86,9 @@ public class LoggingInstrumentationTest {
                 .withLogging(logger, LoggingLevel.ERROR, LoggingInvocationEventHandler.NEVER_LOG)
                 .build();
         assertThat(delegate.invocationCount()).isEqualTo(0);
-        try {
-            instrumentedService.test();
-        } catch (RuntimeException expected) {
-            assertThat(expected.getMessage()).isEqualTo("expected");
-        }
+        assertThatExceptionOfType(RuntimeException.class)
+                .isThrownBy(instrumentedService::test)
+                .withMessage("expected");
         assertThat(delegate.invocationCount()).isEqualTo(1);
     }
 
