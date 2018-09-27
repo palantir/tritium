@@ -19,13 +19,13 @@ package com.palantir.tritium.event;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

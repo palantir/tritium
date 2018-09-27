@@ -2,7 +2,7 @@ apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
 
-    processor "org.immutables:value"
+    annotationProcessor "org.immutables:value"
 
     api project(':tritium-api')
     api project(':tritium-core')

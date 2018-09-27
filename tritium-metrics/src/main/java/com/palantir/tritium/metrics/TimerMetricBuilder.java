@@ -18,7 +18,7 @@ package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Timer;
-import com.google.common.base.Supplier;
+import java.util.function.Supplier;
 
 final class TimerMetricBuilder extends AbstractReservoirMetricBuilder<Timer> {
 

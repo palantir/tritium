@@ -13,15 +13,16 @@ buildscript {
         classpath 'gradle.plugin.com.palantir:gradle-circle-style:1.1.4'
         classpath 'com.netflix.nebula:nebula-dependency-recommender:6.0.0'
         classpath 'com.netflix.nebula:nebula-publishing-plugin:8.2.0'
-        classpath 'com.palantir.baseline:gradle-baseline-java:0.29.4'
+        classpath 'com.palantir.baseline:gradle-baseline-java:0.32.3'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.11.0'
         classpath 'com.palantir.configurationresolver:gradle-configuration-resolver-plugin:0.3.0'
-        classpath 'gradle.plugin.org.inferred:gradle-processors:1.2.16'
+        classpath 'gradle.plugin.org.inferred:gradle-processors:1.2.18'
     }
 }
 
 apply plugin: 'java'
+apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
 apply plugin: 'com.palantir.baseline-config'
 apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.git-version'
@@ -40,23 +41,18 @@ allprojects {
         propertiesFile file: project.rootProject.file('versions.props')
     }
 
-    configurations.all {
-        resolutionStrategy {
-            failOnVersionConflict()
+    configurations {
+        all {
+            resolutionStrategy {
+                failOnVersionConflict()
+            }
         }
-    }
 
-    configurations.checkstyle {
-        resolutionStrategy {
-            // checkstyle requires different Guava
-            force 'com.google.guava:guava:25.1-jre'
-        }
-    }
-
-    configurations.errorprone {
-        resolutionStrategy {
-            // error requires different Guava
-            force 'com.google.guava:guava:23.6.1-jre'
+        checkstyle {
+            resolutionStrategy {
+                // checkstyle requires different Guava
+                force 'com.google.guava:guava:25.1-jre'
+            }
         }
     }
 

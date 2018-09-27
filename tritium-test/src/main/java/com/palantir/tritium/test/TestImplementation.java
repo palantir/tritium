@@ -56,7 +56,7 @@ public class TestImplementation implements TestInterface, Runnable {
 
     @Override
     public int throwsThrowable() throws Throwable {
-        throw new AssertionError("Testing Error handling");
+        throw new TestThrowable();
     }
 
     @Override
@@ -78,4 +78,11 @@ public class TestImplementation implements TestInterface, Runnable {
     public String toString() {
         return TestImplementation.class.getName();
     }
+
+    public static final class TestThrowable extends Throwable {
+        TestThrowable() {
+            super(TestThrowable.class.getSimpleName());
+        }
+    }
+
 }
