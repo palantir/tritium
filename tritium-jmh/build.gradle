@@ -43,7 +43,7 @@ dependencies {
 
     testImplementation project(':tritium-test')
     testImplementation 'io.zipkin.brave:brave-spancollector-http'
-    testImplementation 'io.zipkin.java:zipkin-junit'
+    testImplementation 'io.zipkin.zipkin2:zipkin-junit'
     testImplementation 'com.google.guava:guava-testlib'
     testImplementation 'junit:junit'
     testImplementation 'org.assertj:assertj-core'
