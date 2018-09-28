@@ -29,7 +29,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import zipkin.Constants;
 
 public final class BraveLocalTracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
@@ -66,7 +65,7 @@ public final class BraveLocalTracingInvocationEventHandler extends AbstractInvoc
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
-        brave.localTracer().submitBinaryAnnotation(Constants.ERROR, String.valueOf(cause));
+        brave.localTracer().submitBinaryAnnotation("error", String.valueOf(cause));
         brave.localTracer().finishSpan();
     }
 

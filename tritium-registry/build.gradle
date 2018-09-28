@@ -11,6 +11,6 @@ dependencies {
 
     testImplementation 'junit:junit'
     testImplementation 'org.assertj:assertj-core'
-    testImplementation 'org.mockito:mockito-all'
+    testImplementation 'org.mockito:mockito-core'
 }
 

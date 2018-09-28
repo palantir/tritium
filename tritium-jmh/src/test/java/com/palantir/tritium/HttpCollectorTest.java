@@ -30,8 +30,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
-import zipkin.Span;
-import zipkin.junit.ZipkinRule;
+import zipkin2.Span;
+import zipkin2.junit.ZipkinRule;
 
 public class HttpCollectorTest {
 
