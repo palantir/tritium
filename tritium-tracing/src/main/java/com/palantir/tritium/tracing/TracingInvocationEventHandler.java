@@ -35,27 +35,29 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     private static final Logger logger = LoggerFactory.getLogger(TracingInvocationEventHandler.class);
 
     private final String component;
-    private final boolean useJavaTracing;
+    private final boolean shouldUseJavaTracing;
 
-    private static boolean ensureHttpRemotingTracingForwardToJavaTracing() {
+    private static boolean shouldUseJavaTracing() {
         // ugly but avoids double traces if old http-remoting3 tracing does not delegate to java-tracing
-        Runnable wrappedTrace = com.palantir.remoting3.tracing.Tracers.wrap(() -> {});
+        Runnable wrappedTrace = com.palantir.remoting3.tracing.Tracers.wrap(() -> {
+        });
         String expectedTracingPackage = com.palantir.tracing.Tracers.class.getPackage().getName();
         String actualTracingPackage = wrappedTrace.getClass().getPackage().getName();
-        boolean useJavaTracing = Objects.equals(expectedTracingPackage, actualTracingPackage);
-        if (!useJavaTracing) {
+        boolean foundMultipleTracingImplementations = !Objects.equals(expectedTracingPackage, actualTracingPackage);
+        if (foundMultipleTracingImplementations) {
             logger.error("Multiple tracing implementations detected, expected '{}' but found '{}',"
                             + " using legacy remoting3 tracing for backward compatibility",
                     SafeArg.of("expectedPackage", expectedTracingPackage),
                     SafeArg.of("actualPackage", actualTracingPackage));
+            return false;
         }
-        return useJavaTracing;
+        return true;
     }
 
     public TracingInvocationEventHandler(String component) {
         super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
         this.component = component;
-        this.useJavaTracing = ensureHttpRemotingTracingForwardToJavaTracing();
+        this.shouldUseJavaTracing = shouldUseJavaTracing();
     }
 
     @Override
@@ -84,7 +86,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     private void startSpan(String operationName) {
-        if (useJavaTracing) {
+        if (shouldUseJavaTracing) {
             com.palantir.tracing.Tracer.startSpan(operationName);
         } else {
             com.palantir.remoting3.tracing.Tracer.startSpan(operationName);
@@ -92,7 +94,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     private void completeSpan() {
-        if (useJavaTracing) {
+        if (shouldUseJavaTracing) {
             com.palantir.tracing.Tracer.fastCompleteSpan();
         } else {
             com.palantir.remoting3.tracing.Tracer.fastCompleteSpan();
