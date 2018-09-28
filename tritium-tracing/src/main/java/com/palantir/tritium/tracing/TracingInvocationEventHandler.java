@@ -17,13 +17,14 @@
 package com.palantir.tritium.tracing;
 
 import com.google.common.base.Strings;
-import com.palantir.tracing.Tracer;
+import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -34,17 +35,34 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     private static final Logger logger = LoggerFactory.getLogger(TracingInvocationEventHandler.class);
 
     private final String component;
+    private final boolean useJavaTracing;
+
+    private static boolean ensureHttpRemotingTracingForwardToJavaTracing() {
+        // ugly but avoids double traces if old http-remoting3 tracing does not delegate to java-tracing
+        Runnable wrappedTrace = com.palantir.remoting3.tracing.Tracers.wrap(() -> {});
+        String expectedTracingPackage = com.palantir.tracing.Tracers.class.getPackage().getName();
+        String actualTracingPackage = wrappedTrace.getClass().getPackage().getName();
+        boolean useJavaTracing = Objects.equals(expectedTracingPackage, actualTracingPackage);
+        if (!useJavaTracing) {
+            logger.error("Multiple tracing implementations detected, expected '{}' but found '{}',"
+                            + " using legacy remoting3 tracing for backward compatibility",
+                    SafeArg.of("expectedPackage", expectedTracingPackage),
+                    SafeArg.of("actualPackage", actualTracingPackage));
+        }
+        return useJavaTracing;
+    }
 
     public TracingInvocationEventHandler(String component) {
         super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
         this.component = component;
+        this.useJavaTracing = ensureHttpRemotingTracingForwardToJavaTracing();
     }
 
     @Override
     public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
         InvocationContext context = DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
-        Tracer.startSpan(operationName);
+        startSpan(operationName);
         return context;
     }
 
@@ -55,14 +73,30 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     @Override
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         debugIfNullContext(context);
-        Tracer.fastCompleteSpan();
+        completeSpan();
     }
 
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
         // TODO(davids): add Error event
-        Tracer.fastCompleteSpan();
+        completeSpan();
+    }
+
+    private void startSpan(String operationName) {
+        if (useJavaTracing) {
+            com.palantir.tracing.Tracer.startSpan(operationName);
+        } else {
+            com.palantir.remoting3.tracing.Tracer.startSpan(operationName);
+        }
+    }
+
+    private void completeSpan() {
+        if (useJavaTracing) {
+            com.palantir.tracing.Tracer.fastCompleteSpan();
+        } else {
+            com.palantir.remoting3.tracing.Tracer.fastCompleteSpan();
+        }
     }
 
     private static void debugIfNullContext(@Nullable InvocationContext context) {
