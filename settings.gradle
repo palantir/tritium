@@ -1,7 +1,6 @@
 rootProject.name = 'tritium'
 
 include 'tritium-api'
-include 'tritium-brave'
 include 'tritium-caffeine'
 include 'tritium-core'
 include 'tritium-jmh'

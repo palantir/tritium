@@ -25,7 +25,6 @@ targetCompatibility = '1.8'
 dependencies {
 
     implementation project(':tritium-api')
-    implementation project(':tritium-brave')
     implementation project(':tritium-core')
     implementation project(':tritium-lib')
     implementation project(':tritium-metrics')
@@ -42,8 +41,6 @@ dependencies {
     implementation 'org.slf4j:slf4j-api'
 
     testImplementation project(':tritium-test')
-    testImplementation 'io.zipkin.brave:brave-spancollector-http'
-    testImplementation 'io.zipkin.zipkin2:zipkin-junit'
     testImplementation 'com.google.guava:guava-testlib'
     testImplementation 'junit:junit'
     testImplementation 'org.assertj:assertj-core'
@@ -51,7 +48,6 @@ dependencies {
     testImplementation 'org.slf4j:slf4j-simple'
 
     jmhCompile 'ch.qos.logback:logback-classic'
-    jmhCompile 'io.zipkin.brave:brave-spancollector-http'
     jmhCompile 'org.slf4j:slf4j-simple'
 
 }
