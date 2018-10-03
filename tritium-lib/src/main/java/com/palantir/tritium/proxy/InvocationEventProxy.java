@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.reflect.AbstractInvocationHandler;
 import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
@@ -174,8 +175,13 @@ abstract class InvocationEventProxy<C extends InvocationContext>
 
     private static void logInvocationWarningOnFailure(InvocationContext context, @Nullable Throwable result,
             RuntimeException cause) {
-        logger.warn("{} exception handling onFailure({}, {}): {}",
-                safeSimpleClassName("cause", cause), context, safeSimpleClassName("result", result), cause);
+        if (logger.isWarnEnabled()) {
+            logger.warn("{} exception handling onFailure({}, {}): {}",
+                    safeSimpleClassName("cause", cause),
+                    UnsafeArg.of("context", context),
+                    safeSimpleClassName("result", result),
+                    cause);
+        }
     }
 
     private static SafeArg<String> safeSimpleClassName(String name, @Nullable Object object) {
@@ -184,14 +190,20 @@ abstract class InvocationEventProxy<C extends InvocationContext>
 
     static void logInvocationWarning(String event, Object instance, Method method, Object[] args,
             Throwable cause) {
-        logger.warn("{} exception handling {} invocation of {}.{} with arguments {} on {}",
-                safeSimpleClassName("throwable", cause),
-                event,
-                SafeArg.of("class", method.getDeclaringClass()),
-                SafeArg.of("method", method.getName()),
-                Arrays.toString(nullToEmpty(args)),
-                instance,
-                cause);
+        if (logger.isWarnEnabled()) {
+            logger.warn("{} exception handling {} invocation of {}.{} with arguments {} on {}",
+                    safeSimpleClassName("throwable", cause),
+                    SafeArg.of("event", event),
+                    SafeArg.of("class", method.getDeclaringClass()),
+                    SafeArg.of("method", method.getName()),
+                    unsafeArgs(args),
+                    UnsafeArg.of("instance", instance),
+                    cause);
+        }
+    }
+
+    private static UnsafeArg<List<Object>> unsafeArgs(Object[] args) {
+        return UnsafeArg.of("args", Arrays.asList(nullToEmpty(args)));
     }
 
     private static Object[] nullToEmpty(@Nullable Object[] args) {

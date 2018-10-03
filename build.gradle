@@ -64,6 +64,10 @@ allprojects {
         }
     }
 
+    tasks.withType(JavaCompile).configureEach {
+        options.errorprone.errorproneArgs += ['-Xep:Slf4jLogsafeArgs:ERROR']
+    }
+
     tasks.withType(Test) {
         testLogging {
             showExceptions true
