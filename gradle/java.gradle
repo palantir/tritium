@@ -2,10 +2,6 @@ apply plugin: 'java'
 apply plugin: 'java-library'
 apply plugin: 'jacoco'
 apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
-apply plugin: 'com.palantir.baseline-error-prone'
-apply plugin: 'com.palantir.baseline-checkstyle'
-apply plugin: 'com.palantir.baseline-eclipse'
-apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.baseline-class-uniqueness'
 apply plugin: 'com.palantir.configuration-resolver'
 
