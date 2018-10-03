@@ -5,9 +5,12 @@ dependencies {
     annotationProcessor 'com.google.auto.service:auto-service'
     annotationProcessor 'org.immutables:value'
 
+    compileOnly 'com.google.auto.service:auto-service'
+
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'io.dropwizard.metrics:metrics-core'
+    implementation 'org.immutables:value-annotations'
 
     testImplementation 'junit:junit'
     testImplementation 'org.assertj:assertj-core'

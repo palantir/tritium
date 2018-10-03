@@ -10,7 +10,6 @@ buildscript {
     }
 
     dependencies {
-        classpath 'gradle.plugin.com.palantir:gradle-circle-style:1.1.4'
         classpath 'com.netflix.nebula:nebula-dependency-recommender:6.0.0'
         classpath 'com.netflix.nebula:nebula-publishing-plugin:8.2.0'
         classpath 'com.palantir.baseline:gradle-baseline-java:0.33.0'
@@ -23,10 +22,9 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
-apply plugin: 'com.palantir.baseline-config'
+apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.git-version'
-apply plugin: 'com.palantir.circle.style'
 
 allprojects {
     group 'com.palantir.tritium'
@@ -86,11 +84,3 @@ allprojects {
     tasks.check.dependsOn(javadoc)
 }
 
-dependencies {
-    // Adds a dependency on the Baseline configuration files. Typically use
-    // the same version as the plugin itself.
-    baseline group: 'com.palantir.baseline', name: 'gradle-baseline-java-config', ext: 'zip'
-}
-
-task wrapper(type: Wrapper) {
-}
