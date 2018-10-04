@@ -39,10 +39,14 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     private final String component;
     private final Tracer tracer;
 
-    public TracingInvocationEventHandler(String component) {
+    public TracingInvocationEventHandler(String component, Tracer tracer) {
         super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
-        this.component = component;
-        this.tracer = createTracer();
+        this.component = Preconditions.checkNotNull(component, "component");
+        this.tracer = Preconditions.checkNotNull(tracer, "tracer");
+    }
+
+    public TracingInvocationEventHandler(String component) {
+        this(component, createTracer());
     }
 
     @Override
@@ -50,7 +54,6 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         InvocationContext context = DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
         tracer.startSpan(operationName);
-
         return context;
     }
 
@@ -81,7 +84,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         return InstrumentationProperties.getSystemPropertySupplier(component);
     }
 
-    private static Tracer createTracer() {
+    static Tracer createTracer() {
         // Ugly reflection based check to determine what implementation of tracing to use to avoid duplicate
         // traces as remoting3's tracing classes delegate functionality to tracing-java in remoting 3.43.0+
         // and remoting3.tracing.Tracers.wrap now returns a "com.palantir.tracing.Tracers" implementation.
@@ -109,7 +112,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
                                             + " using legacy remoting3 tracing for backward compatibility",
                                     SafeArg.of("expectedPackage", expectedTracingPackage),
                                     SafeArg.of("actualPackage", actualTracingPackage));
-                            return new Remoting3Tracer(startSpanMethod, completeSpanMethod);
+                            return new ReflectiveTracer(startSpanMethod, completeSpanMethod);
                         }
                     }
                 }
@@ -120,58 +123,6 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         }
 
         return JavaTracingTracer.INSTANCE;
-    }
-
-    private interface Tracer {
-        void startSpan(String operationName);
-        void completeSpan();
-    }
-
-    private enum JavaTracingTracer implements TracingInvocationEventHandler.Tracer {
-        INSTANCE;
-
-        @Override
-        public void startSpan(String operationName) {
-            com.palantir.tracing.Tracer.startSpan(operationName);
-        }
-
-        @Override
-        public void completeSpan() {
-            com.palantir.tracing.Tracer.fastCompleteSpan();
-        }
-    }
-
-    private static final class Remoting3Tracer implements TracingInvocationEventHandler.Tracer {
-
-        private final Method startSpanMethod;
-        private final Method completeSpanMethod;
-
-        Remoting3Tracer(Method startSpanMethod, Method completeSpanMethod) {
-            this.startSpanMethod = Preconditions.checkNotNull(startSpanMethod, "startSpanMethod");
-            this.completeSpanMethod = Preconditions.checkNotNull(completeSpanMethod, "completeSpanMethod");
-        }
-
-        @Override
-        public void startSpan(String operationName) {
-            try {
-                startSpanMethod.invoke(null, operationName);
-            } catch (ReflectiveOperationException e) {
-                Throwable cause = e.getCause();
-                Throwables.propagateIfPossible(cause, RuntimeException.class);
-                throw new RuntimeException(cause);
-            }
-        }
-
-        @Override
-        public void completeSpan() {
-            try {
-                completeSpanMethod.invoke(null);
-            } catch (ReflectiveOperationException e) {
-                Throwable cause = e.getCause();
-                Throwables.propagateIfPossible(cause, RuntimeException.class);
-                throw new RuntimeException(cause);
-            }
-        }
     }
 
 }
