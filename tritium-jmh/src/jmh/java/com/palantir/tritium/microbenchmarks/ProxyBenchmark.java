@@ -22,6 +22,8 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
+import com.palantir.tritium.tracing.Remoting3Tracer;
+import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHandler;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -61,6 +63,7 @@ public class ProxyBenchmark {
     private Service instrumentedWithMetrics;
     private Service instrumentedWithEverything;
     private Service instrumentedWithTracing;
+    private Service instrumentedWithRemoting;
 
     private ExecutorService executor;
 
@@ -85,6 +88,9 @@ public class ProxyBenchmark {
         instrumentedWithTracing = Instrumentation.builder(Service.class, raw)
                 .withHandler(new TracingInvocationEventHandler("jmh"))
                 .build();
+
+        instrumentedWithRemoting = Instrumentation.builder(Service.class, raw)
+                .withHandler(new RemotingCompatibleTracingInvocationEventHandler("jmh", Remoting3Tracer.INSTANCE))
                 .build();
 
         instrumentedWithEverything = Instrumentation.builder(Service.class, raw)
@@ -109,17 +115,17 @@ public class ProxyBenchmark {
         return raw.echo("test");
     }
 
-    @Benchmark
+    // @Benchmark
     public String instrumentedWithoutHandlers() {
         return instrumentedWithoutHandlers.echo("test");
     }
 
-    @Benchmark
+    // @Benchmark
     public String instrumentedWithPerformanceLogging() {
         return instrumentedWithPerformanceLogging.echo("test");
     }
 
-    @Benchmark
+    // @Benchmark
     public String instrumentedWithMetrics() {
         return instrumentedWithMetrics.echo("test");
     }
@@ -130,6 +136,11 @@ public class ProxyBenchmark {
     }
 
     @Benchmark
+    public String instrumentedWithRemoting() {
+        return instrumentedWithRemoting.echo("test");
+    }
+
+    // @Benchmark
     public String instrumentedWithEverything() {
         return instrumentedWithEverything.echo("test");
     }
