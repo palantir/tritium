@@ -16,12 +16,8 @@
 
 package com.palantir.tritium.microbenchmarks;
 
-import com.github.kristofa.brave.Brave;
-import com.github.kristofa.brave.LoggingSpanCollector;
-import com.github.kristofa.brave.Sampler;
 import com.palantir.remoting3.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.remoting3.tracing.Tracer;
-import com.palantir.tritium.brave.BraveLocalTracingInvocationEventHandler;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
@@ -62,7 +58,6 @@ public class ProxyBenchmark {
     private Service instrumentedWithPerformanceLogging;
     private Service instrumentedWithMetrics;
     private Service instrumentedWithEverything;
-    private Service instrumentedWithBrave;
     private Service instrumentedWithTracing;
 
     private ExecutorService executor;
@@ -83,18 +78,6 @@ public class ProxyBenchmark {
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .build();
 
-        BraveLocalTracingInvocationEventHandler braveLocalTracingInvocationEventHandler =
-                new BraveLocalTracingInvocationEventHandler("testComponent",
-                        new Brave.Builder("testService")
-                                .clock(() -> System.currentTimeMillis() * 1000)
-                                .spanCollector(new LoggingSpanCollector("tracing"))
-                                .traceSampler(Sampler.create(0.01f))
-                                .build());
-
-        instrumentedWithBrave = Instrumentation.builder(Service.class, raw)
-                .withHandler(braveLocalTracingInvocationEventHandler)
-                .build();
-
         TracingInvocationEventHandler tracingInvocationEventHandler = new TracingInvocationEventHandler("jmh");
         executor = Executors.newSingleThreadExecutor();
         Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
@@ -105,7 +88,6 @@ public class ProxyBenchmark {
         instrumentedWithEverything = Instrumentation.builder(Service.class, raw)
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .withPerformanceTraceLogging()
-                .withHandler(braveLocalTracingInvocationEventHandler)
                 .withHandler(tracingInvocationEventHandler)
                 .build();
     }
@@ -138,11 +120,6 @@ public class ProxyBenchmark {
     @Benchmark
     public String instrumentedWithMetrics() {
         return instrumentedWithMetrics.echo("test");
-    }
-
-    @Benchmark
-    public String instrumentedWithBrave() {
-        return instrumentedWithBrave.echo("test");
     }
 
     @Benchmark

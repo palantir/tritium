@@ -7,51 +7,20 @@ buildscript {
             url 'https://plugins.gradle.org/m2/'
         }
     }
+    dependencies {
+        classpath "me.champeau.gradle:jmh-gradle-plugin:0.4.7"
+    }
 }
 
-plugins {
-    id 'java'
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
-    id 'net.ltgt.apt' version '0.10'
-}
-
+apply plugin: 'java'
+apply plugin: 'me.champeau.gradle.jmh'
 apply plugin: 'com.palantir.git-version'
 apply from: "${rootDir}/gradle/java.gradle"
-apply from: "${rootDir}/gradle/jmh.gradle"
-
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
 
 dependencies {
 
-    implementation project(':tritium-api')
-    implementation project(':tritium-brave')
-    implementation project(':tritium-core')
-    implementation project(':tritium-lib')
-    implementation project(':tritium-metrics')
-    implementation project(':tritium-slf4j')
-    implementation project(':tritium-tracing')
-
-    implementation 'com.google.guava:guava'
-    implementation 'io.dropwizard.metrics:metrics-core'
-    implementation ('org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir') {
-        exclude group: 'org.hdrhistogram', module: 'HdrHistogram'
-    }
-    implementation 'org.openjdk.jmh:jmh-core'
-    implementation 'org.openjdk.jmh:jmh-generator-annprocess'
-    implementation 'org.slf4j:slf4j-api'
-
-    testImplementation project(':tritium-test')
-    testImplementation 'io.zipkin.brave:brave-spancollector-http'
-    testImplementation 'io.zipkin.zipkin2:zipkin-junit'
-    testImplementation 'com.google.guava:guava-testlib'
-    testImplementation 'junit:junit'
-    testImplementation 'org.assertj:assertj-core'
-    testImplementation 'org.mockito:mockito-core'
-    testImplementation 'org.slf4j:slf4j-simple'
-
-    jmhCompile 'ch.qos.logback:logback-classic'
-    jmhCompile 'io.zipkin.brave:brave-spancollector-http'
-    jmhCompile 'org.slf4j:slf4j-simple'
+    jmh project(':tritium-lib')
+    jmh 'ch.qos.logback:logback-classic'
+    jmh 'org.slf4j:slf4j-simple'
 
 }
