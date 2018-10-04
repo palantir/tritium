@@ -18,6 +18,8 @@ package com.palantir.tritium.microbenchmarks;
 
 import com.palantir.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.tracing.Tracer;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
@@ -78,17 +80,17 @@ public class ProxyBenchmark {
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .build();
 
-        TracingInvocationEventHandler tracingInvocationEventHandler = new TracingInvocationEventHandler("jmh");
         executor = Executors.newSingleThreadExecutor();
         Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
         instrumentedWithTracing = Instrumentation.builder(Service.class, raw)
-                .withHandler(tracingInvocationEventHandler)
+                .withHandler(new TracingInvocationEventHandler("jmh"))
+                .build();
                 .build();
 
         instrumentedWithEverything = Instrumentation.builder(Service.class, raw)
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .withPerformanceTraceLogging()
-                .withHandler(tracingInvocationEventHandler)
+                .withHandler(new TracingInvocationEventHandler("jmh"))
                 .build();
     }
 

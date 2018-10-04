@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2016 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2018 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,10 @@ package com.palantir.tritium.tracing;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.palantir.logsafe.SafeArg;
-import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import javax.annotation.Nonnull;
@@ -32,30 +30,29 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+public final class RemotingCompatibleTracingInvocationEventHandler
+        extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger logger = LoggerFactory.getLogger(TracingInvocationEventHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(RemotingCompatibleTracingInvocationEventHandler.class);
 
     private final String component;
+    private final Tracer tracer;
 
-    public TracingInvocationEventHandler(String component) {
-        super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
+    public RemotingCompatibleTracingInvocationEventHandler(String component, Tracer tracer) {
+        super((java.util.function.BooleanSupplier) InstrumentationProperties.getSystemPropertySupplier(component));
         this.component = Preconditions.checkNotNull(component, "component");
+        this.tracer = Preconditions.checkNotNull(tracer, "tracer");
     }
 
-    public static InvocationEventHandler<InvocationContext> create(String component) {
-        if (shouldUseJavaTracing()) {
-            return new TracingInvocationEventHandler(component);
-        } else {
-            return new RemotingCompatibleTracingInvocationEventHandler(component);
-        }
+    public RemotingCompatibleTracingInvocationEventHandler(String component) {
+        this(component, createTracer());
     }
 
     @Override
     public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
         InvocationContext context = DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
-        com.palantir.tracing.Tracer.startSpan(operationName);
+        tracer.startSpan(operationName);
         return context;
     }
 
@@ -66,14 +63,14 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     @Override
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         debugIfNullContext(context);
-        com.palantir.tracing.Tracer.fastCompleteSpan();
+        tracer.completeSpan();
     }
 
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
         // TODO(davids): add Error event
-        com.palantir.tracing.Tracer.fastCompleteSpan();
+        tracer.completeSpan();
     }
 
     private static void debugIfNullContext(@Nullable InvocationContext context) {
@@ -82,11 +79,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         }
     }
 
-    static BooleanSupplier getEnabledSupplier(String component) {
-        return InstrumentationProperties.getSystemPropertySupplier(component);
-    }
-
-    static boolean shouldUseJavaTracing() {
+    static Tracer createTracer() {
         // Ugly reflection based check to determine what implementation of tracing to use to avoid duplicate
         // traces as remoting3's tracing classes delegate functionality to tracing-java in remoting 3.43.0+
         // and remoting3.tracing.Tracers.wrap now returns a "com.palantir.tracing.Tracers" implementation.
@@ -106,19 +99,25 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
                     String expectedTracingPackage = com.palantir.tracing.Tracers.class.getPackage().getName();
                     String actualTracingPackage = wrappedTrace.getClass().getPackage().getName();
                     if (!Objects.equals(expectedTracingPackage, actualTracingPackage)) {
-                        logger.error("Multiple tracing implementations detected, expected '{}' but found '{}',"
-                                        + " using legacy remoting3 tracing for backward compatibility",
-                                SafeArg.of("expectedPackage", expectedTracingPackage),
-                                SafeArg.of("actualPackage", actualTracingPackage));
-                        return false;
+                        Class<?> tracerClass = classLoader.loadClass("com.palantir.remoting3.tracing.Tracer");
+                        Method startSpanMethod = tracerClass.getMethod("startSpan", String.class);
+                        Method completeSpanMethod = tracerClass.getMethod("fastCompleteSpan");
+                        if (startSpanMethod != null && completeSpanMethod != null) {
+                            logger.error("Multiple tracing implementations detected, expected '{}' but found '{}',"
+                                            + " using legacy remoting3 tracing for backward compatibility",
+                                    SafeArg.of("expectedPackage", expectedTracingPackage),
+                                    SafeArg.of("actualPackage", actualTracingPackage));
+                            return new ReflectiveTracer(startSpanMethod, completeSpanMethod);
+                        }
                     }
                 }
             }
         } catch (ReflectiveOperationException e) {
             // expected case when remoting3 is not on classpath
-            return true;
+            logger.debug("Remoting3 unavailable, using Java tracing", e);
         }
 
-        return true;
+        return JavaTracingTracer.INSTANCE;
     }
+
 }

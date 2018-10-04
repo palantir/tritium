@@ -42,7 +42,7 @@ public final class Tritium {
         return Instrumentation.builder(serviceInterface, delegate)
                 .withMetrics(metricRegistry)
                 .withPerformanceTraceLogging()
-                .withHandler(new TracingInvocationEventHandler(serviceInterface.getName()))
+                .withHandler(TracingInvocationEventHandler.create(serviceInterface.getName()))
                 .build();
     }
 }
