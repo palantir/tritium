@@ -95,7 +95,7 @@ public class CaffeineCacheMetricSetTest {
                 "test1.cache.weighted.size"
         );
 
-        when(cache.stats()).thenReturn(new CacheStats(1L, 2L, 3L, 4L, 5L, 6L));
+        when(cache.stats()).thenReturn(new CacheStats(1L, 2L, 3L, 4L, 5L, 6L, 7L));
         when(cache.estimatedSize()).thenReturn(42L);
 
         SortedMap<String, Gauge> gauges = metrics.getGauges();
@@ -114,7 +114,7 @@ public class CaffeineCacheMetricSetTest {
         verify(cache, times(1)).stats();
 
         clock.advance(1, TimeUnit.MINUTES); // let stats snapshot cache expire
-        when(cache.stats()).thenReturn(new CacheStats(11L, 12L, 13L, 14L, 15L, 16L));
+        when(cache.stats()).thenReturn(new CacheStats(11L, 12L, 13L, 14L, 15L, 16L, 17L));
         when(cache.estimatedSize()).thenReturn(37L);
 
         gauges = metrics.getGauges();
@@ -147,7 +147,7 @@ public class CaffeineCacheMetricSetTest {
                 "test2.cache.weighted.size"
         );
 
-        when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
+        when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L, 0L));
         assertThat(metrics.getGauges().get("test2.cache.request.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test2.cache.hit.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test2.cache.hit.ratio").getValue()).isEqualTo(Double.NaN);
@@ -161,7 +161,7 @@ public class CaffeineCacheMetricSetTest {
 
     @Test
     public void testDerivedGauge() {
-        when(cache.stats()).thenReturn(new CacheStats(1L, 2L, 3L, 4L, 5L, 6L));
+        when(cache.stats()).thenReturn(new CacheStats(1L, 2L, 3L, 4L, 5L, 6L, 7L));
         Gauge<CacheStats> cachedCacheStats = CaffeineCacheMetricSet.createCachedCacheStats(cache, clock,
                 15, TimeUnit.SECONDS);
         CacheStats value1 = cachedCacheStats.getValue();

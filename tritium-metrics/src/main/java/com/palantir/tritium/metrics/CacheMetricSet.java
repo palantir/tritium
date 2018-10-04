@@ -56,7 +56,7 @@ final class CacheMetricSet implements MetricSet {
                 createCachedCacheStats(cache, clock, 5, TimeUnit.SECONDS));
     }
 
-    private <T> Gauge<T> derivedGauge(final Function<CacheStats, T> gauge) {
+    private <T> Gauge<T> derivedGauge(Function<CacheStats, T> gauge) {
         return transformingGauge(statsGauge, gauge);
     }
 

@@ -35,9 +35,9 @@ public class TritiumTest {
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
 
-    private TestImplementation delegate = new TestImplementation();
-    private MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
-    private TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metricRegistry);
+    private final TestImplementation delegate = new TestImplementation();
+    private final MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
+    private final TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metricRegistry);
 
     @After
     public void after() {

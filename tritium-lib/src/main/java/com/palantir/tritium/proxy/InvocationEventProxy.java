@@ -22,7 +22,6 @@ import com.google.common.reflect.AbstractInvocationHandler;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
@@ -51,16 +50,11 @@ abstract class InvocationEventProxy<C extends InvocationContext>
      * @param handlers event handlers
      */
     protected InvocationEventProxy(List<InvocationEventHandler<InvocationContext>> handlers) {
-        this(InstrumentationFilters.INSTRUMENT_ALL, handlers);
+        this(handlers, InstrumentationFilters.INSTRUMENT_ALL);
     }
 
-    protected InvocationEventProxy(BooleanSupplier isEnabledSupplier,
-            List<InvocationEventHandler<InvocationContext>> handlers) {
-        this(InstrumentationFilters.from(isEnabledSupplier), handlers);
-    }
-
-    protected InvocationEventProxy(InstrumentationFilter filter,
-            List<InvocationEventHandler<InvocationContext>> handlers) {
+    protected InvocationEventProxy(List<InvocationEventHandler<InvocationContext>> handlers,
+                                   InstrumentationFilter filter) {
         checkNotNull(filter, "filter");
         checkNotNull(handlers, "handlers");
         this.eventHandler = CompositeInvocationEventHandler.of(handlers);

@@ -93,7 +93,7 @@ public class LoggingInstrumentationTest {
     }
 
 
-    private void testLoggingAtLevel(LoggingLevel level) {
+    private static void testLoggingAtLevel(LoggingLevel level) {
         TestImplementation delegate = new TestImplementation();
         enableLoggingForLevel(level);
         Logger logger = getLogger();

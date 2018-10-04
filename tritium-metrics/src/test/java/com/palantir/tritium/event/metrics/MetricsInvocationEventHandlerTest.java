@@ -89,7 +89,7 @@ public class MetricsInvocationEventHandlerTest {
 
     @Test
     public void testSystemPropertySupplier_Handler_Enabled() {
-        assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
+        assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").getAsBoolean()).isTrue();
     }
 
     @Test
@@ -129,7 +129,7 @@ public class MetricsInvocationEventHandlerTest {
         assertThat(metricRegistry.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
     }
 
-    private void callVoidMethod(
+    private static void callVoidMethod(
             MetricsInvocationEventHandler handler, Object obj, String methodName, boolean success) throws Exception {
 
         InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);

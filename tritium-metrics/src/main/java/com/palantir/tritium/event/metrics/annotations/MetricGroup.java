@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
 public @interface MetricGroup {
     /**
      * String identifier grouped metrics.
-     * @return
+     * @return value
      */
     String value();
 }

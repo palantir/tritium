@@ -65,7 +65,22 @@ allprojects {
     }
 
     tasks.withType(JavaCompile).configureEach {
-        options.errorprone.errorproneArgs += ['-Xep:Slf4jLogsafeArgs:ERROR']
+        options.errorprone.errorproneArgs += [
+            '-Werror',
+            '-Xlint:deprecation',
+            '-XepDisableWarningsInGeneratedCode',
+            '-XepExcludedPaths:.*/build/.*generated.*',
+            '-Xep:AmbiguousMethodReference:ERROR',
+            '-Xep:BoxedPrimitiveConstructor:ERROR',
+            '-Xep:CatchFail:ERROR',
+            '-Xep:ClassCanBeStatic:ERROR',
+            '-Xep:DefaultCharset:ERROR',
+            '-Xep:FunctionalInterfaceClash:ERROR',
+            '-Xep:MethodCanBeStatic:ERROR',
+            '-Xep:NonCanonicalStaticMemberImport:ERROR',
+            '-Xep:ReturnMissingNullable:ERROR',
+            '-Xep:Slf4jLogsafeArgs:ERROR',
+        ]
     }
 
     tasks.withType(Test) {

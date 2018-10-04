@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import com.palantir.logsafe.Safe;
 import java.util.Map;
 import org.immutables.value.Value;
 
@@ -30,14 +31,14 @@ public interface MetricName {
     /**
      * General/abstract measure (e.g. server.response-time).
      * <p>
-     * Names must be {@link com.palantir.logsafe.Safe} to log.
+     * Names must be {@link Safe} to log.
      */
     String safeName();
 
     /**
      * Metadata/coordinates for where a particular measure came from. Used for filtering & grouping.
      * <p>
-     * All tags and keys must be {@link com.palantir.logsafe.Safe} to log.
+     * All tags and keys must be {@link Safe} to log.
      */
     Map<String, String> safeTags();
 

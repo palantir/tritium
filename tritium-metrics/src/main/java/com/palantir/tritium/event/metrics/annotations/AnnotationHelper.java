@@ -24,6 +24,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 public final class AnnotationHelper {
 
@@ -38,6 +39,7 @@ public final class AnnotationHelper {
      * @param annotation - Annotation type to scan for
      * @return - First matching annotation found in depth first search, or null if not found
      */
+    @Nullable
     public static <T extends Annotation> T getSuperTypeAnnotation(Class<?> clazz, Class<T> annotation) {
         if (clazz.isAnnotationPresent(annotation)) {
             return clazz.getAnnotation(annotation);
@@ -62,6 +64,7 @@ public final class AnnotationHelper {
      * @param methodSignature - Method to search annotation for
      * @return - First found matching annotation or null
      */
+    @Nullable
     public static <T extends Annotation> T getMethodAnnotation(
             Class<T> annotation, Class<?> clazz, MethodSignature methodSignature) {
 

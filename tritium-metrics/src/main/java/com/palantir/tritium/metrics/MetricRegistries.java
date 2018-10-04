@@ -67,7 +67,7 @@ public final class MetricRegistries {
     @VisibleForTesting
     static MetricRegistry createWithReservoirType(Supplier<Reservoir> reservoirSupplier) {
         MetricRegistry metrics = new MetricRegistryWithReservoirs(reservoirSupplier);
-        final String name = reservoirSupplier.get().getClass().getCanonicalName();
+        String name = reservoirSupplier.get().getClass().getCanonicalName();
         registerSafe(metrics, RESERVOIR_TYPE_METRIC_NAME, (Gauge<String>) () -> name);
         registerDefaultMetrics(metrics);
         return metrics;
@@ -98,12 +98,12 @@ public final class MetricRegistries {
         checkNotNull(name);
         checkNotNull(builder);
 
-        final Metric metric = metrics.getMetrics().get(name);
+        Metric metric = metrics.getMetrics().get(name);
         if (metric == null) {
             try {
                 return metrics.register(name, builder.newMetric());
             } catch (IllegalArgumentException e) {
-                final Metric added = metrics.getMetrics().get(name);
+                Metric added = metrics.getMetrics().get(name);
                 if (builder.isInstance(added)) {
                     return (T) added;
                 }
@@ -120,7 +120,7 @@ public final class MetricRegistries {
      * @param prefix metric name prefix
      * @return metric filter
      */
-    public static MetricFilter metricsPrefixedBy(final String prefix) {
+    public static MetricFilter metricsPrefixedBy(String prefix) {
         checkNotNull(prefix, "prefix");
         return (name, metric) -> name.startsWith(prefix);
     }
@@ -185,11 +185,11 @@ public final class MetricRegistries {
      *         interfaces as {@code metric}
      */
     public static <T extends Metric> T registerSafe(MetricRegistry registry, String name, T metric) {
-        return registerOrReplace(registry, name, metric, false);
+        return registerOrReplace(registry, name, metric, /* replace= */false);
     }
 
     public static <T extends Metric> T registerWithReplacement(MetricRegistry registry, String name, T metric) {
-        return registerOrReplace(registry, name, metric, true);
+        return registerOrReplace(registry, name, metric, /* replace= */true);
     }
 
     private static <T extends Metric> T registerOrReplace(MetricRegistry registry, String name, T metric,

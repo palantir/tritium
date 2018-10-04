@@ -16,17 +16,17 @@
 
 package com.palantir.tritium.proxy;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.Callable;
 import org.junit.Test;
@@ -35,34 +35,22 @@ public class ProxiesTest {
 
     @Test
     public void testNewProxy() {
-        final TestInterface delegate = new TestImplementation();
-
-        TestInterface proxy = Proxies.newProxy(TestInterface.class, delegate, new InvocationHandler() {
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                Object original = method.invoke(delegate, args);
-                return original + ", world";
-            }
-        });
-
+        TestInterface implementation = new TestImplementation();
+        TestInterface proxy = Proxies.newProxy(TestInterface.class, implementation,
+                (delegate, method, args) -> method.invoke(implementation, args) + ", world");
         assertEquals("hello, world", proxy.test());
     }
 
     @Test
     public void testInterfacesAdditionalInterfaces() {
-        Class<?>[] interfaces = Proxies.interfaces(TestInterface.class,
-                ImmutableList.<Class<?>>of(List.class), Runnable.class);
-        assertEquals(3, interfaces.length);
-        assertEquals(ImmutableSet.of(Runnable.class, TestInterface.class, List.class),
-                ImmutableSet.copyOf(interfaces));
+        Class<?>[] interfaces = Proxies.interfaces(TestInterface.class, Runnable.class, ImmutableList.of(List.class));
+        assertThat(interfaces).containsExactly(TestInterface.class, List.class, Runnable.class);
     }
 
     @Test
     public void testInterfacesClassOfQClassOfQ() {
         Class<?>[] interfaces = Proxies.interfaces(TestInterface.class, TestImplementation.class);
-        assertEquals(2, interfaces.length);
-        assertEquals(ImmutableSet.of(Runnable.class, TestInterface.class),
-                ImmutableSet.copyOf(interfaces));
+        assertThat(interfaces).containsExactly(TestInterface.class, Runnable.class);
     }
 
     @Test
@@ -70,9 +58,10 @@ public class ProxiesTest {
         Proxies.checkIsInterface(Runnable.class);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testCheckIsInterfaceOnClass() {
-        Proxies.checkIsInterface(String.class);
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+                Proxies.checkIsInterface(String.class));
     }
 
     @Test
@@ -83,31 +72,24 @@ public class ProxiesTest {
                 List.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testCheckAreAllInterfacesWithClass() {
-        Proxies.checkAreAllInterfaces(ImmutableSet.of(TestInterface.class,
+        ImmutableSet<Class<?>> interfaces = ImmutableSet.of(TestInterface.class,
                 String.class,
                 Runnable.class,
                 Callable.class,
-                List.class));
+                List.class);
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+                Proxies.checkAreAllInterfaces(interfaces));
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testInaccessibleConstructor() {
-        Constructor<?> constructor = null;
-        try {
-            constructor = Proxies.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            constructor.newInstance();
-        } catch (InvocationTargetException expected) {
-            throw Throwables.propagate(expected.getCause());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (constructor != null) {
-                constructor.setAccessible(false);
-            }
-        }
+    @Test
+    public void testInaccessibleConstructor() throws NoSuchMethodException {
+        Constructor<Proxies> constructor = Proxies.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        assertThatThrownBy(constructor::newInstance)
+                .isInstanceOf(InvocationTargetException.class)
+                .hasRootCauseExactlyInstanceOf(UnsupportedOperationException.class);
     }
 
 }

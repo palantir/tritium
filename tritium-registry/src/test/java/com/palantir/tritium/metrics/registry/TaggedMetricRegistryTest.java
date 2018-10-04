@@ -31,7 +31,6 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import java.util.Optional;
 import java.util.function.Supplier;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -40,12 +39,7 @@ public final class TaggedMetricRegistryTest {
     private static final MetricName METRIC_1 = MetricName.builder().safeName("name").build();
     private static final MetricName METRIC_2 = MetricName.builder().safeName("name").putSafeTags("key", "val").build();
 
-    private TaggedMetricRegistry registry;
-
-    @Before
-    public void before() {
-        registry = new DefaultTaggedMetricRegistry();
-    }
+    private final TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
 
     interface SuppliedMetricMethod<T extends Metric> {
         T metric(MetricName metricName, Supplier<T> supplier);
@@ -55,7 +49,7 @@ public final class TaggedMetricRegistryTest {
         T metric(MetricName metricName);
     }
 
-    private <T extends Metric> void testNonsuppliedCall(MetricMethod<T> registryMethod) {
+    private static <T extends Metric> void testNonsuppliedCall(MetricMethod<T> registryMethod) {
         T metric1 = registryMethod.metric(METRIC_1);
         T metric2 = registryMethod.metric(METRIC_2);
 
@@ -64,14 +58,19 @@ public final class TaggedMetricRegistryTest {
         assertThat(registryMethod.metric(METRIC_2)).isSameAs(metric2);
     }
 
-    private <T extends Metric> void testSuppliedCall(SuppliedMetricMethod<T> registryMethod, T mock1, T mock2) {
+    private static <T extends Metric> void testSuppliedCall(SuppliedMetricMethod<T> registryMethod, T mock1, T mock2) {
+        @SuppressWarnings("unchecked")
         Supplier<T> mockSupplier = mock(Supplier.class);
         when(mockSupplier.get()).thenReturn(mock1).thenReturn(mock2);
 
         assertThat(registryMethod.metric(METRIC_1, mockSupplier)).isSameAs(mock1);
         assertThat(registryMethod.metric(METRIC_2, mockSupplier)).isSameAs(mock2);
-        assertThat(registryMethod.metric(METRIC_1, mockSupplier)).isSameAs(mock1); // should be memoized
-        assertThat(registryMethod.metric(METRIC_2, mockSupplier)).isSameAs(mock2); // should be memoized
+        assertThat(registryMethod.metric(METRIC_1, mockSupplier))
+                .describedAs("should be memoized")
+                .isSameAs(mock1);
+        assertThat(registryMethod.metric(METRIC_2, mockSupplier))
+                .describedAs("should be memoized")
+                .isSameAs(mock2);
 
         Mockito.verify(mockSupplier, times(2)).get();
     }
@@ -148,9 +147,7 @@ public final class TaggedMetricRegistryTest {
         assertThat(registeredGauge).isSameAs(gauge);
 
         Optional<Metric> removedGauge = registry.remove(METRIC_1);
-        assertThat(removedGauge.isPresent()).isTrue();
-        assertThat(removedGauge.get()).isSameAs(gauge);
-
+        assertThat(removedGauge).isPresent().get().isSameAs(gauge);
         assertThat(registry.remove(METRIC_1).isPresent()).isFalse();
     }
 

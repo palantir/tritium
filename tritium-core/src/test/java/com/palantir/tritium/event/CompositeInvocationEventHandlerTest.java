@@ -156,7 +156,7 @@ public class CompositeInvocationEventHandlerTest {
         return Object.class.getDeclaredMethod("toString");
     }
 
-    private InvocationEventHandler<InvocationContext> createThrowingHandler(final boolean isEnabled) {
+    private static InvocationEventHandler<InvocationContext> createThrowingHandler(boolean isEnabled) {
         return new ThrowingInvocationEventHandler(isEnabled);
     }
 
