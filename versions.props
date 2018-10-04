@@ -9,7 +9,6 @@ com.google.errorprone:error_prone_annotations = 2.3.1
 com.google.errorprone:error_prone_core = 2.3.1
 com.google.guava:* = 23.6.1-jre
 com.palantir.baseline:* = 0.33.0
-com.palantir.remoting3:* = 3.45.0
 com.palantir.safe-logging:safe-logging = 1.5.0
 com.palantir.tracing:* = 1.1.0
 io.dropwizard.metrics:metrics-core = 3.2.5
