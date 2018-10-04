@@ -23,10 +23,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.palantir.remoting.api.tracing.Span;
-import com.palantir.remoting.api.tracing.SpanObserver;
-import com.palantir.remoting3.tracing.AsyncSlf4jSpanObserver;
-import com.palantir.remoting3.tracing.Tracer;
+import com.palantir.tracing.AsyncSlf4jSpanObserver;
+import com.palantir.tracing.Tracer;
+import com.palantir.tracing.api.Span;
+import com.palantir.tracing.api.SpanObserver;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
