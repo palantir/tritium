@@ -30,9 +30,16 @@ allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
 
+    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'com.palantir.configuration-resolver'
     apply plugin: 'nebula.dependency-recommender'
-    apply from: "${rootDir}/gradle/java.gradle"
+    apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
+    apply plugin: 'com.palantir.baseline-class-uniqueness'
+    apply plugin: 'com.palantir.configuration-resolver'
+
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
 
     dependencyRecommendations {
         strategy OverrideTransitives
