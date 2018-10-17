@@ -16,8 +16,8 @@
 
 package com.palantir.tritium.microbenchmarks;
 
-import com.palantir.remoting3.tracing.AsyncSlf4jSpanObserver;
-import com.palantir.remoting3.tracing.Tracer;
+import com.palantir.tracing.AsyncSlf4jSpanObserver;
+import com.palantir.tracing.Tracer;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;

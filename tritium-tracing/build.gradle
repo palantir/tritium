@@ -4,10 +4,10 @@ dependencies {
 
     api project(':tritium-api')
     api project(':tritium-core')
-    api 'com.palantir.remoting3:tracing'
 
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'org.slf4j:slf4j-api'
+    implementation 'com.palantir.tracing:tracing'
 
     testImplementation project(':tritium-test')
 
