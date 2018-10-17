@@ -18,7 +18,6 @@ package com.palantir.tritium.tracing;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
@@ -26,7 +25,6 @@ import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
-import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -38,17 +36,28 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
 
     private final String component;
 
+    /**
+     * Constructs new tracing event handler.
+     * @param component component name
+     * @deprecated use {@link #create(String)}
+     */
+    @Deprecated
     public TracingInvocationEventHandler(String component) {
         super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
         this.component = Preconditions.checkNotNull(component, "component");
     }
 
+    /**
+     * Constructs new tracing event handler.
+     * @param component component name
+     * @return tracing event handler
+     */
     public static InvocationEventHandler<InvocationContext> create(String component) {
-        if (shouldUseJavaTracing()) {
-            return new TracingInvocationEventHandler(component);
-        } else {
-            return new RemotingCompatibleTracingInvocationEventHandler(component);
+        if (RemotingCompatibleTracingInvocationEventHandler.requiresRemotingFallback()) {
+            return RemotingCompatibleTracingInvocationEventHandler.create(component);
         }
+        //noinspection deprecation
+        return new TracingInvocationEventHandler(component);
     }
 
     @Override
@@ -86,39 +95,4 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         return InstrumentationProperties.getSystemPropertySupplier(component);
     }
 
-    static boolean shouldUseJavaTracing() {
-        // Ugly reflection based check to determine what implementation of tracing to use to avoid duplicate
-        // traces as remoting3's tracing classes delegate functionality to tracing-java in remoting 3.43.0+
-        // and remoting3.tracing.Tracers.wrap now returns a "com.palantir.tracing.Tracers" implementation.
-        //
-        // a) remoting3 prior to 3.43.0+ -> use reflection based remoting3 tracer
-        // b) remoting3 3.43.0+ -> use tracing-java
-        // c) no remoting3 -> use tracing-java
-
-        try {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            Class<?> tracersClass = classLoader.loadClass("com.palantir.remoting3.tracing.Tracers");
-            if (tracersClass != null) {
-                Method wrapMethod = tracersClass.getMethod("wrap", Runnable.class);
-                if (wrapMethod != null) {
-                    Object wrappedTrace = wrapMethod.invoke(null, (Runnable) () -> {
-                    });
-                    String expectedTracingPackage = com.palantir.tracing.Tracers.class.getPackage().getName();
-                    String actualTracingPackage = wrappedTrace.getClass().getPackage().getName();
-                    if (!Objects.equals(expectedTracingPackage, actualTracingPackage)) {
-                        logger.error("Multiple tracing implementations detected, expected '{}' but found '{}',"
-                                        + " using legacy remoting3 tracing for backward compatibility",
-                                SafeArg.of("expectedPackage", expectedTracingPackage),
-                                SafeArg.of("actualPackage", actualTracingPackage));
-                        return false;
-                    }
-                }
-            }
-        } catch (ReflectiveOperationException e) {
-            // expected case when remoting3 is not on classpath
-            return true;
-        }
-
-        return true;
-    }
 }

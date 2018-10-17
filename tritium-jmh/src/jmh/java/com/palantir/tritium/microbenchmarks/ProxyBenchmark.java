@@ -18,11 +18,8 @@ package com.palantir.tritium.microbenchmarks;
 
 import com.palantir.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.tracing.Tracer;
-import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
-import com.palantir.tritium.tracing.Remoting3Tracer;
 import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHandler;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.util.concurrent.ExecutorService;
@@ -86,7 +83,7 @@ public class ProxyBenchmark {
         executor = Executors.newSingleThreadExecutor();
         Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
         instrumentedWithTracing = Instrumentation.builder(Service.class, raw)
-                .withHandler(new TracingInvocationEventHandler("jmh"))
+                .withHandler(TracingInvocationEventHandler.create("jmh"))
                 .build();
 
         instrumentedWithRemoting = Instrumentation.builder(Service.class, raw)
@@ -96,7 +93,7 @@ public class ProxyBenchmark {
         instrumentedWithEverything = Instrumentation.builder(Service.class, raw)
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .withPerformanceTraceLogging()
-                .withHandler(new TracingInvocationEventHandler("jmh"))
+                .withHandler(TracingInvocationEventHandler.create("jmh"))
                 .build();
     }
 
@@ -168,4 +165,18 @@ public class ProxyBenchmark {
         new Runner(options).run();
     }
 
+    public enum Remoting3Tracer implements com.palantir.tritium.tracing.Tracer {
+        INSTANCE;
+
+        @Override
+        public void startSpan(String operationName) {
+            com.palantir.remoting3.tracing.Tracer.startSpan(operationName);
+        }
+
+        @Override
+        public void completeSpan() {
+            com.palantir.remoting3.tracing.Tracer.fastCompleteSpan();
+        }
+
+    }
 }

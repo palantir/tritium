@@ -18,6 +18,7 @@ dependencies {
 
     jmh project(':tritium-lib')
     jmh 'ch.qos.logback:logback-classic'
+    jmh 'com.palantir.remoting3:tracing'
     jmh 'org.slf4j:slf4j-simple'
 
 }

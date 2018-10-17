@@ -16,9 +16,15 @@
 
 package com.palantir.tritium.tracing;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Throwables;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 final class ReflectiveTracer implements Tracer {
 
@@ -26,8 +32,8 @@ final class ReflectiveTracer implements Tracer {
     private final Method completeSpanMethod;
 
     ReflectiveTracer(Method startSpanMethod, Method completeSpanMethod) {
-        this.startSpanMethod = Preconditions.checkNotNull(startSpanMethod, "startSpanMethod");
-        this.completeSpanMethod = Preconditions.checkNotNull(completeSpanMethod, "completeSpanMethod");
+        this.startSpanMethod = checkStartMethod(startSpanMethod);
+        this.completeSpanMethod = checkCompleteMethod(completeSpanMethod);
     }
 
     @Override
@@ -35,9 +41,7 @@ final class ReflectiveTracer implements Tracer {
         try {
             startSpanMethod.invoke(null, operationName);
         } catch (ReflectiveOperationException e) {
-            Throwable cause = e.getCause();
-            Throwables.throwIfUnchecked(cause);
-            throw new RuntimeException(cause);
+            throw throwUnchecked(e);
         }
     }
 
@@ -46,10 +50,40 @@ final class ReflectiveTracer implements Tracer {
         try {
             completeSpanMethod.invoke(null);
         } catch (ReflectiveOperationException e) {
-            Throwable cause = e.getCause();
-            Throwables.throwIfUnchecked(cause);
-            throw new RuntimeException(cause);
+            throw throwUnchecked(e);
         }
+    }
+
+    private static Method checkStartMethod(Method method) {
+        checkNotNull(method, "method");
+        checkArgument(Modifier.isPublic(method.getModifiers()), "method must be public: %s", method);
+        checkArgument(Modifier.isStatic(method.getModifiers()), "method must be static: %s", method);
+        if (method.getParameterCount() != 1 || !String.class.equals(method.getParameterTypes()[0])) {
+            throw new IllegalArgumentException(String.format("startSpan method should take 1 String argument, was %s",
+                    paramsToClassNames(method)));
+        }
+        return method;
+    }
+
+    private static Method checkCompleteMethod(Method method) {
+        checkNotNull(method, "method");
+        checkArgument(Modifier.isPublic(method.getModifiers()), "method must be public: %s", method);
+        checkArgument(Modifier.isStatic(method.getModifiers()), "method must be static: %s", method);
+        checkArgument(method.getParameterCount() == 0,
+                "completeSpan method should take 0 arguments, was %s", paramsToClassNames(method));
+        return method;
+    }
+
+    private static List<String> paramsToClassNames(Method method) {
+        return Arrays.stream(method.getParameterTypes())
+                .map(Class::getName)
+                .collect(Collectors.toList());
+    }
+
+    private static RuntimeException throwUnchecked(ReflectiveOperationException reflectionException) {
+        Throwable cause = reflectionException.getCause() != null ? reflectionException.getCause() : reflectionException;
+        Throwables.throwIfUnchecked(cause);
+        throw new RuntimeException(cause);
     }
 
 }
