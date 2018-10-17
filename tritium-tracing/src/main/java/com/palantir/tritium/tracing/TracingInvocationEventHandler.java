@@ -16,13 +16,14 @@
 
 package com.palantir.tritium.tracing;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.palantir.remoting3.tracing.Tracer;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,16 +36,35 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
 
     private final String component;
 
+    /**
+     * Constructs new tracing event handler.
+     * @param component component name
+     * @deprecated use {@link #create(String)}
+     */
+    @Deprecated
     public TracingInvocationEventHandler(String component) {
         super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
-        this.component = component;
+        this.component = Preconditions.checkNotNull(component, "component");
+    }
+
+    /**
+     * Constructs new tracing event handler.
+     * @param component component name
+     * @return tracing event handler
+     */
+    public static InvocationEventHandler<InvocationContext> create(String component) {
+        if (RemotingCompatibleTracingInvocationEventHandler.requiresRemotingFallback()) {
+            return RemotingCompatibleTracingInvocationEventHandler.create(component);
+        }
+        //noinspection deprecation
+        return new TracingInvocationEventHandler(component);
     }
 
     @Override
     public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
         InvocationContext context = DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
-        Tracer.startSpan(operationName);
+        com.palantir.tracing.Tracer.startSpan(operationName);
         return context;
     }
 
@@ -55,14 +75,14 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     @Override
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         debugIfNullContext(context);
-        Tracer.fastCompleteSpan();
+        com.palantir.tracing.Tracer.fastCompleteSpan();
     }
 
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
         // TODO(davids): add Error event
-        Tracer.fastCompleteSpan();
+        com.palantir.tracing.Tracer.fastCompleteSpan();
     }
 
     private static void debugIfNullContext(@Nullable InvocationContext context) {

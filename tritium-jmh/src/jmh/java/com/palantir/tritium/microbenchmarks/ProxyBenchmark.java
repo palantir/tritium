@@ -16,10 +16,11 @@
 
 package com.palantir.tritium.microbenchmarks;
 
-import com.palantir.remoting3.tracing.AsyncSlf4jSpanObserver;
-import com.palantir.remoting3.tracing.Tracer;
+import com.palantir.tracing.AsyncSlf4jSpanObserver;
+import com.palantir.tracing.Tracer;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
+import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHandler;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,6 +60,7 @@ public class ProxyBenchmark {
     private Service instrumentedWithMetrics;
     private Service instrumentedWithEverything;
     private Service instrumentedWithTracing;
+    private Service instrumentedWithRemoting;
 
     private ExecutorService executor;
 
@@ -78,17 +80,20 @@ public class ProxyBenchmark {
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .build();
 
-        TracingInvocationEventHandler tracingInvocationEventHandler = new TracingInvocationEventHandler("jmh");
         executor = Executors.newSingleThreadExecutor();
         Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
         instrumentedWithTracing = Instrumentation.builder(Service.class, raw)
-                .withHandler(tracingInvocationEventHandler)
+                .withHandler(TracingInvocationEventHandler.create("jmh"))
+                .build();
+
+        instrumentedWithRemoting = Instrumentation.builder(Service.class, raw)
+                .withHandler(new RemotingCompatibleTracingInvocationEventHandler("jmh", Remoting3Tracer.INSTANCE))
                 .build();
 
         instrumentedWithEverything = Instrumentation.builder(Service.class, raw)
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .withPerformanceTraceLogging()
-                .withHandler(tracingInvocationEventHandler)
+                .withHandler(TracingInvocationEventHandler.create("jmh"))
                 .build();
     }
 
@@ -107,17 +112,17 @@ public class ProxyBenchmark {
         return raw.echo("test");
     }
 
-    @Benchmark
+    // @Benchmark
     public String instrumentedWithoutHandlers() {
         return instrumentedWithoutHandlers.echo("test");
     }
 
-    @Benchmark
+    // @Benchmark
     public String instrumentedWithPerformanceLogging() {
         return instrumentedWithPerformanceLogging.echo("test");
     }
 
-    @Benchmark
+    // @Benchmark
     public String instrumentedWithMetrics() {
         return instrumentedWithMetrics.echo("test");
     }
@@ -128,6 +133,11 @@ public class ProxyBenchmark {
     }
 
     @Benchmark
+    public String instrumentedWithRemoting() {
+        return instrumentedWithRemoting.echo("test");
+    }
+
+    // @Benchmark
     public String instrumentedWithEverything() {
         return instrumentedWithEverything.echo("test");
     }
@@ -155,4 +165,18 @@ public class ProxyBenchmark {
         new Runner(options).run();
     }
 
+    public enum Remoting3Tracer implements com.palantir.tritium.tracing.Tracer {
+        INSTANCE;
+
+        @Override
+        public void startSpan(String operationName) {
+            com.palantir.remoting3.tracing.Tracer.startSpan(operationName);
+        }
+
+        @Override
+        public void completeSpan() {
+            com.palantir.remoting3.tracing.Tracer.fastCompleteSpan();
+        }
+
+    }
 }

@@ -23,11 +23,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.palantir.remoting.api.tracing.Span;
-import com.palantir.remoting.api.tracing.SpanObserver;
-import com.palantir.remoting3.tracing.AsyncSlf4jSpanObserver;
-import com.palantir.remoting3.tracing.Tracer;
+import com.palantir.tracing.AsyncSlf4jSpanObserver;
+import com.palantir.tracing.Tracer;
+import com.palantir.tracing.api.Span;
+import com.palantir.tracing.api.SpanObserver;
 import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
@@ -44,7 +45,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class TracingInvocationEventHandlerTest {
 
-    private TracingInvocationEventHandler handler;
+    private InvocationEventHandler<InvocationContext> handler;
     private TestInterface instance;
     private Method method;
     private Object[] args;
@@ -56,7 +57,8 @@ public class TracingInvocationEventHandlerTest {
     @Before
     public void before() throws Exception {
         executor = MoreExecutors.newDirectExecutorService();
-        handler = new TracingInvocationEventHandler("testComponent");
+        handler = TracingInvocationEventHandler.create("testComponent");
+        assertThat(handler).isInstanceOf(TracingInvocationEventHandler.class);
         Tracer.subscribe("sysout", System.out::println);
         Tracer.subscribe("mock", mockSpanObserver);
         Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
