@@ -3,6 +3,7 @@ apply from: "${rootDir}/gradle/publish.gradle"
 dependencies {
 
     annotationProcessor "org.immutables:value"
+    compileOnly 'org.immutables:value::annotations'
 
     api project(':tritium-api')
     api project(':tritium-core')

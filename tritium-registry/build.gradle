@@ -4,6 +4,7 @@ dependencies {
 
     annotationProcessor 'com.google.auto.service:auto-service'
     annotationProcessor 'org.immutables:value'
+    compileOnly 'org.immutables:value::annotations'
 
     compileOnly 'com.google.auto.service:auto-service'
 
