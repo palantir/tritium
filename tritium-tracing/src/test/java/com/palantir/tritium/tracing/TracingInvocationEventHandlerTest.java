@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.palantir.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.tracing.Tracer;
+import com.palantir.tracing.Tracers;
 import com.palantir.tracing.api.Span;
 import com.palantir.tracing.api.SpanObserver;
 import com.palantir.tritium.event.InvocationContext;
@@ -41,6 +42,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.MDC;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TracingInvocationEventHandlerTest {
@@ -56,6 +58,7 @@ public class TracingInvocationEventHandlerTest {
 
     @Before
     public void before() throws Exception {
+        Tracer.getAndClearTrace();
         executor = MoreExecutors.newDirectExecutorService();
         handler = TracingInvocationEventHandler.create("testComponent");
         assertThat(handler).isInstanceOf(TracingInvocationEventHandler.class);
@@ -74,6 +77,7 @@ public class TracingInvocationEventHandlerTest {
         Tracer.unsubscribe("mock");
         Tracer.unsubscribe("slf4j");
         executor.shutdownNow();
+        Tracer.getAndClearTrace();
     }
 
     @Test
@@ -87,11 +91,14 @@ public class TracingInvocationEventHandlerTest {
         assertThat(context.getArgs()).isEqualTo(args);
         assertThat(context.getStartTimeNanos()).isGreaterThan(startNanoseconds);
         assertThat(context.getStartTimeNanos()).isLessThan(System.nanoTime());
+        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNotNull();
     }
 
     @Test
     public void testSuccess() {
         InvocationContext context = handler.preInvocation(instance, method, args);
+
+        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNotNull();
 
         handler.onSuccess(context, null);
 
@@ -100,11 +107,14 @@ public class TracingInvocationEventHandlerTest {
 
         Span span = spanCaptor.getValue();
         assertThat(span.getDurationNanoSeconds()).isGreaterThan(0L);
+        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNull();
     }
 
     @Test
     public void testFailure() {
         InvocationContext context = handler.preInvocation(instance, method, args);
+
+        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNotNull();
 
         handler.onFailure(context, new RuntimeException("unexpected"));
 
@@ -113,6 +123,7 @@ public class TracingInvocationEventHandlerTest {
 
         Span span = spanCaptor.getValue();
         assertThat(span.getDurationNanoSeconds()).isGreaterThan(0L);
+        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNull();
     }
 
     @Test
