@@ -75,14 +75,20 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     @Override
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         debugIfNullContext(context);
-        com.palantir.tracing.Tracer.fastCompleteSpan();
+        // Context is null if no span was created, in which case the existing span should not be completed
+        if (context != null) {
+            com.palantir.tracing.Tracer.fastCompleteSpan();
+        }
     }
 
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
         // TODO(davids): add Error event
-        com.palantir.tracing.Tracer.fastCompleteSpan();
+        // Context is null if no span was created, in which case the existing span should not be completed
+        if (context != null) {
+            com.palantir.tracing.Tracer.fastCompleteSpan();
+        }
     }
 
     private static void debugIfNullContext(@Nullable InvocationContext context) {

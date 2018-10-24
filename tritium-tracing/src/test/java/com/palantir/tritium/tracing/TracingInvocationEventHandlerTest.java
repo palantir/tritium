@@ -125,10 +125,6 @@ public class TracingInvocationEventHandlerTest {
     public void onSuccessWithNullContextShouldNotThrow() {
         handler.onSuccess(null, new Object());
 
-        ArgumentCaptor<Span> spanCaptor = ArgumentCaptor.forClass(Span.class);
-        verify(mockSpanObserver, times(1)).consume(spanCaptor.capture());
-        Span span = spanCaptor.getValue();
-        assertThat(span.getTraceId()).isNotNull();
         verifyNoMoreInteractions(mockSpanObserver);
     }
 
@@ -136,10 +132,6 @@ public class TracingInvocationEventHandlerTest {
     public void onFailureWithNullContextShouldNotThrow() {
         handler.onFailure(null, new RuntimeException("expected"));
 
-        ArgumentCaptor<Span> spanCaptor = ArgumentCaptor.forClass(Span.class);
-        verify(mockSpanObserver, times(1)).consume(spanCaptor.capture());
-        Span span = spanCaptor.getValue();
-        assertThat(span.getTraceId()).isNotNull();
         verifyNoMoreInteractions(mockSpanObserver);
     }
 
