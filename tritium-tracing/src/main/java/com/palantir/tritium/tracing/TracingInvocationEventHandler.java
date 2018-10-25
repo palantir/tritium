@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.palantir.tracing.Tracer;
 import com.palantir.tracing.Tracers;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
@@ -70,7 +71,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         boolean rootSpan = MDC.get(Tracers.TRACE_ID_KEY) == null;
         TracingInvocationContext context = TracingInvocationContext.of(instance, method, args, rootSpan);
         String operationName = getOperationName(method);
-        com.palantir.tracing.Tracer.startSpan(operationName);
+        Tracer.startSpan(operationName);
         return context;
     }
 
@@ -93,9 +94,9 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         debugIfNullContext(context);
         // Context is null if no span was created, in which case the existing span should not be completed
         if (context != null) {
-            com.palantir.tracing.Tracer.fastCompleteSpan();
+            Tracer.fastCompleteSpan();
             if (context instanceof TracingInvocationContext && ((TracingInvocationContext) context).isRootSpan()) {
-                com.palantir.tracing.Tracer.getAndClearTrace();
+                Tracer.getAndClearTrace();
             }
         }
     }

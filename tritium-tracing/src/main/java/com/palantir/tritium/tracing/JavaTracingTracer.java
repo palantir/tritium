@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.tracing;
 
-enum JavaTracingTracer implements Tracer {
+enum JavaTracingTracer implements com.palantir.tritium.tracing.Tracer {
     INSTANCE;
 
     @Override
