@@ -16,24 +16,20 @@
 
 package com.palantir.tritium.tracing;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.palantir.tracing.Tracer;
-import com.palantir.tracing.Tracers;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
+import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 public final class TracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
@@ -57,7 +53,6 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
      * @param component component name
      * @return tracing event handler
      */
-    @SuppressWarnings("unchecked")
     public static InvocationEventHandler<InvocationContext> create(String component) {
         if (RemotingCompatibleTracingInvocationEventHandler.requiresRemotingFallback()) {
             return RemotingCompatibleTracingInvocationEventHandler.create(component);
@@ -67,9 +62,8 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public TracingInvocationContext preInvocation(Object instance, Method method, Object[] args) {
-        boolean rootSpan = MDC.get(Tracers.TRACE_ID_KEY) == null;
-        TracingInvocationContext context = TracingInvocationContext.of(instance, method, args, rootSpan);
+    public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+        InvocationContext context = DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
         Tracer.startSpan(operationName);
         return context;
@@ -95,9 +89,6 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         // Context is null if no span was created, in which case the existing span should not be completed
         if (context != null) {
             Tracer.fastCompleteSpan();
-            if (context instanceof TracingInvocationContext && ((TracingInvocationContext) context).isRootSpan()) {
-                Tracer.getAndClearTrace();
-            }
         }
     }
 
@@ -109,70 +100,5 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
 
     static BooleanSupplier getEnabledSupplier(String component) {
         return InstrumentationProperties.getSystemPropertySupplier(component);
-    }
-
-    static final class TracingInvocationContext implements InvocationContext {
-
-        private static final Object[] NO_ARGS = {};
-
-        private final long startTimeNanos;
-        private final Object instance;
-        private final Method method;
-        private final Object[] args;
-        private final boolean rootSpan;
-
-        private TracingInvocationContext(
-                long startTimeNanos, Object instance, Method method, @Nullable Object[] args, boolean rootSpan) {
-            this.startTimeNanos = startTimeNanos;
-            this.instance = instance;
-            this.method = method;
-            this.args = toNonNullClone(args);
-            this.rootSpan = rootSpan;
-        }
-
-        private static Object[] toNonNullClone(@Nullable Object[] args) {
-            return args == null ? NO_ARGS : args.clone();
-        }
-
-        public static TracingInvocationContext of(
-                Object instance, Method method, @Nullable Object[] args, boolean rootSpan) {
-            return new TracingInvocationContext(
-                    System.nanoTime(),
-                    checkNotNull(instance, "instance"),
-                    checkNotNull(method, "method"),
-                    args,
-                    rootSpan);
-        }
-
-        @Override
-        public long getStartTimeNanos() {
-            return startTimeNanos;
-        }
-
-        @Override
-        public Object getInstance() {
-            return instance;
-        }
-
-        @Override
-        public Method getMethod() {
-            return method;
-        }
-
-        @Override
-        public Object[] getArgs() {
-            return args;
-        }
-
-        boolean isRootSpan() {
-            return rootSpan;
-        }
-
-        @Override
-        @SuppressWarnings("DesignForExtension")
-        public String toString() {
-            return "TracingInvocationContext [startTimeNanos=" + startTimeNanos + ", instance=" + instance + ", method="
-                    + method + ", args=" + Arrays.toString(args) + ", rootSpan=" + rootSpan + "]";
-        }
     }
 }
