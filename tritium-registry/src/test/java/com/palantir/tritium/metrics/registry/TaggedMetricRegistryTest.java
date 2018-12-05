@@ -105,8 +105,7 @@ public final class TaggedMetricRegistryTest {
 
     @Test
     public void testSuppliedHistogram() {
-        testSuppliedCall(
-                registry::histogram,
+        testSuppliedCall(registry::histogram,
                 new Histogram(new ExponentiallyDecayingReservoir()),
                 new Histogram(new ExponentiallyDecayingReservoir()));
     }
@@ -157,7 +156,7 @@ public final class TaggedMetricRegistryTest {
         String tagKey = "tagKey";
         String tagValue = "tagValue";
         TaggedMetricRegistry child = new DefaultTaggedMetricRegistry();
-        Meter meter = child.meter(METRIC_1);
+        Meter meter = child.meter(MetricName.builder().safeName(name).build());
         registry.addMetrics(tagKey, tagValue, child);
         assertMetric(name, tagKey, tagValue, meter);
         registry.removeMetrics(tagKey, tagValue);
