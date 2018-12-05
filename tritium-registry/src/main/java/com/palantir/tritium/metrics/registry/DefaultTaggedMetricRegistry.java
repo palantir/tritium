@@ -123,6 +123,12 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
         return Optional.ofNullable(taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue)));
     }
 
+    @Override
+    public boolean removeMetrics(
+            String safeTagName, String safeTagValue, TaggedMetricSet metrics) {
+        return taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue), metrics);
+    }
+
     private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
         Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
         if (!metricClass.isInstance(metric)) {
