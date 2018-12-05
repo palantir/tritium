@@ -85,7 +85,6 @@ public final class TaggedMetricRegistryTest {
         testSuppliedCall(registry::counter, new Counter(), new Counter());
     }
 
-
     @Test
     public void testGauge() {
         Gauge gauge1 = registry.gauge(METRIC_1, () -> 1);
@@ -159,9 +158,39 @@ public final class TaggedMetricRegistryTest {
         TaggedMetricRegistry child = new DefaultTaggedMetricRegistry();
         Meter meter = child.meter(MetricName.builder().safeName(name).build());
         registry.addMetrics(tagKey, tagValue, child);
-        assertThat(registry.getMetrics())
-                .containsEntry(MetricName.builder().safeName(name).putSafeTags(tagKey, tagValue).build(), meter);
+        assertMetric(name, tagKey, tagValue, meter);
         registry.removeMetrics(tagKey, tagValue);
         assertThat(registry.getMetrics()).isEmpty();
+    }
+
+    @Test
+    public void testReplaceMetricRegistry() {
+        String name = "name";
+        String tagKey = "tagKey";
+        String tagValue = "tagValue";
+
+        TaggedMetricRegistry firstChild = new DefaultTaggedMetricRegistry();
+        Meter firstMeter = firstChild.meter(MetricName.builder().safeName(name).build());
+        registry.addMetrics(tagKey, tagValue, firstChild);
+
+        assertMetric(name, tagKey, tagValue, firstMeter);
+
+        TaggedMetricRegistry secondChild = new DefaultTaggedMetricRegistry();
+        Meter secondMeter = secondChild.meter(MetricName.builder().safeName(name).build());
+
+        registry.addMetrics(tagKey, tagValue, secondChild);
+        assertMetric(name, tagKey, tagValue, secondMeter);
+
+        assertThat(registry.removeMetrics(tagKey, tagValue, firstChild)).isFalse();
+
+        assertMetric(name, tagKey, tagValue, secondMeter);
+
+        assertThat(registry.removeMetrics(tagKey, tagValue, secondChild)).isTrue();
+        assertThat(registry.getMetrics()).isEmpty();
+    }
+
+    private void assertMetric(String name, String tagKey, String tagValue, Meter meter) {
+        assertThat(registry.getMetrics())
+                .containsEntry(MetricName.builder().safeName(name).putSafeTags(tagKey, tagValue).build(), meter);
     }
 }
