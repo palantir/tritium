@@ -132,6 +132,10 @@ public final class Instrumentation {
             return this;
         }
 
+        public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
+            return withMetrics(metricRegistry, null);
+        }
+
         /**
          * Supplies a TaggedMetricRegistry and a name prefix to be used across service invocations.
          *
@@ -147,10 +151,6 @@ public final class Instrumentation {
             this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(
                     metricRegistry, globalPrefix));
             return this;
-        }
-
-        public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
-            return withMetrics(metricRegistry, null);
         }
 
         public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry) {
