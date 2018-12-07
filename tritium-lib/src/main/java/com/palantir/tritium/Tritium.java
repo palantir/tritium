@@ -17,6 +17,7 @@
 package com.palantir.tritium;
 
 import com.codahale.metrics.MetricRegistry;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 
@@ -39,6 +40,29 @@ public final class Tritium {
      * @return instrumented proxy implementing specified service interface
      */
     public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
+        return Instrumentation.builder(serviceInterface, delegate)
+                .withMetrics(metricRegistry)
+                .withPerformanceTraceLogging()
+                .withHandler(TracingInvocationEventHandler.create(serviceInterface.getName()))
+                .build();
+    }
+
+    /**
+     * Return an instrumented proxy of the specified service interface, and delegate that records aggregated
+     * invocation metrics, Zipkin style traces and performance trace logging.
+     *
+     * @param serviceInterface
+     *        The service class to instrument
+     * @param delegate
+     *        Delegate to instrument
+     * @param metricRegistry
+     *        A {@link TaggedMetricRegistry} for registering metrics
+     * @return instrumented proxy implementing specified service interface
+     */
+    public static <T, U extends T> T instrument(
+            Class<T> serviceInterface,
+            U delegate,
+            TaggedMetricRegistry metricRegistry) {
         return Instrumentation.builder(serviceInterface, delegate)
                 .withMetrics(metricRegistry)
                 .withPerformanceTraceLogging()

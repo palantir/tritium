@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final Logger logger = LoggerFactory.getLogger(TaggedMetricsServiceInvocationEventHandler.class);
+    private static final String FAILURES_METRIC_NAME = "failures";
 
     private final TaggedMetricRegistry taggedMetricRegistry;
     private final String serviceName;
@@ -59,10 +60,6 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
         super(getEnabledSupplier(serviceName));
         this.taggedMetricRegistry = checkNotNull(taggedMetricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
-    }
-
-    private static String failuresMetricName() {
-        return "failures";
     }
 
     private static BooleanSupplier getEnabledSupplier(final String serviceName) {
@@ -96,14 +93,13 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
         markGlobalFailure();
         if (context == null) {
             logger.debug(
-                    "Encountered null metric context likely due to exception in preInvocation: {}",
-                    UnsafeArg.of("exception", cause),
+                    "Encountered null metric context likely due to exception in preInvocation",
                     cause);
             return;
         }
 
         MetricName failuresMetricName = MetricName.builder()
-                .safeName(serviceName + "-" + failuresMetricName())
+                .safeName(serviceName + "-" + FAILURES_METRIC_NAME)
                 .putSafeTags("service-name", context.getMethod().getDeclaringClass().getSimpleName())
                 .putSafeTags("endpoint", context.getMethod().getName())
                 .putSafeTags("cause", cause.getClass().getName())
@@ -112,6 +108,6 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     private void markGlobalFailure() {
-        taggedMetricRegistry.meter(MetricName.builder().safeName(failuresMetricName()).build()).mark();
+        taggedMetricRegistry.meter(MetricName.builder().safeName(FAILURES_METRIC_NAME).build()).mark();
     }
 }

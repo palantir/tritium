@@ -27,6 +27,8 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
+import com.palantir.tritium.event.metrics.TaggedMetricsServiceInvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongPredicate;
@@ -130,7 +132,28 @@ public final class Instrumentation {
             return this;
         }
 
+        /**
+         * Supplies a TaggedMetricRegistry and a name prefix to be used across service invocations.
+         *
+         * Uses a {@link TaggedMetricsServiceInvocationEventHandler} object for handling invocations, so
+         * metric names are chosen based off of the interface name and invoked method.
+         *
+         * @param metricRegistry - TaggedMetricsRegistry used for this application.
+         * @param globalPrefix - Metrics name prefix to be used
+         * @return - InstrumentationBuilder
+         */
+        public Builder<T, U> withMetrics(TaggedMetricRegistry metricRegistry, String globalPrefix) {
+            checkNotNull(metricRegistry, "metricRegistry");
+            this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(
+                    metricRegistry, globalPrefix));
+            return this;
+        }
+
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
+            return withMetrics(metricRegistry, null);
+        }
+
+        public Builder<T, U> withMetrics(TaggedMetricRegistry metricRegistry) {
             return withMetrics(metricRegistry, null);
         }
 
