@@ -18,7 +18,6 @@ package com.palantir.tritium.event.metrics;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -50,6 +49,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
 
     private static final Logger logger = LoggerFactory.getLogger(TaggedMetricsServiceInvocationEventHandler.class);
     private static final String FAILURES_METRIC_NAME = "failures";
+    private static final MetricName FAILURES_METRIC = MetricName.builder().safeName(FAILURES_METRIC_NAME).build();
 
     private final TaggedMetricRegistry taggedMetricRegistry;
     private final String serviceName;
@@ -108,6 +108,6 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     private void markGlobalFailure() {
-        taggedMetricRegistry.meter(MetricName.builder().safeName(FAILURES_METRIC_NAME).build()).mark();
+        taggedMetricRegistry.meter(FAILURES_METRIC).mark();
     }
 }
