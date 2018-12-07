@@ -64,7 +64,7 @@ public final class Tritium {
             U delegate,
             TaggedMetricRegistry metricRegistry) {
         return Instrumentation.builder(serviceInterface, delegate)
-                .withMetrics(metricRegistry)
+                .withTaggedMetrics(metricRegistry)
                 .withPerformanceTraceLogging()
                 .withHandler(TracingInvocationEventHandler.create(serviceInterface.getName()))
                 .build();

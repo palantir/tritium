@@ -142,7 +142,7 @@ public final class Instrumentation {
          * @param globalPrefix - Metrics name prefix to be used
          * @return - InstrumentationBuilder
          */
-        public Builder<T, U> withMetrics(TaggedMetricRegistry metricRegistry, String globalPrefix) {
+        public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String globalPrefix) {
             checkNotNull(metricRegistry, "metricRegistry");
             this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(
                     metricRegistry, globalPrefix));
@@ -153,8 +153,8 @@ public final class Instrumentation {
             return withMetrics(metricRegistry, null);
         }
 
-        public Builder<T, U> withMetrics(TaggedMetricRegistry metricRegistry) {
-            return withMetrics(metricRegistry, null);
+        public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry) {
+            return withTaggedMetrics(metricRegistry, null);
         }
 
         public Builder<T, U> withPerformanceTraceLogging() {
