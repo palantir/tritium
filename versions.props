@@ -12,6 +12,7 @@ com.palantir.baseline:* = 0.37.3
 com.palantir.remoting3:* = 3.45.0
 com.palantir.safe-logging:safe-logging = 1.7.0
 com.palantir.tracing:* = 2.0.0
+com.uber.nullaway:nullaway = 0.6.4
 io.dropwizard.metrics:metrics-core = 3.2.5
 junit:junit = 4.12
 org.assertj:assertj-core = 3.11.1

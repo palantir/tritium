@@ -19,16 +19,13 @@ buildscript {
 }
 
 apply plugin: 'java'
-apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
 apply plugin: 'com.palantir.baseline'
-apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.git-version'
 
 allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
 
-    apply plugin: 'java'
     apply plugin: 'java-library'
     apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
@@ -38,7 +35,6 @@ allprojects {
 
     dependencyRecommendations {
         strategy OverrideTransitives
-        propertiesFile file: project.rootProject.file('versions.props')
     }
 
     configurations {
@@ -104,5 +100,15 @@ allprojects {
     }
     tasks.check.dependsOn(javadoc)
 
+    plugins.withId('com.palantir.baseline-error-prone', {
+        dependencies {
+            compileOnly 'com.google.code.findbugs:jsr305'
+            annotationProcessor 'com.uber.nullaway:nullaway'
+        }
+
+        tasks.withType(JavaCompile) {
+            options.errorprone.errorproneArgs += ['-XepOpt:NullAway:AnnotatedPackages=com.palantir']
+        }
+    })
 }
 
