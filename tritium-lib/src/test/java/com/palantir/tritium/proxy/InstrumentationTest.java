@@ -28,12 +28,14 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Slf4jReporter.LoggingLevel;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.tritium.Tagged;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
@@ -41,6 +43,9 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import com.palantir.tritium.metrics.MetricRegistries;
+import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
+import com.palantir.tritium.metrics.registry.MetricName;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Constructor;
@@ -48,6 +53,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import org.junit.After;
@@ -81,12 +87,17 @@ public class InstrumentationTest {
     private InvocationEventHandler<InvocationContext> mockHandler;
 
     private final MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
+    private final TaggedMetricRegistry taggedMetricRegistry = new DefaultTaggedMetricRegistry();
 
     @After
     public void after() {
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build();
-        reporter.report();
-        reporter.close();
+        try (ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build()) {
+            if (!metrics.getMetrics().isEmpty()) {
+                System.out.println("Untagged Metrics:");
+                reporter.report();
+            }
+            Tagged.report(reporter, taggedMetricRegistry);
+        }
     }
 
     @Test
@@ -314,6 +325,29 @@ public class InstrumentationTest {
         assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> builder.withFilter(null))
                 .withMessage("instrumentationFilter");
+    }
+
+    @Test
+    public void testTaggedMetrics() {
+        TestImplementation delegate = new TestImplementation();
+        TestInterface runnable =
+                Instrumentation.builder(TestInterface.class, delegate)
+                        .withTaggedMetrics(taggedMetricRegistry, "testPrefix")
+                        .withMetrics(metrics)
+                        .build();
+        assertThat(delegate.invocationCount()).isEqualTo(0);
+        runnable.test();
+        assertThat(delegate.invocationCount()).isEqualTo(1);
+        Map<MetricName, Metric> taggedMetrics = taggedMetricRegistry.getMetrics();
+        assertThat(taggedMetrics.keySet()).containsOnly(MetricName.builder()
+                .safeName("testPrefix")
+                .putSafeTags("service-name", "TestInterface")
+                .putSafeTags("endpoint", "test")
+                .build());
+
+        assertThat(taggedMetrics.values())
+                .first().isInstanceOf(Timer.class)
+                .extracting(m -> ((Timer) m).getCount()).isEqualTo(1L);
     }
 
     @Test

@@ -19,6 +19,7 @@ package com.palantir.tritium.proxy;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.InstrumentationFilters;
@@ -143,18 +144,18 @@ public final class Instrumentation {
          * metric names are chosen based off of the interface name and invoked method.
          *
          * @param metricRegistry - TaggedMetricsRegistry used for this application.
-         * @param globalPrefix - Metrics name prefix to be used
+         * @param prefix - Metrics name prefix to be used
          * @return - InstrumentationBuilder
          */
-        public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String globalPrefix) {
+        public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String prefix) {
             checkNotNull(metricRegistry, "metricRegistry");
-            this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(
-                    metricRegistry, globalPrefix));
+            String serviceName = (Strings.isNullOrEmpty(prefix)) ? interfaceClass.getName() : prefix;
+            this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(metricRegistry, serviceName));
             return this;
         }
 
         public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry) {
-            return withTaggedMetrics(metricRegistry, null);
+            return withTaggedMetrics(metricRegistry, "");
         }
 
         public Builder<T, U> withPerformanceTraceLogging() {
