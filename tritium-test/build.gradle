@@ -4,6 +4,7 @@ dependencies {
 
     implementation project(':tritium-core')
     implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'io.dropwizard.metrics:metrics-core'
 

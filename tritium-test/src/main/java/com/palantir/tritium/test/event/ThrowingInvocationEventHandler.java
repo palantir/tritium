@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.test.event;
 
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
@@ -33,18 +34,18 @@ public class ThrowingInvocationEventHandler implements InvocationEventHandler<In
 
     @Override
     public com.palantir.tritium.event.InvocationContext preInvocation(Object instance, Method method, Object[] args) {
-        throw new IllegalStateException("preInvocation always throws");
+        throw new SafeIllegalStateException("preInvocation always throws");
     }
 
     @Override
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
-        throw new IllegalStateException("onSuccess always throws");
+        throw new SafeIllegalStateException("onSuccess always throws");
 
     }
 
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
-        throw new IllegalStateException("onFailure always throws");
+        throw new SafeIllegalStateException("onFailure always throws");
     }
 
     @Override

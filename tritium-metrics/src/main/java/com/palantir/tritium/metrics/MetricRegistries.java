@@ -104,7 +104,7 @@ public final class MetricRegistries {
                 return metrics.register(name, builder.newMetric());
             } catch (IllegalArgumentException e) {
                 Metric added = metrics.getMetrics().get(name);
-                if (builder.isInstance(added)) {
+                if (added != null && builder.isInstance(added)) {
                     return (T) added;
                 }
             }

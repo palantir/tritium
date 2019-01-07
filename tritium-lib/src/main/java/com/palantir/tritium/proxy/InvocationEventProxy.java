@@ -153,7 +153,8 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         return result;
     }
 
-    private static void logInvocationWarningOnSuccess(InvocationContext context, Object result, Exception cause) {
+    private static void logInvocationWarningOnSuccess(@Nullable InvocationContext context, @Nullable Object result,
+            Exception cause) {
         logger.warn("{} exception handling onSuccess({}, {}): {}",
                 safeSimpleClassName("cause", cause), context, safeSimpleClassName("result", result), cause);
     }
@@ -167,8 +168,8 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         return cause;
     }
 
-    private static void logInvocationWarningOnFailure(InvocationContext context, @Nullable Throwable result,
-            RuntimeException cause) {
+    private static void logInvocationWarningOnFailure(@Nullable InvocationContext context, @Nullable Throwable result,
+            Exception cause) {
         if (logger.isWarnEnabled()) {
             logger.warn("{} exception handling onFailure({}, {}): {}",
                     safeSimpleClassName("cause", cause),

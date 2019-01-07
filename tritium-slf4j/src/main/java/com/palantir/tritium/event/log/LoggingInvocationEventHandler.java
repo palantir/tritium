@@ -137,9 +137,8 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
             case ERROR:
                 logger.error(messageFormat, args);
                 return;
-            default:
-                throw invalidLoggingLevel(level);
         }
+        throw invalidLoggingLevel(level);
     }
 
     static boolean isEnabled(Logger logger, LoggingLevel level) {
@@ -154,9 +153,8 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
                 return logger.isWarnEnabled();
             case ERROR:
                 return logger.isErrorEnabled();
-            default:
-                throw invalidLoggingLevel(level);
         }
+        throw invalidLoggingLevel(level);
     }
 
     private static IllegalArgumentException invalidLoggingLevel(LoggingLevel level) {
