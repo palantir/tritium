@@ -18,7 +18,6 @@ package com.palantir.tritium.event.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.test.TestImplementation;
