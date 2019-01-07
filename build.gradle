@@ -67,7 +67,8 @@ allprojects {
             '-Werror',
             '-Xlint:deprecation',
             '-XepDisableWarningsInGeneratedCode',
-            '-XepExcludedPaths:.*/build/.*generated.*',
+            // skipping Immutable* explicitly due to https://github.com/google/error-prone/issues/1165
+            '-XepExcludedPaths:.*(generated|Immutable).*',
             '-Xep:AmbiguousMethodReference:ERROR',
             '-Xep:BoxedPrimitiveConstructor:ERROR',
             '-Xep:CatchFail:ERROR',
@@ -76,8 +77,11 @@ allprojects {
             '-Xep:FunctionalInterfaceClash:ERROR',
             '-Xep:MethodCanBeStatic:ERROR',
             '-Xep:NonCanonicalStaticMemberImport:ERROR',
+            '-Xep:PreferSafeLoggableExceptions:ERROR',
             '-Xep:ReturnMissingNullable:ERROR',
             '-Xep:Slf4jLogsafeArgs:ERROR',
+            '-Xep:SwitchStatementDefaultCase:ERROR',
+            '-Xep:UnnecessaryParentheses:ERROR',
         ]
     }
 
