@@ -17,11 +17,12 @@
 package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Metric;
+import javax.annotation.Nullable;
 
 interface MetricBuilder<T extends Metric> {
 
     T newMetric();
 
-    boolean isInstance(Metric metric);
+    boolean isInstance(@Nullable Metric metric);
 
 }

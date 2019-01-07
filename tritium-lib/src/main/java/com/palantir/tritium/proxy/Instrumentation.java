@@ -134,7 +134,7 @@ public final class Instrumentation {
         }
 
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
-            return withMetrics(metricRegistry, null);
+            return withMetrics(metricRegistry, "");
         }
 
         /**
