@@ -131,10 +131,6 @@ public class LoggingInstrumentationTest {
             case TRACE:
                 assertThat(logger.isTraceEnabled()).isTrue();
                 break;
-
-            default:
-                fail("Invalid level: " + level);
-                break;
         }
         assertThat(delegate.invocationCount()).isEqualTo(1);
     }
