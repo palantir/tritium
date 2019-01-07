@@ -95,6 +95,12 @@ public class LoggingInstrumentationTest {
 
     private static void testLoggingAtLevel(LoggingLevel level) {
         TestImplementation delegate = new TestImplementation();
+        assertThat(level).isIn(
+                LoggingLevel.ERROR,
+                LoggingLevel.WARN,
+                LoggingLevel.INFO,
+                LoggingLevel.DEBUG,
+                LoggingLevel.TRACE);
         enableLoggingForLevel(level);
         Logger logger = getLogger();
 

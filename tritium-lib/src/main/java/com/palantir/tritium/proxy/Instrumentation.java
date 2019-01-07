@@ -149,7 +149,7 @@ public final class Instrumentation {
          */
         public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String prefix) {
             checkNotNull(metricRegistry, "metricRegistry");
-            String serviceName = (Strings.isNullOrEmpty(prefix)) ? interfaceClass.getName() : prefix;
+            String serviceName = Strings.isNullOrEmpty(prefix) ? interfaceClass.getName() : prefix;
             this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(metricRegistry, serviceName));
             return this;
         }
