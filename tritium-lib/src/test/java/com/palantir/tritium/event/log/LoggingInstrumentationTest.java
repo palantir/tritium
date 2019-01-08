@@ -18,7 +18,6 @@ package com.palantir.tritium.event.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.test.TestImplementation;
@@ -95,6 +94,12 @@ public class LoggingInstrumentationTest {
 
     private static void testLoggingAtLevel(LoggingLevel level) {
         TestImplementation delegate = new TestImplementation();
+        assertThat(level).isIn(
+                LoggingLevel.ERROR,
+                LoggingLevel.WARN,
+                LoggingLevel.INFO,
+                LoggingLevel.DEBUG,
+                LoggingLevel.TRACE);
         enableLoggingForLevel(level);
         Logger logger = getLogger();
 
@@ -124,10 +129,6 @@ public class LoggingInstrumentationTest {
                 break;
             case TRACE:
                 assertThat(logger.isTraceEnabled()).isTrue();
-                break;
-
-            default:
-                fail("Invalid level: " + level);
                 break;
         }
         assertThat(delegate.invocationCount()).isEqualTo(1);

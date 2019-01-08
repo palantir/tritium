@@ -19,6 +19,7 @@ package com.palantir.tritium.metrics;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Metric;
+import javax.annotation.Nullable;
 
 abstract class AbstractMetricBuilder<T extends Metric> implements MetricBuilder<T> {
 
@@ -29,8 +30,8 @@ abstract class AbstractMetricBuilder<T extends Metric> implements MetricBuilder<
     }
 
     @Override
-    public boolean isInstance(Metric metric) {
-        return metricType.isInstance(metric);
+    public boolean isInstance(@Nullable Metric metric) {
+        return metric != null && metricType.isInstance(metric);
     }
 
 }

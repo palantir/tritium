@@ -108,4 +108,15 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * Removes a TaggedMetricsSet added via addMetrics from this metrics set.
      */
     Optional<TaggedMetricSet> removeMetrics(String safeTagName, String safeTagValue);
+
+    /**
+     * Removes a TaggedMetricsSet added via addMetrics from this metrics set, if currently registered to this metric
+     * set.
+     *
+     * The value is removed only when {@link Object#equals} for the values returns true, therefore
+     * you should generally provide the same instance as a previous call to addMetrics.
+     *
+     * @return true if value was removed
+     */
+    boolean removeMetrics(String safeTagName, String safeTagValue, TaggedMetricSet metrics);
 }

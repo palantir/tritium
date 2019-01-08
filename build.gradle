@@ -11,7 +11,7 @@ buildscript {
 
     dependencies {
         classpath 'com.netflix.nebula:nebula-publishing-plugin:8.2.0'
-        classpath 'com.palantir.baseline:gradle-baseline-java:0.39.1'
+        classpath 'com.palantir.baseline:gradle-baseline-java:0.43.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.11.0'
         classpath 'gradle.plugin.org.inferred:gradle-processors:2.1.0'
@@ -19,16 +19,13 @@ buildscript {
 }
 
 apply plugin: 'java'
-apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
 apply plugin: 'com.palantir.baseline'
-apply plugin: 'com.palantir.baseline-idea'
 apply plugin: 'com.palantir.git-version'
 
 allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
 
-    apply plugin: 'java'
     apply plugin: 'java-library'
     apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
@@ -38,7 +35,6 @@ allprojects {
 
     dependencyRecommendations {
         strategy OverrideTransitives
-        propertiesFile file: project.rootProject.file('versions.props')
     }
 
     configurations {
@@ -71,7 +67,8 @@ allprojects {
             '-Werror',
             '-Xlint:deprecation',
             '-XepDisableWarningsInGeneratedCode',
-            '-XepExcludedPaths:.*/build/.*generated.*',
+            // skipping Immutable* explicitly due to https://github.com/google/error-prone/issues/1165
+            '-XepExcludedPaths:.*(generated|Immutable).*',
             '-Xep:AmbiguousMethodReference:ERROR',
             '-Xep:BoxedPrimitiveConstructor:ERROR',
             '-Xep:CatchFail:ERROR',
@@ -80,8 +77,11 @@ allprojects {
             '-Xep:FunctionalInterfaceClash:ERROR',
             '-Xep:MethodCanBeStatic:ERROR',
             '-Xep:NonCanonicalStaticMemberImport:ERROR',
+            '-Xep:PreferSafeLoggableExceptions:ERROR',
             '-Xep:ReturnMissingNullable:ERROR',
             '-Xep:Slf4jLogsafeArgs:ERROR',
+            '-Xep:SwitchStatementDefaultCase:ERROR',
+            '-Xep:UnnecessaryParentheses:ERROR',
         ]
     }
 
@@ -104,5 +104,15 @@ allprojects {
     }
     tasks.check.dependsOn(javadoc)
 
+    plugins.withId('com.palantir.baseline-error-prone', {
+        dependencies {
+            compileOnly 'com.google.code.findbugs:jsr305'
+            annotationProcessor 'com.uber.nullaway:nullaway'
+        }
+
+        tasks.withType(JavaCompile) {
+            options.errorprone.errorproneArgs += ['-XepOpt:NullAway:AnnotatedPackages=com.palantir']
+        }
+    })
 }
 
