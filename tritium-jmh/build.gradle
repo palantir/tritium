@@ -14,7 +14,14 @@ buildscript {
 
 apply plugin: 'me.champeau.gradle.jmh'
 
+tasks.jmhCompileGeneratedClasses {
+    options.annotationProcessorPath = configurations.errorprone
+    options.errorprone.enabled = true
+}
+
 dependencies {
+
+    annotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess'
 
     jmh project(':tritium-lib')
     jmh 'ch.qos.logback:logback-classic'

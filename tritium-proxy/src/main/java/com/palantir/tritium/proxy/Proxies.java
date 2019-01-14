@@ -35,7 +35,7 @@ public final class Proxies {
      * Creates a new proxy instance for the specified delegate bound to the given invocation handler.
      *
      * @param iface main interface to proxy
-     * @param delegate delegate class whose interfaces ot proxy
+     * @param delegate delegate class whose interfaces to proxy
      * @param handler proxy invocation handler
      * @return a new proxy instance that implements the specified interface as well as all the
      *         interfaces from the delegate class
