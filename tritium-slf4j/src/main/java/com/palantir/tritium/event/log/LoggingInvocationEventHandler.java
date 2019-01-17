@@ -20,6 +20,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.CompileTimeConstant;
+import com.palantir.logsafe.Arg;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
@@ -204,7 +206,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     static Object[] getLogParams(Method method, Object[] args, long durationNanos, LoggingLevel level) {
-        SafeArg[] logParams = new SafeArg[3 + args.length];
+        Arg[] logParams = new Arg[3 + args.length];
         logParams[0] = SafeArg.of("class", method.getDeclaringClass().getSimpleName());
         logParams[1] = SafeArg.of("method", method.getName());
         logParams[logParams.length - 1] = SafeArg.of("milliseconds", String.format("%.3f", durationNanos / 1000000.0d));
@@ -223,10 +225,30 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
                 }
             }
 
-            logParams[2 + i] = SafeArg.of("type" + i, argMessage);
+            logParams[2 + i] = DynamicSafeArg.of("type", i, argMessage);
         }
 
         return logParams;
     }
 
+    /**
+     * Like {@link SafeArg}, but works around strict {@link com.google.errorprone.annotations.CompileTimeConstant}
+     * argument name restrictions, as we guarantee safety.
+     */
+    private static final class DynamicSafeArg<T> extends Arg<T> {
+        private static final long serialVersionUID = 1L;
+
+        private DynamicSafeArg(String name, @Nullable T value) {
+            super(name, value);
+        }
+
+        static Arg<String> of(@CompileTimeConstant String name, int index, String message) {
+            return new DynamicSafeArg<>(name + index, message);
+        }
+
+        @Override
+        public boolean isSafeForLogging() {
+            return true;
+        }
+    }
 }
