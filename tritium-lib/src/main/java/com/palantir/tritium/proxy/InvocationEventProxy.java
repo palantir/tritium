@@ -19,6 +19,7 @@ package com.palantir.tritium.proxy;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.reflect.AbstractInvocationHandler;
+import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.api.event.InstrumentationFilter;
@@ -179,7 +180,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         }
     }
 
-    private static SafeArg<String> safeSimpleClassName(String name, @Nullable Object object) {
+    private static SafeArg<String> safeSimpleClassName(@CompileTimeConstant String name, @Nullable Object object) {
         return SafeArg.of(name, (object == null) ? "null" : object.getClass().getSimpleName());
     }
 
