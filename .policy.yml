@@ -21,6 +21,7 @@ approval_rules:
   - name: infra team approval
     requires:
       count: 1
+      users: [ "schlosna" ]
       teams:
         - "palantir/infrastructure"
 
