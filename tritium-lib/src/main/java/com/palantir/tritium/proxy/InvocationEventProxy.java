@@ -19,6 +19,10 @@ package com.palantir.tritium.proxy;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.reflect.AbstractInvocationHandler;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
@@ -32,6 +36,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,12 +121,50 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         InvocationContext context = handlePreInvocation(instance, method, args);
         try {
             Object result = execute(method, args);
-            return handleOnSuccess(context, result);
+            return handleResult(context, result);
         } catch (InvocationTargetException e) {
             throw handleOnFailure(context, e.getCause());
         } catch (Throwable t) {
             throw handleOnFailure(context, t);
         }
+    }
+
+    private Object handleResult(InvocationContext context, Object result) {
+        if (result instanceof ListenableFuture) {
+            return handleFuture(context, (ListenableFuture) result);
+        } else if (result instanceof CompletableFuture) {
+            return handleFuture(context, (CompletableFuture) result);
+        } else {
+            return handleOnSuccess(context, result);
+        }
+    }
+
+    private CompletableFuture<?> handleFuture(InvocationContext context, CompletableFuture<?> future) {
+        future.handleAsync((result, throwable) -> {
+            if (throwable == null) {
+                return handleOnSuccess(context, result);
+            } else {
+                return handleOnFailure(context, throwable);
+            }
+        }, MoreExecutors.directExecutor());
+
+        return future;
+    }
+
+    private ListenableFuture<?> handleFuture(InvocationContext context, ListenableFuture<?> future) {
+        Futures.addCallback(future, new FutureCallback<Object>() {
+            @Override
+            public void onSuccess(Object result) {
+                handleOnSuccess(context, result);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                handleOnFailure(context, t);
+            }
+        }, MoreExecutors.directExecutor());
+
+        return future;
     }
 
     @Nullable
