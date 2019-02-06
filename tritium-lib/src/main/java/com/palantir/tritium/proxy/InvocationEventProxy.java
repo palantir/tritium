@@ -129,6 +129,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         }
     }
 
+    @Nullable
     private Object handleResult(InvocationContext context, Object result) {
         if (result instanceof ListenableFuture) {
             return handleFuture(context, (ListenableFuture) result);
@@ -159,8 +160,8 @@ abstract class InvocationEventProxy<C extends InvocationContext>
             }
 
             @Override
-            public void onFailure(Throwable t) {
-                handleOnFailure(context, t);
+            public void onFailure(Throwable throwable) {
+                handleOnFailure(context, throwable);
             }
         }, MoreExecutors.directExecutor());
 
