@@ -87,6 +87,11 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     @Override
+    public boolean asyncSupport() {
+        return true;
+    }
+
+    @Override
     public final InvocationContext preInvocation(Object instance, Method method, Object[] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }

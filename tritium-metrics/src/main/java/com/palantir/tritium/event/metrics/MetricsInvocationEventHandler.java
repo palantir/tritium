@@ -101,6 +101,11 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
+    public boolean asyncSupport() {
+        return true;
+    }
+
+    @Override
     public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }

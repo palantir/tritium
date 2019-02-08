@@ -62,6 +62,12 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
+    public boolean asyncSupport() {
+        // Cannot support async operations until the Tracing library stops relying on ThreadLocal state
+        return false;
+    }
+
+    @Override
     public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
         InvocationContext context = DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);

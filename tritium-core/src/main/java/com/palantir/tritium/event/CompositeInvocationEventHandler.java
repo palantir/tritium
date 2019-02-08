@@ -52,6 +52,16 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     @Override
+    public boolean asyncSupport() {
+        for (InvocationEventHandler<?> handler : handlers) {
+            if (!handler.asyncSupport()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
     public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
         InvocationContext[] contexts = new InvocationContext[handlers.size()];
 

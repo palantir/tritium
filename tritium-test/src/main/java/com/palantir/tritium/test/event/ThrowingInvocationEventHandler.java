@@ -52,4 +52,9 @@ public class ThrowingInvocationEventHandler implements InvocationEventHandler<In
     public boolean isEnabled() {
         return isEnabled;
     }
+
+    @Override
+    public boolean asyncSupport() {
+        return isEnabled;
+    }
 }

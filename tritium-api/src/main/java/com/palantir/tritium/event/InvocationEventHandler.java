@@ -36,6 +36,17 @@ public interface InvocationEventHandler<C extends InvocationContext> {
     boolean isEnabled();
 
     /**
+     * Returns true if this event handler instance is able to support asynchronous method invocations by being invoked
+     * on another thread. A handler that relies on {@link ThreadLocal} state, for example, will not be able to support
+     * async operations.
+     *
+     * @return true if the handler supports async operations
+     */
+    default boolean asyncSupport() {
+        return false;
+    }
+
+    /**
      * Invoked before invoking the method on the instance.
      *
      * @param instance the instance that the method was invoked on.

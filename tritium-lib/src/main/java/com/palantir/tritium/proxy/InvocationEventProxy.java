@@ -37,6 +37,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,13 +88,19 @@ abstract class InvocationEventProxy<C extends InvocationContext>
     private boolean isEnabled(Object instance, Method method, Object[] args) {
         try {
             return eventHandler.isEnabled()
-                    && filter.shouldInstrument(instance, method, args);
+                    && filter.shouldInstrument(instance, method, args)
+                    && (eventHandler.asyncSupport() || !isAsync(method));
         } catch (Throwable t) {
             logInvocationWarning("isEnabled", instance, method, args, t);
             return false;
         }
     }
 
+    private boolean isAsync(Method method) {
+        Class<?> returnType = method.getReturnType();
+        return ListenableFuture.class.isAssignableFrom(returnType)
+                || CompletionStage.class.isAssignableFrom(returnType);
+    }
 
     @Override
     @Nullable
@@ -133,14 +140,14 @@ abstract class InvocationEventProxy<C extends InvocationContext>
     private Object handleResult(InvocationContext context, Object result) {
         if (result instanceof ListenableFuture) {
             return handleFuture(context, (ListenableFuture) result);
-        } else if (result instanceof CompletableFuture) {
-            return handleFuture(context, (CompletableFuture) result);
+        } else if (result instanceof CompletionStage) {
+            return handleFuture(context, (CompletionStage) result);
         } else {
             return handleOnSuccess(context, result);
         }
     }
 
-    private CompletableFuture<?> handleFuture(InvocationContext context, CompletableFuture<?> future) {
+    private CompletionStage<?> handleFuture(InvocationContext context, CompletionStage<?> future) {
         future.handleAsync((result, throwable) -> {
             if (throwable == null) {
                 return handleOnSuccess(context, result);

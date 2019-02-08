@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -52,6 +53,7 @@ public final class AsyncInvocationEventProxyTest {
                 .build();
         when(handler.isEnabled()).thenCallRealMethod();
         when(handler.preInvocation(any(), any(), any())).thenCallRealMethod();
+        when(handler.asyncSupport()).thenReturn(true);
     }
 
     @Test
@@ -84,6 +86,17 @@ public final class AsyncInvocationEventProxyTest {
     }
 
     @Test
+    public void testCf_noAsyncSupport() {
+        when(handler.asyncSupport()).thenReturn(false);
+
+        proxy.cf();
+
+        verify(handler).isEnabled();
+        verify(handler).asyncSupport();
+        verifyNoMoreInteractions(handler);
+    }
+
+    @Test
     public void testLfSuccess() {
         SettableFuture<String> future = SettableFuture.create();
         when(delegate.lf()).thenReturn(future);
@@ -110,6 +123,17 @@ public final class AsyncInvocationEventProxyTest {
         future.setException(exception);
         assertThat(ret.isDone()).isTrue();
         verify(handler).onFailure(any(), eq(exception));
+    }
+
+    @Test
+    public void testLf_noAsyncSupport() {
+        when(handler.asyncSupport()).thenReturn(false);
+
+        proxy.lf();
+
+        verify(handler).isEnabled();
+        verify(handler).asyncSupport();
+        verifyNoMoreInteractions(handler);
     }
 
     interface AsyncIface {
