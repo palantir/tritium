@@ -68,7 +68,7 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * @return gauge metric
      */
     // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
-    Gauge gauge(MetricName metricName, Gauge gauge);
+    <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge);
 
     /**
      * Returns existing or new counter metric for the specified metric name.
