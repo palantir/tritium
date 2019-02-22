@@ -87,8 +87,8 @@ public final class TaggedMetricRegistryTest {
 
     @Test
     public void testGauge() {
-        Gauge gauge1 = registry.gauge(METRIC_1, () -> 1);
-        Gauge gauge2 = registry.gauge(METRIC_2, () -> 2);
+        Gauge<Integer> gauge1 = registry.gauge(METRIC_1, () -> 1);
+        Gauge<Integer> gauge2 = registry.gauge(METRIC_2, () -> 2);
 
         assertThat(gauge1.getValue()).isEqualTo(1);
         assertThat(gauge2.getValue()).isEqualTo(2);
@@ -142,7 +142,7 @@ public final class TaggedMetricRegistryTest {
     @Test
     public void testRemoveMetric() {
         Gauge<Integer> gauge = () -> 42;
-        Gauge registeredGauge = registry.gauge(METRIC_1, gauge);
+        Gauge<Integer> registeredGauge = registry.gauge(METRIC_1, gauge);
         assertThat(registeredGauge).isSameAs(gauge);
 
         Optional<Metric> removedGauge = registry.remove(METRIC_1);
