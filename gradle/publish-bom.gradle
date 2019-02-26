@@ -1,7 +1,7 @@
 publishing {
     publications {
         nebulaBom(MavenPublication) {
-            nebulaDependencyManagement.fromConfigurations { configurations.compile }
+            configurations.compile
             artifactId = project.name + '-bom'
         }
     }
