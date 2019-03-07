@@ -32,6 +32,7 @@ allprojects {
     apply plugin: 'java-library'
     apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
+    apply plugin: 'com.palantir.baseline-exact-dependencies'
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
