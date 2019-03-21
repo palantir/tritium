@@ -26,10 +26,10 @@ public class DefaultInvocationContextTest {
     public void testFactory() throws Exception {
         InvocationContext context =
                 DefaultInvocationContext.of(this, Object.class.getDeclaredMethod("equals", Object.class),
-                        new Object[] {"42"});
+                        new Object[] {"testArgument"});
 
         assertThat(context.getInstance()).isEqualTo(this);
-        assertThat(context.getArgs()).isEqualTo(new Object[]{"42"});
+        assertThat(context.getArgs()).isEqualTo(new Object[]{"testArgument"});
         assertThat(context.getMethod()).isEqualTo(Object.class.getDeclaredMethod("equals", Object.class));
 
         String toString = context.toString();
@@ -37,7 +37,7 @@ public class DefaultInvocationContextTest {
         assertThat(toString).contains("instance");
         assertThat(toString).contains("method");
         assertThat(toString).doesNotContain("args");
-        assertThat(toString).doesNotContain("42");
+        assertThat(toString).doesNotContain("testArgument");
     }
 
 }
