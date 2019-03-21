@@ -140,7 +140,7 @@ public class InvocationEventProxyTest {
     @Test
     public void testToInvocationDebugString() throws Exception {
         Throwable cause = new RuntimeException("cause");
-        InvocationEventProxy.logInvocationWarning("test", this, getToStringMethod(), null, cause);
+        InvocationEventProxy.logInvocationWarning("test", this, getToStringMethod(), cause);
     }
 
     @Test

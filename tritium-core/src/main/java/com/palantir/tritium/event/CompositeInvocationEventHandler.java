@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -120,14 +119,11 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private static void preInvocationFailed(InvocationEventHandler<? extends InvocationContext> handler,
             Object instance, Method method, Object[] args, Exception exception) {
-        logger.warn("Exception handling preInvocation({}): "
-                        + "invocation of {}.{} with arguments {} on {} threw: {}",
+        logger.warn("Exception handling preInvocation({}): invocation of {}.{} on {} threw",
                 UnsafeArg.of("handler", handler),
                 SafeArg.of("class", method.getDeclaringClass().getCanonicalName()),
                 SafeArg.of("method", method.getName()),
-                UnsafeArg.of("args", Arrays.toString(args)),
                 UnsafeArg.of("instance", instance),
-                UnsafeArg.of("exception", exception),
                 exception);
     }
 
@@ -138,10 +134,9 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         try {
             handler.onSuccess(context, result);
         } catch (RuntimeException exception) {
-            logger.warn("Exception handling onSuccess({}, {}): {}",
+            logger.warn("Exception handling onSuccess({}, {})",
                     UnsafeArg.of("context", context),
                     UnsafeArg.of("result", result),
-                    UnsafeArg.of("exception", exception),
                     exception);
         }
     }
@@ -153,10 +148,9 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         try {
             handler.onFailure(context, cause);
         } catch (RuntimeException exception) {
-            logger.warn("Exception handling onFailure({}, {}): {}",
+            logger.warn("Exception handling onFailure({}, {})",
                     UnsafeArg.of("context", context),
                     UnsafeArg.of("cause", cause),
-                    UnsafeArg.of("exception", exception),
                     exception);
         }
     }
