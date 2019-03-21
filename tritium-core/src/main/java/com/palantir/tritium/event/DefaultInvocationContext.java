@@ -19,7 +19,6 @@ package com.palantir.tritium.event;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import javax.annotation.Nullable;
 
 public class DefaultInvocationContext implements InvocationContext {
@@ -73,8 +72,9 @@ public class DefaultInvocationContext implements InvocationContext {
     @Override
     @SuppressWarnings("DesignForExtension")
     public String toString() {
-        return "DefaultInvocationContext [startTimeNanos=" + startTimeNanos + ", instance=" + instance + ", method="
-                + method + ", args=" + Arrays.toString(args) + "]";
+        return "DefaultInvocationContext [startTimeNanos=" + startTimeNanos
+                + ", instance=" + instance
+                + ", method=" + method + ']';
     }
 
 }

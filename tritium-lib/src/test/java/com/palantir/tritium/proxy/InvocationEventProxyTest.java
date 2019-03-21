@@ -69,7 +69,6 @@ public class InvocationEventProxyTest {
         assertThat(context.toString()).contains("startTimeNanos");
         assertThat(context.toString()).contains("instance");
         assertThat(context.toString()).contains("method");
-        assertThat(context.toString()).contains("args");
     }
 
     @Test
