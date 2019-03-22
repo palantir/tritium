@@ -25,6 +25,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
+@SuppressWarnings("PreferSafeLoggingPreconditions") // this module depends only on JDK
 public final class Proxies {
 
     private Proxies() {
