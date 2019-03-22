@@ -44,13 +44,22 @@ public class ReflectiveTracerTest {
 
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> new ReflectiveTracer(invalidStartMethod, validCompleteMethod))
-                .withMessage("startSpan method should take 1 String argument, was [java.lang.Integer]");
+                .withMessageStartingWith("startSpan method should take 1 String argument:")
+                .withMessageContaining("method=public static void ")
+                .withMessageContaining("MockTracer.badStart(java.lang.Integer)")
+                .withMessageContaining("argumentTypes=[java.lang.Integer]");
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> new ReflectiveTracer(validStartMethod, invalidCompleteMethod))
-                .withMessage("completeSpan method should take 0 arguments, was [java.lang.String]");
+                .withMessageStartingWith("completeSpan method should take 0 arguments: ")
+                .withMessageContaining("method=public static void ")
+                .withMessageContaining("MockTracer.badStop(java.lang.String)")
+                .withMessageContaining("argumentTypes=[java.lang.String]}");
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> new ReflectiveTracer(invalidStartMethod, invalidCompleteMethod))
-                .withMessage("startSpan method should take 1 String argument, was [java.lang.Integer]");
+                .withMessageStartingWith("startSpan method should take 1 String argument: ")
+                .withMessageContaining("method=public static void ")
+                .withMessageContaining("MockTracer.badStart(java.lang.Integer)")
+                .withMessageContaining("argumentTypes=[java.lang.Integer]");
     }
 
     public static final class MockTracer {
