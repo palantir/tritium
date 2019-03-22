@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.event.metrics.annotations;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;

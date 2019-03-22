@@ -16,8 +16,8 @@
 
 package com.palantir.tritium.metrics;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.palantir.logsafe.Preconditions.checkArgument;
+import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.Clock;

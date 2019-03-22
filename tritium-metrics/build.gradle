@@ -11,6 +11,7 @@ dependencies {
     api 'io.dropwizard.metrics:metrics-core'
 
     implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation ('org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir') {
         exclude group: 'io.dropwizard.metrics', module: 'metrics-core'
