@@ -67,6 +67,7 @@ allprojects {
         options.errorprone.errorproneArgs += [
             '-Werror',
             '-Xlint:deprecation',
+            '-Xlint:unchecked',
             '-XepDisableWarningsInGeneratedCode',
             // skipping Immutable* explicitly due to https://github.com/google/error-prone/issues/1165
             '-XepExcludedPaths:.*(generated|Immutable).*',

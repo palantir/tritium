@@ -59,7 +59,8 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     }
 
     @Override
-    public Gauge gauge(MetricName metricName, Gauge gauge) {
+    @SuppressWarnings("unchecked")
+    public <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge) {
         return getOrAdd(metricName, Gauge.class, () -> gauge);
     }
 
