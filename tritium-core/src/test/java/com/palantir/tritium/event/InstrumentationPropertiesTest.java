@@ -76,9 +76,9 @@ public class InstrumentationPropertiesTest {
     public void invalid() {
         assertThatThrownBy(() -> InstrumentationProperties.getSystemPropertySupplier(null))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("name cannot be null or empty");
+                .hasMessage("name cannot be null or empty: {name=null}");
         assertThatThrownBy(() -> InstrumentationProperties.getSystemPropertySupplier(""))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("name cannot be null or empty");
+                .hasMessage("name cannot be null or empty: {name=}");
     }
 }
