@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.proxy;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
