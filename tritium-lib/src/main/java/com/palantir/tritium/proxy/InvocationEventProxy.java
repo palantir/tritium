@@ -39,7 +39,6 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         extends AbstractInvocationHandler implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(InvocationEventProxy.class);
-    private static final Object[] NO_ARGS = {};
 
     private final InstrumentationFilter filter;
     private final InvocationEventHandler<?> eventHandler;

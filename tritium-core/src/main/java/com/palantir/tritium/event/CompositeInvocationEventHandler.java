@@ -107,7 +107,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         try {
             return handler.preInvocation(instance, method, args);
         } catch (RuntimeException e) {
-            preInvocationFailed(handler, instance, method, args, e);
+            preInvocationFailed(handler, instance, method, e);
             return null;
         }
     }
@@ -117,9 +117,13 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         return "CompositeInvocationEventHandler{" + "handlers=" + handlers + '}';
     }
 
-    private static void preInvocationFailed(InvocationEventHandler<? extends InvocationContext> handler,
-            Object instance, Method method, Object[] args, Exception exception) {
-        logger.warn("Exception handling preInvocation({}): invocation of {}.{} on {} threw",
+    private static void preInvocationFailed(
+            InvocationEventHandler<? extends InvocationContext> handler,
+            Object instance,
+            Method method,
+            Exception exception) {
+        logger.warn(
+                "Exception handling preInvocation({}): invocation of {}.{} on {} threw",
                 UnsafeArg.of("handler", handler),
                 SafeArg.of("class", method.getDeclaringClass().getCanonicalName()),
                 SafeArg.of("method", method.getName()),

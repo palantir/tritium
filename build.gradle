@@ -84,6 +84,7 @@ allprojects {
             '-Xep:Slf4jLogsafeArgs:ERROR',
             '-Xep:SwitchStatementDefaultCase:ERROR',
             '-Xep:UnnecessaryParentheses:ERROR',
+            '-Xep:UnusedVariable:ERROR',
         ]
     }
 
