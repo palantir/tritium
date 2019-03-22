@@ -38,6 +38,7 @@ import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
@@ -290,7 +291,10 @@ public class MetricRegistriesTest {
 
     @Test
     public void testTimestamp() throws Exception {
-        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(MetricRegistries.nowIsoTimestamp());
+        Date now = new Date();
+        String isoTimestamp = MetricRegistries.nowIsoTimestamp();
+        Date date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(isoTimestamp);
+        assertThat(date).isAfterOrEqualsTo(now);
     }
 
     private static void report(MetricRegistry metrics) {

@@ -76,6 +76,7 @@ allprojects {
             '-Xep:ClassCanBeStatic:ERROR',
             '-Xep:DefaultCharset:ERROR',
             '-Xep:FunctionalInterfaceClash:ERROR',
+            '-Xep:JavaTimeDefaultTimeZone:ERROR',
             '-Xep:MethodCanBeStatic:ERROR',
             '-Xep:NonCanonicalStaticMemberImport:ERROR',
             '-Xep:PreferSafeLoggableExceptions:ERROR',

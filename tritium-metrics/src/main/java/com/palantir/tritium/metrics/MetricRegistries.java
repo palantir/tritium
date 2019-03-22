@@ -29,7 +29,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.logsafe.SafeArg;
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Set;
@@ -89,7 +90,7 @@ public final class MetricRegistries {
 
     @VisibleForTesting
     static String nowIsoTimestamp() {
-        return DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.now());
+        return DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC));
     }
 
     @SuppressWarnings("unchecked")
