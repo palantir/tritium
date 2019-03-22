@@ -16,9 +16,8 @@
 
 package com.palantir.tritium.event.log;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.palantir.logsafe.Preconditions.checkNotNull;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.Arg;
@@ -192,9 +191,6 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
             message.append("{}");
         }
         message.append(") took {}ms");
-        Preconditions.checkState(estimatedSize == message.length(),
-                "Incorrect estimated size for %s arguments, expected %s, was %s",
-                argCount, estimatedSize, message.length());
         return message.toString();
     }
 

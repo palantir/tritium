@@ -16,7 +16,8 @@
 
 package com.palantir.tritium.tracing;
 
-import com.google.common.base.Preconditions;
+import static com.palantir.logsafe.Preconditions.checkNotNull;
+
 import com.google.common.base.Strings;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
@@ -42,8 +43,8 @@ public final class RemotingCompatibleTracingInvocationEventHandler
 
     public RemotingCompatibleTracingInvocationEventHandler(String component, Tracer tracer) {
         super((java.util.function.BooleanSupplier) InstrumentationProperties.getSystemPropertySupplier(component));
-        this.component = Preconditions.checkNotNull(component, "component");
-        this.tracer = Preconditions.checkNotNull(tracer, "tracer");
+        this.component = checkNotNull(component, "component");
+        this.tracer = checkNotNull(tracer, "tracer");
     }
 
     static InvocationEventHandler<InvocationContext> create(String component) {

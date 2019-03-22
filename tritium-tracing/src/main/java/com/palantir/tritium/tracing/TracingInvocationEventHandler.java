@@ -16,7 +16,8 @@
 
 package com.palantir.tritium.tracing;
 
-import com.google.common.base.Preconditions;
+import static com.palantir.logsafe.Preconditions.checkNotNull;
+
 import com.google.common.base.Strings;
 import com.palantir.tracing.Tracer;
 import com.palantir.tritium.api.functions.BooleanSupplier;
@@ -45,7 +46,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     @Deprecated
     public TracingInvocationEventHandler(String component) {
         super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
-        this.component = Preconditions.checkNotNull(component, "component");
+        this.component = checkNotNull(component, "component");
     }
 
     /**

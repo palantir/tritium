@@ -16,11 +16,12 @@
 
 package com.palantir.tritium.event;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.palantir.logsafe.Preconditions.checkArgument;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
+import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.Map;
 import java.util.Properties;
@@ -39,7 +40,7 @@ public final class InstrumentationProperties {
     private static volatile Supplier<Map<String, String>> instrumentationProperties = createSupplier();
 
     public static BooleanSupplier getSystemPropertySupplier(String name) {
-        checkArgument(!Strings.isNullOrEmpty(name), "name cannot be null or empty, was '%s'", name);
+        checkArgument(!Strings.isNullOrEmpty(name), "name cannot be null or empty", SafeArg.of("name", name));
         boolean instrumentationEnabled = isGloballyEnabled() && isSpecificEnabled(name);
         return () -> instrumentationEnabled;
     }

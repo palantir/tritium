@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.metrics;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Reservoir;

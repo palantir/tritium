@@ -11,6 +11,7 @@ dependencies {
     api 'com.github.ben-manes.caffeine:caffeine'
 
     implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'io.dropwizard.metrics:metrics-core'
     implementation 'org.slf4j:slf4j-api'

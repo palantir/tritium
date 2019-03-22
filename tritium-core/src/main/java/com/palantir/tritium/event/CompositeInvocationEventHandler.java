@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.event;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.SafeArg;

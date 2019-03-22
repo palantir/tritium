@@ -16,10 +16,11 @@
 
 package com.palantir.tritium.tracing;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.palantir.logsafe.Preconditions.checkArgument;
+import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.base.Throwables;
+import com.palantir.logsafe.SafeArg;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -56,22 +57,28 @@ final class ReflectiveTracer implements Tracer {
 
     private static Method checkStartMethod(Method method) {
         checkNotNull(method, "method");
-        checkArgument(Modifier.isPublic(method.getModifiers()), "method must be public: %s", method);
-        checkArgument(Modifier.isStatic(method.getModifiers()), "method must be static: %s", method);
-        if (method.getParameterCount() != 1 || !String.class.equals(method.getParameterTypes()[0])) {
-            throw new IllegalArgumentException(String.format("startSpan method should take 1 String argument, was %s",
-                    paramsToClassNames(method)));
-        }
+        checkPublicStaticMethod(method);
+        checkArgument(
+                method.getParameterCount() == 1 && String.class.equals(method.getParameterTypes()[0]),
+                "startSpan method should take 1 String argument",
+                SafeArg.of("method", method),
+                SafeArg.of("argumentTypes", paramsToClassNames(method)));
         return method;
     }
 
     private static Method checkCompleteMethod(Method method) {
         checkNotNull(method, "method");
-        checkArgument(Modifier.isPublic(method.getModifiers()), "method must be public: %s", method);
-        checkArgument(Modifier.isStatic(method.getModifiers()), "method must be static: %s", method);
+        checkPublicStaticMethod(method);
         checkArgument(method.getParameterCount() == 0,
-                "completeSpan method should take 0 arguments, was %s", paramsToClassNames(method));
+                "completeSpan method should take 0 arguments",
+                SafeArg.of("method", method),
+                SafeArg.of("argumentTypes", paramsToClassNames(method)));
         return method;
+    }
+
+    private static void checkPublicStaticMethod(Method method) {
+        checkArgument(Modifier.isPublic(method.getModifiers()), "method must be public", SafeArg.of("method", method));
+        checkArgument(Modifier.isStatic(method.getModifiers()), "method must be static", SafeArg.of("method", method));
     }
 
     private static List<String> paramsToClassNames(Method method) {
