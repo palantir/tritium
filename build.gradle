@@ -79,6 +79,7 @@ allprojects {
             '-Xep:MethodCanBeStatic:ERROR',
             '-Xep:NonCanonicalStaticMemberImport:ERROR',
             '-Xep:PreferSafeLoggableExceptions:ERROR',
+            '-Xep:PreferSafeLoggingPreconditions:ERROR',
             '-Xep:ReturnMissingNullable:ERROR',
             '-Xep:Slf4jLogsafeArgs:ERROR',
             '-Xep:SwitchStatementDefaultCase:ERROR',
