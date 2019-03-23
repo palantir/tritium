@@ -24,6 +24,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestImplementation implements TestInterface, Runnable {
 
     private final AtomicInteger invocationCount = new AtomicInteger();
+    private final TestException checkedException = new TestException("Testing checked Exception handling");
+    private final TestThrowable testThrowable = new TestThrowable();
+    private final OutOfMemoryError outOfMemoryError = new OutOfMemoryError("Testing OOM");
 
     @Override
     public void run() {
@@ -51,17 +54,17 @@ public class TestImplementation implements TestInterface, Runnable {
 
     @Override
     public int throwsCheckedException() throws Exception {
-        throw new TestException("Testing checked Exception handling");
+        throw checkedException;
     }
 
     @Override
     public int throwsThrowable() throws Throwable {
-        throw new TestThrowable();
+        throw testThrowable;
     }
 
     @Override
     public void throwsOutOfMemoryError() {
-        throw new OutOfMemoryError("Testing OOM");
+        throw outOfMemoryError;
     }
 
     public int invocationCount() {

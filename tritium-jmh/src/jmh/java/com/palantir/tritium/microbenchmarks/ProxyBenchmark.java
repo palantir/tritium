@@ -18,6 +18,8 @@ package com.palantir.tritium.microbenchmarks;
 
 import com.palantir.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.tracing.Tracer;
+import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
+import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHandler;
@@ -25,6 +27,7 @@ import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.LongPredicate;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -40,6 +43,7 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.TimeValue;
+import org.slf4j.impl.TestLogs;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
@@ -49,6 +53,11 @@ import org.openjdk.jmh.runner.options.TimeValue;
 @State(Scope.Benchmark)
 @SuppressWarnings("designforextension")
 public class ProxyBenchmark {
+    static {
+        System.setProperty("org.slf4j.simpleLogger.log.performance", LoggingLevel.TRACE.name());
+        TestLogs.setLevel("performance", LoggingLevel.TRACE.name());
+        TestLogs.logTo("/dev/null");
+    }
 
     private static final String DEFAULT_LOG_LEVEL = "org.slf4j.simpleLogger.defaultLogLevel";
 
@@ -70,29 +79,38 @@ public class ProxyBenchmark {
 
         raw = new TestService();
 
-        instrumentedWithoutHandlers = Instrumentation.builder(Service.class, raw).build();
+        Class<Service> serviceInterface = Service.class;
+        instrumentedWithoutHandlers = Instrumentation.builder(serviceInterface, raw).build();
 
-        instrumentedWithPerformanceLogging = Instrumentation.builder(Service.class, raw)
-                .withPerformanceTraceLogging()
+        instrumentedWithPerformanceLogging = Instrumentation.builder(serviceInterface, raw)
+                // similar to .withPerformanceTraceLogging() but always log
+                .withLogging(
+                        Instrumentation.getPerformanceLoggerForInterface(serviceInterface),
+                        LoggingLevel.TRACE,
+                        (LongPredicate) LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
                 .build();
 
-        instrumentedWithMetrics = Instrumentation.builder(Service.class, raw)
+        instrumentedWithMetrics = Instrumentation.builder(serviceInterface, raw)
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .build();
 
         executor = Executors.newSingleThreadExecutor();
         Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
-        instrumentedWithTracing = Instrumentation.builder(Service.class, raw)
+        instrumentedWithTracing = Instrumentation.builder(serviceInterface, raw)
                 .withHandler(TracingInvocationEventHandler.create("jmh"))
                 .build();
 
-        instrumentedWithRemoting = Instrumentation.builder(Service.class, raw)
+        instrumentedWithRemoting = Instrumentation.builder(serviceInterface, raw)
                 .withHandler(new RemotingCompatibleTracingInvocationEventHandler("jmh", Remoting3Tracer.INSTANCE))
                 .build();
 
-        instrumentedWithEverything = Instrumentation.builder(Service.class, raw)
+        instrumentedWithEverything = Instrumentation.builder(serviceInterface, raw)
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
-                .withPerformanceTraceLogging()
+                // similar to .withPerformanceTraceLogging() but always log
+                .withLogging(
+                        Instrumentation.getPerformanceLoggerForInterface(serviceInterface),
+                        LoggingLevel.TRACE,
+                        (LongPredicate) LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
                 .withHandler(TracingInvocationEventHandler.create("jmh"))
                 .build();
     }
@@ -117,7 +135,7 @@ public class ProxyBenchmark {
         return instrumentedWithoutHandlers.echo("test");
     }
 
-    // @Benchmark
+    @Benchmark
     public String instrumentedWithPerformanceLogging() {
         return instrumentedWithPerformanceLogging.echo("test");
     }
