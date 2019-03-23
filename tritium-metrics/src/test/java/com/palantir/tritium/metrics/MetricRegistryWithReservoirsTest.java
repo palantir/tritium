@@ -51,16 +51,6 @@ public class MetricRegistryWithReservoirsTest {
     }
 
     @Test
-    public void getReservoirSupplier() {
-        assertThat(metrics.getReservoirSupplier()).isSameAs(mockSupplier);
-        assertThat(metrics.getReservoirSupplier().get()).isSameAs(mockReservoir);
-        assertThat(metrics.getReservoirSupplier().get()).isSameAs(mockReservoir);
-
-        verify(mockSupplier, times(2)).get();
-        verifyNoMoreInteractions(mockReservoir, mockSupplier);
-    }
-
-    @Test
     public void histogram() {
         Histogram histogram = metrics.histogram("test");
         assertThat(histogram).isNotNull();
