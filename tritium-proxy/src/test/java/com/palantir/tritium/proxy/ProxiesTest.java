@@ -86,6 +86,7 @@ public class ProxiesTest {
     @Test
     public void testInaccessibleConstructor() throws NoSuchMethodException {
         Constructor<Proxies> constructor = Proxies.class.getDeclaredConstructor();
+        assertThat(constructor.isAccessible()).isFalse();
         constructor.setAccessible(true);
         assertThatThrownBy(constructor::newInstance)
                 .isInstanceOf(InvocationTargetException.class)

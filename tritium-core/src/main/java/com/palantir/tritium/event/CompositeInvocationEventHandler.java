@@ -51,7 +51,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     @Override
-    public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
         InvocationContext[] contexts = new InvocationContext[handlers.size()];
 
         for (int i = 0; i < handlers.size(); i++) {
@@ -107,7 +107,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         try {
             return handler.preInvocation(instance, method, args);
         } catch (RuntimeException e) {
-            preInvocationFailed(handler, instance, method, args, e);
+            preInvocationFailed(handler, instance, method, e);
             return null;
         }
     }
@@ -117,9 +117,13 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         return "CompositeInvocationEventHandler{" + "handlers=" + handlers + '}';
     }
 
-    private static void preInvocationFailed(InvocationEventHandler<? extends InvocationContext> handler,
-            Object instance, Method method, Object[] args, Exception exception) {
-        logger.warn("Exception handling preInvocation({}): invocation of {}.{} on {} threw",
+    private static void preInvocationFailed(
+            InvocationEventHandler<? extends InvocationContext> handler,
+            Object instance,
+            Method method,
+            Exception exception) {
+        logger.warn(
+                "Exception handling preInvocation({}): invocation of {}.{} on {} threw",
                 UnsafeArg.of("handler", handler),
                 SafeArg.of("class", method.getDeclaringClass().getCanonicalName()),
                 SafeArg.of("method", method.getName()),
@@ -169,7 +173,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             this.contexts = checkNotNull(contexts);
         }
 
-        public InvocationContext[] getContexts() {
+        InvocationContext[] getContexts() {
             return contexts;
         }
     }

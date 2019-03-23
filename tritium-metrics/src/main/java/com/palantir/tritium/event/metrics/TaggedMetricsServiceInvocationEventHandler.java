@@ -67,7 +67,10 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     @Override
-    public final InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+    public final InvocationContext preInvocation(
+            @Nonnull Object instance,
+            @Nonnull Method method,
+            @Nonnull Object[] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 

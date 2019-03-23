@@ -18,6 +18,7 @@ package com.palantir.tritium.proxy;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.reflect.AbstractInvocationHandler;
 import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
@@ -31,15 +32,14 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class InvocationEventProxy<C extends InvocationContext>
-        extends AbstractInvocationHandler implements InvocationHandler {
+abstract class InvocationEventProxy extends AbstractInvocationHandler implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(InvocationEventProxy.class);
-    private static final Object[] NO_ARGS = {};
 
     private final InstrumentationFilter filter;
     private final InvocationEventHandler<?> eventHandler;
@@ -88,11 +88,13 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         }
     }
 
-
     @Override
     @Nullable
     @SuppressWarnings("checkstyle:illegalthrows")
-    protected final Object handleInvocation(Object proxy, Method method, Object[] args) throws Throwable {
+    protected final Object handleInvocation(
+            @Nonnull Object proxy,
+            @Nonnull Method method,
+            @Nonnull Object[] args) throws Throwable {
         if (isEnabled(proxy, method, args)) {
             return instrumentInvocation(proxy, method, args);
         } else {
@@ -111,7 +113,8 @@ abstract class InvocationEventProxy<C extends InvocationContext>
      */
     @Nullable
     @SuppressWarnings("checkstyle:illegalthrows")
-    public final Object instrumentInvocation(Object instance, Method method, Object[] args) throws Throwable {
+    @VisibleForTesting
+    final Object instrumentInvocation(Object instance, Method method, Object[] args) throws Throwable {
         InvocationContext context = handlePreInvocation(instance, method, args);
         try {
             Object result = execute(method, args);
@@ -124,6 +127,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
     }
 
     @Nullable
+    @VisibleForTesting
     final InvocationContext handlePreInvocation(Object instance, Method method, Object[] args) {
         try {
             return eventHandler.preInvocation(instance, method, args);
@@ -135,6 +139,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
 
     @Nullable
     @SuppressWarnings("checkstyle:illegalthrows")
+    @VisibleForTesting
     final Object execute(Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(getDelegate(), args);
@@ -144,6 +149,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
     }
 
     @Nullable
+    @VisibleForTesting
     final Object handleOnSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         try {
             eventHandler.onSuccess(context, result);
@@ -185,11 +191,11 @@ abstract class InvocationEventProxy<C extends InvocationContext>
 
     static void logInvocationWarning(String event, Object instance, Method method, Throwable cause) {
         if (logger.isWarnEnabled()) {
-            logger.warn("{} exception handling {} invocation of {}.{} on {}",
+            logger.warn("{} exception handling {} invocation of {} {} on {}",
                     safeSimpleClassName("throwable", cause),
                     SafeArg.of("event", event),
-                    SafeArg.of("class", method.getDeclaringClass()),
-                    SafeArg.of("method", method.getName()),
+                    SafeArg.of("class", method.getDeclaringClass().getName()),
+                    SafeArg.of("method", method),
                     UnsafeArg.of("instance", instance),
                     cause);
         }

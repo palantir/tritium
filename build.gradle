@@ -67,6 +67,7 @@ allprojects {
         options.errorprone.errorproneArgs += [
             '-Werror',
             '-Xlint:deprecation',
+            '-Xlint:unchecked',
             '-XepDisableWarningsInGeneratedCode',
             // skipping Immutable* explicitly due to https://github.com/google/error-prone/issues/1165
             '-XepExcludedPaths:.*(generated|Immutable).*',
@@ -76,6 +77,7 @@ allprojects {
             '-Xep:ClassCanBeStatic:ERROR',
             '-Xep:DefaultCharset:ERROR',
             '-Xep:FunctionalInterfaceClash:ERROR',
+            '-Xep:JavaTimeDefaultTimeZone:ERROR',
             '-Xep:MethodCanBeStatic:ERROR',
             '-Xep:NonCanonicalStaticMemberImport:ERROR',
             '-Xep:PreferSafeLoggableExceptions:ERROR',
@@ -84,6 +86,7 @@ allprojects {
             '-Xep:Slf4jLogsafeArgs:ERROR',
             '-Xep:SwitchStatementDefaultCase:ERROR',
             '-Xep:UnnecessaryParentheses:ERROR',
+            '-Xep:UnusedVariable:ERROR',
         ]
     }
 

@@ -50,7 +50,10 @@ public class CompositeInvocationEventHandlerTest {
         InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
                     @Override
-                    public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+                    public InvocationContext preInvocation(
+                            @Nonnull Object instance,
+                            @Nonnull Method method,
+                            @Nonnull Object[] args) {
                         return DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
@@ -66,7 +69,10 @@ public class CompositeInvocationEventHandlerTest {
         InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
                     @Override
-                    public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+                    public InvocationContext preInvocation(
+                            @Nonnull Object instance,
+                            @Nonnull Method method,
+                            @Nonnull Object[] args) {
                         return DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
@@ -162,7 +168,10 @@ public class CompositeInvocationEventHandlerTest {
 
     private static class SimpleInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
         @Override
-        public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+        public InvocationContext preInvocation(
+                @Nonnull Object instance,
+                @Nonnull Method method,
+                @Nonnull Object[] args) {
             return DefaultInvocationContext.of(instance, method, args);
         }
 

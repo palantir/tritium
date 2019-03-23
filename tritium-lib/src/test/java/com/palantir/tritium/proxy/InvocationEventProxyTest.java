@@ -17,12 +17,22 @@
 package com.palantir.tritium.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
+import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.test.TestImplementation;
+import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
@@ -30,15 +40,24 @@ import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class InvocationEventProxyTest {
 
     private static final Object[] EMPTY_ARGS = {};
 
+    @Mock
+    private InstrumentationFilter mockFilter;
+    @Mock
+    private InvocationEventHandler mockHandler;
+
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testDisabled() throws Throwable {
-        InvocationEventProxy<InvocationContext> proxy = new InvocationEventProxy<InvocationContext>(
+        InvocationEventProxy proxy = new InvocationEventProxy(
                 Collections.emptyList(), InstrumentationFilters.from((BooleanSupplier) () -> false)) {
             @Override
             Object getDelegate() {
@@ -52,7 +71,7 @@ public class InvocationEventProxyTest {
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testInstrumentPreInvocation() throws Throwable {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler();
-        InvocationEventProxy<InvocationContext> proxy = createTestProxy(ImmutableList.of(testHandler));
+        InvocationEventProxy proxy = createTestProxy(testHandler);
 
         Object result1 = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
@@ -76,11 +95,14 @@ public class InvocationEventProxyTest {
     public void testInstrumentPreInvocationThrows() throws Throwable {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler() {
             @Override
-            public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+            public InvocationContext preInvocation(
+                    @Nonnull Object instance,
+                    @Nonnull Method method,
+                    @Nonnull Object[] args) {
                 throw new IllegalStateException("expected");
             }
         };
-        InvocationEventProxy<InvocationContext> proxy = createTestProxy(ImmutableList.of(testHandler));
+        InvocationEventProxy proxy = createTestProxy(testHandler);
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
@@ -98,7 +120,7 @@ public class InvocationEventProxyTest {
             }
         };
 
-        InvocationEventProxy<InvocationContext> proxy = createTestProxy(ImmutableList.of(testHandler));
+        InvocationEventProxy proxy = createTestProxy(testHandler);
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
@@ -124,7 +146,7 @@ public class InvocationEventProxyTest {
             }
         };
 
-        InvocationEventProxy<InvocationContext> proxy = createTestProxy(ImmutableList.of(testHandler));
+        InvocationEventProxy proxy = createTestProxy(testHandler);
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
@@ -146,7 +168,7 @@ public class InvocationEventProxyTest {
     @Test
     public void testInstrumentToString() {
         List<InvocationEventHandler<InvocationContext>> handlers = Collections.emptyList();
-        InvocationEventProxy<InvocationContext> proxy = new InvocationEventProxy<InvocationContext>(handlers) {
+        InvocationEventProxy proxy = new InvocationEventProxy(handlers) {
             @Override
             Object getDelegate() {
                 return "Hello, world";
@@ -156,18 +178,134 @@ public class InvocationEventProxyTest {
         assertThat(proxy.toString()).isEqualTo("Hello, world");
     }
 
-    private static InvocationEventProxy<InvocationContext> createTestProxy(
-            List<InvocationEventHandler<InvocationContext>> handlers) {
-        return new InvocationEventProxy<InvocationContext>(handlers) {
-            @Override
-            Object getDelegate() {
-                return "test";
-            }
-        };
+    @Test
+    @SuppressWarnings("checkstyle:illegalthrows")
+    public void testInstrumentInvocation() throws Throwable {
+        InvocationEventProxy proxy = createTestProxy(new SimpleHandler());
+
+        assertThat(proxy.instrumentInvocation("test", getToStringMethod(), null)).isEqualTo("test");
+        assertThat(proxy.instrumentInvocation("test", getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
+        assertThatThrownBy(() -> proxy.instrumentInvocation("test", getToStringMethod(), new Object[] {"Hello"}))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("wrong number of arguments");
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:illegalthrows")
+    public void testInstrumentInvocationThrowsException() {
+        InvocationEventProxy proxy = createSimpleTestProxy();
+
+        assertThatThrownBy(() -> proxy.instrumentInvocation("test", getThrowsCheckedExceptionMethod(), null))
+                .isInstanceOf(TestImplementation.TestException.class)
+                .hasMessage("Testing checked Exception handling");
+
+        assertThatThrownBy(() -> proxy.instrumentInvocation("test", getThrowsThrowableMethod(), null))
+                .isInstanceOf(TestImplementation.TestThrowable.class)
+                .hasMessage("TestThrowable");
+
+        assertThatThrownBy(() -> proxy.instrumentInvocation("test", getThrowsOutOfMemoryErrorMethod(), null))
+                .isInstanceOf(OutOfMemoryError.class)
+                .hasMessage("Testing OOM");
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:illegalthrows")
+    public void testExecute() throws Throwable {
+        InvocationEventProxy proxy = createTestProxy(new SimpleHandler());
+
+        assertThat(proxy.execute(getToStringMethod(), null)).isEqualTo("test");
+        assertThat(proxy.execute(getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
+        assertThatThrownBy(() -> proxy.execute(getToStringMethod(), new Object[] {"Hello"}))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("wrong number of arguments");
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:illegalthrows")
+    public void testExecuteThrowsExceptions() {
+        InvocationEventProxy proxy = createSimpleTestProxy();
+
+        assertThatThrownBy(() -> proxy.execute(getThrowsCheckedExceptionMethod(), null))
+                .isInstanceOf(TestImplementation.TestException.class)
+                .hasMessage("Testing checked Exception handling");
+
+        assertThatThrownBy(() -> proxy.execute(getThrowsThrowableMethod(), null))
+                .isInstanceOf(TestImplementation.TestThrowable.class)
+                .hasMessage("TestThrowable");
+
+        assertThatThrownBy(() -> proxy.execute(getThrowsOutOfMemoryErrorMethod(), null))
+                .isInstanceOf(OutOfMemoryError.class)
+                .hasMessage("Testing OOM");
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:illegalthrows")
+    public void testThrowingFilterAndHandler() throws Throwable {
+        doThrow(IllegalStateException.class).when(mockHandler).isEnabled();
+
+        InvocationEventProxy proxy = createTestProxy(mockHandler, mockFilter);
+        assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
+
+        verify(mockHandler).isEnabled();
+        verifyNoMoreInteractions(mockFilter);
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:illegalthrows")
+    public void testThrowingFilter() throws Throwable {
+        doThrow(UnsupportedOperationException.class).when(mockFilter).shouldInstrument(any(), any(), any());
+        when(mockHandler.isEnabled()).thenReturn(true);
+
+        InvocationEventProxy proxy = createTestProxy(mockHandler, mockFilter);
+        assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
+
+        verify(mockHandler).isEnabled();
+        verify(mockFilter).shouldInstrument(any(), any(), any());
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:illegalthrows")
+    public void testThrowingHandler() throws Throwable {
+        doThrow(IllegalStateException.class).when(mockHandler).isEnabled();
+
+        InvocationEventProxy proxy = createTestProxy(mockHandler);
+        assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
+
+        verify(mockHandler).isEnabled();
+        verifyZeroInteractions(mockFilter);
+    }
+
+    private static InvocationEventProxy createSimpleTestProxy() {
+        return new TestProxy(
+                new TestImplementation(),
+                ImmutableList.of(new SimpleHandler()),
+                InstrumentationFilters.INSTRUMENT_ALL);
+    }
+
+    private static InvocationEventProxy createTestProxy(
+            InvocationEventHandler<InvocationContext> handler,
+            InstrumentationFilter filter) {
+        return new TestProxy("test", ImmutableList.of(handler), filter);
+    }
+
+    private static InvocationEventProxy createTestProxy(InvocationEventHandler<InvocationContext> handler) {
+        return createTestProxy(handler, InstrumentationFilters.INSTRUMENT_ALL);
     }
 
     private static Method getToStringMethod() throws NoSuchMethodException {
         return Object.class.getDeclaredMethod("toString");
+    }
+
+    private static Method getThrowsOutOfMemoryErrorMethod() throws NoSuchMethodException {
+        return TestInterface.class.getMethod("throwsOutOfMemoryError");
+    }
+
+    private static Method getThrowsThrowableMethod() throws NoSuchMethodException {
+        return TestInterface.class.getMethod("throwsThrowable");
+    }
+
+    private static Method getThrowsCheckedExceptionMethod() throws NoSuchMethodException {
+        return TestInterface.class.getMethod("throwsCheckedException");
     }
 
     private static class SimpleHandler implements InvocationEventHandler<InvocationContext> {
@@ -177,7 +315,10 @@ public class InvocationEventProxyTest {
         }
 
         @Override
-        public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+        public InvocationContext preInvocation(
+                @Nonnull Object instance,
+                @Nonnull Method method,
+                @Nonnull Object[] args) {
             return DefaultInvocationContext.of(instance, method, args);
         }
 
@@ -186,5 +327,22 @@ public class InvocationEventProxyTest {
 
         @Override
         public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {}
+    }
+
+    private static class TestProxy extends InvocationEventProxy {
+        private final Object delegate;
+
+        TestProxy(
+                Object delegate,
+                List<InvocationEventHandler<InvocationContext>> handlers,
+                InstrumentationFilter filter) {
+            super(handlers, filter);
+            this.delegate = delegate;
+        }
+
+        @Override
+        Object getDelegate() {
+            return delegate;
+        }
     }
 }

@@ -29,7 +29,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.logsafe.SafeArg;
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Set;
@@ -73,7 +74,7 @@ public final class MetricRegistries {
         return metrics;
     }
 
-    private static MetricRegistry registerDefaultMetrics(MetricRegistry metrics) {
+    private static void registerDefaultMetrics(MetricRegistry metrics) {
         registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "begin"),
                 new Gauge<String>() {
                     private final String start = nowIsoTimestamp();
@@ -84,12 +85,11 @@ public final class MetricRegistries {
                 });
         registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "now"),
                 (Gauge<String>) MetricRegistries::nowIsoTimestamp);
-        return metrics;
     }
 
     @VisibleForTesting
     static String nowIsoTimestamp() {
-        return DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.now());
+        return DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC));
     }
 
     @SuppressWarnings("unchecked")
@@ -132,6 +132,7 @@ public final class MetricRegistries {
      * @param filter metric filter predicate
      * @return sorted map of metrics
      */
+    @SuppressWarnings("WeakerAccess") // public API
     public static SortedMap<String, Metric> metricsMatching(MetricRegistry metrics, MetricFilter filter) {
         SortedMap<String, Metric> matchingMetrics = new TreeMap<>();
         metrics.getMetrics().forEach((key, value) -> {
@@ -151,8 +152,8 @@ public final class MetricRegistries {
      *
      * @throws IllegalArgumentException if name is blank
      */
-    @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
-    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
+    @SuppressWarnings({"BanGuavaCaches", "WeakerAccess"}) // this implementation is explicitly for Guava caches, API
+    public static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
         registerCache(registry, cache, name, Clock.defaultClock());
     }
 

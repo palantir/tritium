@@ -44,6 +44,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
      * @deprecated use {@link #create(String)}
      */
     @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed") // used by static factory
     public TracingInvocationEventHandler(String component) {
         super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
         this.component = checkNotNull(component, "component");
@@ -63,7 +64,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
         InvocationContext context = DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
         Tracer.startSpan(operationName);

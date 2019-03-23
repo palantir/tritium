@@ -59,6 +59,7 @@ public class TracingInvocationEventHandlerTest {
     @Before
     public void before() throws Exception {
         Tracer.getAndClearTrace();
+        MDC.clear();
         executor = MoreExecutors.newDirectExecutorService();
         handler = TracingInvocationEventHandler.create("testComponent");
         assertThat(handler).isInstanceOf(TracingInvocationEventHandler.class);
@@ -78,6 +79,7 @@ public class TracingInvocationEventHandlerTest {
         Tracer.unsubscribe("slf4j");
         executor.shutdownNow();
         Tracer.getAndClearTrace();
+        MDC.clear();
     }
 
     @Test
