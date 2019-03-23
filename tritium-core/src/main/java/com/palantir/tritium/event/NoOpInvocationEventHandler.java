@@ -33,7 +33,7 @@ public enum NoOpInvocationEventHandler implements InvocationEventHandler<Invocat
     }
 
     @Override
-    public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 
@@ -46,5 +46,4 @@ public enum NoOpInvocationEventHandler implements InvocationEventHandler<Invocat
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         // no-op
     }
-
 }

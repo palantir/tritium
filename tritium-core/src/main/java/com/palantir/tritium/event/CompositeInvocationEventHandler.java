@@ -51,7 +51,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     @Override
-    public InvocationContext preInvocation(Object instance, Method method, Object[] args) {
+    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
         InvocationContext[] contexts = new InvocationContext[handlers.size()];
 
         for (int i = 0; i < handlers.size(); i++) {

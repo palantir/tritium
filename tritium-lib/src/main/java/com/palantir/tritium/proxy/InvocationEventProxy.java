@@ -31,6 +31,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,11 +88,13 @@ abstract class InvocationEventProxy<C extends InvocationContext>
         }
     }
 
-
     @Override
     @Nullable
     @SuppressWarnings("checkstyle:illegalthrows")
-    protected final Object handleInvocation(Object proxy, Method method, Object[] args) throws Throwable {
+    protected final Object handleInvocation(
+            @Nonnull Object proxy,
+            @Nonnull Method method,
+            @Nonnull Object[] args) throws Throwable {
         if (isEnabled(proxy, method, args)) {
             return instrumentInvocation(proxy, method, args);
         } else {
