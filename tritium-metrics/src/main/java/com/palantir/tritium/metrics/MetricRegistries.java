@@ -74,7 +74,7 @@ public final class MetricRegistries {
         return metrics;
     }
 
-    private static MetricRegistry registerDefaultMetrics(MetricRegistry metrics) {
+    private static void registerDefaultMetrics(MetricRegistry metrics) {
         registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "begin"),
                 new Gauge<String>() {
                     private final String start = nowIsoTimestamp();
@@ -85,7 +85,6 @@ public final class MetricRegistries {
                 });
         registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "now"),
                 (Gauge<String>) MetricRegistries::nowIsoTimestamp);
-        return metrics;
     }
 
     @VisibleForTesting

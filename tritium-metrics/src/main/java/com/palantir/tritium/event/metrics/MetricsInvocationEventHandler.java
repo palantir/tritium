@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricsInvocationEventHandler.class);
+    private static final String FAILURES = "failures";
 
     private final MetricRegistry metricRegistry;
     private final String serviceName;
@@ -73,10 +74,6 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry, Class serviceClass, @Nullable String globalGroupPrefix) {
         this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
-    }
-
-    private static String failuresMetricName() {
-        return "failures";
     }
 
     private static Map<AnnotationHelper.MethodSignature, String> createMethodGroupMapping(Class<?> serviceClass) {
@@ -140,7 +137,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         }
 
         markGlobalFailure();
-        String failuresMetricName = MetricRegistry.name(getBaseMetricName(context), failuresMetricName());
+        String failuresMetricName = MetricRegistry.name(getBaseMetricName(context), FAILURES);
         metricRegistry.meter(failuresMetricName).mark();
         metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
 
@@ -148,11 +145,11 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
 
         if (metricName != null) {
-            metricRegistry.timer(MetricRegistry.name(serviceName, metricName, failuresMetricName()))
+            metricRegistry.timer(MetricRegistry.name(serviceName, metricName, FAILURES))
                     .update(nanos, TimeUnit.NANOSECONDS);
 
             if (globalGroupPrefix != null) {
-                metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName, failuresMetricName()))
+                metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName, FAILURES))
                         .update(nanos, TimeUnit.NANOSECONDS);
             }
         }
@@ -163,7 +160,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     private void markGlobalFailure() {
-        metricRegistry.meter(failuresMetricName()).mark();
+        metricRegistry.meter(FAILURES).mark();
     }
 
 }

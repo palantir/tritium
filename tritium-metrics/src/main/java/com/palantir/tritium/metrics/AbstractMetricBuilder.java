@@ -31,6 +31,7 @@ abstract class AbstractMetricBuilder<T extends Metric> implements MetricBuilder<
 
     @Override
     public boolean isInstance(@Nullable Metric metric) {
+        //noinspection PointlessNullCheck
         return metric != null && metricType.isInstance(metric);
     }
 

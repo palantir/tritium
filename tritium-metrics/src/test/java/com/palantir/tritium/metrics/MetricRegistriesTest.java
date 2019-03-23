@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
@@ -81,6 +82,23 @@ public class MetricRegistriesTest {
     @Test
     public void testHdrHistogram() {
         metrics = MetricRegistries.createWithHdrHistogramReservoirs();
+        assertThat(metrics).isNotNull();
+
+        Histogram histogram = metrics.histogram("histogram");
+        histogram.update(42L);
+        assertThat(histogram.getCount()).isEqualTo(1);
+        Snapshot histogramSnapshot = histogram.getSnapshot();
+        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogramSnapshot.getMax()).isEqualTo(42);
+
+        metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
+        assertThat(metrics.timer("timer").getCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void testDecayingHistogramReservoirs() {
+        metrics = MetricRegistries.createWithReservoirType(ExponentiallyDecayingReservoir::new);
         assertThat(metrics).isNotNull();
 
         Histogram histogram = metrics.histogram("histogram");
