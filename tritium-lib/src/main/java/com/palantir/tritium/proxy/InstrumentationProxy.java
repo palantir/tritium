@@ -21,7 +21,7 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.util.List;
 
-class InstrumentationProxy<T> extends InvocationEventProxy<InvocationContext> {
+class InstrumentationProxy<T> extends InvocationEventProxy {
 
     private final T delegate;
 

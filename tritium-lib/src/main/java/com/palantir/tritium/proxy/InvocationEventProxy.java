@@ -37,8 +37,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class InvocationEventProxy<C extends InvocationContext>
-        extends AbstractInvocationHandler implements InvocationHandler {
+abstract class InvocationEventProxy extends AbstractInvocationHandler implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(InvocationEventProxy.class);
 
@@ -192,11 +191,11 @@ abstract class InvocationEventProxy<C extends InvocationContext>
 
     static void logInvocationWarning(String event, Object instance, Method method, Throwable cause) {
         if (logger.isWarnEnabled()) {
-            logger.warn("{} exception handling {} invocation of {}.{} on {}",
+            logger.warn("{} exception handling {} invocation of {} {} on {}",
                     safeSimpleClassName("throwable", cause),
                     SafeArg.of("event", event),
-                    SafeArg.of("class", method.getDeclaringClass()),
-                    SafeArg.of("method", method.getName()),
+                    SafeArg.of("class", method.getDeclaringClass().getName()),
+                    SafeArg.of("method", method),
                     UnsafeArg.of("instance", instance),
                     cause);
         }
