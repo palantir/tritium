@@ -45,11 +45,13 @@ public final class InstrumentationProperties {
         return () -> instrumentationEnabled;
     }
 
+    @SuppressWarnings("WeakerAccess") // public API
     public static boolean isSpecificEnabled(String name) {
         String qualifiedValue = instrumentationProperties().get(INSTRUMENT_PREFIX + "." + name);
         return "true".equalsIgnoreCase(qualifiedValue) || qualifiedValue == null;
     }
 
+    @SuppressWarnings("WeakerAccess") // public API
     public static boolean isGloballyEnabled() {
         return !isGloballyDisabled();
     }

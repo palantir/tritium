@@ -18,6 +18,7 @@ package com.palantir.tritium.proxy;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.reflect.AbstractInvocationHandler;
 import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
@@ -113,7 +114,8 @@ abstract class InvocationEventProxy<C extends InvocationContext>
      */
     @Nullable
     @SuppressWarnings("checkstyle:illegalthrows")
-    public final Object instrumentInvocation(Object instance, Method method, Object[] args) throws Throwable {
+    @VisibleForTesting
+    final Object instrumentInvocation(Object instance, Method method, Object[] args) throws Throwable {
         InvocationContext context = handlePreInvocation(instance, method, args);
         try {
             Object result = execute(method, args);
@@ -126,6 +128,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
     }
 
     @Nullable
+    @VisibleForTesting
     final InvocationContext handlePreInvocation(Object instance, Method method, Object[] args) {
         try {
             return eventHandler.preInvocation(instance, method, args);
@@ -137,6 +140,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
 
     @Nullable
     @SuppressWarnings("checkstyle:illegalthrows")
+    @VisibleForTesting
     final Object execute(Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(getDelegate(), args);
@@ -146,6 +150,7 @@ abstract class InvocationEventProxy<C extends InvocationContext>
     }
 
     @Nullable
+    @VisibleForTesting
     final Object handleOnSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         try {
             eventHandler.onSuccess(context, result);

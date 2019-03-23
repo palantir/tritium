@@ -173,7 +173,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             this.contexts = checkNotNull(contexts);
         }
 
-        public InvocationContext[] getContexts() {
+        InvocationContext[] getContexts() {
             return contexts;
         }
     }

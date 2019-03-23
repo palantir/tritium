@@ -51,6 +51,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private final Map<AnnotationHelper.MethodSignature, String> metricGroups;
     @Nullable private final String globalGroupPrefix;
 
+    @SuppressWarnings("WeakerAccess") // public API
     public MetricsInvocationEventHandler(MetricRegistry metricRegistry, String serviceName) {
         super(getEnabledSupplier(serviceName));
         this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
@@ -68,6 +69,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this.globalGroupPrefix = Strings.emptyToNull(globalGroupPrefix);
     }
 
+    @SuppressWarnings("WeakerAccess") // public API
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry, Class serviceClass, @Nullable String globalGroupPrefix) {
         this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);

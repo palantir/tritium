@@ -249,6 +249,7 @@ public class MetricRegistriesTest {
     @Test
     public void testInaccessibleConstructor() throws Exception {
         Constructor<?> constructor = MetricRegistries.class.getDeclaredConstructor();
+        assertThat(constructor.isAccessible()).isFalse();
         constructor.setAccessible(true);
         assertThatThrownBy(constructor::newInstance)
                 .isInstanceOf(InvocationTargetException.class)

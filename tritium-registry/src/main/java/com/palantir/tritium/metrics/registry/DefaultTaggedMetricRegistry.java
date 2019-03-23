@@ -44,6 +44,7 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     /**
      * Get the global default {@link TaggedMetricRegistry}.
      */
+    @SuppressWarnings("unused") // public API
     public static TaggedMetricRegistry getDefault() {
         return DefaultTaggedMetricRegistry.DEFAULT;
     }

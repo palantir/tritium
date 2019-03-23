@@ -44,6 +44,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
      * @deprecated use {@link #create(String)}
      */
     @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed") // used by static factory
     public TracingInvocationEventHandler(String component) {
         super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
         this.component = checkNotNull(component, "component");

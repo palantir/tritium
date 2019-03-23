@@ -133,6 +133,7 @@ public final class MetricRegistries {
      * @param filter metric filter predicate
      * @return sorted map of metrics
      */
+    @SuppressWarnings("WeakerAccess") // public API
     public static SortedMap<String, Metric> metricsMatching(MetricRegistry metrics, MetricFilter filter) {
         SortedMap<String, Metric> matchingMetrics = new TreeMap<>();
         metrics.getMetrics().forEach((key, value) -> {
@@ -152,8 +153,8 @@ public final class MetricRegistries {
      *
      * @throws IllegalArgumentException if name is blank
      */
-    @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
-    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
+    @SuppressWarnings({"BanGuavaCaches", "WeakerAccess"}) // this implementation is explicitly for Guava caches, API
+    public static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
         registerCache(registry, cache, name, Clock.defaultClock());
     }
 

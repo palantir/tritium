@@ -353,6 +353,7 @@ public class InstrumentationTest {
     @Test
     public void testInaccessibleConstructor() throws NoSuchMethodException {
         Constructor<Instrumentation> constructor = Instrumentation.class.getDeclaredConstructor();
+        assertThat(constructor.isAccessible()).isFalse();
         constructor.setAccessible(true);
         assertThatThrownBy(constructor::newInstance)
                 .isInstanceOf(InvocationTargetException.class)
