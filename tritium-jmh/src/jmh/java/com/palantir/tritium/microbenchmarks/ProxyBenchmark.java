@@ -122,7 +122,7 @@ public class ProxyBenchmark {
         return instrumentedWithPerformanceLogging.echo("test");
     }
 
-    // @Benchmark
+    @Benchmark
     public String instrumentedWithMetrics() {
         return instrumentedWithMetrics.echo("test");
     }
@@ -132,12 +132,12 @@ public class ProxyBenchmark {
         return instrumentedWithTracing.echo("test");
     }
 
-    @Benchmark
+    // @Benchmark
     public String instrumentedWithRemoting() {
         return instrumentedWithRemoting.echo("test");
     }
 
-    // @Benchmark
+    @Benchmark
     public String instrumentedWithEverything() {
         return instrumentedWithEverything.echo("test");
     }
