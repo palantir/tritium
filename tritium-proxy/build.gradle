@@ -8,5 +8,5 @@ dependencies {
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.slf4j:slf4j-simple'
-    
+
 }

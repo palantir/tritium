@@ -26,6 +26,8 @@ import com.codahale.metrics.Timer;
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -134,10 +136,12 @@ public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
     private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
         Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
         if (!metricClass.isInstance(metric)) {
-            throw new IllegalArgumentException(String.format(
-                    "'%s' already used for a metric of type '%s' but wanted type '%s'. tags: %s",
-                    metricName.safeName(), metric.getClass().getSimpleName(),
-                    metricClass.getSimpleName(), metricName.safeTags()));
+            throw new SafeIllegalArgumentException(
+                    "Metric name already used for different metric type",
+                    SafeArg.of("metricName", metricName.safeName()),
+                    SafeArg.of("existingMetricType", metric.getClass().getSimpleName()),
+                    SafeArg.of("newMetricType", metricClass.getSimpleName()),
+                    SafeArg.of("safeTags", metricName.safeTags()));
         }
         return metricClass.cast(metric);
     }

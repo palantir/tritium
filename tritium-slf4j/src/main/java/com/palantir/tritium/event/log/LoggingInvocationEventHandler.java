@@ -19,7 +19,6 @@ package com.palantir.tritium.event.log;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
-import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.Arg;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
@@ -43,7 +42,7 @@ import org.slf4j.LoggerFactory;
 public class LoggingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final Logger CLASS_LOGGER = LoggerFactory.getLogger(LoggingInvocationEventHandler.class);
-    private static final List<String> MESSAGE_PATTERNS = generateMessagePatterns(10);
+    private static final List<String> MESSAGE_PATTERNS = generateMessagePatterns(20);
 
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_ALL_DURATIONS =
             com.palantir.tritium.api.functions.LongPredicate.TRUE;
@@ -224,30 +223,10 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
                 }
             }
 
-            logParams[2 + i] = DynamicSafeArg.of("type", i, argMessage);
+            logParams[2 + i] = SafeArg.of("type" + i, argMessage);
         }
 
         return logParams;
     }
 
-    /**
-     * Like {@link SafeArg}, but works around strict {@link com.google.errorprone.annotations.CompileTimeConstant}
-     * argument name restrictions, as we guarantee safety.
-     */
-    private static final class DynamicSafeArg<T> extends Arg<T> {
-        private static final long serialVersionUID = 1L;
-
-        private DynamicSafeArg(String name, @Nullable T value) {
-            super(name, value);
-        }
-
-        static Arg<String> of(@CompileTimeConstant String name, int index, String message) {
-            return new DynamicSafeArg<>(name + index, message);
-        }
-
-        @Override
-        public boolean isSafeForLogging() {
-            return true;
-        }
-    }
 }
