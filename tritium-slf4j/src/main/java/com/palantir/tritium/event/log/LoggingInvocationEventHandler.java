@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link InvocationEventHandler} that times every method invocation and logs to specified
@@ -41,7 +40,6 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger CLASS_LOGGER = LoggerFactory.getLogger(LoggingInvocationEventHandler.class);
     private static final List<String> MESSAGE_PATTERNS = generateMessagePatterns(20);
 
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_ALL_DURATIONS =
@@ -94,22 +92,19 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     @Override
     public final void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
-        if (context == null) {
-            CLASS_LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
-            return;
+        if (isNonNullContext(context)) {
+            logInvocation(context);
         }
-
-        long durationNanos = System.nanoTime() - context.getStartTimeNanos();
-        logInvocation(context.getMethod(), context.getArgs(), durationNanos);
     }
 
     @Override
     public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
-        if (context == null) {
-            CLASS_LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
-            return;
+        if (isNonNullContext(context)) {
+            logInvocation(context);
         }
+    }
 
+    private void logInvocation(@Nullable InvocationContext context) {
         long durationNanos = System.nanoTime() - context.getStartTimeNanos();
         logInvocation(context.getMethod(), context.getArgs(), durationNanos);
     }
@@ -170,6 +165,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     private static IllegalArgumentException invalidLoggingLevel(LoggingLevel level) {
+        checkNotNull(level, "level");
         return new IllegalArgumentException("Unsupported logging level " + level);
     }
 
@@ -232,6 +228,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
                 }
             }
 
+            //noinspection ObjectAllocationInLoop - storing allocated arg in array
             logParams[2 + i] = SafeArg.of("type" + i, argMessage);
         }
 

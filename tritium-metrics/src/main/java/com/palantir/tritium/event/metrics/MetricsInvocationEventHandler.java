@@ -21,7 +21,6 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -34,15 +33,12 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics.
  */
 public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger logger = LoggerFactory.getLogger(MetricsInvocationEventHandler.class);
     private static final String FAILURES = "failures";
 
     private final MetricRegistry metricRegistry;
@@ -106,14 +102,40 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     @Override
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
-        if (context == null) {
-            logger.debug("Encountered null metric context likely due to exception in preInvocation");
-            return;
+        if (isNonNullContext(context)) {
+            long nanos = updateTimer(context);
+            handleSuccessAnnotations(context, nanos);
         }
+    }
+
+    @Override
+    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+        markGlobalFailure();
+        if (isNonNullContext(context)) {
+            String failuresMetricName = MetricRegistry.name(getBaseMetricName(context), FAILURES);
+            metricRegistry.meter(failuresMetricName).mark();
+            metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
+            long nanos = updateTimer(context);
+            handleFailureAnnotations(context, nanos);
+        }
+    }
+
+    private long updateTimer(@Nullable InvocationContext context) {
         long nanos = System.nanoTime() - context.getStartTimeNanos();
         metricRegistry.timer(getBaseMetricName(context))
                 .update(nanos, TimeUnit.NANOSECONDS);
+        return nanos;
+    }
 
+    private String getBaseMetricName(InvocationContext context) {
+        return MetricRegistry.name(serviceName, context.getMethod().getName());
+    }
+
+    private void markGlobalFailure() {
+        metricRegistry.meter(FAILURES).mark();
+    }
+
+    private void handleSuccessAnnotations(@Nonnull InvocationContext context, long nanos) {
         String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
         if (metricName != null) {
             metricRegistry.timer(MetricRegistry.name(serviceName, metricName))
@@ -126,24 +148,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         }
     }
 
-    @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
-        if (context == null) {
-            markGlobalFailure();
-            logger.debug("Encountered null metric context likely due to exception in preInvocation: {}",
-                    UnsafeArg.of("cause", cause),
-                    cause);
-            return;
-        }
-
-        markGlobalFailure();
-        String failuresMetricName = MetricRegistry.name(getBaseMetricName(context), FAILURES);
-        metricRegistry.meter(failuresMetricName).mark();
-        metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
-
-        long nanos = System.nanoTime() - context.getStartTimeNanos();
+    private void handleFailureAnnotations(@Nonnull InvocationContext context, long nanos) {
         String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
-
         if (metricName != null) {
             metricRegistry.timer(MetricRegistry.name(serviceName, metricName, FAILURES))
                     .update(nanos, TimeUnit.NANOSECONDS);
@@ -153,14 +159,6 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
                         .update(nanos, TimeUnit.NANOSECONDS);
             }
         }
-    }
-
-    private String getBaseMetricName(InvocationContext context) {
-        return MetricRegistry.name(serviceName, context.getMethod().getName());
-    }
-
-    private void markGlobalFailure() {
-        metricRegistry.meter(FAILURES).mark();
     }
 
 }

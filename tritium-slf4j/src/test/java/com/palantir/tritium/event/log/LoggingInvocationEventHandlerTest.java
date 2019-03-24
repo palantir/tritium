@@ -99,10 +99,8 @@ public class LoggingInvocationEventHandlerTest {
 
     @Test
     public void testNullIsEnabled() {
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> {
-            //noinspection ConstantConditions
-            LoggingInvocationEventHandler.isEnabled(getLogger(), null);
-        });
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
+                LoggingInvocationEventHandler.isEnabled(getLogger(), null));
     }
 
     @Test

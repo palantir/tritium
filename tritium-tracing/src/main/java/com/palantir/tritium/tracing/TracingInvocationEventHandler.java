@@ -29,12 +29,8 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class TracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
-
-    private static final Logger logger = LoggerFactory.getLogger(TracingInvocationEventHandler.class);
 
     private final String component;
 
@@ -82,21 +78,13 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
 
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
-        // TODO(davids): add Error event
         complete(context);
     }
 
-    private static void complete(@Nullable InvocationContext context) {
-        debugIfNullContext(context);
+    private void complete(@Nullable InvocationContext context) {
         // Context is null if no span was created, in which case the existing span should not be completed
-        if (context != null) {
+        if (isNonNullContext(context)) {
             Tracer.fastCompleteSpan();
-        }
-    }
-
-    private static void debugIfNullContext(@Nullable InvocationContext context) {
-        if (context == null) {
-            logger.debug("Encountered null metric context likely due to exception in preInvocation");
         }
     }
 
