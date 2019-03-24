@@ -128,7 +128,7 @@ public final class MetricRegistries {
     private static <T extends Metric> T getAndCheckExistingMetric(
             String name,
             MetricBuilder<T> builder,
-            Metric existingMetric) {
+            @Nullable Metric existingMetric) {
         if (existingMetric != null && builder.isInstance(existingMetric)) {
             return (T) existingMetric;
         }
@@ -137,7 +137,7 @@ public final class MetricRegistries {
 
     private static SafeIllegalArgumentException invalidMetric(
             String name,
-            Metric existingMetric,
+            @Nullable Metric existingMetric,
             Metric newMetric) {
         throw new SafeIllegalArgumentException(
                 "Metric name already used for different metric type",
@@ -146,7 +146,7 @@ public final class MetricRegistries {
                 SafeArg.of("newMetricType", safeClassName(newMetric)));
     }
 
-    private static String safeClassName(Object obj) {
+    private static String safeClassName(@Nullable Object obj) {
         return (obj == null) ? "" : obj.getClass().getName();
     }
 

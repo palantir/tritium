@@ -102,7 +102,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     @Override
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
-        if (isNonNullContext(context)) {
+        if (isNonNullContext(context) && context != null) {
             long nanos = updateTimer(context);
             handleSuccessAnnotations(context, nanos);
         }
@@ -111,7 +111,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         markGlobalFailure();
-        if (isNonNullContext(context)) {
+        if (isNonNullContext(context) && context != null) {
             String failuresMetricName = MetricRegistry.name(getBaseMetricName(context), FAILURES);
             metricRegistry.meter(failuresMetricName).mark();
             metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
@@ -120,7 +120,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         }
     }
 
-    private long updateTimer(@Nullable InvocationContext context) {
+    private long updateTimer(InvocationContext context) {
         long nanos = System.nanoTime() - context.getStartTimeNanos();
         metricRegistry.timer(getBaseMetricName(context))
                 .update(nanos, TimeUnit.NANOSECONDS);
@@ -135,7 +135,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         metricRegistry.meter(FAILURES).mark();
     }
 
-    private void handleSuccessAnnotations(@Nonnull InvocationContext context, long nanos) {
+    private void handleSuccessAnnotations(InvocationContext context, long nanos) {
         String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
         if (metricName != null) {
             metricRegistry.timer(MetricRegistry.name(serviceName, metricName))
@@ -148,7 +148,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         }
     }
 
-    private void handleFailureAnnotations(@Nonnull InvocationContext context, long nanos) {
+    private void handleFailureAnnotations(InvocationContext context, long nanos) {
         String metricName = metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
         if (metricName != null) {
             metricRegistry.timer(MetricRegistry.name(serviceName, metricName, FAILURES))
