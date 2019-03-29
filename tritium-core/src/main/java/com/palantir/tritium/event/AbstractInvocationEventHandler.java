@@ -18,7 +18,10 @@ package com.palantir.tritium.event;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.palantir.logsafe.SafeArg;
 import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract invocation event handler implementation.
@@ -27,6 +30,8 @@ import javax.annotation.Nullable;
  */
 public abstract class AbstractInvocationEventHandler<C extends InvocationContext>
         implements InvocationEventHandler<C> {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationEventHandler.class);
 
     private static final Object[] NO_ARGS = {};
 
@@ -66,6 +71,23 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
     @Override
     public final boolean isEnabled() {
         return isEnabledSupplier.getAsBoolean();
+    }
+
+    /**
+     * Logs debug information if the specified invocation context is not null.
+     *
+     * @param context invocation context
+     */
+    protected final void debugIfNullContext(@Nullable InvocationContext context) {
+        if (context == null) {
+            logger.debug(
+                    "{} encountered null metric context, likely due to exception in preInvocation",
+                    safeClassName(getClass()));
+        }
+    }
+
+    private static SafeArg<String> safeClassName(@Nullable Object obj) {
+        return SafeArg.of("class", (obj == null) ? "" : obj.getClass().getName());
     }
 
     /**

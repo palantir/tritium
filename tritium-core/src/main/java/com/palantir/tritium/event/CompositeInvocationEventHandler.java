@@ -50,66 +50,70 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
+    @Nullable
+    private InvocationEventHandler<InvocationContext> tryGetEnabledHandler(int index) {
+        InvocationEventHandler<InvocationContext> handler = handlers.get(index);
+        if (handler != null && handler.isEnabled()) {
+            return handler;
+        }
+        return null;
+    }
+
     @Override
     public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        InvocationContext[] contexts = new InvocationContext[handlers.size()];
+        final int count = handlers.size();
+        InvocationContext[] contexts = new InvocationContext[count];
 
-        for (int i = 0; i < handlers.size(); i++) {
-            InvocationEventHandler<InvocationContext> handler = handlers.get(i);
-            if (handler.isEnabled()) {
-                contexts[i] = handlePreInvocation(handler, instance, method, args);
-            }
+        for (int i = 0; i < count; i++) {
+            contexts[i] = handlePreInvocation(tryGetEnabledHandler(i), instance, method, args);
         }
 
         return new CompositeInvocationContext(instance, method, args, contexts);
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext invocationContext, @Nullable Object result) {
-        if (invocationContext instanceof CompositeInvocationContext) {
-            CompositeInvocationContext compositeContext = (CompositeInvocationContext) invocationContext;
-            InvocationContext[] contexts = compositeContext.getContexts();
+    public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
+        debugIfNullContext(context);
+        if (context != null) {
+            success(((CompositeInvocationContext) context).getContexts(), result);
+        }
+    }
 
-            for (int i = contexts.length - 1; i >= 0; i--) {
-                InvocationEventHandler<InvocationContext> handler = handlers.get(i);
-                if (handler.isEnabled()) {
-                    handleSuccess(handler, contexts[i], result);
-                }
-            }
-        } else {
-            logger.debug("onSuccess InvocationContext was not a CompositeInvocationContext: {}", invocationContext);
+    private void success(@Nonnull InvocationContext[] contexts, @Nullable Object result) {
+        for (int i = contexts.length - 1; i > -1; i--) {
+            handleSuccess(tryGetEnabledHandler(i), contexts[i], result);
         }
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext invocationContext, @Nonnull Throwable cause) {
-        if (invocationContext instanceof CompositeInvocationContext) {
-            CompositeInvocationContext compositeContext = (CompositeInvocationContext) invocationContext;
-            InvocationContext[] contexts = compositeContext.getContexts();
+    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+        debugIfNullContext(context);
+        if (context != null) {
+            failure(((CompositeInvocationContext) context).getContexts(), cause);
+        }
+    }
 
-            for (int i = contexts.length - 1; i >= 0; i--) {
-                InvocationEventHandler<InvocationContext> handler = handlers.get(i);
-                if (handler.isEnabled()) {
-                    handleFailure(handler, contexts[i], cause);
-                }
-            }
-        } else {
-            logger.debug("onFailure InvocationContext was not a CompositeInvocationContext: {}", invocationContext);
+    private void failure(InvocationContext[] contexts, @Nonnull Throwable cause) {
+        for (int i = contexts.length - 1; i > -1; i--) {
+            handleFailure(tryGetEnabledHandler(i), contexts[i], cause);
         }
     }
 
     @Nullable
-    private static InvocationContext handlePreInvocation(InvocationEventHandler<? extends InvocationContext> handler,
+    private static InvocationContext handlePreInvocation(
+            @Nullable InvocationEventHandler<? extends InvocationContext> handler,
             Object instance,
             Method method,
             Object[] args) {
 
         try {
-            return handler.preInvocation(instance, method, args);
+            if (handler != null) {
+                return handler.preInvocation(instance, method, args);
+            }
         } catch (RuntimeException e) {
             preInvocationFailed(handler, instance, method, e);
-            return null;
         }
+        return null;
     }
 
     @Override
@@ -118,10 +122,10 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     private static void preInvocationFailed(
-            InvocationEventHandler<? extends InvocationContext> handler,
-            Object instance,
+            @Nullable InvocationEventHandler<? extends InvocationContext> handler,
+            @Nullable Object instance,
             Method method,
-            Exception exception) {
+            @Nullable Exception exception) {
         logger.warn(
                 "Exception handling preInvocation({}): invocation of {}.{} on {} threw",
                 UnsafeArg.of("handler", handler),
@@ -131,32 +135,44 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
                 exception);
     }
 
-    private static void handleSuccess(InvocationEventHandler<?> handler,
+    private static void handleSuccess(
+            @Nullable InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             @Nullable Object result) {
-
         try {
-            handler.onSuccess(context, result);
+            if (handler != null) {
+                handler.onSuccess(context, result);
+            }
         } catch (RuntimeException exception) {
-            logger.warn("Exception handling onSuccess({}, {})",
-                    UnsafeArg.of("context", context),
-                    UnsafeArg.of("result", result),
-                    exception);
+            eventFailed("onSuccess", context, result, exception);
         }
     }
 
-    private static void handleFailure(InvocationEventHandler<?> handler,
+    private static void handleFailure(
+            @Nullable InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             Throwable cause) {
 
         try {
-            handler.onFailure(context, cause);
+            if (handler != null) {
+                handler.onFailure(context, cause);
+            }
         } catch (RuntimeException exception) {
-            logger.warn("Exception handling onFailure({}, {})",
-                    UnsafeArg.of("context", context),
-                    UnsafeArg.of("cause", cause),
-                    exception);
+            eventFailed("onFailure", context, cause, exception);
         }
+    }
+
+    private static void eventFailed(
+            String event,
+            @Nullable InvocationContext context,
+            @Nullable Object result,
+            RuntimeException exception) {
+        logger.warn(
+                "Exception handling {}({}, {})",
+                SafeArg.of("event", event),
+                UnsafeArg.of("context", context),
+                UnsafeArg.of("result", result),
+                exception);
     }
 
     static class CompositeInvocationContext extends DefaultInvocationContext {

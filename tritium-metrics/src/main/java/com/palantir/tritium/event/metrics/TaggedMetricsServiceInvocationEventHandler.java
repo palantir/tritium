@@ -29,8 +29,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * An implementation of {@link AbstractInvocationEventHandler} whose purpose is to provide tagged metrics for
@@ -47,7 +45,6 @@ import org.slf4j.LoggerFactory;
  */
 public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger logger = LoggerFactory.getLogger(TaggedMetricsServiceInvocationEventHandler.class);
     private static final String FAILURES_METRIC_NAME = "failures";
     private static final MetricName FAILURES_METRIC = MetricName.builder().safeName(FAILURES_METRIC_NAME).build();
 
@@ -76,38 +73,32 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
 
     @Override
     public final void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
-        if (context == null) {
-            logger.debug("Encountered null metric context likely due to exception in preInvocation");
-            return;
+        debugIfNullContext(context);
+        if (context != null) {
+            long nanos = System.nanoTime() - context.getStartTimeNanos();
+            MetricName finalMetricName = MetricName.builder()
+                    .safeName(serviceName)
+                    .putSafeTags("service-name", context.getMethod().getDeclaringClass().getSimpleName())
+                    .putSafeTags("endpoint", context.getMethod().getName())
+                    .build();
+            taggedMetricRegistry.timer(finalMetricName)
+                    .update(nanos, TimeUnit.NANOSECONDS);
         }
-
-        long nanos = System.nanoTime() - context.getStartTimeNanos();
-        MetricName finalMetricName = MetricName.builder()
-                .safeName(serviceName)
-                .putSafeTags("service-name", context.getMethod().getDeclaringClass().getSimpleName())
-                .putSafeTags("endpoint", context.getMethod().getName())
-                .build();
-        taggedMetricRegistry.timer(finalMetricName)
-                .update(nanos, TimeUnit.NANOSECONDS);
     }
 
     @Override
     public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         markGlobalFailure();
-        if (context == null) {
-            logger.debug(
-                    "Encountered null metric context likely due to exception in preInvocation",
-                    cause);
-            return;
+        debugIfNullContext(context);
+        if (context != null) {
+            MetricName failuresMetricName = MetricName.builder()
+                    .safeName(serviceName + "-" + FAILURES_METRIC_NAME)
+                    .putSafeTags("service-name", context.getMethod().getDeclaringClass().getSimpleName())
+                    .putSafeTags("endpoint", context.getMethod().getName())
+                    .putSafeTags("cause", cause.getClass().getName())
+                    .build();
+            taggedMetricRegistry.meter(failuresMetricName).mark();
         }
-
-        MetricName failuresMetricName = MetricName.builder()
-                .safeName(serviceName + "-" + FAILURES_METRIC_NAME)
-                .putSafeTags("service-name", context.getMethod().getDeclaringClass().getSimpleName())
-                .putSafeTags("endpoint", context.getMethod().getName())
-                .putSafeTags("cause", cause.getClass().getName())
-                .build();
-        taggedMetricRegistry.meter(failuresMetricName).mark();
     }
 
     private void markGlobalFailure() {

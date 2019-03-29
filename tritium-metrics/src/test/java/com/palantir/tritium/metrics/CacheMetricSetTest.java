@@ -34,7 +34,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-@SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
+@SuppressWarnings({"BanGuavaCaches", // this implementation is explicitly for Guava caches
+                   "NullAway"}) // IntelliJ warnings about injected fields
 @RunWith(MockitoJUnitRunner.class)
 public class CacheMetricSetTest {
 

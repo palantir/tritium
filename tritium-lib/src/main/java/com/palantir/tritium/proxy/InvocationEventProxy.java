@@ -117,12 +117,9 @@ abstract class InvocationEventProxy extends AbstractInvocationHandler implements
     final Object instrumentInvocation(Object instance, Method method, Object[] args) throws Throwable {
         InvocationContext context = handlePreInvocation(instance, method, args);
         try {
-            Object result = execute(method, args);
-            return handleOnSuccess(context, result);
-        } catch (InvocationTargetException e) {
-            throw handleOnFailure(context, e.getCause());
+            return invoke(context, method, args);
         } catch (Throwable t) {
-            throw handleOnFailure(context, t);
+            throw invocationFailed(context, t);
         }
     }
 
@@ -135,6 +132,13 @@ abstract class InvocationEventProxy extends AbstractInvocationHandler implements
             logInvocationWarning("preInvocation", instance, method, e);
         }
         return null;
+    }
+
+    @Nullable
+    @SuppressWarnings("checkstyle:illegalthrows")
+    private Object invoke(@Nullable InvocationContext context, Method method, Object[] args) throws Throwable {
+        Object result = execute(method, args);
+        return handleOnSuccess(context, result);
     }
 
     @Nullable
@@ -159,10 +163,11 @@ abstract class InvocationEventProxy extends AbstractInvocationHandler implements
         return result;
     }
 
-    private static void logInvocationWarningOnSuccess(@Nullable InvocationContext context, @Nullable Object result,
-            Exception cause) {
-        logger.warn("{} exception handling onSuccess({}, {}): {}",
-                safeSimpleClassName("cause", cause), context, safeSimpleClassName("result", result), cause);
+    private Throwable invocationFailed(@Nullable InvocationContext context, Throwable cause) {
+        if (cause instanceof InvocationTargetException) {
+            return handleOnFailure(context, cause.getCause());
+        }
+        return handleOnFailure(context, cause);
     }
 
     final Throwable handleOnFailure(@Nullable InvocationContext context, Throwable cause) {
@@ -174,28 +179,51 @@ abstract class InvocationEventProxy extends AbstractInvocationHandler implements
         return cause;
     }
 
-    private static void logInvocationWarningOnFailure(@Nullable InvocationContext context, @Nullable Throwable result,
+    private static void logInvocationWarningOnSuccess(
+            @Nullable InvocationContext context,
+            @Nullable Object result,
             Exception cause) {
-        if (logger.isWarnEnabled()) {
-            logger.warn("{} exception handling onFailure({}, {}): {}",
-                    safeSimpleClassName("cause", cause),
-                    UnsafeArg.of("context", context),
-                    safeSimpleClassName("result", result),
-                    cause);
-        }
+        logInvocationWarning("onSuccess", context, result, cause);
+    }
+
+    private static void logInvocationWarningOnFailure(
+            @Nullable InvocationContext context,
+            @Nullable Throwable result,
+            Exception cause) {
+        logInvocationWarning("onFailure", context, result, cause);
     }
 
     private static SafeArg<String> safeSimpleClassName(@CompileTimeConstant String name, @Nullable Object object) {
         return SafeArg.of(name, (object == null) ? "null" : object.getClass().getSimpleName());
     }
 
-    static void logInvocationWarning(String event, Object instance, Method method, Throwable cause) {
+    static void logInvocationWarning(
+            String event,
+            @Nullable InvocationContext context,
+            @Nullable Object result,
+            Throwable cause) {
         if (logger.isWarnEnabled()) {
-            logger.warn("{} exception handling {} invocation of {} {} on {}",
-                    safeSimpleClassName("throwable", cause),
+            logger.warn("{} occurred handling '{}' ({}, {}): {}",
+                    safeSimpleClassName("cause", cause),
+                    SafeArg.of("event", event),
+                    UnsafeArg.of("context", context),
+                    safeSimpleClassName("result", result),
+                    cause);
+        }
+    }
+
+    static void logInvocationWarning(
+            String event,
+            Object instance,
+            Method method,
+            Throwable cause) {
+        if (logger.isWarnEnabled()) {
+            logger.warn("{} occurred handling '{}' invocation of {} {} on {} instance: {}",
+                    safeSimpleClassName("cause", cause),
                     SafeArg.of("event", event),
                     SafeArg.of("class", method.getDeclaringClass().getName()),
                     SafeArg.of("method", method),
+                    safeSimpleClassName("instanceClass", instance),
                     UnsafeArg.of("instance", instance),
                     cause);
         }

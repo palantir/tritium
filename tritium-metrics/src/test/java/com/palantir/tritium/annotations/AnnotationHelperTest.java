@@ -23,6 +23,7 @@ import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import org.junit.Test;
 
+@SuppressWarnings("NullAway") // implicitly testing null handling
 public class AnnotationHelperTest {
 
     @MetricGroup("DEFAULT")

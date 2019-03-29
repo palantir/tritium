@@ -65,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("NullAway") // IntelliJ warnings about injected fields
 public class InstrumentationTest {
 
     @MetricGroup("DEFAULT")

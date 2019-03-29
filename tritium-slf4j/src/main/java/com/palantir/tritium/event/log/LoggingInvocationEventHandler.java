@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link InvocationEventHandler} that times every method invocation and logs to specified
@@ -41,7 +40,6 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger CLASS_LOGGER = LoggerFactory.getLogger(LoggingInvocationEventHandler.class);
     private static final List<String> MESSAGE_PATTERNS = generateMessagePatterns(20);
 
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_ALL_DURATIONS =
@@ -94,24 +92,20 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     @Override
     public final void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
-        if (context == null) {
-            CLASS_LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
-            return;
-        }
-
-        long durationNanos = System.nanoTime() - context.getStartTimeNanos();
-        logInvocation(context.getMethod(), context.getArgs(), durationNanos);
+        logInvocation(context);
     }
 
     @Override
     public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
-        if (context == null) {
-            CLASS_LOGGER.debug("Encountered null metric context likely due to exception in preInvocation");
-            return;
-        }
+        logInvocation(context);
+    }
 
-        long durationNanos = System.nanoTime() - context.getStartTimeNanos();
-        logInvocation(context.getMethod(), context.getArgs(), durationNanos);
+    private void logInvocation(@Nullable InvocationContext context) {
+        debugIfNullContext(context);
+        if (context != null) {
+            long durationNanos = System.nanoTime() - context.getStartTimeNanos();
+            logInvocation(context.getMethod(), context.getArgs(), durationNanos);
+        }
     }
 
     private void logInvocation(Method method, @Nullable Object[] nullableArgs, long durationNanos) {
@@ -123,44 +117,54 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     // All message formats are generated with placeholders and safe args
     @SuppressWarnings({"Slf4jConstantLogMessage", "Slf4jLogsafeArgs", "Var"})
-    private void log(final String messageFormat, Object... args) {
-        switch (level) {
-            case TRACE:
-                logger.trace(messageFormat, args);
-                return;
-            case DEBUG:
-                logger.debug(messageFormat, args);
-                return;
-            case INFO:
-                logger.info(messageFormat, args);
-                return;
-            case WARN:
-                logger.warn(messageFormat, args);
-                return;
-            case ERROR:
-                logger.error(messageFormat, args);
-                return;
+    private void log(final String messageFormat, Object[] args) {
+        if (level == LoggingLevel.TRACE) {
+            logger.trace(messageFormat, args);
+        } else if (level == LoggingLevel.DEBUG) {
+            logger.debug(messageFormat, args);
+        } else {
+            logUncommon(messageFormat, args);
         }
-        throw invalidLoggingLevel(level);
+    }
+
+    // explicitly treating this method as slow path as invocation logging is typically only enabled at TRACE or DEBUG
+    @SuppressWarnings({"Slf4jConstantLogMessage", "Slf4jLogsafeArgs", "Var"})
+    private void logUncommon(String messageFormat, Object[] args) {
+        if (level == LoggingLevel.INFO) {
+            logger.info(messageFormat, args);
+        } else if (level == LoggingLevel.WARN) {
+            logger.warn(messageFormat, args);
+        } else if (level == LoggingLevel.ERROR) {
+            logger.error(messageFormat, args);
+        } else {
+            throw invalidLoggingLevel(level);
+        }
     }
 
     static boolean isEnabled(Logger logger, LoggingLevel level) {
-        switch (level) {
-            case TRACE:
-                return logger.isTraceEnabled();
-            case DEBUG:
-                return logger.isDebugEnabled();
-            case INFO:
-                return logger.isInfoEnabled();
-            case WARN:
-                return logger.isWarnEnabled();
-            case ERROR:
-                return logger.isErrorEnabled();
+        if (level == LoggingLevel.TRACE) {
+            return logger.isTraceEnabled();
+        } else if (level == LoggingLevel.DEBUG) {
+            return logger.isDebugEnabled();
+        } else {
+            return isEnabledUncommon(logger, level);
+        }
+    }
+
+    // explicitly treating this method as slow path as invocation logging is typically only enabled at TRACE or DEBUG
+    private static boolean isEnabledUncommon(Logger logger, LoggingLevel level) {
+        if (level == LoggingLevel.INFO) {
+            return logger.isInfoEnabled();
+        } else if (level == LoggingLevel.WARN) {
+            return logger.isWarnEnabled();
+        } else if (level == LoggingLevel.ERROR) {
+            return logger.isErrorEnabled();
         }
         throw invalidLoggingLevel(level);
     }
 
     private static IllegalArgumentException invalidLoggingLevel(LoggingLevel level) {
+        checkNotNull(level, "level");
         return new IllegalArgumentException("Unsupported logging level " + level);
     }
 
@@ -223,6 +227,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
                 }
             }
 
+            //noinspection ObjectAllocationInLoop - storing allocated arg in array
             logParams[2 + i] = SafeArg.of("type" + i, argMessage);
         }
 

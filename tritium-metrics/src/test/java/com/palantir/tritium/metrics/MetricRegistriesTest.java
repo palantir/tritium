@@ -49,8 +49,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
-@SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings({"BanGuavaCaches", // this implementation is explicitly for Guava caches
+                   "NullAway"}) // IntelliJ warnings about injected fields
 public class MetricRegistriesTest {
 
     private MetricRegistry metrics = new MetricRegistry();
@@ -171,7 +172,7 @@ public class MetricRegistriesTest {
     }
 
     @Test
-    public void testNoStats() throws Exception {
+    public void testNoStats() {
         MetricRegistries.registerCache(metrics, cache, "test");
 
         assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactlyInAnyOrder(
@@ -220,14 +221,19 @@ public class MetricRegistriesTest {
 
     @Test
     public void testInvalidGetOrAdd() {
-        MetricRegistries.getOrAdd(metrics, "histogram",
-                new HistogramMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier()));
+        HistogramMetricBuilder histogramMetricBuilder =
+                new HistogramMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier());
+        MetricRegistries.getOrAdd(metrics, "histogram", histogramMetricBuilder);
 
+        TimerMetricBuilder timerMetricBuilder = new TimerMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier());
         assertThatThrownBy(() ->
-                MetricRegistries.getOrAdd(metrics, "histogram",
-                        new TimerMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier())))
+                MetricRegistries.getOrAdd(metrics, "histogram", timerMetricBuilder))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageStartingWith("histogram is already used for a different type of metric for ");
+                .hasMessageStartingWith("Metric name already used for different metric type")
+                .hasMessageContaining("metricName=histogram")
+                .hasMessageContaining("existingMetricType="
+                        + "com.palantir.tritium.metrics.HistogramMetricBuilder$ReservoirHistogram")
+                .hasMessageContaining("newMetricType=com.palantir.tritium.metrics.TimerMetricBuilder$ReservoirTimer");
     }
 
     @Test
@@ -289,7 +295,10 @@ public class MetricRegistriesTest {
 
     @Test
     public void testNullPrefixMetricsPrefixedBy() {
-        assertThatThrownBy(() -> MetricRegistries.metricsPrefixedBy(null)).isInstanceOf(NullPointerException.class);
+        //noinspection ResultOfMethodCallIgnored
+        assertThatThrownBy(() ->
+                MetricRegistries.metricsPrefixedBy(null))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test

@@ -26,24 +26,22 @@ import java.util.function.Supplier;
 
 final class MetricRegistryWithReservoirs extends MetricRegistry {
 
-    private final Supplier<Reservoir> reservoirSupplier;
+    private final HistogramMetricBuilder histogramMetricBuilder;
+    private final TimerMetricBuilder timerMetricBuilder;
 
     MetricRegistryWithReservoirs(Supplier<Reservoir> reservoirSupplier) {
-        this.reservoirSupplier = checkNotNull(reservoirSupplier, "reservoirSupplier");
-    }
-
-    Supplier<Reservoir> getReservoirSupplier() {
-        return reservoirSupplier;
+        checkNotNull(reservoirSupplier, "reservoirSupplier");
+        this.histogramMetricBuilder = new HistogramMetricBuilder(reservoirSupplier);
+        this.timerMetricBuilder = new TimerMetricBuilder(reservoirSupplier);
     }
 
     @Override
     public Histogram histogram(String name) {
-        return MetricRegistries.getOrAdd(this, name, new HistogramMetricBuilder(getReservoirSupplier()));
+        return MetricRegistries.getOrAdd(this, name, histogramMetricBuilder);
     }
 
     @Override
     public Timer timer(String name) {
-        return MetricRegistries.getOrAdd(this, name, new TimerMetricBuilder(getReservoirSupplier()));
+        return MetricRegistries.getOrAdd(this, name, timerMetricBuilder);
     }
-
 }

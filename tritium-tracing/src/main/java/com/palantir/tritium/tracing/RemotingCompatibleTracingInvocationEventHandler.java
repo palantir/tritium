@@ -66,19 +66,16 @@ public final class RemotingCompatibleTracingInvocationEventHandler
     @Override
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
         debugIfNullContext(context);
-        tracer.completeSpan();
+        if (context != null) {
+            tracer.completeSpan();
+        }
     }
 
     @Override
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
-        // TODO(davids): add Error event
-        tracer.completeSpan();
-    }
-
-    private static void debugIfNullContext(@Nullable InvocationContext context) {
-        if (context == null) {
-            logger.debug("Encountered null metric context likely due to exception in preInvocation");
+        if (context != null) {
+            tracer.completeSpan();
         }
     }
 

@@ -25,6 +25,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Timer;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
@@ -35,12 +36,23 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.SortedMap;
+import javax.annotation.Nullable;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.impl.SimpleLogger;
+import org.slf4j.impl.TestLogs;
 
+@SuppressWarnings("NullAway")
 public class TritiumTest {
+    static {
+        System.setProperty("org.slf4j.simpleLogger.log.performance", LoggingLevel.TRACE.name());
+        TestLogs.setLevel("performance", LoggingLevel.TRACE.name());
+        TestLogs.logTo("/dev/null");
+    }
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
+    private static final String LOG_KEY = SimpleLogger.LOG_KEY_PREFIX + "com.palantir";
 
     private final TestImplementation delegate = new TestImplementation();
     private final MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
@@ -54,8 +66,22 @@ public class TritiumTest {
             .putSafeTags("endpoint", "test")
             .build();
 
+    @Nullable
+    private String previousLogLevel = null;
+
+    @Before
+    public void before() {
+        previousLogLevel = System.setProperty(LOG_KEY, LoggingLevel.TRACE.name());
+    }
+
     @After
     public void after() {
+        if (previousLogLevel == null) {
+            System.clearProperty(LOG_KEY);
+        } else {
+            System.setProperty(LOG_KEY, previousLogLevel);
+        }
+
         try (ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build()) {
             reporter.report();
             Tagged.report(reporter, taggedMetricRegistry);
@@ -108,7 +134,7 @@ public class TritiumTest {
 
     @Test
     public void rethrowOutOfMemoryError() {
-        assertThatThrownBy(() -> instrumentedService.throwsOutOfMemoryError())
+        assertThatThrownBy(instrumentedService::throwsOutOfMemoryError)
                 .isInstanceOf(OutOfMemoryError.class)
                 .hasMessage("Testing OOM");
     }
@@ -125,7 +151,7 @@ public class TritiumTest {
                 .getCount())
                 .isEqualTo(0);
 
-        assertThatThrownBy(() -> instrumentedService.throwsOutOfMemoryError())
+        assertThatThrownBy(instrumentedService::throwsOutOfMemoryError)
                 .isInstanceOf(OutOfMemoryError.class)
                 .hasMessage("Testing OOM");
 
@@ -142,7 +168,6 @@ public class TritiumTest {
     @Test
     public void testToString() {
         assertThat(instrumentedService.toString()).isEqualTo(TestImplementation.class.getName());
-
         assertThat(Tritium.instrument(TestInterface.class, instrumentedService, metricRegistry).toString())
                 .isEqualTo(TestImplementation.class.getName());
     }

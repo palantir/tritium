@@ -45,6 +45,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.MDC;
 
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("NullAway") // IntelliJ warnings about injected fields
 public class TracingInvocationEventHandlerTest {
 
     private InvocationEventHandler<InvocationContext> handler;

@@ -73,6 +73,7 @@ public class InstrumentationPropertiesTest {
     }
 
     @Test
+    @SuppressWarnings("NullAway") // explicitly testing null
     public void invalid() {
         assertThatThrownBy(() -> InstrumentationProperties.getSystemPropertySupplier(null))
                 .isInstanceOf(IllegalArgumentException.class)

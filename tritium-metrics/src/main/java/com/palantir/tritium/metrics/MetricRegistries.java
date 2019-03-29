@@ -29,6 +29,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,6 +38,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,24 +96,58 @@ public final class MetricRegistries {
 
     @SuppressWarnings("unchecked")
     static <T extends Metric> T getOrAdd(MetricRegistry metrics, String name, MetricBuilder<T> builder) {
-        checkNotNull(metrics);
-        checkNotNull(name);
-        checkNotNull(builder);
-
-        Metric metric = metrics.getMetrics().get(name);
-        if (metric == null) {
-            try {
-                return metrics.register(name, builder.newMetric());
-            } catch (IllegalArgumentException e) {
-                Metric added = metrics.getMetrics().get(name);
-                if (added != null && builder.isInstance(added)) {
-                    return (T) added;
-                }
-            }
-        } else if (builder.isInstance(metric)) {
-            return (T) metric;
+        Metric existingMetric = tryGetExistingMetric(metrics, name);
+        if (existingMetric == null) {
+            return addMetric(metrics, name, builder);
         }
-        throw new IllegalArgumentException(name + " is already used for a different type of metric for " + metric);
+        return getAndCheckExistingMetric(name, builder, existingMetric);
+    }
+
+    @Nullable
+    private static Metric tryGetExistingMetric(MetricRegistry metrics, String name) {
+        return checkNotNull(metrics, "metrics").getMetrics().get(checkNotNull(name));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Metric> T addMetric(
+            MetricRegistry metrics,
+            String name,
+            MetricBuilder<T> builder) {
+        checkNotNull(builder);
+        T newMetric = builder.newMetric();
+        try {
+            return metrics.register(name, newMetric);
+        } catch (IllegalArgumentException e) {
+            // fall back to existing metric
+            Metric existingMetric = metrics.getMetrics().get(name);
+            return getAndCheckExistingMetric(name, builder, existingMetric);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Metric> T getAndCheckExistingMetric(
+            String name,
+            MetricBuilder<T> builder,
+            @Nullable Metric existingMetric) {
+        if (existingMetric != null && builder.isInstance(existingMetric)) {
+            return (T) existingMetric;
+        }
+        throw invalidMetric(name, existingMetric, builder.newMetric());
+    }
+
+    private static SafeIllegalArgumentException invalidMetric(
+            String name,
+            @Nullable Metric existingMetric,
+            Metric newMetric) {
+        throw new SafeIllegalArgumentException(
+                "Metric name already used for different metric type",
+                SafeArg.of("metricName", name),
+                SafeArg.of("existingMetricType", safeClassName(existingMetric)),
+                SafeArg.of("newMetricType", safeClassName(newMetric)));
+    }
+
+    private static String safeClassName(@Nullable Object obj) {
+        return (obj == null) ? "" : obj.getClass().getName();
     }
 
     /**

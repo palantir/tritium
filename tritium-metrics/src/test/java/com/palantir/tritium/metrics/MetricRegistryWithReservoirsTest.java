@@ -32,8 +32,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-@SuppressWarnings("NullableProblems") // IntelliJ warnings about injected fields
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("NullAway") // IntelliJ warnings about injected fields
 public class MetricRegistryWithReservoirsTest {
 
     @Mock
@@ -48,16 +48,6 @@ public class MetricRegistryWithReservoirsTest {
     public void before() {
         when(mockSupplier.get()).thenReturn(mockReservoir);
         metrics = new MetricRegistryWithReservoirs(mockSupplier);
-    }
-
-    @Test
-    public void getReservoirSupplier() {
-        assertThat(metrics.getReservoirSupplier()).isSameAs(mockSupplier);
-        assertThat(metrics.getReservoirSupplier().get()).isSameAs(mockReservoir);
-        assertThat(metrics.getReservoirSupplier().get()).isSameAs(mockReservoir);
-
-        verify(mockSupplier, times(2)).get();
-        verifyNoMoreInteractions(mockReservoir, mockSupplier);
     }
 
     @Test

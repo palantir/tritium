@@ -45,6 +45,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("NullAway") // IntelliJ warnings about injected fields
 public class InvocationEventProxyTest {
 
     private static final Object[] EMPTY_ARGS = {};
@@ -52,7 +53,7 @@ public class InvocationEventProxyTest {
     @Mock
     private InstrumentationFilter mockFilter;
     @Mock
-    private InvocationEventHandler mockHandler;
+    private InvocationEventHandler<InvocationContext> mockHandler;
 
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
@@ -166,6 +167,14 @@ public class InvocationEventProxyTest {
     }
 
     @Test
+    public void testToInvocationContextDebugString() throws Exception {
+        Throwable cause = new RuntimeException("cause");
+        InvocationContext context = DefaultInvocationContext.of("test", getToStringMethod(), EMPTY_ARGS);
+        Object result = "Hello, World!";
+        InvocationEventProxy.logInvocationWarning("test", context, result, cause);
+    }
+
+    @Test
     public void testInstrumentToString() {
         List<InvocationEventHandler<InvocationContext>> handlers = Collections.emptyList();
         InvocationEventProxy proxy = new InvocationEventProxy(handlers) {
@@ -241,7 +250,9 @@ public class InvocationEventProxyTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testThrowingFilterAndHandler() throws Throwable {
-        doThrow(IllegalStateException.class).when(mockHandler).isEnabled();
+        doThrow(new IllegalStateException("test isEnabled"))
+                .when(mockHandler)
+                .isEnabled();
 
         InvocationEventProxy proxy = createTestProxy(mockHandler, mockFilter);
         assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
@@ -253,7 +264,9 @@ public class InvocationEventProxyTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testThrowingFilter() throws Throwable {
-        doThrow(UnsupportedOperationException.class).when(mockFilter).shouldInstrument(any(), any(), any());
+        doThrow(new UnsupportedOperationException("test shouldInstrument"))
+                .when(mockFilter)
+                .shouldInstrument(any(), any(), any());
         when(mockHandler.isEnabled()).thenReturn(true);
 
         InvocationEventProxy proxy = createTestProxy(mockHandler, mockFilter);
@@ -266,7 +279,9 @@ public class InvocationEventProxyTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testThrowingHandler() throws Throwable {
-        doThrow(IllegalStateException.class).when(mockHandler).isEnabled();
+        doThrow(new IllegalStateException("test isEnabled"))
+                .when(mockHandler)
+                .isEnabled();
 
         InvocationEventProxy proxy = createTestProxy(mockHandler);
         assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");

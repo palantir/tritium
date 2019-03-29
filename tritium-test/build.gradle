@@ -2,7 +2,7 @@ dependencies {
 
     api 'org.slf4j:slf4j-api'
 
-    implementation project(':tritium-core')
+    implementation project(':tritium-api')
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
@@ -12,6 +12,5 @@ dependencies {
     testImplementation 'junit:junit'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.mockito:mockito-core'
-    testImplementation 'org.slf4j:slf4j-simple'
 
 }

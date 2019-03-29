@@ -42,6 +42,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("NullAway") // IntelliJ warnings about injected fields
 public class CaffeineCacheMetricSetTest {
     private static final long MAXIMUM_CACHE_SIZE = 1234L;
     private static final long WEIGHTED_CACHE_SIZE = 123L;

@@ -14,6 +14,12 @@ buildscript {
 
 apply plugin: 'me.champeau.gradle.jmh'
 
+jmh {
+    // Use profilers to collect additional data. Supported profilers:
+    // [cl, comp, gc, stack, perf, perfnorm, perfasm, xperf, xperfasm, hs_cl, hs_comp, hs_gc, hs_rt, hs_thr]
+    profilers = ['gc']
+}
+
 tasks.jmhCompileGeneratedClasses {
     options.annotationProcessorPath = configurations.errorprone
     options.errorprone.enabled = true
@@ -24,8 +30,8 @@ dependencies {
     annotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess'
 
     jmh project(':tritium-lib')
+    jmh project(':tritium-test')
     jmh 'ch.qos.logback:logback-classic'
     jmh 'com.palantir.remoting3:tracing'
-    jmh 'org.slf4j:slf4j-simple'
 
 }
