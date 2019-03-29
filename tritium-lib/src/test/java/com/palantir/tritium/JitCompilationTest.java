@@ -27,6 +27,7 @@ import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.impl.TestLogs;
 
@@ -38,7 +39,12 @@ public class JitCompilationTest {
         // avoid logging
         TestLogs.setLevel("performance", LoggingLevel.INFO.name());
         TestLogs.logTo("/dev/null");
-        TestLogs.reinit();
+    }
+
+    public static void main(String[] args) {
+        JitCompilationTest test = new JitCompilationTest();
+        test.jitAllSuccess();
+        test.jitWithSomeExceptions();
     }
 
     private final TestImplementation delegate = new TestImplementation() {
@@ -54,6 +60,7 @@ public class JitCompilationTest {
     private final TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metricRegistry);
 
     @Test
+    @Ignore // skip during CI
     public void jitAllSuccess() {
         ThreadLocalRandom current = ThreadLocalRandom.current();
         long sum = 0;
@@ -69,6 +76,7 @@ public class JitCompilationTest {
     }
 
     @Test
+    @Ignore // skip during CI
     public void jitWithSomeExceptions() {
         ThreadLocalRandom current = ThreadLocalRandom.current();
         long sum = 0;
