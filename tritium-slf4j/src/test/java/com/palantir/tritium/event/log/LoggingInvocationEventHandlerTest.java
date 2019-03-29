@@ -98,12 +98,14 @@ public class LoggingInvocationEventHandlerTest {
     }
 
     @Test
+    @SuppressWarnings("NullAway") // explicitly testing null handling
     public void testNullIsEnabled() {
         assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
                 LoggingInvocationEventHandler.isEnabled(getLogger(), null));
     }
 
     @Test
+    @SuppressWarnings("NullAway") // explicitly testing null handling
     public void testNullLevel() {
         assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
                 new LoggingInvocationEventHandler(getLogger(), null));

@@ -62,33 +62,42 @@ allprojects {
         }
     }
 
-    tasks.withType(JavaCompile).configureEach {
-        options.errorprone.disableWarningsInGeneratedCode = true
-        options.errorprone.errorproneArgs += [
-            '-Werror',
-            '-Xlint:deprecation',
-            '-Xlint:unchecked',
-            '-XepDisableWarningsInGeneratedCode',
-            // skipping Immutable* explicitly due to https://github.com/google/error-prone/issues/1165
-            '-XepExcludedPaths:.*(generated|Immutable).*',
-            '-Xep:AmbiguousMethodReference:ERROR',
-            '-Xep:BoxedPrimitiveConstructor:ERROR',
-            '-Xep:CatchFail:ERROR',
-            '-Xep:ClassCanBeStatic:ERROR',
-            '-Xep:DefaultCharset:ERROR',
-            '-Xep:FunctionalInterfaceClash:ERROR',
-            '-Xep:JavaTimeDefaultTimeZone:ERROR',
-            '-Xep:MethodCanBeStatic:ERROR',
-            '-Xep:NonCanonicalStaticMemberImport:ERROR',
-            '-Xep:PreferSafeLoggableExceptions:ERROR',
-            '-Xep:PreferSafeLoggingPreconditions:ERROR',
-            '-Xep:ReturnMissingNullable:ERROR',
-            '-Xep:Slf4jLogsafeArgs:ERROR',
-            '-Xep:SwitchStatementDefaultCase:ERROR',
-            '-Xep:UnnecessaryParentheses:ERROR',
-            '-Xep:UnusedVariable:ERROR',
-        ]
-    }
+    plugins.withId('com.palantir.baseline-error-prone', {
+        dependencies {
+            compileOnly 'com.google.code.findbugs:jsr305'
+            errorprone 'com.uber.nullaway:nullaway'
+        }
+
+        tasks.withType(JavaCompile).configureEach {
+            options.errorprone.disableWarningsInGeneratedCode = true
+            options.errorprone.errorproneArgs += [
+                '-Werror',
+                '-Xlint:deprecation',
+                '-Xlint:unchecked',
+                '-XepDisableWarningsInGeneratedCode',
+                // skipping Immutable* explicitly due to https://github.com/google/error-prone/issues/1165
+                '-XepExcludedPaths:.*(generated|Immutable).*',
+                '-XepOpt:NullAway:AnnotatedPackages=com.palantir',
+                '-Xep:AmbiguousMethodReference:ERROR',
+                '-Xep:BoxedPrimitiveConstructor:ERROR',
+                '-Xep:CatchFail:ERROR',
+                '-Xep:ClassCanBeStatic:ERROR',
+                '-Xep:DefaultCharset:ERROR',
+                '-Xep:FunctionalInterfaceClash:ERROR',
+                '-Xep:JavaTimeDefaultTimeZone:ERROR',
+                '-Xep:MethodCanBeStatic:ERROR',
+                '-Xep:NullAway:ERROR',
+                '-Xep:NonCanonicalStaticMemberImport:ERROR',
+                '-Xep:PreferSafeLoggableExceptions:ERROR',
+                '-Xep:PreferSafeLoggingPreconditions:ERROR',
+                '-Xep:ReturnMissingNullable:ERROR',
+                '-Xep:Slf4jLogsafeArgs:ERROR',
+                '-Xep:SwitchStatementDefaultCase:ERROR',
+                '-Xep:UnnecessaryParentheses:ERROR',
+                '-Xep:UnusedVariable:ERROR',
+            ]
+        }
+    })
 
     tasks.withType(Test) {
         testLogging {
@@ -108,16 +117,5 @@ allprojects {
         }
     }
     tasks.check.dependsOn(javadoc)
-
-    plugins.withId('com.palantir.baseline-error-prone', {
-        dependencies {
-            compileOnly 'com.google.code.findbugs:jsr305'
-            annotationProcessor 'com.uber.nullaway:nullaway'
-        }
-
-        tasks.withType(JavaCompile) {
-            options.errorprone.errorproneArgs += ['-XepOpt:NullAway:AnnotatedPackages=com.palantir']
-        }
-    })
 }
 

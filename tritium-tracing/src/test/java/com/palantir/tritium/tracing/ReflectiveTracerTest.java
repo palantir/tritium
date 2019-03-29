@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("NullAway") // IntelliJ warnings about injected fields
 public class ReflectiveTracerTest {
 
     @Test

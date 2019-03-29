@@ -26,6 +26,7 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import org.junit.Test;
 
+@SuppressWarnings("NullAway")
 public class MetricsInvocationEventHandlerTest {
 
     @MetricGroup("DEFAULT")

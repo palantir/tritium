@@ -51,7 +51,7 @@ import org.slf4j.impl.TestLogs;
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
 @State(Scope.Benchmark)
-@SuppressWarnings("designforextension")
+@SuppressWarnings({"designforextension", "NullAway"})
 public class ProxyBenchmark {
     static {
         System.setProperty("org.slf4j.simpleLogger.log.performance", LoggingLevel.TRACE.name());

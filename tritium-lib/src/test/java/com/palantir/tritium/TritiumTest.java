@@ -43,12 +43,12 @@ import org.junit.Test;
 import org.slf4j.impl.SimpleLogger;
 import org.slf4j.impl.TestLogs;
 
+@SuppressWarnings("NullAway")
 public class TritiumTest {
     static {
         System.setProperty("org.slf4j.simpleLogger.log.performance", LoggingLevel.TRACE.name());
         TestLogs.setLevel("performance", LoggingLevel.TRACE.name());
         TestLogs.logTo("/dev/null");
-        TestLogs.reinit();
     }
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
@@ -72,7 +72,6 @@ public class TritiumTest {
     @Before
     public void before() {
         previousLogLevel = System.setProperty(LOG_KEY, LoggingLevel.TRACE.name());
-        TestLogs.reinit();
     }
 
     @After

@@ -49,8 +49,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
-@SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings({"BanGuavaCaches", // this implementation is explicitly for Guava caches
+                   "NullAway"}) // IntelliJ warnings about injected fields
 public class MetricRegistriesTest {
 
     private MetricRegistry metrics = new MetricRegistry();
