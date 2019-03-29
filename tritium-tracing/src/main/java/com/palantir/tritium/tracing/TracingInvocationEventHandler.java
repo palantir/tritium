@@ -82,8 +82,9 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     private void complete(@Nullable InvocationContext context) {
+        debugIfNullContext(context);
         // Context is null if no span was created, in which case the existing span should not be completed
-        if (isNonNullContext(context)) {
+        if (context != null) {
             Tracer.fastCompleteSpan();
         }
     }

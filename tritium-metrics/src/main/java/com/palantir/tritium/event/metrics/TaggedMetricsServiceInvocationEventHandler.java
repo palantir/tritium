@@ -73,7 +73,8 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
 
     @Override
     public final void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
-        if (isNonNullContext(context) && context != null) {
+        debugIfNullContext(context);
+        if (context != null) {
             long nanos = System.nanoTime() - context.getStartTimeNanos();
             MetricName finalMetricName = MetricName.builder()
                     .safeName(serviceName)
@@ -88,7 +89,8 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     @Override
     public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         markGlobalFailure();
-        if (isNonNullContext(context) && context != null) {
+        debugIfNullContext(context);
+        if (context != null) {
             MetricName failuresMetricName = MetricName.builder()
                     .safeName(serviceName + "-" + FAILURES_METRIC_NAME)
                     .putSafeTags("service-name", context.getMethod().getDeclaringClass().getSimpleName())

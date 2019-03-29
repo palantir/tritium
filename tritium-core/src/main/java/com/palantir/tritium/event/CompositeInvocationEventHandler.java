@@ -72,9 +72,10 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext invocationContext, @Nullable Object result) {
-        if (isNonNullContext(invocationContext)) {
-            success(((CompositeInvocationContext) invocationContext).getContexts(), result);
+    public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
+        debugIfNullContext(context);
+        if (context != null) {
+            success(((CompositeInvocationContext) context).getContexts(), result);
         }
     }
 
@@ -85,9 +86,10 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext invocationContext, @Nonnull Throwable cause) {
-        if (isNonNullContext(invocationContext)) {
-            failure(((CompositeInvocationContext) invocationContext).getContexts(), cause);
+    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+        debugIfNullContext(context);
+        if (context != null) {
+            failure(((CompositeInvocationContext) context).getContexts(), cause);
         }
     }
 

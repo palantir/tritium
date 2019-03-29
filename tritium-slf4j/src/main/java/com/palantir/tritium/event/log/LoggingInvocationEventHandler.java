@@ -92,19 +92,16 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     @Override
     public final void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
-        if (isNonNullContext(context)) {
-            logInvocation(context);
-        }
+        logInvocation(context);
     }
 
     @Override
     public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
-        if (isNonNullContext(context)) {
-            logInvocation(context);
-        }
+        logInvocation(context);
     }
 
     private void logInvocation(@Nullable InvocationContext context) {
+        debugIfNullContext(context);
         if (context != null) {
             long durationNanos = System.nanoTime() - context.getStartTimeNanos();
             logInvocation(context.getMethod(), context.getArgs(), durationNanos);
