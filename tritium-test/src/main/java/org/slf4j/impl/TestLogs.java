@@ -19,13 +19,8 @@ package org.slf4j.impl;
 public final class TestLogs {
     private TestLogs() {}
 
-    public static void reinit() {
-        SimpleLogger.init();
-    }
-
     public static void logTo(String logFile) {
-        System.setProperty(SimpleLogger.LOG_FILE_KEY, logFile);
-        reinit();
+        System.setProperty("org.slf4j.simpleLogger.logFile", logFile);
     }
 
     public static void setLevel(String category, String level) {

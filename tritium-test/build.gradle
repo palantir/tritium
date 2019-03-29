@@ -7,12 +7,10 @@ dependencies {
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'io.dropwizard.metrics:metrics-core'
-    implementation 'org.slf4j:slf4j-simple'
 
     testImplementation 'com.google.guava:guava-testlib'
     testImplementation 'junit:junit'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.mockito:mockito-core'
-    testImplementation 'org.slf4j:slf4j-simple'
 
 }
