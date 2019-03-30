@@ -91,7 +91,7 @@ public final class MetricRegistries {
 
     @VisibleForTesting
     static String nowIsoTimestamp() {
-        return DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC));
+        return DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC));
     }
 
     @SuppressWarnings("unchecked")

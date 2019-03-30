@@ -38,8 +38,9 @@ import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import org.junit.After;
@@ -318,11 +319,24 @@ public class MetricRegistriesTest {
     }
 
     @Test
-    public void testTimestamp() throws Exception {
-        Date now = new Date();
+    public void testTimestamp() {
         String isoTimestamp = MetricRegistries.nowIsoTimestamp();
-        Date date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(isoTimestamp);
-        assertThat(date).isAfterOrEqualsTo(now);
+        assertParsesTimestamp(isoTimestamp);
+        assertThat(ZonedDateTime.from(DateTimeFormatter.ISO_ZONED_DATE_TIME.parse(isoTimestamp)))
+                .isBeforeOrEqualTo(ZonedDateTime.now(ZoneOffset.UTC));
+    }
+
+    @Test
+    public void problematicTimestamps() {
+        assertParsesTimestamp("2019-03-30T02:06:35.450Z");
+        assertParsesTimestamp("2019-03-30T02:06:35.045Z");
+        assertParsesTimestamp("2019-03-29T23:38:51.920Z");
+        assertParsesTimestamp("2019-03-29T23:38:51.092Z");
+    }
+
+    private static void assertParsesTimestamp(String timestamp) {
+        assertThat(ZonedDateTime.from(DateTimeFormatter.ISO_ZONED_DATE_TIME.parse(timestamp)))
+                .isBeforeOrEqualTo(ZonedDateTime.now(ZoneOffset.UTC));
     }
 
     private static void report(MetricRegistry metrics) {
