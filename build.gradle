@@ -67,7 +67,6 @@ allprojects {
 
     plugins.withId('com.palantir.baseline-error-prone', {
         dependencies {
-            compileOnly 'com.google.code.findbugs:jsr305'
             errorprone 'com.uber.nullaway:nullaway'
         }
 
