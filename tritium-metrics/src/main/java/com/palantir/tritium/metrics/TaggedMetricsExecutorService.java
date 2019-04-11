@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.executor;
-
-import static com.palantir.logsafe.Preconditions.checkNotNull;
+package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -34,7 +32,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public final class TaggedMetricsExecutorService implements ExecutorService {
+final class TaggedMetricsExecutorService implements ExecutorService {
 
     private final ExecutorService delegate;
 
@@ -44,17 +42,7 @@ public final class TaggedMetricsExecutorService implements ExecutorService {
     private final Timer duration;
     private final Timer queuedDuration;
 
-    public static TaggedMetricsExecutorService create(
-            ExecutorService delegate,
-            TaggedMetricRegistry registry,
-            String name) {
-        checkNotNull(registry, "delegate");
-        checkNotNull(registry, "registry");
-        checkNotNull(name, "name");
-        return new TaggedMetricsExecutorService(delegate, registry, name);
-    }
-
-    private TaggedMetricsExecutorService(
+    TaggedMetricsExecutorService(
             ExecutorService delegate,
             TaggedMetricRegistry registry,
             String name) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.executor;
+package com.palantir.tritium.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,6 +25,7 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -45,15 +46,13 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
     private static final MetricName SCHEDULED_PERCENT_OF_PERIOD = metricName("scheduled.percent-of-period");
 
     private TaggedMetricRegistry registry;
-    private TaggedMetricsScheduledExecutorService executorService;
+    private ScheduledExecutorService executorService;
 
     @Before
     public void before() {
         registry = new DefaultTaggedMetricRegistry();
-        executorService = TaggedMetricsScheduledExecutorService.create(
-                Executors.newSingleThreadScheduledExecutor(),
-                registry,
-                NAME);
+        executorService = MetricRegistries.instrument(
+                registry, Executors.newSingleThreadScheduledExecutor(), NAME);
     }
 
     @Test

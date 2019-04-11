@@ -30,6 +30,7 @@ import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -204,6 +207,29 @@ public final class MetricRegistries {
         CacheMetricSet.create(cache, name, clock)
                 .getMetrics()
                 .forEach((key, value) -> registerWithReplacement(registry, key, value));
+    }
+
+    public static ScheduledExecutorService instrument(
+            TaggedMetricRegistry registry,
+            ScheduledExecutorService delegate,
+            String name) {
+        return new TaggedMetricsScheduledExecutorService(
+                checkNotNull(delegate, "delegate"),
+                checkNotNull(registry, "registry"),
+                checkNotNull(name, "name"));
+    }
+
+    public static ExecutorService instrument(
+            TaggedMetricRegistry registry,
+            ExecutorService delegate,
+            String name) {
+        if (delegate instanceof ScheduledExecutorService) {
+            return instrument(registry, (ScheduledExecutorService) delegate, name);
+        }
+        return new TaggedMetricsExecutorService(
+                checkNotNull(delegate, "delegate"),
+                checkNotNull(registry, "registry"),
+                checkNotNull(name, "name"));
     }
 
     /**

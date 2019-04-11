@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.executor;
+package com.palantir.tritium.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,6 +23,7 @@ import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.junit.Before;
@@ -39,15 +40,12 @@ public final class TaggedMetricsExecutorServiceTest {
     private static final MetricName QUEUED_DURATION = metricName("queued-duration");
 
     private TaggedMetricRegistry registry;
-    private TaggedMetricsExecutorService executorService;
+    private ExecutorService executorService;
 
     @Before
     public void before() {
         registry = new DefaultTaggedMetricRegistry();
-        executorService = TaggedMetricsExecutorService.create(
-                Executors.newSingleThreadExecutor(),
-                registry,
-                NAME);
+        executorService = MetricRegistries.instrument(registry, Executors.newSingleThreadExecutor(), NAME);
     }
 
     @Test
