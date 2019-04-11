@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.executor;
-
-import static com.palantir.logsafe.Preconditions.checkNotNull;
+package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
@@ -36,7 +34,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorService {
+final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorService {
 
     private final ScheduledExecutorService delegate;
 
@@ -50,17 +48,7 @@ public final class TaggedMetricsScheduledExecutorService implements ScheduledExe
     private final Counter scheduledOverrun;
     private final Histogram scheduledPercentOfPeriod;
 
-    public static TaggedMetricsScheduledExecutorService create(
-            ScheduledExecutorService delegate,
-            TaggedMetricRegistry registry,
-            String name) {
-        checkNotNull(registry, "delegate");
-        checkNotNull(registry, "registry");
-        checkNotNull(name, "name");
-        return new TaggedMetricsScheduledExecutorService(delegate, registry, name);
-    }
-
-    private TaggedMetricsScheduledExecutorService(
+    TaggedMetricsScheduledExecutorService(
             ScheduledExecutorService delegate,
             TaggedMetricRegistry registry,
             String name) {
