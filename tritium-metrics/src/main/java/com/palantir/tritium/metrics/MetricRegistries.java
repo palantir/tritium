@@ -30,6 +30,7 @@ import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -202,6 +205,51 @@ public final class MetricRegistries {
         CacheMetricSet.create(cache, name, clock)
                 .getMetrics()
                 .forEach((key, value) -> registerWithReplacement(registry, key, value));
+    }
+
+    /**
+     * Returns an instrumented {@link ScheduledExecutorService} that monitors the number of tasks submitted, running,
+     * completed and also keeps a {@link com.codahale.metrics.Timer} for the task duration. Similar to
+     * {@link com.codahale.metrics.InstrumentedScheduledExecutorService}, but produces tagged metrics to the
+     * specified {@link TaggedMetricRegistry}.
+     *
+     * @param registry tagged metric registry
+     * @param delegate executor service to instrument
+     * @param name executor service name
+     * @return instrumented executor service
+     */
+    public static ScheduledExecutorService instrument(
+            TaggedMetricRegistry registry,
+            ScheduledExecutorService delegate,
+            String name) {
+        return new TaggedMetricsScheduledExecutorService(
+                checkNotNull(delegate, "delegate"),
+                checkNotNull(registry, "registry"),
+                checkNotNull(name, "name"));
+    }
+
+    /**
+     * Returns an instrumented {@link ExecutorService} that monitors the number of tasks submitted, running,
+     * completed and also keeps a {@link com.codahale.metrics.Timer} for the task duration. Similar to
+     * {@link com.codahale.metrics.InstrumentedExecutorService}, but produces tagged metrics to the specified
+     * {@link TaggedMetricRegistry}.
+     *
+     * @param registry tagged metric registry
+     * @param delegate executor service to instrument
+     * @param name executor service name
+     * @return instrumented executor service
+     */
+    public static ExecutorService instrument(
+            TaggedMetricRegistry registry,
+            ExecutorService delegate,
+            String name) {
+        if (delegate instanceof ScheduledExecutorService) {
+            return instrument(registry, (ScheduledExecutorService) delegate, name);
+        }
+        return new TaggedMetricsExecutorService(
+                checkNotNull(delegate, "delegate"),
+                checkNotNull(registry, "registry"),
+                checkNotNull(name, "name"));
     }
 
     /**
