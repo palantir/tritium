@@ -19,11 +19,9 @@ package com.palantir.tritium.metrics.executor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -34,7 +32,7 @@ import org.junit.Test;
 
 public final class TaggedMetricsScheduledExecutorServiceTest {
 
-    private static final Map<String, String> SAFE_TAGS = ImmutableMap.of("name", "value");
+    private static final String NAME = "name";
 
     private static final MetricName SUBMITTED = metricName("submitted");
     private static final MetricName RUNNING = metricName("running");
@@ -52,8 +50,10 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
     @Before
     public void before() {
         registry = new DefaultTaggedMetricRegistry();
-        executorService = new TaggedMetricsScheduledExecutorService(
-                Executors.newSingleThreadScheduledExecutor(), registry, SAFE_TAGS);
+        executorService = TaggedMetricsScheduledExecutorService.create(
+                Executors.newSingleThreadScheduledExecutor(),
+                registry,
+                NAME);
     }
 
     @Test
@@ -146,7 +146,7 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
     private static MetricName metricName(String metricName) {
         return MetricName.builder()
                 .safeName(MetricRegistry.name("executor", metricName))
-                .safeTags(SAFE_TAGS)
+                .putSafeTags("name", NAME)
                 .build();
     }
 }

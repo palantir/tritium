@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.metrics.executor;
 
+import static com.palantir.logsafe.Preconditions.checkNotNull;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
@@ -26,7 +28,6 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -49,21 +50,31 @@ public final class TaggedMetricsScheduledExecutorService implements ScheduledExe
     private final Counter scheduledOverrun;
     private final Histogram scheduledPercentOfPeriod;
 
-    public TaggedMetricsScheduledExecutorService(
+    public static TaggedMetricsScheduledExecutorService create(
             ScheduledExecutorService delegate,
             TaggedMetricRegistry registry,
-            Map<String, String> safeTags) {
+            String name) {
+        checkNotNull(registry, "delegate");
+        checkNotNull(registry, "registry");
+        checkNotNull(name, "name");
+        return new TaggedMetricsScheduledExecutorService(delegate, registry, name);
+    }
+
+    private TaggedMetricsScheduledExecutorService(
+            ScheduledExecutorService delegate,
+            TaggedMetricRegistry registry,
+            String name) {
         this.delegate = delegate;
 
-        this.submitted = registry.meter(createMetricName("submitted", safeTags));
-        this.running = registry.counter(createMetricName("running", safeTags));
-        this.completed = registry.meter(createMetricName("completed", safeTags));
-        this.duration = registry.timer(createMetricName("duration", safeTags));
+        this.submitted = registry.meter(createMetricName("submitted", name));
+        this.running = registry.counter(createMetricName("running", name));
+        this.completed = registry.meter(createMetricName("completed", name));
+        this.duration = registry.timer(createMetricName("duration", name));
 
-        this.scheduledOnce = registry.meter(createMetricName("scheduled.once", safeTags));
-        this.scheduledRepetitively = registry.meter(createMetricName("scheduled.repetitively", safeTags));
-        this.scheduledOverrun = registry.counter(createMetricName("scheduled.overrun", safeTags));
-        this.scheduledPercentOfPeriod = registry.histogram(createMetricName("scheduled.percent-of-period", safeTags));
+        this.scheduledOnce = registry.meter(createMetricName("scheduled.once", name));
+        this.scheduledRepetitively = registry.meter(createMetricName("scheduled.repetitively", name));
+        this.scheduledOverrun = registry.counter(createMetricName("scheduled.overrun", name));
+        this.scheduledPercentOfPeriod = registry.histogram(createMetricName("scheduled.percent-of-period", name));
     }
 
     @Override
@@ -246,10 +257,10 @@ public final class TaggedMetricsScheduledExecutorService implements ScheduledExe
         }
     }
 
-    private static MetricName createMetricName(String metricName, Map<String, String> safeTags) {
+    private static MetricName createMetricName(String metricName, String name) {
         return MetricName.builder()
                 .safeName(MetricRegistry.name("executor", metricName))
-                .safeTags(safeTags)
+                .putSafeTags("name", name)
                 .build();
     }
 }

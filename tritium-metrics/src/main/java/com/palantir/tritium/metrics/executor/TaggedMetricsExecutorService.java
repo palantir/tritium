@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.metrics.executor;
 
+import static com.palantir.logsafe.Preconditions.checkNotNull;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
@@ -25,7 +27,6 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -43,17 +44,27 @@ public final class TaggedMetricsExecutorService implements ExecutorService {
     private final Timer duration;
     private final Timer queuedDuration;
 
-    public TaggedMetricsExecutorService(
+    public static TaggedMetricsExecutorService create(
             ExecutorService delegate,
             TaggedMetricRegistry registry,
-            Map<String, String> safeTags) {
+            String name) {
+        checkNotNull(registry, "delegate");
+        checkNotNull(registry, "registry");
+        checkNotNull(name, "name");
+        return new TaggedMetricsExecutorService(delegate, registry, name);
+    }
+
+    private TaggedMetricsExecutorService(
+            ExecutorService delegate,
+            TaggedMetricRegistry registry,
+            String name) {
         this.delegate = delegate;
 
-        this.submitted = registry.meter(createMetricName("submitted", safeTags));
-        this.running = registry.counter(createMetricName("running", safeTags));
-        this.completed = registry.meter(createMetricName("completed", safeTags));
-        this.duration = registry.timer(createMetricName("duration", safeTags));
-        this.queuedDuration = registry.timer(createMetricName("queued-duration", safeTags));
+        this.submitted = registry.meter(createMetricName("submitted", name));
+        this.running = registry.counter(createMetricName("running", name));
+        this.completed = registry.meter(createMetricName("completed", name));
+        this.duration = registry.timer(createMetricName("duration", name));
+        this.queuedDuration = registry.timer(createMetricName("queued-duration", name));
     }
 
     @Override
@@ -190,10 +201,10 @@ public final class TaggedMetricsExecutorService implements ExecutorService {
         }
     }
 
-    private static MetricName createMetricName(String metricName, Map<String, String> safeTags) {
+    private static MetricName createMetricName(String metricName, String name) {
         return MetricName.builder()
                 .safeName(MetricRegistry.name("executor", metricName))
-                .safeTags(safeTags)
+                .putSafeTags("name", name)
                 .build();
     }
 }
