@@ -207,6 +207,17 @@ public final class MetricRegistries {
                 .forEach((key, value) -> registerWithReplacement(registry, key, value));
     }
 
+    /**
+     * Returns an instrumented {@link ScheduledExecutorService} that monitors the number of tasks submitted, running,
+     * completed and also keeps a {@link com.codahale.metrics.Timer} for the task duration. Similar to
+     * {@link com.codahale.metrics.InstrumentedScheduledExecutorService}, but produces tagged metrics to the
+     * specified {@link TaggedMetricRegistry}.
+     *
+     * @param registry tagged metric registry
+     * @param delegate executor service to instrument
+     * @param name executor service name
+     * @return instrumented executor service
+     */
     public static ScheduledExecutorService instrument(
             TaggedMetricRegistry registry,
             ScheduledExecutorService delegate,
@@ -217,6 +228,17 @@ public final class MetricRegistries {
                 checkNotNull(name, "name"));
     }
 
+    /**
+     * Returns an instrumented {@link ExecutorService} that monitors the number of tasks submitted, running,
+     * completed and also keeps a {@link com.codahale.metrics.Timer} for the task duration. Similar to
+     * {@link com.codahale.metrics.InstrumentedExecutorService}, but produces tagged metrics to the specified
+     * {@link TaggedMetricRegistry}.
+     *
+     * @param registry tagged metric registry
+     * @param delegate executor service to instrument
+     * @param name executor service name
+     * @return instrumented executor service
+     */
     public static ExecutorService instrument(
             TaggedMetricRegistry registry,
             ExecutorService delegate,
