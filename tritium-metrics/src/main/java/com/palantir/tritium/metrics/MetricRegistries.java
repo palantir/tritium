@@ -97,7 +97,6 @@ public final class MetricRegistries {
         return DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC));
     }
 
-    @SuppressWarnings("unchecked")
     static <T extends Metric> T getOrAdd(MetricRegistry metrics, String name, MetricBuilder<T> builder) {
         Metric existingMetric = tryGetExistingMetric(metrics, name);
         if (existingMetric == null) {
@@ -111,7 +110,6 @@ public final class MetricRegistries {
         return checkNotNull(metrics, "metrics").getMetrics().get(checkNotNull(name));
     }
 
-    @SuppressWarnings("unchecked")
     private static <T extends Metric> T addMetric(
             MetricRegistry metrics,
             String name,
