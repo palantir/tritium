@@ -49,10 +49,6 @@ final class Reservoirs {
         return hdrHistogramReservoirSupplier(twoSignificantDigits());
     }
 
-    static Supplier<Reservoir> slidingTimeWindowArrayReservoir(long window, TimeUnit timeUnit) {
-        return slidingTimeWindowArrayReservoirSupplier(window, timeUnit);
-    }
-
     static Supplier<Reservoir> hdrHistogramReservoirSupplier(Supplier<Recorder> recorder) {
         checkNotNull(recorder, "recorder");
         return () -> new HdrHistogramReservoir(recorder.get());

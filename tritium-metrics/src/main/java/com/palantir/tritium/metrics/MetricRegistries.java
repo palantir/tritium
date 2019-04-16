@@ -72,7 +72,7 @@ public final class MetricRegistries {
     }
 
     public static MetricRegistry createWithSlidingTimeWindowReservoirs(long window, TimeUnit timeUnit) {
-        return createWithReservoirType(Reservoirs.slidingTimeWindowArrayReservoir(window, timeUnit));
+        return createWithReservoirType(Reservoirs.slidingTimeWindowArrayReservoirSupplier(window, timeUnit));
     }
 
     @VisibleForTesting
