@@ -19,6 +19,8 @@ package com.palantir.tritium.metrics;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Reservoir;
+import com.codahale.metrics.SlidingTimeWindowArrayReservoir;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import org.HdrHistogram.Recorder;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
@@ -47,9 +49,17 @@ final class Reservoirs {
         return hdrHistogramReservoirSupplier(twoSignificantDigits());
     }
 
+    static Supplier<Reservoir> slidingTimeWindowArrayReservoir(long window, TimeUnit timeUnit) {
+        return slidingTimeWindowArrayReservoirSupplier(window, timeUnit);
+    }
+
     static Supplier<Reservoir> hdrHistogramReservoirSupplier(Supplier<Recorder> recorder) {
         checkNotNull(recorder, "recorder");
         return () -> new HdrHistogramReservoir(recorder.get());
+    }
+
+    static Supplier<Reservoir> slidingTimeWindowArrayReservoirSupplier(long window, TimeUnit timeUnit) {
+        return () -> new SlidingTimeWindowArrayReservoir(window, timeUnit);
     }
 
 }

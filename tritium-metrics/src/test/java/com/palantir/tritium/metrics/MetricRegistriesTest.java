@@ -99,6 +99,23 @@ public class MetricRegistriesTest {
     }
 
     @Test
+    public void testSlidingTimeWindowHistogram() {
+        metrics = MetricRegistries.createWithSlidingTimeWindowReservoirs(1, TimeUnit.MINUTES);
+        assertThat(metrics).isNotNull();
+
+        Histogram histogram = metrics.histogram("histogram");
+        histogram.update(42L);
+        assertThat(histogram.getCount()).isEqualTo(1);
+        Snapshot histogramSnapshot = histogram.getSnapshot();
+        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogramSnapshot.getMax()).isEqualTo(42);
+
+        metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
+        assertThat(metrics.timer("timer").getCount()).isEqualTo(1);
+    }
+
+    @Test
     public void testDecayingHistogramReservoirs() {
         metrics = MetricRegistries.createWithReservoirType(ExponentiallyDecayingReservoir::new);
         assertThat(metrics).isNotNull();

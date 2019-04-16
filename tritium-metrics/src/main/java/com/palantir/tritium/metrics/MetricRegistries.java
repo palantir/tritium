@@ -40,6 +40,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -68,6 +69,10 @@ public final class MetricRegistries {
         // Use HDR Histogram reservoir histograms and timers, instead of default exponentially decaying reservoirs,
         // see http://taint.org/2014/01/16/145944a.html
         return createWithReservoirType(Reservoirs.hdrHistogramReservoirSupplier());
+    }
+
+    public static MetricRegistry createWithSlidingTimeWindowReservoirs(long window, TimeUnit timeUnit) {
+        return createWithReservoirType(Reservoirs.slidingTimeWindowArrayReservoir(window, timeUnit));
     }
 
     @VisibleForTesting
