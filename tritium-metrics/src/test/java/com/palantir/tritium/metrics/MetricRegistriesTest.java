@@ -116,6 +116,49 @@ public class MetricRegistriesTest {
     }
 
     @Test
+    public void testSlidingTimeWindowHistogramExpiery() {
+        final long window = 60;
+        final TimeUnit windowUnit = TimeUnit.SECONDS;
+
+        Reservoirs.slidingTimeWindowArrayReservoir(window, windowUnit, clock);
+        metrics = MetricRegistries.createWithReservoirType(() ->
+                Reservoirs.slidingTimeWindowArrayReservoir(window, windowUnit, clock));
+        assertThat(metrics).isNotNull();
+
+        Histogram histogram = metrics.histogram("histogram");
+        histogram.update(42L);
+        assertThat(histogram.getCount()).isEqualTo(1);
+        Snapshot histogramSnapshot = histogram.getSnapshot();
+        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogramSnapshot.getMax()).isEqualTo(42);
+
+        clock.advance(window / 2, windowUnit);
+
+        histogram.update(1337L);
+        histogramSnapshot = histogram.getSnapshot();
+        assertThat(histogram.getCount()).isEqualTo(2);
+        assertThat(histogramSnapshot.size()).isEqualTo(2);
+        assertThat(histogramSnapshot.getMax()).isEqualTo(1337);
+
+        clock.advance(window / 2 + 1, windowUnit);
+
+        histogramSnapshot = histogram.getSnapshot();
+        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogramSnapshot.getMax()).isEqualTo(1337);
+
+        clock.advance(window, windowUnit);
+
+        histogramSnapshot = histogram.getSnapshot();
+        assertThat(histogram.getCount()).isEqualTo(0);
+        assertThat(histogramSnapshot.size()).isEqualTo(0);
+
+        metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
+        assertThat(metrics.timer("timer").getCount()).isEqualTo(1);
+    }
+
+    @Test
     public void testDecayingHistogramReservoirs() {
         metrics = MetricRegistries.createWithReservoirType(ExponentiallyDecayingReservoir::new);
         assertThat(metrics).isNotNull();
@@ -240,10 +283,10 @@ public class MetricRegistriesTest {
     @Test
     public void testInvalidGetOrAdd() {
         HistogramMetricBuilder histogramMetricBuilder =
-                new HistogramMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier());
+                new HistogramMetricBuilder(Reservoirs::hdrHistogramReservoir);
         MetricRegistries.getOrAdd(metrics, "histogram", histogramMetricBuilder);
 
-        TimerMetricBuilder timerMetricBuilder = new TimerMetricBuilder(Reservoirs.hdrHistogramReservoirSupplier());
+        TimerMetricBuilder timerMetricBuilder = new TimerMetricBuilder(Reservoirs::hdrHistogramReservoir);
         assertThatThrownBy(() ->
                 MetricRegistries.getOrAdd(metrics, "histogram", timerMetricBuilder))
                 .isInstanceOf(IllegalArgumentException.class)

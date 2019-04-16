@@ -17,11 +17,15 @@
 package com.palantir.tritium.metrics;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
+import static com.palantir.logsafe.Preconditions.checkState;
 
+import com.codahale.metrics.Clock;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.SlidingTimeWindowArrayReservoir;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import org.HdrHistogram.Recorder;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
@@ -45,17 +49,57 @@ final class Reservoirs {
      * Don’t use Timers with exponentially-decaying reservoirs in Graphite
      * </a>
      */
-    static Supplier<Reservoir> hdrHistogramReservoirSupplier() {
-        return hdrHistogramReservoirSupplier(twoSignificantDigits());
+    @Nonnull
+    static Reservoir hdrHistogramReservoir() {
+        Recorder recorder = twoSignificantDigits().get();
+        return hdrHistogramReservoir(recorder);
     }
 
-    static Supplier<Reservoir> hdrHistogramReservoirSupplier(Supplier<Recorder> recorder) {
+    @Nonnull
+    private static Reservoir hdrHistogramReservoir(Recorder recorder) {
         checkNotNull(recorder, "recorder");
-        return () -> new HdrHistogramReservoir(recorder.get());
+        return new HdrHistogramReservoir(recorder);
     }
 
-    static Supplier<Reservoir> slidingTimeWindowArrayReservoirSupplier(long window, TimeUnit timeUnit) {
-        return () -> new SlidingTimeWindowArrayReservoir(window, timeUnit);
+    /**
+     * Supplies reservoirs backed by sliding time window array that store measurements for the specified sliding
+     * time window.
+     *
+     * <p>
+     * See also:
+     * <ul>
+     * <li>
+     * <a href="https://github.com/dropwizard/metrics/issues/1138">
+     * Drop-in replacement of sliding time window reservoir
+     * </a>
+     * </li>
+     * <a href="https://github.com/dropwizard/metrics/pull/1139">
+     * Issue #1138 Replacement of sliding time window
+     * </a>
+     * <li>
+     * <a href="https://medium.com/hotels-com-technology/your-latency-metrics-could-be-misleading-you-how-hdrhistogram-can-help-9d545b598374">
+     * Your Dropwizard Latency Metrics Could Be Misleading You — How Rolling-Metrics and HdrHistogram Can Help
+     * </a>
+     * </li>
+     * </ul>
+     * </p>
+     *
+     * @param window window of time
+     * @param windowUnit unit for window
+     * @return reservoir
+     */
+    @Nonnull
+    static Reservoir slidingTimeWindowArrayReservoir(long window, TimeUnit windowUnit) {
+        return slidingTimeWindowArrayReservoir(window, windowUnit, Clock.defaultClock());
+    }
+
+    @Nonnull
+    @VisibleForTesting
+    static Reservoir slidingTimeWindowArrayReservoir(long window, TimeUnit windowUnit, Clock clock) {
+        checkState(window > 0, "window must be positive");
+        checkNotNull(windowUnit, "windowUnit");
+        checkNotNull(clock, "clock");
+        return new SlidingTimeWindowArrayReservoir(window, windowUnit, clock);
     }
 
 }
