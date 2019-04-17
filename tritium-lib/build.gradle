@@ -1,5 +1,4 @@
-apply from: "${rootDir}/gradle/publish.gradle"
-apply from: "${rootDir}/gradle/publish-bom.gradle"
+apply from: "${rootDir}/gradle/publish-jar.gradle"
 
 dependencies {
 
