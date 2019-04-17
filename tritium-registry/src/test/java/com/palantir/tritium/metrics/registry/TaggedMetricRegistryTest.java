@@ -29,17 +29,39 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
+import com.google.common.collect.ImmutableList;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
 
+@RunWith(Parameterized.class)
 public final class TaggedMetricRegistryTest {
 
     private static final MetricName METRIC_1 = MetricName.builder().safeName("name").build();
     private static final MetricName METRIC_2 = MetricName.builder().safeName("name").putSafeTags("key", "val").build();
 
-    private final TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+    @Parameterized.Parameters
+    public static Iterable<Supplier<Object>> data() {
+        return ImmutableList.of(
+                DefaultTaggedMetricRegistry::new,
+                () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS)
+        );
+    }
+
+    @Parameterized.Parameter
+    public Supplier<TaggedMetricRegistry> registrySupplier = () -> null;
+
+    private TaggedMetricRegistry registry;
+
+    @Before
+    public void before() {
+        registry = registrySupplier.get();
+    }
 
     interface SuppliedMetricMethod<T extends Metric> {
         T metric(MetricName metricName, Supplier<T> supplier);
@@ -159,7 +181,7 @@ public final class TaggedMetricRegistryTest {
         String name = "name";
         String tagKey = "tagKey";
         String tagValue = "tagValue";
-        TaggedMetricRegistry child = new DefaultTaggedMetricRegistry();
+        TaggedMetricRegistry child = registrySupplier.get();
         Meter meter = child.meter(MetricName.builder().safeName(name).build());
         registry.addMetrics(tagKey, tagValue, child);
         assertMetric(name, tagKey, tagValue, meter);
@@ -173,13 +195,13 @@ public final class TaggedMetricRegistryTest {
         String tagKey = "tagKey";
         String tagValue = "tagValue";
 
-        TaggedMetricRegistry firstChild = new DefaultTaggedMetricRegistry();
+        TaggedMetricRegistry firstChild = registrySupplier.get();
         Meter firstMeter = firstChild.meter(MetricName.builder().safeName(name).build());
         registry.addMetrics(tagKey, tagValue, firstChild);
 
         assertMetric(name, tagKey, tagValue, firstMeter);
 
-        TaggedMetricRegistry secondChild = new DefaultTaggedMetricRegistry();
+        TaggedMetricRegistry secondChild = registrySupplier.get();
         Meter secondMeter = secondChild.meter(MetricName.builder().safeName(name).build());
 
         registry.addMetrics(tagKey, tagValue, secondChild);

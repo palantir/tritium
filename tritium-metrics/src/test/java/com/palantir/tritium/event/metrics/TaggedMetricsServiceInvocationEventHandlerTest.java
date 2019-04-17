@@ -19,14 +19,22 @@ package com.palantir.tritium.event.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.Metric;
+import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
+import com.palantir.tritium.metrics.registry.SlidingWindowTaggedMetricRegistry;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class TaggedMetricsServiceInvocationEventHandlerTest {
 
     public static final class TestImplementation {
@@ -38,9 +46,20 @@ public class TaggedMetricsServiceInvocationEventHandlerTest {
 
     }
 
+    @Parameterized.Parameters
+    public static Iterable<Supplier<Object>> data() {
+        return ImmutableList.of(
+                DefaultTaggedMetricRegistry::new,
+                () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS)
+        );
+    }
+
+    @Parameterized.Parameter
+    public Supplier<TaggedMetricRegistry> registrySupplier = () -> null;
+
     @Test
     public void testTaggedServiceMetricsCaptured() throws Exception {
-        DefaultTaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        TaggedMetricRegistry registry = registrySupplier.get();
 
         TestImplementation testInterface = new TestImplementation();
 
@@ -60,7 +79,7 @@ public class TaggedMetricsServiceInvocationEventHandlerTest {
 
     @Test
     public void testTaggedServiceMetricsCapturedAsErrors() throws Exception {
-        DefaultTaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        TaggedMetricRegistry registry = registrySupplier.get();
 
         TestImplementation testInterface = new TestImplementation();
 
