@@ -1,4 +1,4 @@
-apply from: "${rootDir}/gradle/publish.gradle"
+apply from: "${rootDir}/gradle/publish-jar.gradle"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

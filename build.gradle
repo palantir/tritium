@@ -12,7 +12,9 @@ buildscript {
     dependencies {
         classpath 'com.netflix.nebula:nebula-publishing-plugin:10.0.1'
         classpath 'com.palantir.baseline:gradle-baseline-java:0.56.0'
+        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:1.5.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:0.17.0'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.11.0'
         classpath 'gradle.plugin.org.inferred:gradle-processors:2.2.0'
     }
@@ -20,6 +22,7 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'com.palantir.baseline'
+apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'com.palantir.git-version'
 
 allprojects {
@@ -33,17 +36,7 @@ allprojects {
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
 
-    dependencyRecommendations {
-        strategy OverrideTransitives
-    }
-
     configurations {
-        all {
-            resolutionStrategy {
-                failOnVersionConflict()
-            }
-        }
-
         checkstyle {
             resolutionStrategy {
                 // checkstyle requires different Guava
