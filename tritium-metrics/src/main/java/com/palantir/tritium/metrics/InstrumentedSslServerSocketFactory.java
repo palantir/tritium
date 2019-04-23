@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.tls;
+package com.palantir.tritium.metrics;
 
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.io.IOException;

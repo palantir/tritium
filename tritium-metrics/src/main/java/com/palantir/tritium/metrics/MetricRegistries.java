@@ -42,6 +42,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -250,6 +254,55 @@ public final class MetricRegistries {
                 checkNotNull(delegate, "delegate"),
                 checkNotNull(registry, "registry"),
                 checkNotNull(name, "name"));
+    }
+
+    /**
+     * Returns an instrumented {@link SSLContext} that monitors handshakes and ciphers.
+     *
+     * @param registry tagged metric registry
+     * @param context ssl context to instrument
+     * @param name context name
+     * @return instrumented ssl context
+     */
+    public static SSLContext instrument(TaggedMetricRegistry registry, SSLContext context, String name) {
+        return new InstrumentedSslContext(context, registry, name);
+    }
+
+    /**
+     * Returns an instrumented {@link SSLSocketFactory} that monitors handshakes and ciphers.
+     *
+     * @param registry tagged metric registry
+     * @param factory socket factory to instrument
+     * @param name socket factory name
+     * @return instrumented socket factory
+     */
+    public static SSLSocketFactory instrument(TaggedMetricRegistry registry, SSLSocketFactory factory, String name) {
+        return new InstrumentedSslSocketFactory(factory, registry, name);
+    }
+
+    /**
+     * Returns an instrumented {@link SSLServerSocketFactory} that monitors handshakes and ciphers.
+     *
+     * @param registry tagged metric registry
+     * @param factory socket factory to instrument
+     * @param name socket factory name
+     * @return instrumented socket factory
+     */
+    public static SSLServerSocketFactory instrument(
+            TaggedMetricRegistry registry, SSLServerSocketFactory factory, String name) {
+        return new InstrumentedSslServerSocketFactory(factory, registry, name);
+    }
+
+    /**
+     * Returns an instrumented {@link SSLEngine} that monitors handshakes and ciphers.
+     *
+     * @param registry tagged metric registry
+     * @param engine ssl engine to instrument
+     * @param name engine name
+     * @return instrumented ssl engine
+     */
+    public static SSLEngine instrument(TaggedMetricRegistry registry, SSLEngine engine, String name) {
+        return InstrumentedSslEngine.instrument(engine, registry, name);
     }
 
     /**
