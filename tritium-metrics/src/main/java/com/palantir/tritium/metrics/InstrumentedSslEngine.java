@@ -37,9 +37,8 @@ class InstrumentedSslEngine extends SSLEngine {
 
     private static final Logger log = LoggerFactory.getLogger(InstrumentedSslEngine.class);
 
-    // n.b. This value is set using 'beginHandshake' both to handshake initially, and for
-    // renegotiation. We instrument both, since ciphers may change.
-    private final AtomicBoolean handshaking = new AtomicBoolean();
+    // n.b. This value is set using 'beginHandshake' for renegotiation. We instrument both because ciphers may change.
+    private final AtomicBoolean handshaking = new AtomicBoolean(true);
     private final SSLEngine engine;
     private final TaggedMetricRegistry metrics;
     private final String name;
@@ -70,7 +69,9 @@ class InstrumentedSslEngine extends SSLEngine {
     @Nullable
     private static Method getMethodNullable(Class<? extends SSLEngine> target, String name, Class<?>... paramTypes) {
         try {
-            return target.getMethod(name, paramTypes);
+            Method method = target.getMethod(name, paramTypes);
+            method.setAccessible(true);
+            return method;
         } catch (NoSuchMethodException e) {
             return null;
         }
@@ -257,15 +258,17 @@ class InstrumentedSslEngine extends SSLEngine {
         if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED
                 && handshaking.compareAndSet(true, false)) {
             try {
-                SSLSession session = engine.getHandshakeSession();
-                metrics.meter(MetricName.builder()
-                        .safeName("tls.handshake")
-                        .putSafeTags("name", name)
-                        .putSafeTags("cipher", session.getCipherSuite())
-                        .putSafeTags("protocol", session.getProtocol())
-                        .putSafeTags("type", "engine")
-                        .build())
-                        .mark();
+                SSLSession session = engine.getSession();
+                if (session != null) {
+                    metrics.meter(MetricName.builder()
+                            .safeName("tls.handshake")
+                            .putSafeTags("name", name)
+                            .putSafeTags("cipher", session.getCipherSuite())
+                            .putSafeTags("protocol", session.getProtocol())
+                            .putSafeTags("type", "engine")
+                            .build())
+                            .mark();
+                }
             } catch (RuntimeException e) {
                 log.warn("Failed to record handshake metrics", e);
             }
