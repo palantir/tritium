@@ -16,10 +16,15 @@
 
 package com.palantir.tritium.metrics.tls;
 
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
+import javax.annotation.Nullable;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
@@ -207,6 +212,79 @@ final class InstrumentedSslEngine extends SSLEngine {
     @Override
     public void setSSLParameters(SSLParameters sslParameters) {
         engine.setSSLParameters(sslParameters);
+    }
+
+    // JAVA 9
+
+    @Nullable
+    private static final Method getApplicationProtocol = engineMethodNullable("getApplicationProtocol");
+    @Nullable
+    private static final Method getHandshakeApplicationProtocol =
+            engineMethodNullable("getHandshakeApplicationProtocol");
+    @Nullable
+    private static final Method setHandshakeApplicationProtocolSelector =
+            engineMethodNullable("setHandshakeApplicationProtocolSelector", BiFunction.class);
+    @Nullable
+    private static final Method getHandshakeApplicationProtocolSelector =
+            engineMethodNullable("getHandshakeApplicationProtocolSelector");
+
+    // Override(java9+)
+    public String getApplicationProtocol() {
+        if (getApplicationProtocol == null) {
+            throw new SafeIllegalStateException("getApplicationProtocol is not supported");
+        }
+        try {
+            return (String) getApplicationProtocol.invoke(engine);
+        } catch (ReflectiveOperationException e) {
+            throw new SafeIllegalStateException("Failed to invoke getApplicationProtocol", e);
+        }
+    }
+
+    // Override(java9+)
+    public String getHandshakeApplicationProtocol() {
+        if (getHandshakeApplicationProtocol == null) {
+            throw new SafeIllegalStateException("getHandshakeApplicationProtocol is not supported");
+        }
+        try {
+            return (String) getHandshakeApplicationProtocol.invoke(engine);
+        } catch (ReflectiveOperationException e) {
+            throw new SafeIllegalStateException("Failed to invoke getHandshakeApplicationProtocol", e);
+        }
+    }
+
+    // Override(java9+)
+    public void setHandshakeApplicationProtocolSelector(BiFunction<SSLEngine, List<String>, String> selector) {
+        if (setHandshakeApplicationProtocolSelector == null) {
+            throw new SafeIllegalStateException("setHandshakeApplicationProtocolSelector is not supported");
+        }
+        try {
+            setHandshakeApplicationProtocolSelector.invoke(engine, selector);
+        } catch (ReflectiveOperationException e) {
+            throw new SafeIllegalStateException("Failed to invoke setHandshakeApplicationProtocolSelector", e);
+        }
+    }
+
+    // Override(java9+)
+    @SuppressWarnings("unchecked")
+    public BiFunction<SSLEngine, List<String>, String> getHandshakeApplicationProtocolSelector() {
+        if (getHandshakeApplicationProtocolSelector == null) {
+            throw new SafeIllegalStateException("getHandshakeApplicationProtocolSelector is not supported");
+        }
+        try {
+            return (BiFunction<SSLEngine, List<String>, String>)
+                    getHandshakeApplicationProtocolSelector.invoke(engine);
+        } catch (ReflectiveOperationException e) {
+            throw new SafeIllegalStateException("Failed to invoke getHandshakeApplicationProtocolSelector", e);
+        }
+    }
+
+    @Nullable
+    private static Method engineMethodNullable(String name, Class<?>... paramTypes) {
+        try {
+            return SSLEngine.class.getMethod(name, paramTypes);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
     }
 
     @Override
