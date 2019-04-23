@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2017 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2019 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import com.codahale.metrics.ExponentiallyDecayingReservoir;
-import com.google.auto.service.AutoService;
+import com.codahale.metrics.SlidingTimeWindowArrayReservoir;
+import java.util.concurrent.TimeUnit;
 
-@AutoService(TaggedMetricRegistry.class)
-public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegistry {
+public final class SlidingWindowTaggedMetricRegistry extends AbstractTaggedMetricRegistry {
 
-    private static final TaggedMetricRegistry DEFAULT = new DefaultTaggedMetricRegistry();
+    private static final TaggedMetricRegistry DEFAULT = new SlidingWindowTaggedMetricRegistry(1, TimeUnit.MINUTES);
 
-    public DefaultTaggedMetricRegistry() {
-        super(ExponentiallyDecayingReservoir::new);
+    public SlidingWindowTaggedMetricRegistry(int window, TimeUnit windowUnit) {
+        super(() -> new SlidingTimeWindowArrayReservoir(window, windowUnit));
     }
 
     /**
@@ -33,7 +32,7 @@ public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegis
      */
     @SuppressWarnings("unused") // public API
     public static TaggedMetricRegistry getDefault() {
-        return DefaultTaggedMetricRegistry.DEFAULT;
+        return SlidingWindowTaggedMetricRegistry.DEFAULT;
     }
 
 }
