@@ -45,7 +45,7 @@ public final class TlsMetrics {
 
     /** TODO(ckozak): docs. */
     public static SSLEngine instrument(TaggedMetricRegistry registry, SSLEngine engine, String name) {
-        return new InstrumentedSslEngine(engine, registry, name);
+        return InstrumentedSslEngine.instrument(engine, registry, name);
     }
 
     private TlsMetrics() {}

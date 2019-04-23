@@ -33,7 +33,7 @@ import javax.net.ssl.SSLSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class InstrumentedSslEngine extends SSLEngine {
+class InstrumentedSslEngine extends SSLEngine {
 
     private static final Logger log = LoggerFactory.getLogger(InstrumentedSslEngine.class);
 
@@ -42,7 +42,39 @@ final class InstrumentedSslEngine extends SSLEngine {
     private final TaggedMetricRegistry metrics;
     private final String name;
 
-    InstrumentedSslEngine(SSLEngine engine, TaggedMetricRegistry metrics, String name) {
+    static SSLEngine instrument(SSLEngine engine, TaggedMetricRegistry metrics, String name) {
+        Method getApplicationProtocol = getMethodNullable(engine.getClass(), "getApplicationProtocol");
+        // Avoid the other three lookups if methods aren't present
+        if (getApplicationProtocol != null) {
+            Method getHandshakeApplicationProtocol = getMethodNullable(
+                    engine.getClass(), "getHandshakeApplicationProtocol");
+            Method setHandshakeApplicationProtocolSelector = getMethodNullable(
+                    engine.getClass(), "setHandshakeApplicationProtocolSelector", BiFunction.class);
+            Method getHandshakeApplicationProtocolSelector = getMethodNullable(
+                    engine.getClass(), "getHandshakeApplicationProtocolSelector");
+            if (getHandshakeApplicationProtocol != null
+                    && setHandshakeApplicationProtocolSelector != null
+                    && getHandshakeApplicationProtocolSelector != null) {
+                return new InstrumentedSslEngineJava9(engine, metrics, name,
+                        getApplicationProtocol,
+                        getHandshakeApplicationProtocol,
+                        setHandshakeApplicationProtocolSelector,
+                        getHandshakeApplicationProtocolSelector);
+            }
+        }
+        return new InstrumentedSslEngine(engine, metrics, name);
+    }
+
+    @Nullable
+    private static Method getMethodNullable(Class<? extends SSLEngine> target, String name, Class<?>... paramTypes) {
+        try {
+            return target.getMethod(name, paramTypes);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private InstrumentedSslEngine(SSLEngine engine, TaggedMetricRegistry metrics, String name) {
         this.engine = engine;
         this.metrics = metrics;
         this.name = name;
@@ -60,32 +92,32 @@ final class InstrumentedSslEngine extends SSLEngine {
 
     @Override
     public SSLEngineResult wrap(ByteBuffer src, ByteBuffer dst) throws SSLException {
-        return instrument(engine.wrap(src, dst));
+        return check(engine.wrap(src, dst));
     }
 
     @Override
     public SSLEngineResult wrap(ByteBuffer[] sources, ByteBuffer byteBuffer) throws SSLException {
-        return instrument(engine.wrap(sources, byteBuffer));
+        return check(engine.wrap(sources, byteBuffer));
     }
 
     @Override
     public SSLEngineResult wrap(ByteBuffer[] sources, int offset, int length, ByteBuffer dest) throws SSLException {
-        return instrument(engine.wrap(sources, offset, length, dest));
+        return check(engine.wrap(sources, offset, length, dest));
     }
 
     @Override
     public SSLEngineResult unwrap(ByteBuffer byteBuffer, ByteBuffer byteBuffer1) throws SSLException {
-        return instrument(engine.unwrap(byteBuffer, byteBuffer1));
+        return check(engine.unwrap(byteBuffer, byteBuffer1));
     }
 
     @Override
     public SSLEngineResult unwrap(ByteBuffer byteBuffer, ByteBuffer[] byteBuffers) throws SSLException {
-        return instrument(engine.unwrap(byteBuffer, byteBuffers));
+        return check(engine.unwrap(byteBuffer, byteBuffers));
     }
 
     @Override
     public SSLEngineResult unwrap(ByteBuffer src, ByteBuffer[] dsts, int offset, int length) throws SSLException {
-        return instrument(engine.unwrap(src, dsts, offset, length));
+        return check(engine.unwrap(src, dsts, offset, length));
     }
 
     @Override
@@ -214,85 +246,12 @@ final class InstrumentedSslEngine extends SSLEngine {
         engine.setSSLParameters(sslParameters);
     }
 
-    // JAVA 9
-
-    @Nullable
-    private static final Method getApplicationProtocol = engineMethodNullable("getApplicationProtocol");
-    @Nullable
-    private static final Method getHandshakeApplicationProtocol =
-            engineMethodNullable("getHandshakeApplicationProtocol");
-    @Nullable
-    private static final Method setHandshakeApplicationProtocolSelector =
-            engineMethodNullable("setHandshakeApplicationProtocolSelector", BiFunction.class);
-    @Nullable
-    private static final Method getHandshakeApplicationProtocolSelector =
-            engineMethodNullable("getHandshakeApplicationProtocolSelector");
-
-    // Override(java9+)
-    public String getApplicationProtocol() {
-        if (getApplicationProtocol == null) {
-            throw new SafeIllegalStateException("getApplicationProtocol is not supported");
-        }
-        try {
-            return (String) getApplicationProtocol.invoke(engine);
-        } catch (ReflectiveOperationException e) {
-            throw new SafeIllegalStateException("Failed to invoke getApplicationProtocol", e);
-        }
-    }
-
-    // Override(java9+)
-    public String getHandshakeApplicationProtocol() {
-        if (getHandshakeApplicationProtocol == null) {
-            throw new SafeIllegalStateException("getHandshakeApplicationProtocol is not supported");
-        }
-        try {
-            return (String) getHandshakeApplicationProtocol.invoke(engine);
-        } catch (ReflectiveOperationException e) {
-            throw new SafeIllegalStateException("Failed to invoke getHandshakeApplicationProtocol", e);
-        }
-    }
-
-    // Override(java9+)
-    public void setHandshakeApplicationProtocolSelector(BiFunction<SSLEngine, List<String>, String> selector) {
-        if (setHandshakeApplicationProtocolSelector == null) {
-            throw new SafeIllegalStateException("setHandshakeApplicationProtocolSelector is not supported");
-        }
-        try {
-            setHandshakeApplicationProtocolSelector.invoke(engine, selector);
-        } catch (ReflectiveOperationException e) {
-            throw new SafeIllegalStateException("Failed to invoke setHandshakeApplicationProtocolSelector", e);
-        }
-    }
-
-    // Override(java9+)
-    @SuppressWarnings("unchecked")
-    public BiFunction<SSLEngine, List<String>, String> getHandshakeApplicationProtocolSelector() {
-        if (getHandshakeApplicationProtocolSelector == null) {
-            throw new SafeIllegalStateException("getHandshakeApplicationProtocolSelector is not supported");
-        }
-        try {
-            return (BiFunction<SSLEngine, List<String>, String>)
-                    getHandshakeApplicationProtocolSelector.invoke(engine);
-        } catch (ReflectiveOperationException e) {
-            throw new SafeIllegalStateException("Failed to invoke getHandshakeApplicationProtocolSelector", e);
-        }
-    }
-
-    @Nullable
-    private static Method engineMethodNullable(String name, Class<?>... paramTypes) {
-        try {
-            return SSLEngine.class.getMethod(name, paramTypes);
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
-    }
-
     @Override
     public String toString() {
-        return "InstrumentedSSLEngine{name=" + name + ", delegate=" + engine + '}';
+        return getClass().getSimpleName() + "{name=" + name + ", delegate=" + engine + '}';
     }
 
-    private SSLEngineResult instrument(SSLEngineResult result) {
+    private SSLEngineResult check(SSLEngineResult result) {
         if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED
                 && handshaking.compareAndSet(true, false)) {
             try {
@@ -310,5 +269,63 @@ final class InstrumentedSslEngine extends SSLEngine {
             }
         }
         return result;
+    }
+
+    private static final class InstrumentedSslEngineJava9 extends InstrumentedSslEngine {
+
+        private final SSLEngine engine;
+        private final Method getApplicationProtocol;
+        private final Method getHandshakeApplicationProtocol;
+        private final Method setHandshakeApplicationProtocolSelector;
+        private final Method getHandshakeApplicationProtocolSelector;
+
+        private InstrumentedSslEngineJava9(SSLEngine engine, TaggedMetricRegistry metrics, String name,
+                Method getApplicationProtocol, Method getHandshakeApplicationProtocol,
+                Method setHandshakeApplicationProtocolSelector, Method getHandshakeApplicationProtocolSelector) {
+            super(engine, metrics, name);
+            this.engine = engine;
+            this.getApplicationProtocol = getApplicationProtocol;
+            this.getHandshakeApplicationProtocol = getHandshakeApplicationProtocol;
+            this.setHandshakeApplicationProtocolSelector = setHandshakeApplicationProtocolSelector;
+            this.getHandshakeApplicationProtocolSelector = getHandshakeApplicationProtocolSelector;
+        }
+
+        // Override(java9+)
+        public String getApplicationProtocol() {
+            try {
+                return (String) getApplicationProtocol.invoke(engine);
+            } catch (ReflectiveOperationException e) {
+                throw new SafeIllegalStateException("Failed to invoke getApplicationProtocol", e);
+            }
+        }
+
+        // Override(java9+)
+        public String getHandshakeApplicationProtocol() {
+            try {
+                return (String) getHandshakeApplicationProtocol.invoke(engine);
+            } catch (ReflectiveOperationException e) {
+                throw new SafeIllegalStateException("Failed to invoke getHandshakeApplicationProtocol", e);
+            }
+        }
+
+        // Override(java9+)
+        public void setHandshakeApplicationProtocolSelector(BiFunction<SSLEngine, List<String>, String> selector) {
+            try {
+                setHandshakeApplicationProtocolSelector.invoke(engine, selector);
+            } catch (ReflectiveOperationException e) {
+                throw new SafeIllegalStateException("Failed to invoke setHandshakeApplicationProtocolSelector", e);
+            }
+        }
+
+        // Override(java9+)
+        @SuppressWarnings("unchecked")
+        public BiFunction<SSLEngine, List<String>, String> getHandshakeApplicationProtocolSelector() {
+            try {
+                return (BiFunction<SSLEngine, List<String>, String>)
+                        getHandshakeApplicationProtocolSelector.invoke(engine);
+            } catch (ReflectiveOperationException e) {
+                throw new SafeIllegalStateException("Failed to invoke getHandshakeApplicationProtocolSelector", e);
+            }
+        }
     }
 }

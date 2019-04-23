@@ -82,12 +82,12 @@ final class InstrumentedSslContext extends SSLContext {
 
         @Override
         protected SSLEngine engineCreateSSLEngine() {
-            return new InstrumentedSslEngine(context.createSSLEngine(), metrics, name);
+            return InstrumentedSslEngine.instrument(context.createSSLEngine(), metrics, name);
         }
 
         @Override
         protected SSLEngine engineCreateSSLEngine(String host, int port) {
-            return new InstrumentedSslEngine(context.createSSLEngine(host, port), metrics, name);
+            return InstrumentedSslEngine.instrument(context.createSSLEngine(host, port), metrics, name);
         }
 
         @Override
