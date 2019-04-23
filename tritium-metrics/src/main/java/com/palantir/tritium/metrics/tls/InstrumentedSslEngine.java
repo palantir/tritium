@@ -293,6 +293,7 @@ class InstrumentedSslEngine extends SSLEngine {
         }
 
         // Override(java9+)
+        @SuppressWarnings("unused")
         public String getApplicationProtocol() {
             try {
                 return (String) getApplicationProtocol.invoke(engine);
@@ -302,6 +303,7 @@ class InstrumentedSslEngine extends SSLEngine {
         }
 
         // Override(java9+)
+        @SuppressWarnings("unused")
         public String getHandshakeApplicationProtocol() {
             try {
                 return (String) getHandshakeApplicationProtocol.invoke(engine);
@@ -311,6 +313,7 @@ class InstrumentedSslEngine extends SSLEngine {
         }
 
         // Override(java9+)
+        @SuppressWarnings("unused")
         public void setHandshakeApplicationProtocolSelector(BiFunction<SSLEngine, List<String>, String> selector) {
             try {
                 setHandshakeApplicationProtocolSelector.invoke(engine, selector);
@@ -320,7 +323,7 @@ class InstrumentedSslEngine extends SSLEngine {
         }
 
         // Override(java9+)
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "unused"})
         public BiFunction<SSLEngine, List<String>, String> getHandshakeApplicationProtocolSelector() {
             try {
                 return (BiFunction<SSLEngine, List<String>, String>)
