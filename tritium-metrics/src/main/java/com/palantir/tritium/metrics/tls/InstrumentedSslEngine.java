@@ -37,6 +37,8 @@ class InstrumentedSslEngine extends SSLEngine {
 
     private static final Logger log = LoggerFactory.getLogger(InstrumentedSslEngine.class);
 
+    // n.b. This value is set using 'beginHandshake' both to handshake initially, and for
+    // renegotiation. We instrument both, since ciphers may change.
     private final AtomicBoolean handshaking = new AtomicBoolean();
     private final SSLEngine engine;
     private final TaggedMetricRegistry metrics;
