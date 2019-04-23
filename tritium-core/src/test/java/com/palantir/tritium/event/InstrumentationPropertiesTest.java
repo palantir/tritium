@@ -29,9 +29,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.awaitility.Duration;
 import org.junit.After;
@@ -40,11 +39,11 @@ import org.junit.Test;
 
 public class InstrumentationPropertiesTest {
 
-    private ListeningExecutorService executorService =
-            MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+    private ListeningExecutorService executorService;
 
     @Before
     public void before() {
+        executorService = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         System.clearProperty("instrument");
         System.getProperties().entrySet().removeIf(entry ->
                 entry.getKey().toString().startsWith("instrument"));
@@ -108,77 +107,69 @@ public class InstrumentationPropertiesTest {
 
     @Test
     public void racingSystemProperties() throws Exception {
-        CountDownLatch latch = new CountDownLatch(8);
+        CyclicBarrier barrier = new CyclicBarrier(8);
         List<Callable<Object>> tasks = ImmutableList.of(
                 () -> {
-                    latch.countDown();
-                    latch.await();
+                    barrier.await();
                     return "getSystemPropertySupplier: " + InstrumentationProperties.getSystemPropertySupplier("test")
                             .asBoolean();
                 },
                 () -> {
-                    latch.countDown();
-                    latch.await();
+                    barrier.await();
                     return "getProperty: " + System.getProperty("instrument.test");
                 },
                 () -> {
-                    latch.countDown();
-                    latch.await();
+                    barrier.await();
                     return "setProperty: " + System.setProperty("instrument.test", "true");
                 },
                 () -> {
-                    latch.countDown();
-                    latch.await();
+                    barrier.await();
                     for (int i = 0; i < 1000; i++) {
                         System.setProperty("test" + i, "value" + i);
                     }
                     return "setProperties: " + System.getProperties();
                 },
                 () -> {
-                    latch.countDown();
-                    latch.await();
+                    barrier.await();
                     InstrumentationProperties.reload();
                     return "reload";
                 },
                 () -> {
-                    latch.countDown();
-                    latch.await();
+                    barrier.await();
                     return "getSystemPropertySupplier: "
                             + InstrumentationProperties.getSystemPropertySupplier("test").asBoolean();
                 },
                 () -> {
-                    latch.countDown();
-                    latch.await();
+                    barrier.await();
                     return "isSpecificEnabled: " + InstrumentationProperties.isSpecificEnabled("test");
                 },
                 () -> {
-                    latch.countDown();
-                    latch.await();
+                    barrier.await();
                     return "isGloballyEnabled: " + InstrumentationProperties.isGloballyEnabled();
                 });
 
-        List<ListenableFuture<Object>> futures = tasks.stream()
-                .map(task -> executorService.submit(task))
-                .map(task -> {
-                    Futures.addCallback(task, new FutureCallback<Object>() {
-                        @Override
-                        public void onSuccess(@Nullable Object result) {
-                            System.out.println("result: " + result);
-                        }
+        assertThat(barrier.getParties()).isEqualTo(tasks.size());
+        assertThat(barrier.getNumberWaiting()).isZero();
 
-                        @Override
-                        public void onFailure(Throwable throwable) {
-                            System.err.println("error: " + throwable);
-                            throwable.printStackTrace(System.err);
-                            assertThat(throwable).isNull();
-                        }
-                    }, MoreExecutors.directExecutor());
-                    return task;
-                })
-                .collect(Collectors.toList());
+        @SuppressWarnings("unchecked") // guaranteed by ListenableExecutorService
+        List<ListenableFuture<Object>> futures = (List) executorService.invokeAll(tasks);
+
+        ListenableFuture<List<Object>> successfulAsList = Futures.successfulAsList(futures);
+        Futures.addCallback(successfulAsList, new FutureCallback<List<Object>>() {
+            @Override
+            public void onSuccess(@Nullable List<Object> result) {
+                assertThat(result).isNotNull().hasSize(futures.size());
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                assertThat(throwable).isNull();
+            }
+        }, MoreExecutors.directExecutor());
 
         await().atMost(Duration.FIVE_SECONDS).untilAsserted(() -> {
-            assertThat(Futures.allAsList(futures).get()).hasSize(futures.size());
+            assertThat(successfulAsList.get()).hasSize(futures.size());
+            assertThat(barrier.getNumberWaiting()).isZero();
         });
     }
 }

@@ -90,7 +90,9 @@ public final class InstrumentationProperties {
         @SuppressWarnings("unchecked")
         Map<Object, Object> clonedSystemProperties = (Map<Object, Object>) System.getProperties().clone();
         Map<String, String> map = clonedSystemProperties.entrySet().stream()
-                .filter(entry -> String.valueOf(entry.getKey()).startsWith(INSTRUMENT_PREFIX))
+                .filter(entry -> entry.getKey() instanceof String
+                        && entry.getValue() instanceof String
+                        && String.valueOf(entry.getKey()).startsWith(INSTRUMENT_PREFIX))
                 .collect(ImmutableMap.toImmutableMap(
                         entry -> String.valueOf(entry.getKey()),
                         entry -> String.valueOf(entry.getValue())));
