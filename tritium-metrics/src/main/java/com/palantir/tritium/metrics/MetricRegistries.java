@@ -40,6 +40,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -67,7 +68,34 @@ public final class MetricRegistries {
     public static MetricRegistry createWithHdrHistogramReservoirs() {
         // Use HDR Histogram reservoir histograms and timers, instead of default exponentially decaying reservoirs,
         // see http://taint.org/2014/01/16/145944a.html
-        return createWithReservoirType(Reservoirs.hdrHistogramReservoirSupplier());
+        return createWithReservoirType(Reservoirs::hdrHistogramReservoir);
+    }
+
+    /**
+     * Creates a {@link MetricRegistry} which produces timers and histograms backed by
+     * sliding time window array that store measurements for the specified sliding
+     * time window.
+     *
+     * <p>
+     * See also:
+     * <ul>
+     * <li>
+     * <a href="http://taint.org/2014/01/16/145944a.html">
+     * Discussion why this reservoir may make more sense than the HdrHistogram
+     * </a>
+     * </li>
+     * <a href="https://metrics.dropwizard.io/4.0.0/manual/core.html#sliding-time-window-reservoirs">
+     * Improvements over the old dropwizard metrics SlidingTimeWindowReservoir implementation
+     * </a>
+     * </ul>
+     * </p>
+     *
+     * @param window window of time
+     * @param windowUnit unit for window
+     * @return metric registry
+     */
+    public static MetricRegistry createWithSlidingTimeWindowReservoirs(long window, TimeUnit windowUnit) {
+        return createWithReservoirType(() -> Reservoirs.slidingTimeWindowArrayReservoir(window, windowUnit));
     }
 
     @VisibleForTesting
