@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableMap;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -80,28 +79,23 @@ public final class InstrumentationProperties {
     }
 
     private static Map<String, String> createInstrumentationSystemProperties() {
-        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-        copySystemProperties().forEach((key, value) -> {
-            if (String.valueOf(key).startsWith(INSTRUMENT_PREFIX)) {
-                builder.put(String.valueOf(key), String.valueOf(value));
-            }
-        });
-        Map<String, String> map = builder.build();
+        /*
+         * Since system properties are backed by a java.util.Hashtable, they can be
+         * a point of contention as all access is synchronized. We therefore take
+         * an approach of cloning the entire Hashtable (which does its own
+         * locking), then copying only the entries we are interested in keeping.
+         *
+         * See https://bugs.openjdk.java.net/browse/JDK-6977738 and https://bugs.openjdk.java.net/browse/JDK-8029891
+         */
+        @SuppressWarnings("unchecked")
+        Map<Object, Object> clonedSystemProperties = (Map<Object, Object>) System.getProperties().clone();
+        Map<String, String> map = clonedSystemProperties.entrySet().stream()
+                .filter(entry -> String.valueOf(entry.getKey()).startsWith(INSTRUMENT_PREFIX))
+                .collect(ImmutableMap.toImmutableMap(
+                        entry -> String.valueOf(entry.getKey()),
+                        entry -> String.valueOf(entry.getValue())));
         log.debug("Reloaded instrumentation properties {}", map);
         return map;
-    }
-
-    private static Map<Object, Object> copySystemProperties() {
-        /*
-         * Since system properties are a hash table, they can be a point of contention
-         * as all access is synchronized. We therefore take an approach of copying all the
-         * keys at once, but must hold the lock on the entire Hashtable.
-         */
-        Properties properties = System.getProperties();
-        //noinspection SynchronizationOnLocalVariableOrMethodParameter
-        synchronized (properties) {
-            return ImmutableMap.copyOf(properties);
-        }
     }
 
 }
