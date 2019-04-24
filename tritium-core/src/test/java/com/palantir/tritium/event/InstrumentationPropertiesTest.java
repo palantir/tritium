@@ -148,7 +148,8 @@ public class InstrumentationPropertiesTest {
                     return "isGloballyEnabled: " + InstrumentationProperties.isGloballyEnabled();
                 });
 
-        assertThat(barrier.getParties()).isEqualTo(tasks.size());
+        final int expectedTaskCount = tasks.size();
+        assertThat(barrier.getParties()).isEqualTo(expectedTaskCount);
         assertThat(barrier.getNumberWaiting()).isZero();
 
         @SuppressWarnings("unchecked") // guaranteed by ListenableExecutorService
@@ -158,7 +159,7 @@ public class InstrumentationPropertiesTest {
         Futures.addCallback(successfulAsList, new FutureCallback<List<Object>>() {
             @Override
             public void onSuccess(@Nullable List<Object> result) {
-                assertThat(result).isNotNull().hasSize(futures.size());
+                assertThat(result).isNotNull().hasSize(expectedTaskCount);
             }
 
             @Override
@@ -168,7 +169,7 @@ public class InstrumentationPropertiesTest {
         }, MoreExecutors.directExecutor());
 
         await().atMost(Duration.FIVE_SECONDS).untilAsserted(() -> {
-            assertThat(successfulAsList.get()).hasSize(futures.size());
+            assertThat(successfulAsList.get()).hasSize(expectedTaskCount);
             assertThat(barrier.getNumberWaiting()).isZero();
         });
     }
