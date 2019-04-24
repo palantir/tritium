@@ -37,7 +37,7 @@ final class InstrumentedSslServerSocketFactory extends SSLServerSocketFactory {
 
     InstrumentedSslServerSocketFactory(SSLServerSocketFactory delegate, TaggedMetricRegistry metrics, String name) {
         this.delegate = delegate;
-        this.listener = InstrumentedSslSocketFactory.newHandshakeListener(metrics, name, "serverSocket");
+        this.listener = InstrumentedSslSocketFactory.newHandshakeListener(metrics, name);
     }
 
     @Override

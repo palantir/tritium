@@ -33,7 +33,7 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
 
     InstrumentedSslSocketFactory(SSLSocketFactory delegate, TaggedMetricRegistry metrics, String name) {
         this.delegate = delegate;
-        this.listener = newHandshakeListener(metrics, name, "socket");
+        this.listener = newHandshakeListener(metrics, name);
     }
 
     @Override
@@ -95,8 +95,7 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
         return socket;
     }
 
-    static HandshakeCompletedListener newHandshakeListener(
-            TaggedMetricRegistry metrics, String name, String type) {
+    static HandshakeCompletedListener newHandshakeListener(TaggedMetricRegistry metrics, String name) {
         return event -> metrics.meter(MetricName.builder()
                 .safeName("tls.handshake")
                 .putSafeTags("name", name)
