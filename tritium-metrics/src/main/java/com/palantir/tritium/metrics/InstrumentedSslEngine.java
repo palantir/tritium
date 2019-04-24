@@ -265,7 +265,6 @@ class InstrumentedSslEngine extends SSLEngine {
                             .putSafeTags("name", name)
                             .putSafeTags("cipher", session.getCipherSuite())
                             .putSafeTags("protocol", session.getProtocol())
-                            .putSafeTags("type", "engine")
                             .build())
                             .mark();
                 }

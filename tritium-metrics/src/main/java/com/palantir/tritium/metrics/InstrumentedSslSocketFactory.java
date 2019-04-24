@@ -102,7 +102,6 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
                 .putSafeTags("name", name)
                 .putSafeTags("cipher", event.getCipherSuite())
                 .putSafeTags("protocol", event.getSession().getProtocol())
-                .putSafeTags("type", type)
                 .build())
                 .mark();
     }

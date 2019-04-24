@@ -72,7 +72,6 @@ public class InstrumentedSslContextTest {
                         .putSafeTags("name", "client-context")
                         .putSafeTags("cipher", ENABLED_CIPHER)
                         .putSafeTags("protocol", ENABLED_PROTOCOL)
-                        .putSafeTags("type", "socket")
                         .build());
     }
 
@@ -99,7 +98,6 @@ public class InstrumentedSslContextTest {
                         .putSafeTags("name", "okhttp-client")
                         .putSafeTags("cipher", ENABLED_CIPHER)
                         .putSafeTags("protocol", ENABLED_PROTOCOL)
-                        .putSafeTags("type", "socket")
                         .build());
     }
 
@@ -127,7 +125,6 @@ public class InstrumentedSslContextTest {
                         .putSafeTags("name", "okhttp-client")
                         .putSafeTags("cipher", ENABLED_CIPHER)
                         .putSafeTags("protocol", ENABLED_PROTOCOL)
-                        .putSafeTags("type", "socket")
                         .build());
     }
 
@@ -146,7 +143,6 @@ public class InstrumentedSslContextTest {
                         .putSafeTags("name", "server-context")
                         .putSafeTags("cipher", ENABLED_CIPHER)
                         .putSafeTags("protocol", ENABLED_PROTOCOL)
-                        .putSafeTags("type", "engine")
                         .build());
     }
 
