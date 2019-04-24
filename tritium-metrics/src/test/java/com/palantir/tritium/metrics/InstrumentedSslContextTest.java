@@ -36,6 +36,7 @@ import java.util.Collections;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -174,6 +175,23 @@ public class InstrumentedSslContextTest {
                 .build();
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
         assertThat(metrics.meter(name).getCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void testSslEngineUnwrapNotInstrumented() throws IOException, GeneralSecurityException {
+        SSLEngine engine = newServerContext().createSSLEngine();
+        assertThat(MetricRegistries.unwrap(engine)).isSameAs(engine);
+    }
+
+    @Test
+    public void testSslEngineUnwrapInstrumentedTwice() throws IOException, GeneralSecurityException {
+        SSLContext context = newServerContext();
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        SSLContext wrapped = MetricRegistries.instrument(
+                metrics, MetricRegistries.instrument(metrics, context, "first"), "second");
+        SSLEngine engine = wrapped.createSSLEngine();
+        assertThat(engine).isInstanceOf(InstrumentedSslEngine.class);
+        assertThat(MetricRegistries.unwrap(engine)).isNotInstanceOf(InstrumentedSslEngine.class);
     }
 
     private static Closeable server(SSLContext context) {
