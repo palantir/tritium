@@ -21,6 +21,8 @@ import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
@@ -68,6 +70,17 @@ class InstrumentedSslEngine extends SSLEngine {
 
     @Nullable
     private static Method getMethodNullable(Class<? extends SSLEngine> target, String name, Class<?>... paramTypes) {
+        if (System.getSecurityManager() == null) {
+            return getMethodNullableInternal(target, name, paramTypes);
+        } else {
+            return AccessController.doPrivileged(
+                    (PrivilegedAction<Method>) () -> getMethodNullableInternal(target, name, paramTypes));
+        }
+    }
+
+    @Nullable
+    private static Method getMethodNullableInternal(
+            Class<? extends SSLEngine> target, String name, Class<?>... paramTypes) {
         try {
             Method method = target.getMethod(name, paramTypes);
             method.setAccessible(true);
