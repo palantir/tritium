@@ -66,13 +66,14 @@ public class InstrumentedSslContextTest {
             assertThat(con.getResponseCode()).isEqualTo(200);
         }
 
-        assertThat(metrics.getMetrics())
-                .containsOnlyKeys(MetricName.builder()
-                        .safeName("tls.handshake")
-                        .putSafeTags("name", "client-context")
-                        .putSafeTags("cipher", ENABLED_CIPHER)
-                        .putSafeTags("protocol", ENABLED_PROTOCOL)
-                        .build());
+        MetricName name = MetricName.builder()
+                .safeName("tls.handshake")
+                .putSafeTags("name", "client-context")
+                .putSafeTags("cipher", ENABLED_CIPHER)
+                .putSafeTags("protocol", ENABLED_PROTOCOL)
+                .build();
+        assertThat(metrics.getMetrics()).containsOnlyKeys(name);
+        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
     }
 
     @Test
@@ -92,13 +93,14 @@ public class InstrumentedSslContextTest {
             assertThat(response.protocol()).isEqualTo(Protocol.HTTP_1_1);
         }
 
-        assertThat(metrics.getMetrics())
-                .containsOnlyKeys(MetricName.builder()
-                        .safeName("tls.handshake")
-                        .putSafeTags("name", "okhttp-client")
-                        .putSafeTags("cipher", ENABLED_CIPHER)
-                        .putSafeTags("protocol", ENABLED_PROTOCOL)
-                        .build());
+        MetricName name = MetricName.builder()
+                .safeName("tls.handshake")
+                .putSafeTags("name", "okhttp-client")
+                .putSafeTags("cipher", ENABLED_CIPHER)
+                .putSafeTags("protocol", ENABLED_PROTOCOL)
+                .build();
+        assertThat(metrics.getMetrics()).containsOnlyKeys(name);
+        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
     }
 
     @Test
@@ -119,13 +121,40 @@ public class InstrumentedSslContextTest {
             assertThat(response.protocol()).isEqualTo(Protocol.HTTP_2);
         }
 
-        assertThat(metrics.getMetrics())
-                .containsOnlyKeys(MetricName.builder()
-                        .safeName("tls.handshake")
-                        .putSafeTags("name", "okhttp-client")
-                        .putSafeTags("cipher", ENABLED_CIPHER)
-                        .putSafeTags("protocol", ENABLED_PROTOCOL)
-                        .build());
+        MetricName name = MetricName.builder()
+                .safeName("tls.handshake")
+                .putSafeTags("name", "okhttp-client")
+                .putSafeTags("cipher", ENABLED_CIPHER)
+                .putSafeTags("protocol", ENABLED_PROTOCOL)
+                .build();
+        assertThat(metrics.getMetrics()).containsOnlyKeys(name);
+        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void testServerInstrumentationHttp2() throws Exception {
+        assumeThat(IS_JAVA_8).describedAs("Java 8 does not support ALPN without additional help").isFalse();
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .retryOnConnectionFailure(false)
+                .sslSocketFactory(newClientContext().getSocketFactory(), newTrustManager())
+                .build();
+        try (Closeable ignored = server(MetricRegistries.instrument(metrics, newServerContext(), "h2-server"));
+                Response response = client.newCall(new Request.Builder()
+                        .url("https://localhost:" + PORT).get().build()).execute()) {
+            assertThat(response.code()).isEqualTo(200);
+            // If http/2 does not work on java 9+ we have not properly implemented java 9 ALPN components properly
+            assertThat(response.protocol()).isEqualTo(Protocol.HTTP_2);
+        }
+
+        MetricName name = MetricName.builder()
+                .safeName("tls.handshake")
+                .putSafeTags("name", "h2-server")
+                .putSafeTags("cipher", ENABLED_CIPHER)
+                .putSafeTags("protocol", ENABLED_PROTOCOL)
+                .build();
+        assertThat(metrics.getMetrics()).containsOnlyKeys(name);
+        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
     }
 
     @Test
@@ -137,13 +166,14 @@ public class InstrumentedSslContextTest {
             assertThat(con.getResponseCode()).isEqualTo(200);
         }
 
-        assertThat(metrics.getMetrics())
-                .containsOnlyKeys(MetricName.builder()
-                        .safeName("tls.handshake")
-                        .putSafeTags("name", "server-context")
-                        .putSafeTags("cipher", ENABLED_CIPHER)
-                        .putSafeTags("protocol", ENABLED_PROTOCOL)
-                        .build());
+        MetricName name = MetricName.builder()
+                .safeName("tls.handshake")
+                .putSafeTags("name", "server-context")
+                .putSafeTags("cipher", ENABLED_CIPHER)
+                .putSafeTags("protocol", ENABLED_PROTOCOL)
+                .build();
+        assertThat(metrics.getMetrics()).containsOnlyKeys(name);
+        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
     }
 
     private static Closeable server(SSLContext context) {
