@@ -68,6 +68,15 @@ class InstrumentedSslEngine extends SSLEngine {
         return new InstrumentedSslEngine(engine, metrics, name);
     }
 
+    // Extracts a delegate SSLEngine instance if the input is wrapped.
+    static SSLEngine extractDelegate(SSLEngine maybeInstrumented) {
+        SSLEngine current = maybeInstrumented;
+        while (current instanceof InstrumentedSslEngine) {
+            current = ((InstrumentedSslEngine) current).engine;
+        }
+        return current;
+    }
+
     @Nullable
     private static Method getMethodNullable(Class<? extends SSLEngine> target, String name, Class<?>... paramTypes) {
         if (System.getSecurityManager() == null) {
