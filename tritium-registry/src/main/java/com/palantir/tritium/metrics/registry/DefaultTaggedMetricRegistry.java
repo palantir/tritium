@@ -28,7 +28,7 @@ public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegis
 
     /**
      * Get the global default {@link TaggedMetricRegistry}.
-     * @deprecated inline this method
+     * @deprecated use SharedTaggedMetricRegistries#getDefault
      */
     @SuppressWarnings("unused") // public API
     @Deprecated
