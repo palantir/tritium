@@ -191,7 +191,7 @@ public class InstrumentedSslContextTest {
                 metrics, MetricRegistries.instrument(metrics, context, "first"), "second");
         SSLEngine engine = wrapped.createSSLEngine();
         assertThat(engine).isInstanceOf(InstrumentedSslEngine.class);
-        assertThat(MetricRegistries.unwrap(engine)).isNotInstanceOf(InstrumentedSslEngine.class);
+        assertThat(MetricRegistries.unwrap(engine)).isNotNull().isNotInstanceOf(InstrumentedSslEngine.class);
     }
 
     private static Closeable server(SSLContext context) {

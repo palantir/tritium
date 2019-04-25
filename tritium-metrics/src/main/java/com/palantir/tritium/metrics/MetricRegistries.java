@@ -324,7 +324,7 @@ public final class MetricRegistries {
      * @return The delegate instrumented engine, or the input if it is not instrumented
      */
     public static SSLEngine unwrap(SSLEngine engine) {
-        return InstrumentedSslEngine.extractDelegate(engine);
+        return InstrumentedSslEngine.extractDelegate(checkNotNull(engine, "engine"));
     }
 
     /**
