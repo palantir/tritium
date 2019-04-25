@@ -25,14 +25,4 @@ public final class SlidingWindowTaggedMetricRegistry extends AbstractTaggedMetri
         super(() -> new SlidingTimeWindowArrayReservoir(window, windowUnit));
     }
 
-    /**
-     * Get the global default {@link TaggedMetricRegistry}.
-     * @deprecated inline this
-     */
-    @SuppressWarnings("unused") // public API
-    @Deprecated
-    public static TaggedMetricRegistry getDefault() {
-        return SharedTaggedMetricRegistries.getDefault();
-    }
-
 }

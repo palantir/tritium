@@ -16,7 +16,9 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.Is.isA;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
@@ -24,11 +26,10 @@ import org.junit.Test;
 public class SharedTaggedMetricRegistriesTest {
     @Test
     public void all_default_methods_return_the_same_thing() {
-        TaggedMetricRegistry default1 = DefaultTaggedMetricRegistry.getDefault();
-        TaggedMetricRegistry default2 = SlidingWindowTaggedMetricRegistry.getDefault();
-        TaggedMetricRegistry default3 = SharedTaggedMetricRegistries.getDefault();
+        TaggedMetricRegistry deprecated = DefaultTaggedMetricRegistry.getDefault();
+        TaggedMetricRegistry defaultRegistry = SharedTaggedMetricRegistries.getDefault();
 
-        assertThat(default1, is(default2));
-        assertThat(default2, is(default3));
+        assertThat(deprecated, is(defaultRegistry));
+        assertThat(defaultRegistry, is(instanceOf(SlidingWindowTaggedMetricRegistry.class)));
     }
 }
