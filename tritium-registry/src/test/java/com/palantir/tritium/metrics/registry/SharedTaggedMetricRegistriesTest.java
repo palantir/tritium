@@ -18,7 +18,6 @@ package com.palantir.tritium.metrics.registry;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.Is.isA;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
