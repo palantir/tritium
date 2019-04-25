@@ -43,6 +43,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -278,6 +281,50 @@ public final class MetricRegistries {
                 checkNotNull(delegate, "delegate"),
                 checkNotNull(registry, "registry"),
                 checkNotNull(name, "name"));
+    }
+
+    /**
+     * Returns an instrumented {@link SSLContext} that monitors handshakes and ciphers.
+     * A name may be reused across many contexts.
+     *
+     * @param registry tagged metric registry
+     * @param context ssl context to instrument
+     * @param name context name
+     * @return instrumented ssl context
+     */
+    public static SSLContext instrument(TaggedMetricRegistry registry, SSLContext context, String name) {
+        return new InstrumentedSslContext(
+                checkNotNull(context, "context"),
+                checkNotNull(registry, "registry"),
+                checkNotNull(name, "name"));
+    }
+
+    /**
+     * Returns an instrumented {@link SSLSocketFactory} that monitors handshakes and ciphers.
+     * A name may be reused across many factories.
+     *
+     * @param registry tagged metric registry
+     * @param factory socket factory to instrument
+     * @param name socket factory name
+     * @return instrumented socket factory
+     */
+    public static SSLSocketFactory instrument(TaggedMetricRegistry registry, SSLSocketFactory factory, String name) {
+        return new InstrumentedSslSocketFactory(
+                checkNotNull(factory, "factory"),
+                checkNotNull(registry, "registry"),
+                checkNotNull(name, "name"));
+    }
+
+    /**
+     * Extracts the wrapped delegate if the input {@link SSLEngine} is instrumented, otherwise returns the input.
+     * Some libraries (Conscrypt, for example) use <code>instanceof</code> checks and casts to configure specific
+     * {@link SSLEngine} implementations. In such cases, it may be necessary to unwrap the instrumented instance.
+     *
+     * @param engine Engine to unwrap
+     * @return The delegate instrumented engine, or the input if it is not instrumented
+     */
+    public static SSLEngine unwrap(SSLEngine engine) {
+        return InstrumentedSslEngine.extractDelegate(checkNotNull(engine, "engine"));
     }
 
     /**
