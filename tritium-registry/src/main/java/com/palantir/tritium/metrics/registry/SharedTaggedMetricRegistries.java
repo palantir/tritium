@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2017 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2019 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,18 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import com.codahale.metrics.ExponentiallyDecayingReservoir;
-import com.google.auto.service.AutoService;
+import com.codahale.metrics.SharedMetricRegistries;
+import java.util.concurrent.TimeUnit;
 
-@AutoService(TaggedMetricRegistry.class)
-public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegistry {
+/** Analogous to codahale's {@link SharedMetricRegistries}. */
+public final class SharedTaggedMetricRegistries {
 
-    public DefaultTaggedMetricRegistry() {
-        super(ExponentiallyDecayingReservoir::new);
-    }
+    private static final TaggedMetricRegistry DEFAULT = new SlidingWindowTaggedMetricRegistry(1, TimeUnit.MINUTES);
 
-    /**
-     * Get the global default {@link TaggedMetricRegistry}.
-     * @deprecated inline this method
-     */
-    @SuppressWarnings("unused") // public API
-    @Deprecated
+    /** Singleton, for use when it is infeasible to plumb through a user supplied instance. */
     public static TaggedMetricRegistry getDefault() {
-        return SharedTaggedMetricRegistries.getDefault();
+        return DEFAULT;
     }
 
+    private SharedTaggedMetricRegistries() {}
 }
