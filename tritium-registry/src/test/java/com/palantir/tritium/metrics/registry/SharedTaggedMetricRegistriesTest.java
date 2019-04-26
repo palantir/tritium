@@ -26,7 +26,7 @@ public class SharedTaggedMetricRegistriesTest {
     @Test
     public void all_default_methods_return_the_same_thing() {
         TaggedMetricRegistry deprecated = DefaultTaggedMetricRegistry.getDefault();
-        TaggedMetricRegistry defaultRegistry = SharedTaggedMetricRegistries.getDefault();
+        TaggedMetricRegistry defaultRegistry = SharedTaggedMetricRegistries.getSingleton();
 
         assertThat(deprecated, is(defaultRegistry));
         assertThat(defaultRegistry, is(instanceOf(SlidingWindowTaggedMetricRegistry.class)));
