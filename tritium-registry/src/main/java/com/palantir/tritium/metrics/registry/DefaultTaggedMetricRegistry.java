@@ -22,18 +22,18 @@ import com.google.auto.service.AutoService;
 @AutoService(TaggedMetricRegistry.class)
 public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegistry {
 
-    private static final TaggedMetricRegistry DEFAULT = new DefaultTaggedMetricRegistry();
-
     public DefaultTaggedMetricRegistry() {
         super(ExponentiallyDecayingReservoir::new);
     }
 
     /**
      * Get the global default {@link TaggedMetricRegistry}.
+     * @deprecated use SharedTaggedMetricRegistries#getSingleton
      */
     @SuppressWarnings("unused") // public API
+    @Deprecated
     public static TaggedMetricRegistry getDefault() {
-        return DefaultTaggedMetricRegistry.DEFAULT;
+        return SharedTaggedMetricRegistries.getSingleton();
     }
 
 }

@@ -16,13 +16,19 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import com.codahale.metrics.SlidingTimeWindowArrayReservoir;
-import java.util.concurrent.TimeUnit;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
-public final class SlidingWindowTaggedMetricRegistry extends AbstractTaggedMetricRegistry {
+import org.junit.Test;
 
-    public SlidingWindowTaggedMetricRegistry(int window, TimeUnit windowUnit) {
-        super(() -> new SlidingTimeWindowArrayReservoir(window, windowUnit));
+public class SharedTaggedMetricRegistriesTest {
+    @Test
+    public void all_default_methods_return_the_same_thing() {
+        TaggedMetricRegistry deprecated = DefaultTaggedMetricRegistry.getDefault();
+        TaggedMetricRegistry defaultRegistry = SharedTaggedMetricRegistries.getSingleton();
+
+        assertThat(deprecated, is(defaultRegistry));
+        assertThat(defaultRegistry, is(instanceOf(SlidingWindowTaggedMetricRegistry.class)));
     }
-
 }
