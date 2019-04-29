@@ -107,7 +107,7 @@ public final class TaggedMetricsExecutorServiceTest {
     private static MetricName metricName(String metricName) {
         return MetricName.builder()
                 .safeName(MetricRegistry.name("executor", metricName))
-                .putSafeTags("name", NAME)
+                .putSafeTags("executor-name", NAME)
                 .build();
     }
 }
