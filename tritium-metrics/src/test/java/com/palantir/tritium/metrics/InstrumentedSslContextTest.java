@@ -69,7 +69,7 @@ public class InstrumentedSslContextTest {
 
         MetricName name = MetricName.builder()
                 .safeName("tls.handshake")
-                .putSafeTags("name", "client-context")
+                .putSafeTags("context", "client-context")
                 .putSafeTags("cipher", ENABLED_CIPHER)
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();
@@ -96,7 +96,7 @@ public class InstrumentedSslContextTest {
 
         MetricName name = MetricName.builder()
                 .safeName("tls.handshake")
-                .putSafeTags("name", "okhttp-client")
+                .putSafeTags("context", "okhttp-client")
                 .putSafeTags("cipher", ENABLED_CIPHER)
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();
@@ -124,7 +124,7 @@ public class InstrumentedSslContextTest {
 
         MetricName name = MetricName.builder()
                 .safeName("tls.handshake")
-                .putSafeTags("name", "okhttp-client")
+                .putSafeTags("context", "okhttp-client")
                 .putSafeTags("cipher", ENABLED_CIPHER)
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();
@@ -150,7 +150,7 @@ public class InstrumentedSslContextTest {
 
         MetricName name = MetricName.builder()
                 .safeName("tls.handshake")
-                .putSafeTags("name", "h2-server")
+                .putSafeTags("context", "h2-server")
                 .putSafeTags("cipher", ENABLED_CIPHER)
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();
@@ -169,7 +169,7 @@ public class InstrumentedSslContextTest {
 
         MetricName name = MetricName.builder()
                 .safeName("tls.handshake")
-                .putSafeTags("name", "server-context")
+                .putSafeTags("context", "server-context")
                 .putSafeTags("cipher", ENABLED_CIPHER)
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();

@@ -98,7 +98,7 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
     static HandshakeCompletedListener newHandshakeListener(TaggedMetricRegistry metrics, String name) {
         return event -> metrics.meter(MetricName.builder()
                 .safeName("tls.handshake")
-                .putSafeTags("name", name)
+                .putSafeTags("context", name)
                 .putSafeTags("cipher", event.getCipherSuite())
                 .putSafeTags("protocol", event.getSession().getProtocol())
                 .build())

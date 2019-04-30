@@ -284,7 +284,7 @@ class InstrumentedSslEngine extends SSLEngine {
                 if (session != null) {
                     metrics.meter(MetricName.builder()
                             .safeName("tls.handshake")
-                            .putSafeTags("name", name)
+                            .putSafeTags("context", name)
                             .putSafeTags("cipher", session.getCipherSuite())
                             .putSafeTags("protocol", session.getProtocol())
                             .build())
