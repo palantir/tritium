@@ -192,7 +192,7 @@ final class TaggedMetricsExecutorService implements ExecutorService {
     private static MetricName createMetricName(String metricName, String name) {
         return MetricName.builder()
                 .safeName(MetricRegistry.name("executor", metricName))
-                .putSafeTags("executor-name", name)
+                .putSafeTags("executor", name)
                 .build();
     }
 }

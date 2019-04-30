@@ -162,7 +162,7 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
     private static MetricName metricName(String metricName) {
         return MetricName.builder()
                 .safeName(MetricRegistry.name("executor", metricName))
-                .putSafeTags("executor-name", NAME)
+                .putSafeTags("executor", NAME)
                 .build();
     }
 }
