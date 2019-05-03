@@ -1,7 +1,7 @@
 policy:
   approval:
     - or:
-      - owner approval
+      - repo owner approval
       - infra team approval
       - infra team co-approval
       - excavator only touched baseline, gradle files or versions.props
@@ -11,17 +11,16 @@ policy:
       organizations: [ "palantir" ]
 
 approval_rules:
-  - name: owner approval
+  - name: repo owner approval
+    options:
+      allow_contributor: true
     requires:
       count: 1
-    if:
-      has_author_in:
-        users: [ "schlosna" ]
+      admins: true
 
   - name: infra team approval
     requires:
       count: 1
-      users: [ "schlosna" ]
       teams:
         - "palantir/infrastructure"
 
@@ -47,6 +46,8 @@ approval_rules:
           - "^gradle/wrapper/.*"
           - "^gradlew$"
           - "^gradlew.bat$"
+          - "^gradle.properties$"
+          - "^settings.gradle$"
           - "^versions.props$"
           - "^versions.lock$"
 

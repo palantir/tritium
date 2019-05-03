@@ -16,133 +16,24 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.Timer;
 import com.google.auto.service.AutoService;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.palantir.logsafe.SafeArg;
-import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 @AutoService(TaggedMetricRegistry.class)
-public final class DefaultTaggedMetricRegistry implements TaggedMetricRegistry {
+public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegistry {
 
-    private static final TaggedMetricRegistry DEFAULT = new DefaultTaggedMetricRegistry();
-
-    private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
-    private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
-
-    public DefaultTaggedMetricRegistry() {}
+    public DefaultTaggedMetricRegistry() {
+        super(ExponentiallyDecayingReservoir::new);
+    }
 
     /**
      * Get the global default {@link TaggedMetricRegistry}.
+     * @deprecated use SharedTaggedMetricRegistries#getSingleton
      */
     @SuppressWarnings("unused") // public API
+    @Deprecated
     public static TaggedMetricRegistry getDefault() {
-        return DefaultTaggedMetricRegistry.DEFAULT;
+        return SharedTaggedMetricRegistries.getSingleton();
     }
 
-    @Override
-    public Counter counter(MetricName metricName) {
-        return counter(metricName, Counter::new);
-    }
-
-    @Override
-    public Counter counter(MetricName metricName, Supplier<Counter> counterSupplier) {
-        return getOrAdd(metricName, Counter.class, counterSupplier);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge) {
-        return getOrAdd(metricName, Gauge.class, () -> gauge);
-    }
-
-    @Override
-    public Histogram histogram(MetricName metricName) {
-        return histogram(metricName, () -> new Histogram(new ExponentiallyDecayingReservoir()));
-    }
-
-    @Override
-    public Histogram histogram(MetricName metricName, Supplier<Histogram> histogramSupplier) {
-        return getOrAdd(metricName, Histogram.class, histogramSupplier);
-    }
-
-    @Override
-    public Meter meter(MetricName metricName) {
-        return meter(metricName, Meter::new);
-    }
-
-    @Override
-    public Meter meter(MetricName metricName, Supplier<Meter> meterSupplier) {
-        return getOrAdd(metricName, Meter.class, meterSupplier);
-    }
-
-    @Override
-    public Timer timer(MetricName metricName) {
-        return timer(metricName, Timer::new);
-    }
-
-    @Override
-    public Timer timer(MetricName metricName, Supplier<Timer> timerSupplier) {
-        return getOrAdd(metricName, Timer.class, timerSupplier);
-    }
-
-    @Override
-    public Map<MetricName, Metric> getMetrics() {
-        ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.<MetricName, Metric>builder()
-                .putAll(registry);
-        taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
-                .forEach((metricName, metric) -> result.put(
-                        MetricName.builder()
-                                .from(metricName)
-                                .putSafeTags(tag.getKey(), tag.getValue())
-                                .build(),
-                        metric)));
-
-        return result.build();
-    }
-
-    @Override
-    public Optional<Metric> remove(MetricName metricName) {
-        return Optional.ofNullable(registry.remove(metricName));
-    }
-
-    @Override
-    public void addMetrics(String safeTagName, String safeTagValue, TaggedMetricSet other) {
-        taggedRegistries.put(Maps.immutableEntry(safeTagName, safeTagValue), other);
-    }
-
-    @Override
-    public Optional<TaggedMetricSet> removeMetrics(String safeTagName, String safeTagValue) {
-        return Optional.ofNullable(taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue)));
-    }
-
-    @Override
-    public boolean removeMetrics(
-            String safeTagName, String safeTagValue, TaggedMetricSet metrics) {
-        return taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue), metrics);
-    }
-
-    private <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
-        Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
-        if (!metricClass.isInstance(metric)) {
-            throw new SafeIllegalArgumentException(
-                    "Metric name already used for different metric type",
-                    SafeArg.of("metricName", metricName.safeName()),
-                    SafeArg.of("existingMetricType", metric.getClass().getSimpleName()),
-                    SafeArg.of("newMetricType", metricClass.getSimpleName()),
-                    SafeArg.of("safeTags", metricName.safeTags()));
-        }
-        return metricClass.cast(metric);
-    }
 }

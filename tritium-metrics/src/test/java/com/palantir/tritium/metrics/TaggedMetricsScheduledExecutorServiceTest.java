@@ -19,8 +19,10 @@ package com.palantir.tritium.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
+import com.palantir.tritium.metrics.registry.SlidingWindowTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -28,9 +30,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public final class TaggedMetricsScheduledExecutorServiceTest {
 
     private static final String NAME = "name";
@@ -45,12 +51,23 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
     private static final MetricName SCHEDULED_OVERRAN = metricName("scheduled.overrun");
     private static final MetricName SCHEDULED_PERCENT_OF_PERIOD = metricName("scheduled.percent-of-period");
 
-    private TaggedMetricRegistry registry;
+    @Parameterized.Parameters
+    public static Iterable<Supplier<Object>> data() {
+        return ImmutableList.of(
+                DefaultTaggedMetricRegistry::new,
+                () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS)
+        );
+    }
+
+    @Parameterized.Parameter
+    public Supplier<TaggedMetricRegistry> registrySupplier = () -> null;
+
     private ScheduledExecutorService executorService;
+    private TaggedMetricRegistry registry;
 
     @Before
     public void before() {
-        registry = new DefaultTaggedMetricRegistry();
+        registry = registrySupplier.get();
         executorService = MetricRegistries.instrument(
                 registry, Executors.newSingleThreadScheduledExecutor(), NAME);
     }
@@ -145,7 +162,7 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
     private static MetricName metricName(String metricName) {
         return MetricName.builder()
                 .safeName(MetricRegistry.name("executor", metricName))
-                .putSafeTags("name", NAME)
+                .putSafeTags("executor", NAME)
                 .build();
     }
 }

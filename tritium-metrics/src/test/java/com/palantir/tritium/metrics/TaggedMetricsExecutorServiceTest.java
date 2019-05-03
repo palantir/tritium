@@ -19,16 +19,23 @@ package com.palantir.tritium.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
+import com.palantir.tritium.metrics.registry.SlidingWindowTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public final class TaggedMetricsExecutorServiceTest {
 
     private static final String NAME = "name";
@@ -39,12 +46,23 @@ public final class TaggedMetricsExecutorServiceTest {
     private static final MetricName DURATION = metricName("duration");
     private static final MetricName QUEUED_DURATION = metricName("queued-duration");
 
-    private TaggedMetricRegistry registry;
+    @Parameterized.Parameters
+    public static Iterable<Supplier<Object>> data() {
+        return ImmutableList.of(
+                DefaultTaggedMetricRegistry::new,
+                () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS)
+        );
+    }
+
+    @Parameterized.Parameter
+    public Supplier<TaggedMetricRegistry> registrySupplier = () -> null;
+
+    private TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
     private ExecutorService executorService;
 
     @Before
     public void before() {
-        registry = new DefaultTaggedMetricRegistry();
+        registry = registrySupplier.get();
         executorService = MetricRegistries.instrument(registry, Executors.newSingleThreadExecutor(), NAME);
     }
 
@@ -89,7 +107,7 @@ public final class TaggedMetricsExecutorServiceTest {
     private static MetricName metricName(String metricName) {
         return MetricName.builder()
                 .safeName(MetricRegistry.name("executor", metricName))
-                .putSafeTags("name", NAME)
+                .putSafeTags("executor", NAME)
                 .build();
     }
 }

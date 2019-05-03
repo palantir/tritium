@@ -248,7 +248,7 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
     private static MetricName createMetricName(String metricName, String name) {
         return MetricName.builder()
                 .safeName(MetricRegistry.name("executor", metricName))
-                .putSafeTags("name", name)
+                .putSafeTags("executor", name)
                 .build();
     }
 }
