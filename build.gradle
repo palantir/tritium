@@ -70,24 +70,98 @@ allprojects {
                 // skipping Immutable* explicitly due to https://github.com/google/error-prone/issues/1165
                 '-XepExcludedPaths:.*(generated|Immutable).*',
                 '-XepOpt:NullAway:AnnotatedPackages=com.palantir',
-                '-Xep:AmbiguousMethodReference:ERROR',
-                '-Xep:BoxedPrimitiveConstructor:ERROR',
-                '-Xep:CatchFail:ERROR',
-                '-Xep:ClassCanBeStatic:ERROR',
-                '-Xep:DefaultCharset:ERROR',
-                '-Xep:FunctionalInterfaceClash:ERROR',
-                '-Xep:JavaTimeDefaultTimeZone:ERROR',
-                '-Xep:MethodCanBeStatic:ERROR',
-                '-Xep:NullAway:ERROR',
-                '-Xep:NonCanonicalStaticMemberImport:ERROR',
-                '-Xep:PreferSafeLoggableExceptions:ERROR',
-                '-Xep:PreferSafeLoggingPreconditions:ERROR',
-                '-Xep:ReturnMissingNullable:ERROR',
-                '-Xep:Slf4jLogsafeArgs:ERROR',
-                '-Xep:SwitchStatementDefaultCase:ERROR',
-                '-Xep:UnnecessaryParentheses:ERROR',
-                '-Xep:UnusedVariable:ERROR',
             ]
+
+            def warningsToPromote = [
+                'AmbiguousMethodReference',
+                'ArgumentSelectionDefectChecker',
+                'ArrayAsKeyOfSetOrMap',
+                'AssertionFailureIgnored',
+                'AssignmentToMock',
+                'BadComparable',
+                'BadInstanceof',
+                'BoxedPrimitiveConstructor',
+                'CatchFail',
+                'ClassCanBeStatic',
+                'CompareToZero',
+                'ComplexBooleanConstant',
+                'ConstantField',
+                'DefaultCharset',
+                'DeprecatedThreadMethods',
+                'DoubleBraceInitialization',
+                'DoubleCheckedLocking',
+                'EqualsIncompatibleType',
+                'EqualsUnsafeCast',
+                'FallThrough',
+                'FieldCanBeFinal',
+                'FieldMissingNullable',
+                'FunctionalInterfaceClash',
+                'FutureReturnValueIgnored',
+                'InstanceOfAndCastMatchWrongType',
+                'IntLongMath',
+                'JavaInstantGetSecondsGetNano',
+                'JavaTimeDefaultTimeZone',
+                'JdkObsolete',
+                'LockNotBeforeTry',
+                'LogicalAssignment',
+                'MethodCanBeStatic',
+                'MissingOverride',
+                'MixedMutabilityReturnType',
+                'ModifyCollectionInEnhancedForLoop',
+                'NonCanonicalStaticMemberImport',
+                'NonOverridingEquals',
+                'NullAway',
+                'NullableVoid',
+                'ObjectsHashCodePrimitive',
+                'ParameterName',
+                'ParameterNotNullable',
+                'PreconditionsCheckNotNullRepeated',
+                'PreferCollectionTransform',
+                'PreferListsPartition',
+                'PreferSafeLoggableExceptions',
+                'PreferSafeLoggingPreconditions',
+                'PrivateConstructorForUtilityClass',
+                'ReturnMissingNullable',
+                'RxReturnValueIgnored',
+                'ShortCircuitBoolean',
+                'Slf4jLogsafeArgs',
+                'StaticGuardedByInstance',
+                'StreamResourceLeak',
+                'SwitchStatementDefaultCase',
+                'SynchronizeOnNonFinalField',
+                'ThreadJoinLoop',
+                'ToStringReturnsNull',
+                'UnnecessaryParentheses',
+                'UnusedNestedClass',
+                'UnusedVariable',
+            ]
+
+            for (String checkName : warningsToPromote) {
+                options.errorprone.errorproneArgs << '-Xep:' + checkName + ':ERROR'
+            }
+
+            logger.info("Error-prone args: {}", options.errorprone.errorproneArgs)
+
+            if (generateErrorPronePatch) {
+                def patchChecks = [
+                    "PreferSafeLoggableExceptions",
+                    "PreferCollectionTransform",
+                    "PreferListsPartition",
+                ]
+
+                logger.info("Generating error-prone.patch for checks {} apply with:\n"
+                        + "    find . -maxdepth 3 -type f -name 'error-prone.patch' \\ \n"
+                        + "-exec bash -c \"  "
+                        + "cd \$(dirname {}) "
+                        + "&& patch -p0 -u -i error-prone.patch "
+                        + "&& rm error-prone.patch"
+                        + "\" \\;", patchChecks.join(','))
+
+                options.errorprone.errorproneArgs += [
+                    "-XepPatchLocation:" + project.projectDir.getAbsolutePath(),
+                    "-XepPatchChecks:" + patchChecks.join(',')
+                ]
+            }
         }
     })
 
