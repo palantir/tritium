@@ -362,21 +362,24 @@ public final class MetricRegistries {
                 Set<Class<?>> existingMetricInterfaces = ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
                 Set<Class<?>> newMetricInterfaces = ImmutableSet.copyOf(metric.getClass().getInterfaces());
                 if (!existingMetricInterfaces.equals(newMetricInterfaces)) {
-                    throw new IllegalArgumentException(
-                            "Metric already registered at this name that implements a different set of interfaces."
-                                    + " Name: " + name + ", existing metric: " + existingMetric);
+                    throw new SafeIllegalArgumentException(
+                            "Metric already registered at this name that implements a different set of interfaces",
+                            SafeArg.of("name", name),
+                            SafeArg.of("existingMetric", String.valueOf(existingMetric)));
                 }
 
                 if (replace && registry.remove(name)) {
                     logger.info("Removed existing registered metric with name {}: {}",
                             SafeArg.of("name", name),
-                            SafeArg.of("existingMetric", existingMetric));
+                            // #256: Metric implementations are necessarily json serializable
+                            SafeArg.of("existingMetric", String.valueOf(existingMetric)));
                     registry.register(name, metric);
                     return metric;
                 } else {
                     logger.warn("Metric already registered at this name. Name: {}, existing metric: {}",
                             SafeArg.of("name", name),
-                            SafeArg.of("existingMetric", existingMetric));
+                            // #256: Metric implementations are necessarily json serializable
+                            SafeArg.of("existingMetric", String.valueOf(existingMetric)));
                     @SuppressWarnings("unchecked")
                     T registeredMetric = (T) existingMetric;
                     return registeredMetric;
