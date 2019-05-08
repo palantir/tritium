@@ -362,9 +362,10 @@ public final class MetricRegistries {
                 Set<Class<?>> existingMetricInterfaces = ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
                 Set<Class<?>> newMetricInterfaces = ImmutableSet.copyOf(metric.getClass().getInterfaces());
                 if (!existingMetricInterfaces.equals(newMetricInterfaces)) {
-                    throw new IllegalArgumentException(
-                            "Metric already registered at this name that implements a different set of interfaces."
-                                    + " Name: " + name + ", existing metric: " + existingMetric);
+                    throw new SafeIllegalArgumentException(
+                            "Metric already registered at this name that implements a different set of interfaces",
+                            SafeArg.of("name", name),
+                            SafeArg.of("existingMetric", String.valueOf(existingMetric)));
                 }
 
                 if (replace && registry.remove(name)) {
