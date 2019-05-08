@@ -16,6 +16,7 @@ buildscript {
         classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:1.5.0'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.11.0'
         classpath 'gradle.plugin.org.inferred:gradle-processors:2.2.0'
+        classpath 'com.google.errorprone:error_prone_core:2.3.3'
     }
 }
 
@@ -72,77 +73,24 @@ allprojects {
                 '-XepOpt:NullAway:AnnotatedPackages=com.palantir',
             ]
 
+            // warnings not explicitly provided by error-prone
             Set<String> warningsToPromote = [
-                'AmbiguousMethodReference',
-                'ArgumentSelectionDefectChecker',
-                'ArrayAsKeyOfSetOrMap',
-                'AssertionFailureIgnored',
-                'AssignmentToMock',
-                'BadComparable',
-                'BadInstanceof',
-                'BoxedPrimitiveConstructor',
-                'CatchFail',
-                'ClassCanBeStatic',
-                'CompareToZero',
-                'ComplexBooleanConstant',
-                'ConstantField',
-                'ConstructorLeaksThis',
-                'DefaultCharset',
-                'DeprecatedThreadMethods',
-                'DoubleBraceInitialization',
-                'DoubleCheckedLocking',
-                'EqualsIncompatibleType',
-                'EqualsUnsafeCast',
-                'FallThrough',
-                'FieldCanBeFinal',
-                'FieldMissingNullable',
-                'FunctionalInterfaceClash',
-                'FutureReturnValueIgnored',
-                'InconsistentOverloads',
-                'InstanceOfAndCastMatchWrongType',
-                'IntLongMath',
-                'JavaInstantGetSecondsGetNano',
-                'JavaTimeDefaultTimeZone',
-                'JdkObsolete',
-                'LockNotBeforeTry',
-                'LogicalAssignment',
-                'MethodCanBeStatic',
-                'MissingOverride',
-                'MixedMutabilityReturnType',
-                'ModifyCollectionInEnhancedForLoop',
-                'MutableConstantField',
-                'NoAllocation',
-                'NoFunctionalReturnType',
-                'NonCanonicalStaticMemberImport',
-                'NonOverridingEquals',
                 'NullAway',
-                'NullableVoid',
-                'ObjectsHashCodePrimitive',
-                'ParameterName',
-                'ParameterNotNullable',
-                'PreconditionsCheckNotNullRepeated',
+                'Slf4jLogsafeArgs',
                 'PreferCollectionTransform',
                 'PreferListsPartition',
-                'PreferSafeLoggableExceptions',
                 'PreferSafeLoggingPreconditions',
-                'PrivateConstructorForUtilityClass',
-                'ReturnMissingNullable',
-                'RxReturnValueIgnored',
-                'ShortCircuitBoolean',
-                'Slf4jLogsafeArgs',
-                'StaticGuardedByInstance',
-                'StaticQualifiedUsingExpression',
-                'StreamResourceLeak',
-                'StringEquality',
+                'PreferSafeLoggableExceptions',
                 'SwitchStatementDefaultCase',
-                'SynchronizeOnNonFinalField',
-                'ThreadJoinLoop',
-                'TimeUnitMismatch',
-                'ToStringReturnsNull',
-                'UnnecessaryParentheses',
-                'UnusedNestedClass',
-                'UnusedVariable',
             ]
+
+            com.google.errorprone.scanner.BuiltInCheckerSuppliers.ENABLED_WARNINGS.forEach {
+                check -> warningsToPromote << check.canonicalName()
+            }
+
+            com.google.errorprone.scanner.BuiltInCheckerSuppliers.DISABLED_CHECKS.forEach {
+                check -> warningsToPromote << check.canonicalName()
+            }
 
             for (String checkName : warningsToPromote) {
                 options.errorprone.errorproneArgs << '-Xep:' + checkName + ':ERROR'
