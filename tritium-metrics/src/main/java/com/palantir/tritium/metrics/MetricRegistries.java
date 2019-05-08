@@ -370,13 +370,15 @@ public final class MetricRegistries {
                 if (replace && registry.remove(name)) {
                     logger.info("Removed existing registered metric with name {}: {}",
                             SafeArg.of("name", name),
-                            SafeArg.of("existingMetric", existingMetric));
+                            // #256: Metric implementations are necessarily json serializable
+                            SafeArg.of("existingMetric", String.valueOf(existingMetric)));
                     registry.register(name, metric);
                     return metric;
                 } else {
                     logger.warn("Metric already registered at this name. Name: {}, existing metric: {}",
                             SafeArg.of("name", name),
-                            SafeArg.of("existingMetric", existingMetric));
+                            // #256: Metric implementations are necessarily json serializable
+                            SafeArg.of("existingMetric", String.valueOf(existingMetric)));
                     @SuppressWarnings("unchecked")
                     T registeredMetric = (T) existingMetric;
                     return registeredMetric;
