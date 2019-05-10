@@ -327,8 +327,8 @@ public class MetricRegistriesTest {
                 MetricRegistries.registerSafe(metrics, "test", metrics.histogram("histogram")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith(
-                        "Metric already registered at this name that implements a different set of interfaces. "
-                                + "Name: test, existing metric: com.codahale.metrics.Counter");
+                        "Metric already registered at this name that implements a different set of interfaces: "
+                                + "{name=test, existingMetric=com.codahale.metrics.Counter");
     }
 
     @Test
