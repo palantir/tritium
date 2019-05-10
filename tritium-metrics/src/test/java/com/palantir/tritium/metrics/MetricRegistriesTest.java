@@ -31,6 +31,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SlidingTimeWindowArrayReservoir;
 import com.codahale.metrics.Snapshot;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -146,14 +147,14 @@ public class MetricRegistriesTest {
         clock.advance(window / 2 + 1, windowUnit);
 
         histogramSnapshot = histogram.getSnapshot();
-        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogram.getCount()).isEqualTo(2);
         assertThat(histogramSnapshot.size()).isEqualTo(1);
         assertThat(histogramSnapshot.getMax()).isEqualTo(1337);
 
         clock.advance(window, windowUnit);
 
         histogramSnapshot = histogram.getSnapshot();
-        assertThat(histogram.getCount()).isEqualTo(0);
+        assertThat(histogram.getCount()).isEqualTo(2);
         assertThat(histogramSnapshot.size()).isEqualTo(0);
 
         metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
@@ -294,9 +295,8 @@ public class MetricRegistriesTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Metric name already used for different metric type")
                 .hasMessageContaining("metricName=histogram")
-                .hasMessageContaining("existingMetricType="
-                        + "com.palantir.tritium.metrics.HistogramMetricBuilder$ReservoirHistogram")
-                .hasMessageContaining("newMetricType=com.palantir.tritium.metrics.TimerMetricBuilder$ReservoirTimer");
+                .hasMessageContaining("existingMetricType=com.codahale.metrics.Histogram")
+                .hasMessageContaining("newMetricType=com.codahale.metrics.Timer");
     }
 
     @Test
@@ -399,8 +399,8 @@ public class MetricRegistriesTest {
     @Test
     public void codahale_registry_histogram_count_should_monotonically_increase_after_window()
             throws InterruptedException {
-        MetricRegistry registry =
-                MetricRegistries.createWithSlidingTimeWindowReservoirs(1, TimeUnit.MILLISECONDS);
+        MetricRegistry registry = new MetricRegistryWithReservoirs(
+                () -> new SlidingTimeWindowArrayReservoir(1, TimeUnit.MILLISECONDS));
 
         Histogram histogram = registry.histogram("histogram");
         histogram.update(20);
@@ -412,7 +412,7 @@ public class MetricRegistriesTest {
 
         Thread.sleep(1);
 
-        assertThat(histogram.getCount()).isEqualTo(4); // wat
+        assertThat(histogram.getCount()).isEqualTo(4);
     }
 
     @Test
