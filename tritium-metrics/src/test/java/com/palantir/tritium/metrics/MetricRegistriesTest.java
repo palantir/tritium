@@ -36,6 +36,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
+import com.palantir.tritium.metrics.registry.MetricName;
+import com.palantir.tritium.metrics.registry.SlidingWindowTaggedMetricRegistry;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.ZoneOffset;
@@ -394,6 +396,42 @@ public class MetricRegistriesTest {
         assertParsesTimestamp("2019-03-29T23:38:51.092Z");
     }
 
+    @Test
+    public void codahale_registry_histogram_count_should_monotonically_increase_after_window()
+            throws InterruptedException {
+        MetricRegistry registry =
+                MetricRegistries.createWithSlidingTimeWindowReservoirs(1, TimeUnit.MILLISECONDS);
+
+        Histogram histogram = registry.histogram("histogram");
+        histogram.update(20);
+        histogram.update(20);
+        histogram.update(20);
+        histogram.update(20);
+
+        assertThat(histogram.getCount()).isEqualTo(4);
+
+        Thread.sleep(1);
+
+        assertThat(histogram.getCount()).isEqualTo(4); // wat
+    }
+
+    @Test
+    public void tagged_registry_histogram_count_should_monotonically_increase_after_window()
+            throws InterruptedException {
+        SlidingWindowTaggedMetricRegistry registry = new SlidingWindowTaggedMetricRegistry(1, TimeUnit.MILLISECONDS);
+        Histogram histogram = registry.histogram(MetricName.builder().safeName("histogram").build());
+        histogram.update(20);
+        histogram.update(20);
+        histogram.update(20);
+        histogram.update(20);
+
+        assertThat(histogram.getCount()).isEqualTo(4);
+
+        Thread.sleep(1);
+
+        assertThat(histogram.getCount()).isEqualTo(4);
+    }
+
     private static void assertParsesTimestamp(String timestamp) {
         assertThat(ZonedDateTime.from(DateTimeFormatter.ISO_ZONED_DATE_TIME.parse(timestamp)))
                 .isBeforeOrEqualTo(ZonedDateTime.now(ZoneOffset.UTC));
@@ -405,5 +443,4 @@ public class MetricRegistriesTest {
         reporter.report();
         reporter.stop();
     }
-
 }
