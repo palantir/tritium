@@ -14,7 +14,6 @@ com.palantir.safe-logging:* = 1.9.0
 com.palantir.tracing:* = 2.13.1
 com.squareup.okhttp3:okhttp = 3.14.1
 com.uber.nullaway:nullaway = 0.6.4
-io.dropwizard.metrics:metrics-core = 3.2.5
 io.undertow:undertow-core = 2.0.20.Final
 junit:junit = 4.12
 org.assertj:assertj-core = 3.12.2
@@ -26,3 +25,7 @@ org.mockito:mockito-core = 2.27.0
 org.mpierce.metrics.reservoir:* = 1.1.2
 org.openjdk.jmh:* = 1.21
 org.slf4j:* = 1.7.12
+
+# dependency-upgrader:OFF
+io.dropwizard.metrics:metrics-core = 3.2.5
+# dependency-upgrader:ON
