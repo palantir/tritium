@@ -28,3 +28,4 @@ org.slf4j:* = 1.7.12
 
 # dependency-upgrader:OFF
 io.dropwizard.metrics:metrics-core = 3.2.5
+# dependency-upgrader:ON
