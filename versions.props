@@ -1,5 +1,5 @@
 ch.qos.logback:logback-classic = 1.1.2
-com.fasterxml.jackson.*:* = 2.9.8
+com.fasterxml.jackson.*:* = 2.9.9
 com.github.ben-manes.caffeine:caffeine = 2.7.0
 com.google.auto.service:auto-service = 1.0-rc4
 com.google.auto:auto-common = 0.10
