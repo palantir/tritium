@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.Gauge;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.metrics.registry.MetricName;
 import java.util.Map;
 import org.junit.Test;
@@ -37,7 +36,7 @@ public class CaffeineCacheTaggedMetricsTest {
     @Test
     public void createMetrics() {
         CaffeineCacheTaggedMetrics cacheTaggedMetrics =
-                CaffeineCacheTaggedMetrics.create(cache, SafeArg.of("metricName", "test"));
+                CaffeineCacheTaggedMetrics.create(cache, "test");
         assertThat(cacheTaggedMetrics).isNotNull();
         Map<MetricName, Gauge<?>> metrics = cacheTaggedMetrics.getMetrics();
         assertThat(metrics).hasSize(12);

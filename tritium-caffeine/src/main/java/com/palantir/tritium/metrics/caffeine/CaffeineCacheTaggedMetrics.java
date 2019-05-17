@@ -21,7 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Gauge;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.Safe;
 import com.palantir.tritium.metrics.CacheMetrics;
 import com.palantir.tritium.metrics.registry.MetricName;
 import java.util.Map;
@@ -31,14 +31,14 @@ final class CaffeineCacheTaggedMetrics {
     private final Cache<?, ?> cache;
     private final String cacheName;
 
-    private CaffeineCacheTaggedMetrics(Cache<?, ?> cache, SafeArg<String> arg) {
-        String name = checkNotNull(arg.getValue(), "cacheName").trim();
+    private CaffeineCacheTaggedMetrics(Cache<?, ?> cache, @Safe String cacheName) {
+        String name = checkNotNull(cacheName, "cacheName").trim();
         checkArgument(!name.isEmpty(), "Cache name cannot be blank or empty");
         this.cache = checkNotNull(cache, "cache");
         this.cacheName = name;
     }
 
-    static CaffeineCacheTaggedMetrics create(Cache<?, ?> cache, SafeArg<String> cacheName) {
+    static CaffeineCacheTaggedMetrics create(Cache<?, ?> cache, @Safe String cacheName) {
         return new CaffeineCacheTaggedMetrics(cache, cacheName);
     }
 

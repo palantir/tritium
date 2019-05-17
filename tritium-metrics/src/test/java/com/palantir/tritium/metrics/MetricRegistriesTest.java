@@ -38,7 +38,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
-import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -271,7 +270,7 @@ public class MetricRegistriesTest {
                         return String.valueOf(key);
                     }
                 });
-        MetricRegistries.registerCache(taggedMetricRegistry, cache, SafeArg.of("cache", "test"));
+        MetricRegistries.registerCache(taggedMetricRegistry, cache, "test");
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .contains(

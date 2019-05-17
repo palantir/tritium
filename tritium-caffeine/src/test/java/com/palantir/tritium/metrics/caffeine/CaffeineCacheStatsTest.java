@@ -26,7 +26,6 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -109,7 +108,7 @@ public class CaffeineCacheStatsTest {
                 .recordStats()
                 .maximumSize(2)
                 .build();
-        CaffeineCacheStats.registerCache(taggedMetricRegistry, cache, SafeArg.of("cache", "test"));
+        CaffeineCacheStats.registerCache(taggedMetricRegistry, cache, "test");
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .contains(

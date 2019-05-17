@@ -21,7 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.Safe;
 import com.palantir.tritium.metrics.CacheMetrics;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -58,7 +58,7 @@ public final class CaffeineCacheStats {
      * @param cache cache to instrument
      * @param name cache name
      */
-    public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, SafeArg<String> name) {
+    public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
         checkNotNull(registry, "registry");
         checkNotNull(cache, "cache");
         checkNotNull(name, "name");
