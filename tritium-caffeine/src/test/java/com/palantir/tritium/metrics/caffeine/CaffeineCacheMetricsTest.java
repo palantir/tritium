@@ -14,41 +14,38 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics;
+package com.palantir.tritium.metrics.caffeine;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
-import com.google.common.cache.Cache;
+import com.github.benmanes.caffeine.cache.Cache;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings({"BanGuavaCaches", // this implementation is explicitly for Guava caches
-                   "NullAway"}) // IntelliJ warnings about injected fields
-public class CacheMetricSetTest {
+public class CaffeineCacheMetricsTest {
 
-    @Mock
-    Cache<String, String> cache;
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS) Cache<?, ?> cache;
 
-    private MetricSet cacheMetricSet;
     private Map<String, Metric> metrics;
 
     @Before
     public void before() {
-        cacheMetricSet = CacheMetricSet.create(cache, "test");
+        MetricSet cacheMetricSet = CaffeineCacheMetrics.create(cache, "test");
         assertThat(cacheMetricSet).isNotNull();
         metrics = cacheMetricSet.getMetrics();
     }
 
     @Test
-    public void create() {
+    public void createMetrics() {
         assertThat(metrics)
                 .containsOnlyKeys(
                         "test.cache.estimated.size",

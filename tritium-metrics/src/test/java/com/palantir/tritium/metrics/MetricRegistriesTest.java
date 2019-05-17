@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -34,18 +35,26 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Snapshot;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
+import com.palantir.logsafe.SafeArg;
+import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
+import com.palantir.tritium.metrics.registry.MetricName;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.SortedMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.awaitility.Duration;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
@@ -56,9 +65,10 @@ import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 public class MetricRegistriesTest {
 
     private MetricRegistry metrics = new MetricRegistry();
+    private TaggedMetricRegistry taggedMetricRegistry = new DefaultTaggedMetricRegistry();
     private final TestClock clock = new TestClock();
 
-    @Mock
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private LoadingCache<Integer, String> cache;
 
     @After
@@ -183,12 +193,14 @@ public class MetricRegistriesTest {
                 "test.cache.eviction.count",
                 "test.cache.hit.count",
                 "test.cache.hit.ratio",
+                "test.cache.load.average.millis",
                 "test.cache.load.failure.count",
                 "test.cache.load.success.count",
-                "test.cache.load.average.millis",
+                "test.cache.maximum.size",
                 "test.cache.miss.count",
                 "test.cache.miss.ratio",
-                "test.cache.request.count"
+                "test.cache.request.count",
+                "test.cache.weighted.size"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(1, 2, 3, 4, 5, 6));
@@ -206,21 +218,6 @@ public class MetricRegistriesTest {
         assertThat(gauges.get("test.cache.load.failure.count").getValue()).isEqualTo(4L);
         assertThat(gauges.get("test.cache.load.success.count").getValue()).isEqualTo(3L);
         verify(cache, times(1)).stats();
-
-        clock.advance(1, TimeUnit.MINUTES); // let stats snapshot cache expire
-
-        when(cache.stats()).thenReturn(new CacheStats(11L, 12L, 13L, 14L, 15L, 16L));
-        when(cache.size()).thenReturn(37L);
-
-        gauges = metrics.getGauges();
-        assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(23L);
-        assertThat(gauges.get("test.cache.hit.count").getValue()).isEqualTo(11L);
-        assertThat(gauges.get("test.cache.miss.count").getValue()).isEqualTo(12L);
-        assertThat(gauges.get("test.cache.eviction.count").getValue()).isEqualTo(16L);
-        assertThat(gauges.get("test.cache.load.average.millis").getValue()).isNotEqualTo(15.0 / 23.0);
-        assertThat(gauges.get("test.cache.load.failure.count").getValue()).isEqualTo(14L);
-        assertThat(gauges.get("test.cache.load.success.count").getValue()).isEqualTo(13L);
-        verify(cache, times(2)).stats();
     }
 
     @Test
@@ -241,24 +238,70 @@ public class MetricRegistriesTest {
                 "test.cache.eviction.count",
                 "test.cache.hit.count",
                 "test.cache.hit.ratio",
+                "test.cache.load.average.millis",
                 "test.cache.load.failure.count",
                 "test.cache.load.success.count",
-                "test.cache.load.average.millis",
+                "test.cache.maximum.size",
                 "test.cache.miss.count",
                 "test.cache.miss.ratio",
-                "test.cache.request.count"
+                "test.cache.request.count",
+                "test.cache.weighted.size"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
         assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(0.0);
         assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(Double.NaN);
+        assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(0.0);
         assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isEqualTo(0.0d);
         assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue()).isEqualTo(0L);
+    }
+
+    @Test
+    public void registerCacheTaggedMetrics() throws ExecutionException {
+        cache = CacheBuilder.newBuilder()
+                .maximumSize(2)
+                .recordStats()
+                .build(new CacheLoader<Integer, String>() {
+                    @Override
+                    public String load(Integer key) {
+                        return String.valueOf(key);
+                    }
+                });
+        MetricRegistries.registerCache(taggedMetricRegistry, cache, SafeArg.of("cache", "test"));
+        assertThat(taggedMetricRegistry.getMetrics().keySet())
+                .extracting(MetricName::safeName)
+                .contains(
+                        "cache.estimated.size",
+                        "cache.maximum.size",
+                        "cache.weighted.size",
+                        "cache.request.count",
+                        "cache.hit.count",
+                        "cache.hit.ratio",
+                        "cache.miss.count",
+                        "cache.miss.ratio",
+                        "cache.eviction.count",
+                        "cache.load.success.count",
+                        "cache.load.failure.count",
+                        "cache.load.average.millis");
+
+        // Function<Integer, String> mapping = String::valueOf;
+        assertThat(cache.get(0)).isEqualTo("0");
+        assertThat(cache.get(1)).isEqualTo("1");
+        assertThat(cache.get(2)).isEqualTo("2");
+        assertThat(cache.get(1)).isEqualTo("1");
+
+        await().atMost(Duration.TEN_SECONDS).untilAsserted(() -> {
+            assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
+                    .getValue()).isEqualTo(4L);
+        });
+
+        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.count").getValue()).isEqualTo(1L);
+        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.miss.count").getValue()).isEqualTo(3L);
+        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.ratio").getValue()).isEqualTo(0.25);
     }
 
     @Test
@@ -391,6 +434,17 @@ public class MetricRegistriesTest {
         assertParsesTimestamp("2019-03-30T02:06:35.045Z");
         assertParsesTimestamp("2019-03-29T23:38:51.920Z");
         assertParsesTimestamp("2019-03-29T23:38:51.092Z");
+    }
+
+    private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {
+        return clazz.cast(metrics.getMetrics()
+                .entrySet()
+                .stream()
+                .filter(e -> name.equals(e.getKey().safeName()))
+                .filter(e -> clazz.isInstance(e.getValue()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No such metric " + name))
+                .getValue());
     }
 
     private static void assertParsesTimestamp(String timestamp) {
