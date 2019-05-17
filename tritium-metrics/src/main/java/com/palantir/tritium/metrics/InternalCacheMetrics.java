@@ -17,13 +17,25 @@
 package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
+import com.google.common.annotations.Beta;
+import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSortedMap;
 import com.palantir.tritium.metrics.registry.MetricName;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Map;
 import java.util.function.Function;
 
-public final class CacheMetrics {
-    private CacheMetrics() {}
+/**
+ * Not intended for direct external usage, intended solely for sharing between tritium-metrics and tritium-caffeine.
+ * <p>
+ * See
+ * * {@link MetricRegistries#registerCache(MetricRegistry, Cache, String)},
+ * * {@link MetricRegistries#registerCache(TaggedMetricRegistry, Cache, String)} for intended use.
+ */
+@Beta
+public final class InternalCacheMetrics {
+    private InternalCacheMetrics() {}
 
     public static <K extends Comparable<K>> Map<K, Gauge<?>> createMetrics(
             Stats stats,

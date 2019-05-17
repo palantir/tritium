@@ -22,7 +22,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.palantir.logsafe.Safe;
-import com.palantir.tritium.metrics.CacheMetrics;
+import com.palantir.tritium.metrics.InternalCacheMetrics;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Map;
@@ -74,6 +74,6 @@ public final class CaffeineCacheStats {
     static <K extends Comparable<K>> Map<K, Gauge<?>> createCacheGauges(
             Cache<?, ?> cache,
             Function<String, K> metricNamer) {
-        return CacheMetrics.createMetrics(CaffeineStats.create(cache, 1, TimeUnit.SECONDS), metricNamer);
+        return InternalCacheMetrics.createMetrics(CaffeineStats.create(cache, 1, TimeUnit.SECONDS), metricNamer);
     }
 }

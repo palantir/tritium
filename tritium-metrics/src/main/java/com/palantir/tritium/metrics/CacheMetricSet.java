@@ -48,12 +48,12 @@ final class CacheMetricSet implements MetricSet {
 
     @Override
     public Map<String, Metric> getMetrics() {
-        return Collections.unmodifiableMap(CacheMetrics.createMetrics(
+        return Collections.unmodifiableMap(InternalCacheMetrics.createMetrics(
                 GuavaStats.create(cache, 1, TimeUnit.SECONDS),
                 metricName -> cacheName + '.' + metricName));
     }
 
-    static class GuavaStats implements CacheMetrics.Stats {
+    static class GuavaStats implements InternalCacheMetrics.Stats {
         private final Cache<?, ?> cache;
         private final Supplier<CacheStats> stats;
 
@@ -63,7 +63,7 @@ final class CacheMetricSet implements MetricSet {
             this.stats = stats;
         }
 
-        static CacheMetrics.Stats create(Cache cache, long duration, TimeUnit timeUnit) {
+        static InternalCacheMetrics.Stats create(Cache cache, long duration, TimeUnit timeUnit) {
             Supplier<CacheStats> statsSupplier = Suppliers.memoizeWithExpiration(cache::stats, duration, timeUnit);
             return new GuavaStats(cache, statsSupplier);
         }

@@ -29,13 +29,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CacheMetricsTest {
+public class InternalCacheMetricsTest {
 
-    @Mock CacheMetrics.Stats stats;
+    @Mock InternalCacheMetrics.Stats stats;
 
     @Test
     public void createMetrics() {
-        Map<String, Gauge<?>> metrics = CacheMetrics.createMetrics(stats, Function.identity());
+        Map<String, Gauge<?>> metrics = InternalCacheMetrics.createMetrics(stats, Function.identity());
         assertThat(metrics)
                 .containsOnlyKeys(
                         "cache.estimated.size",
@@ -66,7 +66,7 @@ public class CacheMetricsTest {
 
     @Test
     public void taggedMetricName() {
-        Function<String, MetricName> function = CacheMetrics.taggedMetricName("test");
+        Function<String, MetricName> function = InternalCacheMetrics.taggedMetricName("test");
         assertThat(function.apply("a")).isEqualTo(MetricName.builder()
                 .safeName("a")
                 .putSafeTags("cache", "test")

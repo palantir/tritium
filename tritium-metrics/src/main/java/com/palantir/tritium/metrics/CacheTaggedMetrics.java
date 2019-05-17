@@ -44,8 +44,8 @@ final class CacheTaggedMetrics {
     }
 
     Map<MetricName, Gauge<?>> getMetrics() {
-        return CacheMetrics.createMetrics(
+        return InternalCacheMetrics.createMetrics(
                 CacheMetricSet.GuavaStats.create(this.cache, 1, TimeUnit.SECONDS),
-                CacheMetrics.taggedMetricName(cacheName));
+                InternalCacheMetrics.taggedMetricName(cacheName));
     }
 }
