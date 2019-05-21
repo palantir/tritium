@@ -195,11 +195,9 @@ public class MetricRegistriesTest {
                 "test.cache.load.average.millis",
                 "test.cache.load.failure.count",
                 "test.cache.load.success.count",
-                "test.cache.maximum.size",
                 "test.cache.miss.count",
                 "test.cache.miss.ratio",
-                "test.cache.request.count",
-                "test.cache.weighted.size"
+                "test.cache.request.count"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(1, 2, 3, 4, 5, 6));
@@ -240,19 +238,17 @@ public class MetricRegistriesTest {
                 "test.cache.load.average.millis",
                 "test.cache.load.failure.count",
                 "test.cache.load.success.count",
-                "test.cache.maximum.size",
                 "test.cache.miss.count",
                 "test.cache.miss.ratio",
-                "test.cache.request.count",
-                "test.cache.weighted.size"
+                "test.cache.request.count"
         );
 
         when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
         assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(0.0);
+        assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(Double.NaN);
         assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(0.0);
+        assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(Double.NaN);
         assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isEqualTo(0.0d);
         assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
@@ -275,8 +271,6 @@ public class MetricRegistriesTest {
                 .extracting(MetricName::safeName)
                 .contains(
                         "cache.estimated.size",
-                        "cache.maximum.size",
-                        "cache.weighted.size",
                         "cache.request.count",
                         "cache.hit.count",
                         "cache.hit.ratio",

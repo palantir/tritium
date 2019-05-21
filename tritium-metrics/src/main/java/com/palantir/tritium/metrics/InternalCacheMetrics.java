@@ -18,12 +18,15 @@ package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.RatioGauge;
 import com.google.common.annotations.Beta;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSortedMap;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -40,20 +43,9 @@ public final class InternalCacheMetrics {
     public static <K extends Comparable<K>> Map<K, Gauge<?>> createMetrics(
             Stats stats,
             Function<String, K> metricNamer) {
-        return ImmutableSortedMap.<K, Gauge<?>>naturalOrder()
-                .put(metricNamer.apply("cache.estimated.size"), (Gauge<Long>) stats::estimatedSize)
-                .put(metricNamer.apply("cache.maximum.size"), (Gauge<Long>) stats::maximumSize)
-                .put(metricNamer.apply("cache.weighted.size"), (Gauge<Long>) stats::weightedSize)
-                .put(metricNamer.apply("cache.request.count"), (Gauge<Long>) stats::requestCount)
-                .put(metricNamer.apply("cache.hit.count"), (Gauge<Long>) stats::hitCount)
-                .put(metricNamer.apply("cache.hit.ratio"), (Gauge<Double>) stats::hitRatio)
-                .put(metricNamer.apply("cache.miss.count"), (Gauge<Long>) stats::missCount)
-                .put(metricNamer.apply("cache.miss.ratio"), (Gauge<Double>) stats::missRatio)
-                .put(metricNamer.apply("cache.eviction.count"), (Gauge<Long>) stats::evictionCount)
-                .put(metricNamer.apply("cache.load.success.count"), (Gauge<Long>) stats::loadSuccessCount)
-                .put(metricNamer.apply("cache.load.failure.count"), (Gauge<Long>) stats::loadFailureCount)
-                .put(metricNamer.apply("cache.load.average.millis"), (Gauge<Double>) stats::loadAverageMillis)
-                .build();
+        ImmutableSortedMap.Builder<K, Gauge<?>> builder = ImmutableSortedMap.naturalOrder();
+        stats.forEach((name, gauge) -> builder.put(metricNamer.apply(name), gauge));
+        return builder.build();
     }
 
     public static Function<String, MetricName> taggedMetricName(String cacheName) {
@@ -65,78 +57,53 @@ public final class InternalCacheMetrics {
 
     @SuppressWarnings("SummaryJavadoc")
     public interface Stats {
-        /**
-         * @return estimated cache size, or -1 if unknown
-         */
-        long estimatedSize();
 
-        /**
-         * @return weighted cache size, or -1 if unknown
-         */
-        long weightedSize();
-
-        /**
-         * @return maximum cache size, or -1 if unknown
-         */
-        long maximumSize();
-
-        /**
-         * @return request count, or -1 if unknown
-         */
-        long requestCount();
-
-        /**
-         * @return hit count, or -1 if unknown
-         */
-        long hitCount();
-
-        /**
-         * @return miss count, or -1 if unknown
-         */
-        long missCount();
-
-        /**
-         * @return eviction count, or -1 if unknown
-         */
-        long evictionCount();
-
-        /**
-         * @return successful load count, or -1 if unknown
-         */
-        long loadSuccessCount();
-
-        /**
-         * @return failed load count, or -1 if unknown
-         */
-        long loadFailureCount();
-
-        /**
-         * @return average milliseconds to load a cache entry
-         */
-        double loadAverageMillis();
-
-        /**
-         * @return hit ratio, as percentage between [0.0, 1.0]
-         */
-        default double hitRatio() {
-            long requestCount = requestCount();
-            if (requestCount == 0) {
-                return 0;
-            } else {
-                return hitCount() / ((double) requestCount);
-            }
+        default void forEach(BiConsumer<String, Gauge<?>> consumer) {
+            consumer.accept("cache.estimated.size", estimatedSize());
+            consumer.accept("cache.request.count", requestCount());
+            consumer.accept("cache.hit.count", hitCount());
+            consumer.accept("cache.hit.ratio", hitRatio());
+            consumer.accept("cache.miss.count", missCount());
+            consumer.accept("cache.miss.ratio", missRatio());
+            consumer.accept("cache.eviction.count", evictionCount());
+            consumer.accept("cache.load.success.count", loadSuccessCount());
+            consumer.accept("cache.load.failure.count", loadFailureCount());
+            consumer.accept("cache.load.average.millis", loadAverageMillis());
+            maximumSize().ifPresent(maximumSizeGauge -> consumer.accept("cache.maximum.size", maximumSizeGauge));
+            weightedSize().ifPresent(weightedSizeGauge -> consumer.accept("cache.weighted.size", weightedSizeGauge));
         }
 
-        /**
-         * @return miss ratio, as percentage between [0.0, 1.0]
-         */
-        default double missRatio() {
-            long requestCount = requestCount();
-            if (requestCount == 0) {
-                return 0;
-            } else {
-                return missCount() / ((double) requestCount);
-            }
+        Gauge<Long> estimatedSize();
+        Optional<Gauge<Long>> weightedSize();
+        Optional<Gauge<Long>> maximumSize();
+        Gauge<Long> requestCount();
+        Gauge<Long> hitCount();
+        Gauge<Long> missCount();
+        Gauge<Long> evictionCount();
+        Gauge<Long> loadSuccessCount();
+        Gauge<Long> loadFailureCount();
+        Gauge<Double> loadAverageMillis();
+
+        default Gauge<Double> hitRatio() {
+            return new RatioGauge() {
+                @Override
+                protected Ratio getRatio() {
+                    return RatioGauge.Ratio.of(
+                            hitCount().getValue().doubleValue(),
+                            requestCount().getValue().doubleValue());
+                }
+            };
+        }
+
+        default Gauge<Double> missRatio() {
+            return new RatioGauge() {
+                @Override
+                protected Ratio getRatio() {
+                    return RatioGauge.Ratio.of(
+                            missCount().getValue().doubleValue(),
+                            requestCount().getValue().doubleValue());
+                }
+            };
         }
     }
 }
