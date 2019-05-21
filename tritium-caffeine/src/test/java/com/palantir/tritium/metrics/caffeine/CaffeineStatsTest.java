@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.codahale.metrics.Gauge;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
@@ -52,51 +53,51 @@ public class CaffeineStatsTest {
     @Test
     public void estimatedSize() {
         when(cache.estimatedSize()).thenReturn(42L);
-        assertThat(stats.estimatedSize()).isEqualTo(42);
+        assertThat(stats.estimatedSize().getValue()).isEqualTo(42);
         verify(cache).estimatedSize();
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
     public void evictionCount() {
-        assertThat(stats.evictionCount()).isEqualTo(6);
+        assertThat(stats.evictionCount().getValue()).isEqualTo(6);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
     public void hitCount() {
-        assertThat(stats.hitCount()).isEqualTo(1);
+        assertThat(stats.hitCount().getValue()).isEqualTo(1);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
     public void hitRatio() {
-        assertThat(stats.hitRatio()).isEqualTo(1.0 / 3.0);
+        assertThat(stats.hitRatio().getValue()).isEqualTo(1.0 / 3.0);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
     public void loadAverageMillis() {
-        assertThat(stats.loadAverageMillis()).isEqualTo((5.0d / 7.0d) / 1_000_000.0d);
+        assertThat(stats.loadAverageMillis().getValue()).isEqualTo((5.0d / 7.0d) / 1_000_000.0d);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
     public void loadFailureCount() {
-        assertThat(stats.loadFailureCount()).isEqualTo(4);
+        assertThat(stats.loadFailureCount().getValue()).isEqualTo(4);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
     public void loadSuccessCount() {
-        assertThat(stats.loadSuccessCount()).isEqualTo(3);
+        assertThat(stats.loadSuccessCount().getValue()).isEqualTo(3);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
     public void maximumSize() {
         when(eviction.getMaximum()).thenReturn(42L);
-        assertThat(stats.maximumSize()).isEqualTo(42);
+        assertThat(stats.maximumSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(42L);
         verify(cache).policy();
         verify(policy).eviction();
         verify(eviction).getMaximum();
@@ -106,7 +107,7 @@ public class CaffeineStatsTest {
     @Test
     public void maximumSizeUnset() {
         when(policy.eviction()).thenReturn(Optional.empty());
-        assertThat(stats.maximumSize()).isEqualTo(-1);
+        assertThat(stats.maximumSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(-1L);
         verify(cache).policy();
         verify(policy).eviction();
         verifyNoMoreInteractions(cache, policy, eviction);
@@ -114,20 +115,20 @@ public class CaffeineStatsTest {
 
     @Test
     public void missCount() {
-        assertThat(stats.missCount()).isEqualTo(2);
+        assertThat(stats.missCount().getValue()).isEqualTo(2);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
     public void missRatio() {
-        assertThat(stats.missRatio()).isEqualTo(2.0 / 3.0);
+        assertThat(stats.missRatio().getValue()).isEqualTo(2.0 / 3.0);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
     public void weightedSize() {
         when(eviction.weightedSize()).thenReturn(OptionalLong.of(42L));
-        assertThat(stats.weightedSize()).isEqualTo(42);
+        assertThat(stats.weightedSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(42L);
         verify(cache).policy();
         verify(policy).eviction();
         verify(eviction).weightedSize();
@@ -137,7 +138,7 @@ public class CaffeineStatsTest {
     @Test
     public void weightedSizeNoWeights() {
         when(policy.eviction()).thenReturn(Optional.empty());
-        assertThat(stats.weightedSize()).isEqualTo(0);
+        assertThat(stats.weightedSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(0L);
         verify(cache).policy();
         verify(policy).eviction();
         verifyNoMoreInteractions(cache, policy, eviction);

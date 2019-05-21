@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import com.codahale.metrics.Gauge;
 import com.palantir.tritium.metrics.registry.MetricName;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +36,7 @@ public class InternalCacheMetricsTest {
 
     @Test
     public void createMetrics() {
-        Map<String, Gauge<?>> metrics = InternalCacheMetrics.createMetrics(stats, Function.identity());
+        Map<String, Gauge<?>> metrics = InternalCacheMetrics.createMetrics(emptyStats(), Function.identity());
         assertThat(metrics)
                 .containsOnlyKeys(
                         "cache.estimated.size",
@@ -56,12 +57,14 @@ public class InternalCacheMetricsTest {
 
     @Test
     public void noRequests() {
-        when(stats.requestCount()).thenReturn(0L);
+        when(stats.requestCount()).thenReturn(() -> 0L);
+        when(stats.hitCount()).thenReturn(() -> 0L);
+        when(stats.missCount()).thenReturn(() -> 0L);
         when(stats.hitRatio()).thenCallRealMethod();
         when(stats.missRatio()).thenCallRealMethod();
 
-        assertThat(stats.hitRatio()).isEqualTo(0);
-        assertThat(stats.missRatio()).isEqualTo(0);
+        assertThat(stats.hitRatio().getValue()).isEqualTo(Double.NaN);
+        assertThat(stats.missRatio().getValue()).isEqualTo(Double.NaN);
     }
 
     @Test
@@ -75,5 +78,59 @@ public class InternalCacheMetricsTest {
                 .safeName("a.b")
                 .putSafeTags("cache", "test")
                 .build());
+    }
+
+    private static InternalCacheMetrics.Stats emptyStats() {
+        return new InternalCacheMetrics.Stats() {
+            @Override
+            public Gauge<Long> estimatedSize() {
+                return () -> 0L;
+            }
+
+            @Override
+            public Optional<Gauge<Long>> weightedSize() {
+                return Optional.of(() -> 0L);
+            }
+
+            @Override
+            public Optional<Gauge<Long>> maximumSize() {
+                return Optional.of(() -> 0L);
+            }
+
+            @Override
+            public Gauge<Long> requestCount() {
+                return () -> 0L;
+            }
+
+            @Override
+            public Gauge<Long> hitCount() {
+                return () -> 0L;
+            }
+
+            @Override
+            public Gauge<Long> missCount() {
+                return () -> 0L;
+            }
+
+            @Override
+            public Gauge<Long> evictionCount() {
+                return () -> 0L;
+            }
+
+            @Override
+            public Gauge<Long> loadSuccessCount() {
+                return () -> 0L;
+            }
+
+            @Override
+            public Gauge<Long> loadFailureCount() {
+                return () -> 0L;
+            }
+
+            @Override
+            public Gauge<Double> loadAverageMillis() {
+                return () -> 0.0;
+            }
+        };
     }
 }

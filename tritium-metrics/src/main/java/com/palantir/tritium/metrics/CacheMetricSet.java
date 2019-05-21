@@ -19,6 +19,7 @@ package com.palantir.tritium.metrics;
 import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,6 +28,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheStats;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -73,56 +75,56 @@ final class CacheMetricSet implements MetricSet {
         }
 
         @Override
-        public long estimatedSize() {
-            return cache.size();
+        public Gauge<Long> estimatedSize() {
+            return cache::size;
         }
 
         @Override
-        public long weightedSize() {
+        public Optional<Gauge<Long>> weightedSize() {
             // Guava does not expose this after construction
-            return -1;
+            return Optional.empty();
         }
 
         @Override
-        public long maximumSize() {
+        public Optional<Gauge<Long>> maximumSize() {
             // Guava does not expose this after construction
-            return -1;
+            return Optional.empty();
         }
 
         @Override
-        public long requestCount() {
-            return stats().requestCount();
+        public Gauge<Long> requestCount() {
+            return () -> stats().requestCount();
         }
 
         @Override
-        public long hitCount() {
-            return stats().hitCount();
+        public Gauge<Long> hitCount() {
+            return () -> stats().hitCount();
         }
 
         @Override
-        public long missCount() {
-            return stats().missCount();
+        public Gauge<Long> missCount() {
+            return () -> stats().missCount();
         }
 
         @Override
-        public long evictionCount() {
-            return stats().evictionCount();
+        public Gauge<Long> evictionCount() {
+            return () -> stats().evictionCount();
         }
 
         @Override
-        public long loadSuccessCount() {
-            return stats().loadSuccessCount();
+        public Gauge<Long> loadSuccessCount() {
+            return () -> stats().loadSuccessCount();
         }
 
         @Override
-        public long loadFailureCount() {
-            return stats().loadExceptionCount();
+        public Gauge<Long> loadFailureCount() {
+            return () -> stats().loadExceptionCount();
         }
 
         @Override
-        public double loadAverageMillis() {
+        public Gauge<Double> loadAverageMillis() {
             // convert nanoseconds to milliseconds
-            return stats().averageLoadPenalty() / 1_000_000.0d;
+            return () -> stats().averageLoadPenalty() / 1_000_000.0d;
         }
     }
 }

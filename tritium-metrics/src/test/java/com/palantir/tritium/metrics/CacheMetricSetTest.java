@@ -52,8 +52,6 @@ public class CacheMetricSetTest {
         assertThat(metrics)
                 .containsOnlyKeys(
                         "test.cache.estimated.size",
-                        "test.cache.maximum.size",
-                        "test.cache.weighted.size",
                         "test.cache.request.count",
                         "test.cache.hit.count",
                         "test.cache.hit.ratio",
@@ -75,13 +73,11 @@ public class CacheMetricSetTest {
 
     @Test
     public void maximumSize() {
-        assertThat(metrics.get("test.cache.maximum.size")).isInstanceOf(Gauge.class)
-                .returns(-1L, metric -> ((Gauge) metric).getValue());
+        assertThat(metrics.get("test.cache.maximum.size")).isNull();
     }
 
     @Test
     public void weightedSize() {
-        assertThat(metrics.get("test.cache.weighted.size")).isInstanceOf(Gauge.class)
-                .returns(-1L, metric -> ((Gauge) metric).getValue());
+        assertThat(metrics.get("test.cache.weighted.size")).isNull();
     }
 }
