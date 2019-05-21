@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.palantir.tracing.AlwaysSampler;
 import com.palantir.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.tracing.Tracer;
 import com.palantir.tracing.Tracers;
@@ -64,6 +65,7 @@ public class TracingInvocationEventHandlerTest {
         executor = MoreExecutors.newDirectExecutorService();
         handler = TracingInvocationEventHandler.create("testComponent");
         assertThat(handler).isInstanceOf(TracingInvocationEventHandler.class);
+        com.palantir.tracing.Tracer.setSampler(AlwaysSampler.INSTANCE);
         Tracer.subscribe("sysout", System.out::println);
         Tracer.subscribe("mock", mockSpanObserver);
         Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
