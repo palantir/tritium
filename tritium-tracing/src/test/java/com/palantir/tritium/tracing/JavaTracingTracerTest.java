@@ -18,6 +18,7 @@ package com.palantir.tritium.tracing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.palantir.tracing.AlwaysSampler;
 import com.palantir.tracing.api.Span;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -28,6 +29,7 @@ public class JavaTracingTracerTest {
     @Test
     public void trace() {
         Deque<Span> observedSpans = new ConcurrentLinkedDeque<>();
+        com.palantir.tracing.Tracer.setSampler(AlwaysSampler.INSTANCE);
         com.palantir.tracing.Tracer.subscribe("test", observedSpans::add);
         JavaTracingTracer tracer = JavaTracingTracer.INSTANCE;
         assertThat(observedSpans).isEmpty();
