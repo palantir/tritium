@@ -79,11 +79,13 @@ final class CacheMetricSet implements MetricSet {
 
         @Override
         public long weightedSize() {
-            return 0;
+            // Guava does not expose this after construction
+            return -1;
         }
 
         @Override
         public long maximumSize() {
+            // Guava does not expose this after construction
             return -1;
         }
 

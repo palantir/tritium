@@ -82,6 +82,6 @@ public class CacheMetricSetTest {
     @Test
     public void weightedSize() {
         assertThat(metrics.get("test.cache.weighted.size")).isInstanceOf(Gauge.class)
-                .returns(0L, metric -> ((Gauge) metric).getValue());
+                .returns(-1L, metric -> ((Gauge) metric).getValue());
     }
 }

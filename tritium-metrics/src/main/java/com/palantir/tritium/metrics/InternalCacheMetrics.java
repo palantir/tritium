@@ -63,18 +63,61 @@ public final class InternalCacheMetrics {
                 .build();
     }
 
+    @SuppressWarnings("SummaryJavadoc")
     public interface Stats {
+        /**
+         * @return estimated cache size, or -1 if unknown
+         */
         long estimatedSize();
+
+        /**
+         * @return weighted cache size, or -1 if unknown
+         */
         long weightedSize();
+
+        /**
+         * @return maximum cache size, or -1 if unknown
+         */
         long maximumSize();
+
+        /**
+         * @return request count, or -1 if unknown
+         */
         long requestCount();
+
+        /**
+         * @return hit count, or -1 if unknown
+         */
         long hitCount();
+
+        /**
+         * @return miss count, or -1 if unknown
+         */
         long missCount();
+
+        /**
+         * @return eviction count, or -1 if unknown
+         */
         long evictionCount();
+
+        /**
+         * @return successful load count, or -1 if unknown
+         */
         long loadSuccessCount();
+
+        /**
+         * @return failed load count, or -1 if unknown
+         */
         long loadFailureCount();
+
+        /**
+         * @return average milliseconds to load a cache entry
+         */
         double loadAverageMillis();
 
+        /**
+         * @return hit ratio, as percentage between [0.0, 1.0]
+         */
         default double hitRatio() {
             long requestCount = requestCount();
             if (requestCount == 0) {
@@ -84,6 +127,9 @@ public final class InternalCacheMetrics {
             }
         }
 
+        /**
+         * @return miss ratio, as percentage between [0.0, 1.0]
+         */
         default double missRatio() {
             long requestCount = requestCount();
             if (requestCount == 0) {
