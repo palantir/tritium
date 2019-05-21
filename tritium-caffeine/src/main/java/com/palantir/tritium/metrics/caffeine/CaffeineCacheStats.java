@@ -18,16 +18,37 @@ package com.palantir.tritium.metrics.caffeine;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
-import com.codahale.metrics.Clock;
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
-import com.google.common.annotations.VisibleForTesting;
+import com.palantir.logsafe.Safe;
+import com.palantir.tritium.metrics.InternalCacheMetrics;
 import com.palantir.tritium.metrics.MetricRegistries;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
+@SuppressWarnings("WeakerAccess") // public API
 public final class CaffeineCacheStats {
 
-    private CaffeineCacheStats() {
-        throw new UnsupportedOperationException();
+    private CaffeineCacheStats() {}
+
+    /**
+     * Register specified cache with the given metric registry.
+     *
+     * @param registry metric registry
+     * @param cache cache to instrument
+     * @param name cache name
+     */
+    public static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
+        checkNotNull(registry, "registry");
+        checkNotNull(cache, "cache");
+        checkNotNull(name, "name");
+
+        CaffeineCacheMetrics.create(cache, name)
+                .getMetrics()
+                .forEach((key, value) -> MetricRegistries.registerWithReplacement(registry, key, value));
     }
 
     /**
@@ -37,19 +58,22 @@ public final class CaffeineCacheStats {
      * @param cache cache to instrument
      * @param name cache name
      */
-    public static <C extends Cache<?, ?>> void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
-        registerCache(registry, cache, name, Clock.defaultClock());
-    }
-
-    @VisibleForTesting
-    static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name, @VisibleForTesting Clock clock) {
+    public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
         checkNotNull(registry, "registry");
         checkNotNull(cache, "cache");
         checkNotNull(name, "name");
-        checkNotNull(clock, "clock");
-        CaffeineCacheMetricSet.create(cache, name, clock)
+
+        CaffeineCacheTaggedMetrics.create(cache, name)
                 .getMetrics()
-                .forEach((key, value) -> MetricRegistries.registerWithReplacement(registry, key, value));
+                .forEach((metricName, gauge) -> {
+                    registry.remove(metricName);
+                    registry.gauge(metricName, gauge);
+                });
     }
 
+    static <K extends Comparable<K>> Map<K, Gauge<?>> createCacheGauges(
+            Cache<?, ?> cache,
+            Function<String, K> metricNamer) {
+        return InternalCacheMetrics.createMetrics(CaffeineStats.create(cache, 1, TimeUnit.SECONDS), metricNamer);
+    }
 }

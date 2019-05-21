@@ -25,7 +25,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Timer;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
@@ -143,8 +143,8 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Map<MetricName, Metric> getMetrics() {
-        ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.<MetricName, Metric>builder()
-                .putAll(registry);
+        ImmutableSortedMap.Builder<MetricName, Metric> result = ImmutableSortedMap.naturalOrder();
+        result.putAll(registry);
         taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
                 .forEach((metricName, metric) -> result.put(
                         MetricName.builder()

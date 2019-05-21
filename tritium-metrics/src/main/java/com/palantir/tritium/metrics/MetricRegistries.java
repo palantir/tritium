@@ -28,6 +28,7 @@ import com.codahale.metrics.Reservoir;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.logsafe.Safe;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -233,9 +234,33 @@ public final class MetricRegistries {
         checkNotNull(name, "name");
         checkNotNull(clock, "clock");
         checkArgument(!name.trim().isEmpty(), "Cache name cannot be blank or empty");
-        CacheMetricSet.create(cache, name, clock)
+
+        CacheMetricSet.create(cache, name)
                 .getMetrics()
                 .forEach((key, value) -> registerWithReplacement(registry, key, value));
+    }
+
+    /**
+     * Register specified cache with the given metric registry.
+     *
+     * @param registry metric registry
+     * @param cache cache to instrument
+     * @param name cache name
+     * @throws IllegalArgumentException if name is blank
+     */
+    @SuppressWarnings({"BanGuavaCaches", "WeakerAccess"}) // this implementation is explicitly for Guava caches
+    public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
+        checkNotNull(registry, "metric registry");
+        checkNotNull(cache, "cache");
+        checkNotNull(name, "name");
+        checkArgument(!name.trim().isEmpty(), "Cache name cannot be blank or empty");
+
+        CacheTaggedMetrics.create(cache, name)
+                .getMetrics()
+                .forEach((metricName, gauge) -> {
+                    registry.remove(metricName);
+                    registry.gauge(metricName, gauge);
+                });
     }
 
     /**
