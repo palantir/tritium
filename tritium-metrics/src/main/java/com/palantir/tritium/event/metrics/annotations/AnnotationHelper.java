@@ -67,7 +67,6 @@ public final class AnnotationHelper {
     @Nullable
     public static <T extends Annotation> T getMethodAnnotation(
             Class<T> annotation, Class<?> clazz, MethodSignature methodSignature) {
-
         Method method;
         try {
             method = clazz.getMethod(methodSignature.getMethodName(), methodSignature.getParameterTypes());

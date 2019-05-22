@@ -40,7 +40,6 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     public static InvocationEventHandler<InvocationContext> of(
             List<InvocationEventHandler<InvocationContext>> handlers) {
-
         if (handlers.isEmpty()) {
             return NoOpInvocationEventHandler.INSTANCE;
         } else if (handlers.size() == 1) {
@@ -105,7 +104,6 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             Object instance,
             Method method,
             Object[] args) {
-
         try {
             if (handler != null) {
                 return handler.preInvocation(instance, method, args);
@@ -152,7 +150,6 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             @Nullable InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             Throwable cause) {
-
         try {
             if (handler != null) {
                 handler.onFailure(context, cause);
@@ -184,7 +181,6 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
                 Method method,
                 @Nullable Object[] args,
                 InvocationContext[] contexts) {
-
             super(System.nanoTime(), instance, method, args);
             this.contexts = checkNotNull(contexts);
         }
