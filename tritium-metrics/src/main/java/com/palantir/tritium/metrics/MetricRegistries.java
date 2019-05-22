@@ -377,7 +377,6 @@ public final class MetricRegistries {
 
     private static <T extends Metric> T registerOrReplace(MetricRegistry registry, String name, T metric,
             boolean replace) {
-
         synchronized (registry) {
             Map<String, Metric> metrics = registry.getMetrics();
             Metric existingMetric = metrics.get(name);

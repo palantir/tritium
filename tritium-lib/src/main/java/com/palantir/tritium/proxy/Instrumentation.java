@@ -49,7 +49,6 @@ public final class Instrumentation {
                                    U delegate,
                                    List<InvocationEventHandler<InvocationContext>> handlers,
                                    InstrumentationFilter instrumentationFilter) {
-
         checkNotNull(interfaceClass, "interfaceClass");
         checkNotNull(delegate, "delegate");
         checkNotNull(instrumentationFilter, "instrumentationFilter");
