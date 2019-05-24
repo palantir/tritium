@@ -68,4 +68,25 @@ public class MetricNameTest {
         assertThat(one).isLessThan(two);
         assertThat(two).isGreaterThan(one);
     }
+
+    @Test
+    public void compareSameDifferentTagOrder() {
+        MetricName one = MetricName.builder()
+                .safeName("test")
+                .putSafeTags("a", "value")
+                .putSafeTags("b", "value")
+                .build();
+        MetricName two = MetricName.builder()
+                .safeName("test")
+                .putSafeTags("b", "value")
+                .putSafeTags("a", "value")
+                .build();
+
+        assertThat(one)
+                .isEqualByComparingTo(two)
+                .isEqualTo(two);
+        assertThat(two)
+                .isEqualByComparingTo(one)
+                .isEqualTo(one);
+    }
 }
