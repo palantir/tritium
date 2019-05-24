@@ -17,7 +17,7 @@
 package com.palantir.tritium.metrics.registry;
 
 import com.palantir.logsafe.Safe;
-import java.util.Map;
+import java.util.NavigableMap;
 import org.immutables.value.Value;
 
 @Value.Immutable(prehash = true)
@@ -40,7 +40,8 @@ public interface MetricName extends Comparable<MetricName> {
      * <p>
      * All tags and keys must be {@link Safe} to log.
      */
-    Map<String, String> safeTags();
+    @Value.NaturalOrder
+    NavigableMap<String, String> safeTags();
 
     @Override
     default int compareTo(MetricName that) {
