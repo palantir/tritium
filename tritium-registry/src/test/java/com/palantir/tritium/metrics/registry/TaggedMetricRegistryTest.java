@@ -215,6 +215,33 @@ public final class TaggedMetricRegistryTest {
         assertThat(registry.getMetrics()).isEmpty();
     }
 
+    @Test
+    public void testGetMetrics() {
+        MetricName metricName = MetricName.builder()
+                .safeName("counter1")
+                .putSafeTags("tagA", Long.toString(1))
+                .putSafeTags("tagB", Long.toString(2))
+                .build();
+        Counter counter = registry.counter(metricName);
+        counter.inc();
+        Metric metric = registry.getMetrics().get(metricName);
+        assertThat(metric)
+                .isInstanceOf(Counter.class)
+                .isSameAs(counter)
+                .isSameAs(registry.counter(
+                        MetricName.builder()
+                                .safeName("counter1")
+                                .putSafeTags("tagB", "2")
+                                .putSafeTags("tagA", Long.toString(1))
+                                .build()))
+                .isSameAs(registry.getMetrics().get(MetricName.builder()
+                        .safeName("counter1")
+                        .putSafeTags("tagA", Long.toString(1))
+                        .putSafeTags("tagB", Integer.toString(2))
+                        .build()));
+        assertThat(counter.getCount()).isEqualTo(1);
+    }
+
     private void assertMetric(String name, String tagKey, String tagValue, Meter meter) {
         assertThat(registry.getMetrics())
                 .containsEntry(MetricName.builder().safeName(name).putSafeTags(tagKey, tagValue).build(), meter);
