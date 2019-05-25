@@ -26,7 +26,7 @@ import org.immutables.value.Value;
         get = {"get*", "is*"},
         overshadowImplementation = true,
         visibility = Value.Style.ImplementationVisibility.PACKAGE)
-public interface MetricName extends Comparable<MetricName> {
+public interface MetricName {
 
     /**
      * General/abstract measure (e.g. server.response-time).
@@ -42,11 +42,6 @@ public interface MetricName extends Comparable<MetricName> {
      */
     @Value.NaturalOrder
     NavigableMap<String, String> safeTags();
-
-    @Override
-    default int compareTo(MetricName that) {
-        return MetricNames.metricNameComparator.compare(this, that);
-    }
 
     static Builder builder() {
         return new Builder();

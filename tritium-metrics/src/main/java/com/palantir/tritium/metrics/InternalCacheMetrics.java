@@ -21,7 +21,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.RatioGauge;
 import com.google.common.annotations.Beta;
 import com.google.common.cache.Cache;
-import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Map;
@@ -40,10 +40,8 @@ import java.util.function.Function;
 public final class InternalCacheMetrics {
     private InternalCacheMetrics() {}
 
-    public static <K extends Comparable<K>> Map<K, Gauge<?>> createMetrics(
-            Stats stats,
-            Function<String, K> metricNamer) {
-        ImmutableSortedMap.Builder<K, Gauge<?>> builder = ImmutableSortedMap.naturalOrder();
+    public static <K> Map<K, Gauge<?>> createMetrics(Stats stats, Function<String, K> metricNamer) {
+        ImmutableMap.Builder<K, Gauge<?>> builder = ImmutableMap.builder();
         stats.forEach((name, gauge) -> builder.put(metricNamer.apply(name), gauge));
         return builder.build();
     }
