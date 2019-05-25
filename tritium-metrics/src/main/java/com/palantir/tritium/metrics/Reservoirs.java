@@ -46,7 +46,7 @@ final class Reservoirs {
      * Metric registry which produces timers and histograms backed by high dynamic range histograms.
      * <p>
      * See <a href="http://taint.org/2014/01/16/145944a.html">
-     * Don’t use Timers with exponentially-decaying reservoirs in Graphite
+     * Don't use Timers with exponentially-decaying reservoirs in Graphite
      * </a>
      */
     @Nonnull
@@ -78,7 +78,7 @@ final class Reservoirs {
      * </a>
      * <li>
      * <a href="https://medium.com/hotels-com-technology/your-latency-metrics-could-be-misleading-you-how-hdrhistogram-can-help-9d545b598374">
-     * Your Dropwizard Latency Metrics Could Be Misleading You — How Rolling-Metrics and HdrHistogram Can Help
+     * Your Dropwizard Latency Metrics Could Be Misleading You - How Rolling-Metrics and HdrHistogram Can Help
      * </a>
      * </li>
      * </ul>
