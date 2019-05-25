@@ -22,7 +22,6 @@ import org.immutables.value.Value;
 
 @Value.Immutable(prehash = true)
 @Value.Style(
-        jdkOnly = true,
         get = {"get*", "is*"},
         overshadowImplementation = true,
         visibility = Value.Style.ImplementationVisibility.PACKAGE)
