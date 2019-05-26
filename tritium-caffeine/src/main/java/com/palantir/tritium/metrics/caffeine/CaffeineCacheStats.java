@@ -71,9 +71,7 @@ public final class CaffeineCacheStats {
                 });
     }
 
-    static <K extends Comparable<K>> Map<K, Gauge<?>> createCacheGauges(
-            Cache<?, ?> cache,
-            Function<String, K> metricNamer) {
+    static <K> Map<K, Gauge<?>> createCacheGauges(Cache<?, ?> cache, Function<String, K> metricNamer) {
         return InternalCacheMetrics.createMetrics(CaffeineStats.create(cache, 1, TimeUnit.SECONDS), metricNamer);
     }
 }

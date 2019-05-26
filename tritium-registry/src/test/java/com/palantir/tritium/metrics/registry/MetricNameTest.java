@@ -27,45 +27,62 @@ public class MetricNameTest {
         MetricName one = MetricName.builder()
                 .safeName("test")
                 .putSafeTags("key", "value")
+                .putSafeTags("key1", "value1")
+                .putSafeTags("key2", "value2")
                 .build();
         MetricName two = MetricName.builder()
                 .safeName("test")
+                .putSafeTags("key2", "value2")
                 .putSafeTags("key", "value")
+                .putSafeTags("key1", "value1")
                 .build();
 
         assertThat(one).isEqualTo(two);
         assertThat(two).isEqualTo(one);
-        assertThat(one).isEqualByComparingTo(two);
-        assertThat(one).usingComparator(MetricName.metricNameComparator).isEqualByComparingTo(two);
+
+        assertThat(one.toString()).isEqualTo(two.toString());
     }
 
     @Test
-    public void compareNameOrder() {
+    public void compareName() {
+        assertThat(MetricName.builder().safeName("a").build())
+                .isEqualTo(MetricName.builder().safeName("a").build());
+
+        assertThat(MetricName.builder().safeName("a").build())
+                .isNotEqualTo(MetricName.builder().safeName("b").build());
+    }
+
+    @Test
+    public void compareTagNames() {
         MetricName one = MetricName.builder()
                 .safeName("a")
-                .putSafeTags("key", "value")
+                .putSafeTags("key1", "value1")
+                .putSafeTags("key2", "value2")
                 .build();
         MetricName two = MetricName.builder()
-                .safeName("b")
-                .putSafeTags("key", "value")
+                .safeName("a")
+                .putSafeTags("key1", "value1")
+                .putSafeTags("key3", "value2")
                 .build();
 
-        assertThat(one).isLessThan(two);
-        assertThat(two).isGreaterThan(one);
+        assertThat(one).isNotEqualTo(two);
+        assertThat(two).isNotEqualTo(one);
     }
 
     @Test
-    public void compareSameName() {
+    public void compareTagValues() {
         MetricName one = MetricName.builder()
-                .safeName("test")
-                .putSafeTags("a", "value")
+                .safeName("a")
+                .putSafeTags("key1", "value1")
+                .putSafeTags("key2", "value2")
                 .build();
         MetricName two = MetricName.builder()
-                .safeName("test")
-                .putSafeTags("b", "value")
+                .safeName("a")
+                .putSafeTags("key1", "value1")
+                .putSafeTags("key2", "valueZ")
                 .build();
 
-        assertThat(one).isLessThan(two);
-        assertThat(two).isGreaterThan(one);
+        assertThat(one).isNotEqualTo(two);
+        assertThat(two).isNotEqualTo(one);
     }
 }
