@@ -17,7 +17,7 @@
 package com.palantir.tritium.metrics.registry;
 
 import com.palantir.logsafe.Safe;
-import java.util.NavigableMap;
+import java.util.SortedMap;
 import org.immutables.value.Value;
 
 @Value.Immutable(prehash = true)
@@ -40,7 +40,7 @@ public interface MetricName {
      * All tags and keys must be {@link Safe} to log.
      */
     @Value.NaturalOrder
-    NavigableMap<String, String> safeTags();
+    SortedMap<String, String> safeTags();
 
     static Builder builder() {
         return new Builder();
