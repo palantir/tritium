@@ -4,14 +4,14 @@ dependencies {
 
     annotationProcessor 'com.google.auto.service:auto-service'
     annotationProcessor 'org.immutables:value'
+    compileOnly 'com.google.auto.service:auto-service'
     compileOnly 'org.immutables:value::annotations'
 
-    compileOnly 'com.google.auto.service:auto-service'
+    api 'io.dropwizard.metrics:metrics-core'
 
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
-    implementation 'io.dropwizard.metrics:metrics-core'
 
     testImplementation 'junit:junit'
     testImplementation 'org.assertj:assertj-core'

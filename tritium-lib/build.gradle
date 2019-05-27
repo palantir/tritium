@@ -8,6 +8,7 @@ dependencies {
     api project(':tritium-proxy')
     api project(':tritium-slf4j')
     api project(':tritium-tracing')
+    api 'io.dropwizard.metrics:metrics-core'
 
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:preconditions'
