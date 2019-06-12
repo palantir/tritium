@@ -168,6 +168,9 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
             if (metric instanceof Gauge) {
                 listeners.forEach(listener -> listener.onGaugeRemoved(metricName));
             }
+            if (metric instanceof Meter) {
+                listeners.forEach(listener -> listener.onMeterRemoved(metricName));
+            }
         });
         return existingMetric;
     }
@@ -198,6 +201,9 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
             T newMetric = metricSupplier.get();
             if (newMetric instanceof Gauge) {
                 listeners.forEach(listener -> listener.onGaugeAdded(metricName, (Gauge) newMetric));
+            }
+            if (newMetric instanceof Meter) {
+                listeners.forEach(listener -> listener.onMeterAdded(metricName, (Meter) newMetric));
             }
             return newMetric;
         });
