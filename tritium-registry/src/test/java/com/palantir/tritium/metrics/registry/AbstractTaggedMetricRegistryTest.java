@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.google.common.collect.ImmutableList;
+import com.palantir.tritium.metrics.registry.listeners.TaggedMetricRegistryListener;
 import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
 import org.immutables.value.Value;
