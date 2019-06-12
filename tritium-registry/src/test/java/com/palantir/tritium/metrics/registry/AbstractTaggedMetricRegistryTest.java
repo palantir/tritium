@@ -22,25 +22,52 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.codahale.metrics.Gauge;
-import java.util.function.BiConsumer;
+import com.google.common.collect.ImmutableList;
 import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
 import org.immutables.value.Value;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-// @RunWith(Parameterized.class)
+@RunWith(Parameterized.class)
 public class AbstractTaggedMetricRegistryTest {
     @Value.Immutable
     interface TestCase<T> {
-        Consumer<T> addMetric();
-        BiConsumer<TaggedMetricRegistryListener, T> stubOrVerifyMetricAdded();
+        Consumer<TaggedMetricRegistry> addMetric();
+        Consumer<TaggedMetricRegistryListener> stubOrVerifyMetricAdded();
         Consumer<TaggedMetricRegistryListener> stubOrVerifyMetricRemoved();
         T metric();
+
     }
+
+    private static final MetricName NAME = MetricName.builder()
+            .safeName("name")
+            .build();
+
+
+    private static final Gauge<Integer> GAUGE = () -> 1;
+
+    @Parameterized.Parameters
+    public static Iterable<TestCase<?>> data() {
+        Gauge<Integer> gauge = () -> 1;
+
+        return ImmutableList.of(
+                ImmutableTestCase.<Gauge>builder()
+                        .addMetric(registry -> registry.gauge(NAME, gauge))
+                        .stubOrVerifyMetricAdded(listener -> listener.onGaugeAdded(NAME, gauge))
+                        .stubOrVerifyMetricRemoved(listener -> listener.onGaugeRemoved(NAME))
+                        .metric(gauge)
+                        .build()
+        );
+    }
+
+    @Parameterized.Parameter
+    public TestCase<?> testCase;
 
     private final TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
 
@@ -48,10 +75,6 @@ public class AbstractTaggedMetricRegistryTest {
     private TaggedMetricRegistryListener listener;
     @Mock
     private TaggedMetricRegistryListener listener2;
-    @Mock
-    private MetricName name;
-
-    private static final Gauge<Integer> GAUGE = () -> 1;
 
     @Before
     public void before() {
@@ -59,22 +82,22 @@ public class AbstractTaggedMetricRegistryTest {
     }
 
     private void addMetric() {
-        registry.gauge(name, GAUGE);
+        testCase.addMetric().accept(registry);
     }
 
     private void verifyMetricAdded(TaggedMetricRegistryListener param) {
-        verify(param).onGaugeAdded(name, GAUGE);
+        testCase.stubOrVerifyMetricAdded().accept(verify(param));
     }
 
     private void verifyMetricRemoved(TaggedMetricRegistryListener param) {
-        verify(param).onGaugeRemoved(name);
+        testCase.stubOrVerifyMetricRemoved().accept(verify(param));
     }
 
     private void stubMetricAdded(TaggedMetricRegistryListener listener, Runnable action) {
-        doAnswer(invocation -> {
+        testCase.stubOrVerifyMetricAdded().accept(doAnswer(invocation -> {
             action.run();
             return null;
-        }).when(listener).onGaugeAdded(name, GAUGE);
+        }).when(listener));
     }
 
     @Test
@@ -90,7 +113,7 @@ public class AbstractTaggedMetricRegistryTest {
         addMetric();
         reset(listener);
 
-        registry.remove(name);
+        registry.remove(NAME);
         verifyMetricRemoved(listener);
     }
 
