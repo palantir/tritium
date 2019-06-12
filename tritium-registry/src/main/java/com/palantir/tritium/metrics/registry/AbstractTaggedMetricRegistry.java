@@ -29,9 +29,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 
@@ -40,9 +42,11 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
     private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
+    private final List<TaggedMetricRegistryListener> listeners;
 
     public AbstractTaggedMetricRegistry(Supplier<Reservoir> reservoirSupplier) {
         this.reservoirSupplier = checkNotNull(reservoirSupplier, "reservoirSupplier");
+        this.listeners = new CopyOnWriteArrayList<>();
     }
 
     /**
@@ -181,7 +185,13 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
             MetricName metricName,
             Class<T> metricClass,
             Supplier<T> metricSupplier) {
-        Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
+        Metric metric = registry.computeIfAbsent(metricName, name -> {
+            T newMetric = metricSupplier.get();
+            if (newMetric instanceof Gauge) {
+                listeners.forEach(listener -> listener.onGaugeAdded(metricName, (Gauge) newMetric));
+            }
+            return newMetric;
+        });
         if (!metricClass.isInstance(metric)) {
             throw new SafeIllegalArgumentException(
                     "Metric name already used for different metric type",
@@ -191,5 +201,9 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
                     SafeArg.of("safeTags", metricName.safeTags()));
         }
         return metricClass.cast(metric);
+    }
+
+    public final void addListener(TaggedMetricRegistryListener listener) {
+        listeners.add(listener);
     }
 }
