@@ -17,12 +17,10 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.Gauge;
 import org.assertj.core.api.Assertions;
@@ -43,6 +41,8 @@ public class AbstractTaggedMetricRegistryTest {
     @Mock
     private MetricName name;
 
+    private static final Gauge<Integer> GAUGE = () -> 1;
+
     @Before
     public void before() {
         MockitoAnnotations.initMocks(this);
@@ -51,16 +51,14 @@ public class AbstractTaggedMetricRegistryTest {
     @Test
     public void adding_new_metric_triggers_listeners() {
         registry.addListener(listener);
-        Gauge<Integer> gauge = () -> 1;
-        registry.gauge(name, gauge);
-        verify(listener).onGaugeAdded(name, gauge);
+        registry.gauge(name, GAUGE);
+        verify(listener).onGaugeAdded(name, GAUGE);
     }
 
     @Test
     public void removing_metric_triggers_listeners() {
         registry.addListener(listener);
-        Gauge<Integer> gauge = () -> 1;
-        registry.gauge(name, gauge);
+        registry.gauge(name, GAUGE);
         reset(listener);
 
         registry.remove(name);
@@ -71,8 +69,7 @@ public class AbstractTaggedMetricRegistryTest {
     public void removed_listener_does_not_get_notified() {
         registry.addListener(listener);
         registry.removeListener(listener);
-        Gauge<Integer> gauge = () -> 1;
-        registry.gauge(name, gauge);
+        registry.gauge(name, GAUGE);
     }
 
     @Test
@@ -90,11 +87,10 @@ public class AbstractTaggedMetricRegistryTest {
             return null;
         }).when(listener).onGaugeAdded(any(), any());
 
-        Gauge<Integer> gauge = () -> 1;
-        registry.gauge(name, gauge);
+        registry.gauge(name, GAUGE);
 
-        verify(listener).onGaugeAdded(name, gauge);
-        verify(listener2).onGaugeAdded(name, gauge);
+        verify(listener).onGaugeAdded(name, GAUGE);
+        verify(listener2).onGaugeAdded(name, GAUGE);
     }
 
     @After
