@@ -16,7 +16,6 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Counter;
@@ -30,12 +29,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
+import com.palantir.tritium.metrics.registry.listeners.MultiTaggedMetricRegistryListener;
 import com.palantir.tritium.metrics.registry.listeners.TaggedMetricRegistryListener;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 
@@ -44,11 +42,10 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
     private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
-    private final List<TaggedMetricRegistryListener> listeners;
+    private final MultiTaggedMetricRegistryListener listeners = new MultiTaggedMetricRegistryListener();
 
     public AbstractTaggedMetricRegistry(Supplier<Reservoir> reservoirSupplier) {
         this.reservoirSupplier = checkNotNull(reservoirSupplier, "reservoirSupplier");
-        this.listeners = new CopyOnWriteArrayList<>();
     }
 
     /**
@@ -167,10 +164,10 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
         Optional<Metric> existingMetric = Optional.ofNullable(registry.remove(metricName));
         existingMetric.ifPresent(metric -> {
             if (metric instanceof Gauge) {
-                listeners.forEach(listener -> listener.onGaugeRemoved(metricName));
+                listeners.onGaugeRemoved(metricName);
             }
             if (metric instanceof Meter) {
-                listeners.forEach(listener -> listener.onMeterRemoved(metricName));
+                listeners.onMeterRemoved(metricName);
             }
         });
         return existingMetric;
@@ -201,10 +198,10 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
         Metric metric = registry.computeIfAbsent(metricName, name -> {
             T newMetric = metricSupplier.get();
             if (newMetric instanceof Gauge) {
-                listeners.forEach(listener -> listener.onGaugeAdded(metricName, (Gauge) newMetric));
+                listeners.onGaugeAdded(name, (Gauge) newMetric);
             }
             if (newMetric instanceof Meter) {
-                listeners.forEach(listener -> listener.onMeterAdded(metricName, (Meter) newMetric));
+                listeners.onMeterAdded(name, (Meter) newMetric);
             }
             return newMetric;
         });
@@ -221,14 +218,11 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final void addListener(TaggedMetricRegistryListener listener) {
-        listeners.add(listener);
+        listeners.addListener(listener);
     }
 
     @Override
     public final void removeListener(TaggedMetricRegistryListener listener) {
-        checkArgument(
-                listeners.remove(listener),
-                "Listener wasn't registered on the metric registry",
-                SafeArg.of("listener", listener));
+        listeners.removeListener(listener);
     }
 }
