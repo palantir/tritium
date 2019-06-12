@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Counter;
@@ -212,5 +213,13 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     @Override
     public final void addListener(TaggedMetricRegistryListener listener) {
         listeners.add(listener);
+    }
+
+    @Override
+    public final void removeListener(TaggedMetricRegistryListener listener) {
+        checkArgument(
+                listeners.remove(listener),
+                "Listener wasn't registered on the metric registry",
+                SafeArg.of("listener", listener));
     }
 }

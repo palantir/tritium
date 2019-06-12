@@ -62,4 +62,14 @@ public class AbstractTaggedMetricRegistryTest {
         verify(listener).onGaugeRemoved(name);
         verifyNoMoreInteractions(listener);
     }
+
+    @Test
+    public void removed_listener_does_not_get_notified() {
+        registry.addListener(listener);
+        registry.removeListener(listener);
+        Gauge<Integer> gauge = () -> 1;
+        registry.gauge(name, gauge);
+        verifyNoMoreInteractions(listener);
+    }
+
 }
