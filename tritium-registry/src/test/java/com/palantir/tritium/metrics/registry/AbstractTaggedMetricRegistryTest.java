@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.codahale.metrics.Gauge;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -72,4 +73,9 @@ public class AbstractTaggedMetricRegistryTest {
         verifyNoMoreInteractions(listener);
     }
 
+    @Test
+    public void removing_listener_that_has_not_been_added_throws() {
+        Assertions.assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> registry.removeListener(listener));
+    }
 }
