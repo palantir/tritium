@@ -27,7 +27,7 @@ import org.mockito.MockitoAnnotations;
 
 // @RunWith(Parameterized.class)
 public class AbstractTaggedMetricRegistryTest {
-    private final AbstractTaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+    private final TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
 
     @Mock
     private TaggedMetricRegistryListener listener;

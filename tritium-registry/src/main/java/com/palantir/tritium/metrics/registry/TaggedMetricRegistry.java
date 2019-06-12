@@ -119,4 +119,6 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * @return true if value was removed
      */
     boolean removeMetrics(String safeTagName, String safeTagValue, TaggedMetricSet metrics);
+
+    void addListener(TaggedMetricRegistryListener listener);
 }

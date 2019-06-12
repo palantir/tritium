@@ -203,6 +203,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
         return metricClass.cast(metric);
     }
 
+    @Override
     public final void addListener(TaggedMetricRegistryListener listener) {
         listeners.add(listener);
     }
