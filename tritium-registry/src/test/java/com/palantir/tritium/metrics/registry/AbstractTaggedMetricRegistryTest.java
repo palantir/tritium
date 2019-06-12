@@ -17,11 +17,13 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Meter;
 import com.google.common.collect.ImmutableList;
 import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
@@ -52,12 +54,19 @@ public class AbstractTaggedMetricRegistryTest {
     @Parameterized.Parameters
     public static Iterable<TestCase<?>> data() {
         Gauge<Integer> gauge = () -> 1;
+        Meter meter = mock(Meter.class, "meter");
 
         return ImmutableList.of(
                 ImmutableTestCase.<Gauge>builder()
                         .addMetric(registry -> registry.gauge(NAME, gauge))
                         .stubOrVerifyMetricAdded(listener -> listener.onGaugeAdded(NAME, gauge))
                         .stubOrVerifyMetricRemoved(listener -> listener.onGaugeRemoved(NAME))
+                        .metric(gauge)
+                        .build(),
+                ImmutableTestCase.<Gauge>builder()
+                        .addMetric(registry -> registry.meter(NAME, () -> meter))
+                        .stubOrVerifyMetricAdded(listener -> listener.onMeterAdded(NAME, meter))
+                        .stubOrVerifyMetricRemoved(listener -> listener.onMeterRemoved(NAME))
                         .metric(gauge)
                         .build()
         );
