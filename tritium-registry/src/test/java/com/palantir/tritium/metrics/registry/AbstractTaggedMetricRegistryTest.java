@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.Gauge;
 import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -43,7 +44,7 @@ public class AbstractTaggedMetricRegistryTest {
     private MetricName name;
 
     @Before
-    public void before() throws Exception {
+    public void before() {
         MockitoAnnotations.initMocks(this);
     }
 
@@ -53,7 +54,6 @@ public class AbstractTaggedMetricRegistryTest {
         Gauge<Integer> gauge = () -> 1;
         registry.gauge(name, gauge);
         verify(listener).onGaugeAdded(name, gauge);
-        verifyNoMoreInteractions(listener);
     }
 
     @Test
@@ -65,7 +65,6 @@ public class AbstractTaggedMetricRegistryTest {
 
         registry.remove(name);
         verify(listener).onGaugeRemoved(name);
-        verifyNoMoreInteractions(listener);
     }
 
     @Test
@@ -74,7 +73,6 @@ public class AbstractTaggedMetricRegistryTest {
         registry.removeListener(listener);
         Gauge<Integer> gauge = () -> 1;
         registry.gauge(name, gauge);
-        verifyNoMoreInteractions(listener);
     }
 
     @Test
@@ -97,6 +95,10 @@ public class AbstractTaggedMetricRegistryTest {
 
         verify(listener).onGaugeAdded(name, gauge);
         verify(listener2).onGaugeAdded(name, gauge);
+    }
+
+    @After
+    public void after() {
         verifyNoMoreInteractions(listener, listener2);
     }
 }
