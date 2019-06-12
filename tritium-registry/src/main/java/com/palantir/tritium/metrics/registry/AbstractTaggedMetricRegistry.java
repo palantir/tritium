@@ -192,6 +192,8 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
             MetricName metricName,
             Class<T> metricClass,
             Supplier<T> metricSupplier) {
+
+        // TODO(callumr): Is it ok to do so much work in a computeIfAbsent
         Metric metric = registry.computeIfAbsent(metricName, name -> {
             T newMetric = metricSupplier.get();
             if (newMetric instanceof Gauge) {

@@ -48,28 +48,47 @@ public class AbstractTaggedMetricRegistryTest {
         MockitoAnnotations.initMocks(this);
     }
 
+    private void addMetric() {
+        registry.gauge(name, GAUGE);
+    }
+
+    private void verifyMetricAdded(TaggedMetricRegistryListener param) {
+        verify(param).onGaugeAdded(name, GAUGE);
+    }
+
+    private void verifyMetricRemoved(TaggedMetricRegistryListener param) {
+        verify(param).onGaugeRemoved(name);
+    }
+
+    private void stubMetricAdded(TaggedMetricRegistryListener listener, Runnable action) {
+        doAnswer(invocation -> {
+            action.run();
+            return null;
+        }).when(listener).onGaugeAdded(any(), any());
+    }
+
     @Test
     public void adding_new_metric_triggers_listeners() {
         registry.addListener(listener);
-        registry.gauge(name, GAUGE);
-        verify(listener).onGaugeAdded(name, GAUGE);
+        addMetric();
+        verifyMetricAdded(listener);
     }
 
     @Test
     public void removing_metric_triggers_listeners() {
         registry.addListener(listener);
-        registry.gauge(name, GAUGE);
+        addMetric();
         reset(listener);
 
         registry.remove(name);
-        verify(listener).onGaugeRemoved(name);
+        verifyMetricRemoved(listener);
     }
 
     @Test
     public void removed_listener_does_not_get_notified() {
         registry.addListener(listener);
         registry.removeListener(listener);
-        registry.gauge(name, GAUGE);
+        addMetric();
     }
 
     @Test
@@ -82,15 +101,12 @@ public class AbstractTaggedMetricRegistryTest {
     public void self_removing_listener_does_not_break_other_listeners() {
         registry.addListener(listener);
         registry.addListener(listener2);
-        doAnswer(invocation -> {
-            registry.removeListener(listener);
-            return null;
-        }).when(listener).onGaugeAdded(any(), any());
+        stubMetricAdded(listener, () -> registry.removeListener(this.listener));
 
-        registry.gauge(name, GAUGE);
+        addMetric();
 
-        verify(listener).onGaugeAdded(name, GAUGE);
-        verify(listener2).onGaugeAdded(name, GAUGE);
+        verifyMetricAdded(listener);
+        verifyMetricAdded(listener2);
     }
 
     @After
