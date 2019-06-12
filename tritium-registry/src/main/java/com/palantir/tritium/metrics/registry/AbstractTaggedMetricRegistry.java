@@ -34,6 +34,7 @@ import com.palantir.tritium.metrics.registry.listeners.TaggedMetricRegistryListe
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 
@@ -105,13 +106,13 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Counter counter(MetricName metricName, Supplier<Counter> counterSupplier) {
-        return getOrAdd(metricName, Counter.class, counterSupplier);
+        return getOrAdd(metricName, Counter.class, counterSupplier, listeners::onCounterAdded);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public final <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge) {
-        return getOrAdd(metricName, Gauge.class, () -> gauge);
+        return getOrAdd(metricName, Gauge.class, () -> gauge, listeners::onGaugeAdded);
     }
 
     @Override
@@ -121,7 +122,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Histogram histogram(MetricName metricName, Supplier<Histogram> histogramSupplier) {
-        return getOrAdd(metricName, Histogram.class, histogramSupplier);
+        return getOrAdd(metricName, Histogram.class, histogramSupplier, listeners::onHistogramAdded);
     }
 
     @Override
@@ -131,7 +132,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Meter meter(MetricName metricName, Supplier<Meter> meterSupplier) {
-        return getOrAdd(metricName, Meter.class, meterSupplier);
+        return getOrAdd(metricName, Meter.class, meterSupplier, listeners::onMeterAdded);
     }
 
     @Override
@@ -141,7 +142,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Timer timer(MetricName metricName, Supplier<Timer> timerSupplier) {
-        return getOrAdd(metricName, Timer.class, timerSupplier);
+        return getOrAdd(metricName, Timer.class, timerSupplier, listeners::onTimerAdded);
     }
 
     @Override
@@ -192,17 +193,13 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     protected final <T extends Metric> T getOrAdd(
             MetricName metricName,
             Class<T> metricClass,
-            Supplier<T> metricSupplier) {
+            Supplier<T> metricSupplier,
+            BiConsumer<MetricName, T> onAddedHook) {
 
         // TODO(callumr): Is it ok to do so much work in a computeIfAbsent
         Metric metric = registry.computeIfAbsent(metricName, name -> {
             T newMetric = metricSupplier.get();
-            if (newMetric instanceof Gauge) {
-                listeners.onGaugeAdded(name, (Gauge) newMetric);
-            }
-            if (newMetric instanceof Meter) {
-                listeners.onMeterAdded(name, (Meter) newMetric);
-            }
+            onAddedHook.accept(name, newMetric);
             return newMetric;
         });
         if (!metricClass.isInstance(metric)) {
