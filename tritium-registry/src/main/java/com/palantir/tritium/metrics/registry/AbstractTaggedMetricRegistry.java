@@ -162,7 +162,13 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Optional<Metric> remove(MetricName metricName) {
-        return Optional.ofNullable(registry.remove(metricName));
+        Optional<Metric> existingMetric = Optional.ofNullable(registry.remove(metricName));
+        existingMetric.ifPresent(metric -> {
+            if (metric instanceof Gauge) {
+                listeners.forEach(listener -> listener.onGaugeRemoved(metricName));
+            }
+        });
+        return existingMetric;
     }
 
     @Override

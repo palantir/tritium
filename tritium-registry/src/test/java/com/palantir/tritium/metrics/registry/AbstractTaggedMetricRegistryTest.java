@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
@@ -47,6 +48,18 @@ public class AbstractTaggedMetricRegistryTest {
         Gauge<Integer> gauge = () -> 1;
         registry.gauge(name, gauge);
         verify(listener).onGaugeAdded(name, gauge);
+        verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void removing_metric_triggers_listeners() {
+        registry.addListener(listener);
+        Gauge<Integer> gauge = () -> 1;
+        registry.gauge(name, gauge);
+        reset(listener);
+
+        registry.remove(name);
+        verify(listener).onGaugeRemoved(name);
         verifyNoMoreInteractions(listener);
     }
 }
