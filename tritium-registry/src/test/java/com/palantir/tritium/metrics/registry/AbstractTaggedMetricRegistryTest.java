@@ -16,9 +16,13 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.Gauge;
 import org.assertj.core.api.Assertions;
@@ -77,5 +81,22 @@ public class AbstractTaggedMetricRegistryTest {
     public void removing_listener_that_has_not_been_added_throws() {
         Assertions.assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> registry.removeListener(listener));
+    }
+
+    @Test
+    public void self_removing_listener_does_not_break_other_listeners() {
+        registry.addListener(listener);
+        registry.addListener(listener2);
+        doAnswer(invocation -> {
+            registry.removeListener(listener);
+            return null;
+        }).when(listener).onGaugeAdded(any(), any());
+
+        Gauge<Integer> gauge = () -> 1;
+        registry.gauge(name, gauge);
+
+        verify(listener).onGaugeAdded(name, gauge);
+        verify(listener2).onGaugeAdded(name, gauge);
+        verifyNoMoreInteractions(listener, listener2);
     }
 }
