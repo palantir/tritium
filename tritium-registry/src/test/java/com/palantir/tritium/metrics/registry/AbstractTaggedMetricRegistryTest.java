@@ -16,14 +16,16 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.codahale.metrics.Gauge;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
+import org.immutables.value.Value;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +34,14 @@ import org.mockito.MockitoAnnotations;
 
 // @RunWith(Parameterized.class)
 public class AbstractTaggedMetricRegistryTest {
+    @Value.Immutable
+    interface TestCase<T> {
+        Consumer<T> addMetric();
+        BiConsumer<TaggedMetricRegistryListener, T> stubOrVerifyMetricAdded();
+        Consumer<TaggedMetricRegistryListener> stubOrVerifyMetricRemoved();
+        T metric();
+    }
+
     private final TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
 
     @Mock
@@ -64,7 +74,7 @@ public class AbstractTaggedMetricRegistryTest {
         doAnswer(invocation -> {
             action.run();
             return null;
-        }).when(listener).onGaugeAdded(any(), any());
+        }).when(listener).onGaugeAdded(name, GAUGE);
     }
 
     @Test
