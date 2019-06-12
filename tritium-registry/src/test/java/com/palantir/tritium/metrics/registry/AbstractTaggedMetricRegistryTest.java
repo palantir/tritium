@@ -49,9 +49,6 @@ public class AbstractTaggedMetricRegistryTest {
             .safeName("name")
             .build();
 
-
-    private static final Gauge<Integer> GAUGE = () -> 1;
-
     @Parameterized.Parameters
     public static Iterable<TestCase<?>> data() {
         Gauge<Integer> gauge = () -> 1;
@@ -93,11 +90,11 @@ public class AbstractTaggedMetricRegistryTest {
         testCase.stubOrVerifyMetricRemoved().accept(verify(param));
     }
 
-    private void stubMetricAdded(TaggedMetricRegistryListener listener, Runnable action) {
+    private void stubMetricAdded(TaggedMetricRegistryListener param, Runnable action) {
         testCase.stubOrVerifyMetricAdded().accept(doAnswer(invocation -> {
             action.run();
             return null;
-        }).when(listener));
+        }).when(param));
     }
 
     @Test
