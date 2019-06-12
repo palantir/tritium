@@ -35,18 +35,29 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
+import org.immutables.value.Value;
 
 public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegistry {
 
-    private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
+    private final Map<MetricName, RemovableMetric> registry = new ConcurrentHashMap<>();
     private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
     private final MultiTaggedMetricRegistryListener listeners = new MultiTaggedMetricRegistryListener();
 
     public AbstractTaggedMetricRegistry(Supplier<Reservoir> reservoirSupplier) {
         this.reservoirSupplier = checkNotNull(reservoirSupplier, "reservoirSupplier");
+    }
+
+    @Value.Immutable
+    interface RemovableMetric {
+        @Value.Parameter
+        Metric metric();
+
+        @Value.Parameter
+        Consumer<MetricName> onRemovedHook();
     }
 
     /**
@@ -106,13 +117,14 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Counter counter(MetricName metricName, Supplier<Counter> counterSupplier) {
-        return getOrAdd(metricName, Counter.class, counterSupplier, listeners::onCounterAdded);
+        return getOrAdd(metricName, Counter.class, counterSupplier, listeners::onCounterAdded,
+                listeners::onCounterRemoved);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public final <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge) {
-        return getOrAdd(metricName, Gauge.class, () -> gauge, listeners::onGaugeAdded);
+        return getOrAdd(metricName, Gauge.class, () -> gauge, listeners::onGaugeAdded, listeners::onGaugeRemoved);
     }
 
     @Override
@@ -122,7 +134,8 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Histogram histogram(MetricName metricName, Supplier<Histogram> histogramSupplier) {
-        return getOrAdd(metricName, Histogram.class, histogramSupplier, listeners::onHistogramAdded);
+        return getOrAdd(metricName, Histogram.class, histogramSupplier, listeners::onHistogramAdded,
+                listeners::onHistogramRemoved);
     }
 
     @Override
@@ -132,7 +145,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Meter meter(MetricName metricName, Supplier<Meter> meterSupplier) {
-        return getOrAdd(metricName, Meter.class, meterSupplier, listeners::onMeterAdded);
+        return getOrAdd(metricName, Meter.class, meterSupplier, listeners::onMeterAdded, listeners::onMeterRemoved);
     }
 
     @Override
@@ -142,13 +155,13 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Timer timer(MetricName metricName, Supplier<Timer> timerSupplier) {
-        return getOrAdd(metricName, Timer.class, timerSupplier, listeners::onTimerAdded);
+        return getOrAdd(metricName, Timer.class, timerSupplier, listeners::onTimerAdded, listeners::onTimerRemoved);
     }
 
     @Override
     public final Map<MetricName, Metric> getMetrics() {
         ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.builder();
-        result.putAll(registry);
+        result.putAll(Maps.transformValues(registry, RemovableMetric::metric));
         taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
                 .forEach((metricName, metric) -> result.put(
                         MetricName.builder()
@@ -162,16 +175,9 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Optional<Metric> remove(MetricName metricName) {
-        Optional<Metric> existingMetric = Optional.ofNullable(registry.remove(metricName));
-        existingMetric.ifPresent(metric -> {
-            if (metric instanceof Gauge) {
-                listeners.onGaugeRemoved(metricName);
-            }
-            if (metric instanceof Meter) {
-                listeners.onMeterRemoved(metricName);
-            }
-        });
-        return existingMetric;
+        Optional<RemovableMetric> existingMetric = Optional.ofNullable(registry.remove(metricName));
+        existingMetric.ifPresent(metric -> metric.onRemovedHook().accept(metricName));
+        return existingMetric.map(RemovableMetric::metric);
     }
 
     @Override
@@ -194,14 +200,15 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
             MetricName metricName,
             Class<T> metricClass,
             Supplier<T> metricSupplier,
-            BiConsumer<MetricName, T> onAddedHook) {
+            BiConsumer<MetricName, T> onAddedHook,
+            Consumer<MetricName> onRemovedHook) {
 
         // TODO(callumr): Is it ok to do so much work in a computeIfAbsent
         Metric metric = registry.computeIfAbsent(metricName, name -> {
             T newMetric = metricSupplier.get();
             onAddedHook.accept(name, newMetric);
-            return newMetric;
-        });
+            return ImmutableRemovableMetric.of(newMetric, onRemovedHook);
+        }).metric();
         if (!metricClass.isInstance(metric)) {
             throw new SafeIllegalArgumentException(
                     "Metric name already used for different metric type",
