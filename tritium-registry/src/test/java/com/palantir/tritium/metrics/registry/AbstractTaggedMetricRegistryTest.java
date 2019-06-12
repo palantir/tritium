@@ -43,7 +43,6 @@ public class AbstractTaggedMetricRegistryTest {
         Consumer<TaggedMetricRegistry> addMetric();
         Consumer<TaggedMetricRegistryListener> stubOrVerifyMetricAdded();
         Consumer<TaggedMetricRegistryListener> stubOrVerifyMetricRemoved();
-        T metric();
 
     }
 
@@ -61,13 +60,11 @@ public class AbstractTaggedMetricRegistryTest {
                         .addMetric(registry -> registry.gauge(NAME, gauge))
                         .stubOrVerifyMetricAdded(listener -> listener.onGaugeAdded(NAME, gauge))
                         .stubOrVerifyMetricRemoved(listener -> listener.onGaugeRemoved(NAME))
-                        .metric(gauge)
                         .build(),
                 ImmutableTestCase.<Gauge>builder()
                         .addMetric(registry -> registry.meter(NAME, () -> meter))
                         .stubOrVerifyMetricAdded(listener -> listener.onMeterAdded(NAME, meter))
                         .stubOrVerifyMetricRemoved(listener -> listener.onMeterRemoved(NAME))
-                        .metric(gauge)
                         .build()
         );
     }
