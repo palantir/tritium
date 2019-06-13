@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.registry.listeners;
+package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
-import com.palantir.tritium.metrics.registry.MetricName;
-import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 
 /**
  * Listeners for events from the {@link TaggedMetricRegistry}.  Listeners must be thread-safe.

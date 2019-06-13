@@ -28,7 +28,6 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import com.google.common.collect.ImmutableList;
-import com.palantir.tritium.metrics.registry.listeners.TaggedMetricRegistryListener;
 import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
 import org.immutables.value.Value;

@@ -29,8 +29,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
-import com.palantir.tritium.metrics.registry.listeners.MultiTaggedMetricRegistryListener;
-import com.palantir.tritium.metrics.registry.listeners.TaggedMetricRegistryListener;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;

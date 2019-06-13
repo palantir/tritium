@@ -22,7 +22,6 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
-import com.palantir.tritium.metrics.registry.listeners.TaggedMetricRegistryListener;
 
 class AutoDispatchingListener {
     private final TaggedMetricRegistryListener listener;
