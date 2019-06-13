@@ -167,7 +167,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     }
 
     private void fireMetricRemoved(Metric metric, MetricName metricName) {
-        visitMetric(metric, new MetricVisitor<Void>() {
+        MetricVisitor.visitMetric(metric, new MetricVisitor<Void>() {
             @Override
             public Void visitGauge(Gauge<?> gauge) {
                 listeners.onGaugeRemoved(metricName);
@@ -201,7 +201,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     }
 
     private void fireMetricAdded(MetricName metricName, Metric metric) {
-        visitMetric(metric, new MetricVisitor<Void>() {
+        MetricVisitor.visitMetric(metric, new MetricVisitor<Void>() {
             @Override
             public Void visitGauge(Gauge<?> gauge) {
                 listeners.onGaugeAdded(metricName, (Gauge<?>) metric);
@@ -270,29 +270,6 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
                     SafeArg.of("safeTags", metricName.safeTags()));
         }
         return metricClass.cast(metric);
-    }
-
-    private <T> T visitMetric(Metric metric, MetricVisitor<T> visitor) {
-        if (metric instanceof Gauge) {
-            return visitor.visitGauge((Gauge<?>) metric);
-        } else if (metric instanceof Meter) {
-            return visitor.visitMeter((Meter) metric);
-        } else if (metric instanceof Histogram) {
-            return visitor.visitHistogram((Histogram) metric);
-        } else if (metric instanceof Timer) {
-            return visitor.visitTimer((Timer) metric);
-        } else if (metric instanceof Counter) {
-            return visitor.visitCounter((Counter) metric);
-        }
-        throw new SafeIllegalArgumentException("Unknown metric class", SafeArg.of("metricClass", metric.getClass()));
-    }
-
-    private interface MetricVisitor<T> {
-        T visitGauge(Gauge<?> gauge);
-        T visitMeter(Meter meter);
-        T visitHistogram(Histogram histogram);
-        T visitTimer(Timer timer);
-        T visitCounter(Counter counter);
     }
 
     @Override
