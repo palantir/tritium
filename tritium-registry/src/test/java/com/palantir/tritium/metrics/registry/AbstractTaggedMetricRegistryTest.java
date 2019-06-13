@@ -184,6 +184,19 @@ public class AbstractTaggedMetricRegistryTest {
         verifyMetricAdded(listener2);
     }
 
+    @Test
+    public void if_a_listener_throws_an_exception_on_metric_added_subsequent_listeners_should_still_be_run() {
+        registry.addListener(listener);
+        registry.addListener(listener2);
+
+        stubMetricAdded(listener, () -> { throw new RuntimeException(); });
+
+        addMetric();
+
+        verifyMetricAdded(listener);
+        verifyMetricAdded(listener2);
+    }
+
     @After
     public void after() {
         verifyNoMoreInteractions(listener, listener2);
