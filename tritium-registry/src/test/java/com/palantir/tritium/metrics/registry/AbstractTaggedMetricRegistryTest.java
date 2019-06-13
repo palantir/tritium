@@ -17,9 +17,9 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.codahale.metrics.Counter;
@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -117,26 +118,39 @@ public class AbstractTaggedMetricRegistryTest {
     private TaggedMetricRegistryListener listener;
     @Mock
     private TaggedMetricRegistryListener listener2;
+    private InOrder inOrderListeners;
 
     @Before
     public void before() {
         MockitoAnnotations.initMocks(this);
+        inOrderListeners = inOrder(listener, listener2);
     }
 
     private void addMetric() {
         testCase.addMetric().accept(registry);
     }
 
+    private void removeMetric() {
+        registry.remove(NAME);
+    }
+
     private void verifyMetricAdded(TaggedMetricRegistryListener param) {
-        testCase.stubOrVerifyMetricAdded().accept(verify(param));
+        testCase.stubOrVerifyMetricAdded().accept(inOrderListeners.verify(param));
     }
 
     private void verifyMetricRemoved(TaggedMetricRegistryListener param) {
-        testCase.stubOrVerifyMetricRemoved().accept(verify(param));
+        testCase.stubOrVerifyMetricRemoved().accept(inOrderListeners.verify(param));
     }
 
     private void stubMetricAdded(TaggedMetricRegistryListener param, Runnable action) {
         testCase.stubOrVerifyMetricAdded().accept(doAnswer(invocation -> {
+            action.run();
+            return null;
+        }).when(param));
+    }
+
+    private void stubMetricRemoved(TaggedMetricRegistryListener param, Runnable action) {
+        testCase.stubOrVerifyMetricRemoved().accept(doAnswer(invocation -> {
             action.run();
             return null;
         }).when(param));
@@ -195,6 +209,22 @@ public class AbstractTaggedMetricRegistryTest {
 
         verifyMetricAdded(listener);
         verifyMetricAdded(listener2);
+    }
+
+    @Test
+    public void if_a_listener_throws_an_exception_on_metric_removed_subsequent_listeners_should_still_be_run() {
+        registry.addListener(listener);
+        registry.addListener(listener2);
+
+        addMetric();
+        reset(listener, listener2);
+
+        stubMetricRemoved(listener, () -> { throw new RuntimeException(); });
+
+        removeMetric();
+
+        verifyMetricRemoved(listener);
+        verifyMetricRemoved(listener2);
     }
 
     @After
