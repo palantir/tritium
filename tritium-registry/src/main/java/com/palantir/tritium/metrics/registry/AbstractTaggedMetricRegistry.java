@@ -43,6 +43,8 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
     private final MultiTaggedMetricRegistryListener listeners = new MultiTaggedMetricRegistryListener();
+    private final AutoDispatchingListener autoDispatchingListener =
+            new AutoDispatchingListener(listeners);
 
     public AbstractTaggedMetricRegistry(Supplier<Reservoir> reservoirSupplier) {
         this.reservoirSupplier = checkNotNull(reservoirSupplier, "reservoirSupplier");
@@ -162,76 +164,8 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     @Override
     public final Optional<Metric> remove(MetricName metricName) {
         Optional<Metric> existingMetric = Optional.ofNullable(registry.remove(metricName));
-        existingMetric.ifPresent(metric -> fireMetricRemoved(metric, metricName));
+        existingMetric.ifPresent(metric -> autoDispatchingListener.metricRemoved(metric, metricName));
         return existingMetric;
-    }
-
-    private void fireMetricRemoved(Metric metric, MetricName metricName) {
-        MetricVisitor.visitMetric(metric, new MetricVisitor<Void>() {
-            @Override
-            public Void visitGauge(Gauge<?> gauge) {
-                listeners.onGaugeRemoved(metricName);
-                return null;
-            }
-
-            @Override
-            public Void visitMeter(Meter meter) {
-                listeners.onMeterRemoved(metricName);
-                return null;
-            }
-
-            @Override
-            public Void visitHistogram(Histogram histogram) {
-                listeners.onHistogramRemoved(metricName);
-                return null;
-            }
-
-            @Override
-            public Void visitTimer(Timer timer) {
-                listeners.onTimerRemoved(metricName);
-                return null;
-            }
-
-            @Override
-            public Void visitCounter(Counter counter) {
-                listeners.onCounterRemoved(metricName);
-                return null;
-            }
-        });
-    }
-
-    private void fireMetricAdded(MetricName metricName, Metric metric) {
-        MetricVisitor.visitMetric(metric, new MetricVisitor<Void>() {
-            @Override
-            public Void visitGauge(Gauge<?> gauge) {
-                listeners.onGaugeAdded(metricName, (Gauge<?>) metric);
-                return null;
-            }
-
-            @Override
-            public Void visitMeter(Meter meter) {
-                listeners.onMeterAdded(metricName, (Meter) metric);
-                return null;
-            }
-
-            @Override
-            public Void visitHistogram(Histogram histogram) {
-                listeners.onHistogramAdded(metricName, (Histogram) metric);
-                return null;
-            }
-
-            @Override
-            public Void visitTimer(Timer timer) {
-                listeners.onTimerAdded(metricName, (Timer) metric);
-                return null;
-            }
-
-            @Override
-            public Void visitCounter(Counter counter) {
-                listeners.onCounterAdded(metricName, (Counter) metric);
-                return null;
-            }
-        });
     }
 
     @Override
@@ -258,7 +192,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
         // TODO(callumr): Is it ok to do so much work in a computeIfAbsent
         Metric metric = registry.computeIfAbsent(metricName, name -> {
             T newMetric = metricSupplier.get();
-            fireMetricAdded(metricName, newMetric);
+            autoDispatchingListener.metricRemoved(metricName, newMetric);
             return newMetric;
         });
         if (!metricClass.isInstance(metric)) {
