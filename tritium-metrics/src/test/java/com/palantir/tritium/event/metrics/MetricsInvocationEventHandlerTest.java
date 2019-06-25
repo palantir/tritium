@@ -110,11 +110,11 @@ public class MetricsInvocationEventHandlerTest {
                 new MetricsInvocationEventHandler(metricRegistry, other.getClass(), globalPrefix);
 
         //AnnotatedTestInterface
-        callVoidMethod(handler, obj, "methodA", true);
-        callVoidMethod(handler, obj, "methodB", true);
-        callVoidMethod(handler, obj, "methodC", true);
-        callVoidMethod(handler, obj, "methodD", true);
-        callVoidMethod(handler, obj, "methodA", false);
+        callVoidMethod(handler, obj, "methodA", /* success= */true);
+        callVoidMethod(handler, obj, "methodB", /* success= */true);
+        callVoidMethod(handler, obj, "methodC", /* success= */true);
+        callVoidMethod(handler, obj, "methodD", /* success= */true);
+        callVoidMethod(handler, obj, "methodA", /* success= */false);
 
         assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE").getCount()).isEqualTo(2L);
         assertThat(metricRegistry.timer(obj.getClass().getName() + ".TWO").getCount()).isEqualTo(1L);
@@ -122,7 +122,7 @@ public class MetricsInvocationEventHandlerTest {
         assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE.failures").getCount()).isEqualTo(1L);
 
         //AnnotatedOtherInterface
-        callVoidMethod(otherHandler, other, "methodE", true);
+        callVoidMethod(otherHandler, other, "methodE", /* success= */true);
         assertThat(metricRegistry.timer(other.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
 
         //GlobalPrefix Tests

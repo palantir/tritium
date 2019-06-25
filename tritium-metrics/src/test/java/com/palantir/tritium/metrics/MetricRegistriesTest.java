@@ -64,7 +64,7 @@ import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 public class MetricRegistriesTest {
 
     private MetricRegistry metrics = new MetricRegistry();
-    private TaggedMetricRegistry taggedMetricRegistry = new DefaultTaggedMetricRegistry();
+    private final TaggedMetricRegistry taggedMetricRegistry = new DefaultTaggedMetricRegistry();
     private final TestClock clock = new TestClock();
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)

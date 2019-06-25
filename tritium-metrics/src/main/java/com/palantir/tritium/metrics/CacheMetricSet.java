@@ -26,7 +26,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheStats;
-import java.util.Collections;
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -49,8 +49,9 @@ final class CacheMetricSet implements MetricSet {
     }
 
     @Override
+    @SuppressWarnings("MutableMethodReturnType") // API
     public Map<String, Metric> getMetrics() {
-        return Collections.unmodifiableMap(InternalCacheMetrics.createMetrics(
+        return ImmutableMap.copyOf(InternalCacheMetrics.createMetrics(
                 GuavaStats.create(cache, 1, TimeUnit.SECONDS),
                 metricName -> cacheName + '.' + metricName));
     }

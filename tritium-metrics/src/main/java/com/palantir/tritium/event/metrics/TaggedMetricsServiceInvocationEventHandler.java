@@ -59,6 +59,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
         this.serviceName = checkNotNull(serviceName, "serviceName");
     }
 
+    @SuppressWarnings("NoFunctionalReturnType") // helper
     private static BooleanSupplier getEnabledSupplier(final String serviceName) {
         return InstrumentationProperties.getSystemPropertySupplier(serviceName);
     }

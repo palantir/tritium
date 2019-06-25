@@ -68,6 +68,7 @@ public final class InstrumentationProperties {
         instrumentationProperties = createSupplier();
     }
 
+    @SuppressWarnings("NoFunctionalReturnType")
     private static Supplier<Map<String, String>> createSupplier() {
         return Suppliers.memoizeWithExpiration(
                 InstrumentationProperties::createInstrumentationSystemProperties,

@@ -70,9 +70,9 @@ public class MetricsBooleanSupplierTest {
 
     @Before
     public void before() {
-        System.clearProperty("instrument");
+        System.clearProperty(METRICS_SYSTEM_PROPERTY_PREFIX);
         System.getProperties().entrySet().removeIf(entry ->
-                entry.getKey().toString().startsWith("instrument"));
+                entry.getKey().toString().startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
         InstrumentationProperties.reload();
     }
 
@@ -86,10 +86,11 @@ public class MetricsBooleanSupplierTest {
 
     @Test
     public void testSupplier() {
-        System.setProperty("instrument", String.valueOf(global));
-        System.setProperty("instrument.com.palantir.tritium.event.metrics.MetricsInvocationEventHandler",
+        System.setProperty(METRICS_SYSTEM_PROPERTY_PREFIX, String.valueOf(global));
+        System.setProperty(
+                METRICS_SYSTEM_PROPERTY_PREFIX + ".com.palantir.tritium.event.metrics.MetricsInvocationEventHandler",
                 String.valueOf(handler));
-        System.setProperty("instrument.test", String.valueOf(service));
+        System.setProperty(METRICS_SYSTEM_PROPERTY_PREFIX + ".test", String.valueOf(service));
         InstrumentationProperties.reload();
         BooleanSupplier supplier = MetricsInvocationEventHandler.getEnabledSupplier("test");
         assertThat(supplier.getAsBoolean()).isEqualTo(expected);

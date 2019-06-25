@@ -39,7 +39,7 @@ public class CaffeineCacheStatsTest {
 
     private final MetricRegistry metricRegistry = new MetricRegistry();
     private final TaggedMetricRegistry taggedMetricRegistry = new DefaultTaggedMetricRegistry();
-    private Function<Integer, String> mapping = String::valueOf;
+    private final Function<Integer, String> mapping = String::valueOf;
 
     @After
     public void after() {
@@ -55,7 +55,7 @@ public class CaffeineCacheStatsTest {
         });
     }
 
-    private Object getValue(Metric metric) {
+    private static Object getValue(Metric metric) {
         if (metric instanceof Gauge) {
             return ((Gauge) metric).getValue();
         } else if (metric instanceof Counter) {
@@ -86,8 +86,10 @@ public class CaffeineCacheStatsTest {
                         "test.cache.request.count",
                         "test.cache.weighted.size");
 
-        assertThat(metricRegistry.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(0L);
-        assertThat(metricRegistry.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(0L);
+        assertThat(metricRegistry.getGauges().get("test.cache.hit.count")).isNotNull()
+                .extracting(Gauge::getValue).isEqualTo(0L);
+        assertThat(metricRegistry.getGauges().get("test.cache.miss.count")).isNotNull()
+                .extracting(Gauge::getValue).isEqualTo(0L);
 
         assertThat(cache.get(0, mapping)).isEqualTo("0");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
@@ -95,11 +97,14 @@ public class CaffeineCacheStatsTest {
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
         await().atMost(Duration.TEN_SECONDS).untilAsserted(() -> {
-            assertThat(metricRegistry.getGauges().get("test.cache.request.count").getValue()).isEqualTo(4L);
+            assertThat(metricRegistry.getGauges().get("test.cache.request.count")).isNotNull()
+                    .extracting(Gauge::getValue).isEqualTo(4L);
         });
 
-        assertThat(metricRegistry.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(1L);
-        assertThat(metricRegistry.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(3L);
+        assertThat(metricRegistry.getGauges().get("test.cache.hit.count")).isNotNull()
+                .extracting(Gauge::getValue).isEqualTo(1L);
+        assertThat(metricRegistry.getGauges().get("test.cache.miss.count")).isNotNull()
+                .extracting(Gauge::getValue).isEqualTo(3L);
     }
 
     @Test

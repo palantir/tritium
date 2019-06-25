@@ -31,8 +31,8 @@ abstract class AbstractReservoirMetricBuilder<T extends Metric> extends Abstract
         this.reservoirSupplier = checkNotNull(reservoirSupplier, "reservoirSupplier");
     }
 
-    Supplier<Reservoir> getReservoirSupplier() {
-        return reservoirSupplier;
+    Reservoir createReservoir() {
+        return reservoirSupplier.get();
     }
 
 }

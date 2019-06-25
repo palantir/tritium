@@ -28,6 +28,6 @@ final class HistogramMetricBuilder extends AbstractReservoirMetricBuilder<Histog
 
     @Override
     public Histogram newMetric() {
-        return new Histogram(getReservoirSupplier().get());
+        return new Histogram(createReservoir());
     }
 }

@@ -24,7 +24,7 @@ org.immutables:* = 2.7.5
 org.mockito:mockito-core = 2.28.2
 org.mpierce.metrics.reservoir:* = 1.1.2
 org.openjdk.jmh:* = 1.21
-org.slf4j:* = 1.7.12
+org.slf4j:* = 1.7.26
 
 # dependency-upgrader:OFF
 io.dropwizard.metrics:metrics-core = 3.2.5

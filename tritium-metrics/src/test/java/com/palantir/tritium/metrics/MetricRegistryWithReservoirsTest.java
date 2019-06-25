@@ -33,7 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings("NullAway") // IntelliJ warnings about injected fields
+@SuppressWarnings("NullAway") // mock injection
 public class MetricRegistryWithReservoirsTest {
 
     @Mock
