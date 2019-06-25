@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Set;
 import javax.annotation.Nullable;
 
 public final class AnnotationHelper {
@@ -89,7 +88,7 @@ public final class AnnotationHelper {
     }
 
     @VisibleForTesting
-    static Set<Class<?>> getParentClasses(Class<?> clazz) {
+    private static ImmutableSet<Class<?>> getParentClasses(Class<?> clazz) {
         ImmutableSet.Builder<Class<?>> builder = ImmutableSet.builder();
         builder.add(clazz.getInterfaces());
         Class<?> superclass = clazz.getSuperclass();

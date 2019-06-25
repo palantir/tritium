@@ -51,6 +51,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
      * @return counter supplier
      */
     @Nonnull
+    @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Counter> counterSupplier() {
         return Counter::new;
     }
@@ -61,6 +62,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
      * @return histogram supplier
      */
     @Nonnull
+    @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Histogram> histogramSupplier() {
         return () -> new Histogram(createReservoir());
     }
@@ -71,6 +73,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
      * @return meter supplier
      */
     @Nonnull
+    @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Meter> meterSupplier() {
         return Meter::new;
     }
@@ -81,6 +84,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
      * @return timer supplier
      */
     @Nonnull
+    @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Timer> timerSupplier() {
         return () -> new Timer(createReservoir());
     }
@@ -142,6 +146,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     }
 
     @Override
+    @SuppressWarnings("MutableMethodReturnType") // API method
     public final Map<MetricName, Metric> getMetrics() {
         ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.builder();
         result.putAll(registry);
