@@ -32,12 +32,12 @@ public class DefaultInvocationContextTest {
         assertThat(context.getArgs()).isEqualTo(new Object[]{"testArgument"});
         assertThat(context.getMethod()).isEqualTo(Object.class.getDeclaredMethod("equals", Object.class));
 
-        String toString = context.toString();
-        assertThat(toString).contains("startTimeNanos");
-        assertThat(toString).contains("instance");
-        assertThat(toString).contains("method");
-        assertThat(toString).doesNotContain("args");
-        assertThat(toString).doesNotContain("testArgument");
+        assertThat(context).asString()
+                .contains("startTimeNanos")
+                .contains("instance")
+                .contains("method")
+                .doesNotContain("args")
+                .doesNotContain("testArgument");
     }
 
 }
