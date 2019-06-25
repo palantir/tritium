@@ -21,9 +21,9 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.cache.Cache;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.logsafe.Safe;
 import com.palantir.tritium.metrics.registry.MetricName;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
@@ -43,7 +43,7 @@ final class CacheTaggedMetrics {
         return new CacheTaggedMetrics(cache, cacheName);
     }
 
-    Map<MetricName, Gauge<?>> getMetrics() {
+    ImmutableMap<MetricName, Gauge<?>> getMetrics() {
         return InternalCacheMetrics.createMetrics(
                 CacheMetricSet.GuavaStats.create(this.cache, 1, TimeUnit.SECONDS),
                 InternalCacheMetrics.taggedMetricName(cacheName));

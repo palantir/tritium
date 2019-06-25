@@ -46,7 +46,7 @@ public final class TaggedMetricRegistryTest {
     private static final MetricName METRIC_2 = MetricName.builder().safeName("name").putSafeTags("key", "val").build();
 
     @Parameterized.Parameters
-    public static Iterable<Supplier<Object>> data() {
+    public static ImmutableList<Supplier<Object>> data() {
         return ImmutableList.of(
                 DefaultTaggedMetricRegistry::new,
                 () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS)

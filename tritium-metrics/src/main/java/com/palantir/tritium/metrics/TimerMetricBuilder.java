@@ -28,6 +28,6 @@ final class TimerMetricBuilder extends AbstractReservoirMetricBuilder<Timer> {
 
     @Override
     public Timer newMetric() {
-        return new Timer(getReservoirSupplier().get());
+        return new Timer(createReservoir());
     }
 }

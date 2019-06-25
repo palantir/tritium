@@ -28,7 +28,6 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,7 +39,7 @@ import org.slf4j.Logger;
  */
 public class LoggingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final List<String> MESSAGE_PATTERNS = generateMessagePatterns(20);
+    private static final ImmutableList<String> MESSAGE_PATTERNS = generateMessagePatterns(20);
 
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_ALL_DURATIONS =
             com.palantir.tritium.api.functions.LongPredicate.TRUE;
@@ -178,7 +177,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         }
     }
 
-    private static List<String> generateMessagePatterns(int maxArgCount) {
+    private static ImmutableList<String> generateMessagePatterns(int maxArgCount) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         for (int i = 0; i <= maxArgCount; i++) {
             builder.add(generateMessagePattern(i));

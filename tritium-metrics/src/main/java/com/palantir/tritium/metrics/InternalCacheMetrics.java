@@ -24,7 +24,6 @@ import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -40,12 +39,13 @@ import java.util.function.Function;
 public final class InternalCacheMetrics {
     private InternalCacheMetrics() {}
 
-    public static <K> Map<K, Gauge<?>> createMetrics(Stats stats, Function<String, K> metricNamer) {
+    public static <K> ImmutableMap<K, Gauge<?>> createMetrics(Stats stats, Function<String, K> metricNamer) {
         ImmutableMap.Builder<K, Gauge<?>> builder = ImmutableMap.builder();
         stats.forEach((name, gauge) -> builder.put(metricNamer.apply(name), gauge));
         return builder.build();
     }
 
+    @SuppressWarnings("NoFunctionalReturnType")
     public static Function<String, MetricName> taggedMetricName(String cacheName) {
         return name -> MetricName.builder()
                 .safeName(name)

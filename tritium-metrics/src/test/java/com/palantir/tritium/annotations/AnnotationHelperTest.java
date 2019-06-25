@@ -56,28 +56,28 @@ public class AnnotationHelperTest {
 
         //discovery annotation on parent class
         MetricGroup cls = AnnotationHelper.getSuperTypeAnnotation(impl.getClass(), MetricGroup.class);
-        assertThat(cls.value()).isEqualTo("DEFAULT");
+        assertThat(cls).isNotNull().extracting(MetricGroup::value).isEqualTo("DEFAULT");
 
         //find annotation by class method
         MetricGroup met = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class,
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("method")));
-        assertThat(met.value()).isEqualTo("ONE");
+        assertThat(met).isNotNull().extracting(MetricGroup::value).isEqualTo("ONE");
 
         //find annotation by string descriptor
         MetricGroup descriptor = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class,
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of("method"));
-        assertThat(descriptor.value()).isEqualTo("ONE");
+        assertThat(descriptor).isNotNull().extracting(MetricGroup::value).isEqualTo("ONE");
 
         //validate overloaded methods
         MetricGroup overload = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class,
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of("method", String.class));
-        assertThat(overload.value()).isEqualTo("OVERLOAD");
+        assertThat(overload).isNotNull().extracting(MetricGroup::value).isEqualTo("OVERLOAD");
 
         //return null if annotation does not exist
         MetricGroup noAnnotation = AnnotationHelper.getMethodAnnotation(
@@ -91,14 +91,14 @@ public class AnnotationHelperTest {
                 MetricGroup.class,
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("hasParams", String.class)));
-        assertThat(clsParams.value()).isEqualTo("TWO");
+        assertThat(clsParams).isNotNull().extracting(MetricGroup::value).isEqualTo("TWO");
 
         //validate signature matching with parameters
         MetricGroup sigParams = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class,
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of("hasParams", String.class));
-        assertThat(sigParams.value()).isEqualTo("TWO");
+        assertThat(sigParams).isNotNull().extracting(MetricGroup::value).isEqualTo("TWO");
 
         //return null if method does not exist
         MetricGroup noMethod = AnnotationHelper.getMethodAnnotation(
@@ -130,7 +130,7 @@ public class AnnotationHelperTest {
                 impl.getClass(),
                 vargSig);
 
-        assertThat(vargParams.value()).isEqualTo("VARGS");
+        assertThat(vargParams).isNotNull().extracting(MetricGroup::value).isEqualTo("VARGS");
 
         assertThat(vargSig).isEqualTo(
                 AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("vargMethod", String[].class)));
@@ -146,6 +146,6 @@ public class AnnotationHelperTest {
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of("method"));
 
-        assertThat(override.value()).isEqualTo("OVERRIDE");
+        assertThat(override).isNotNull().extracting(MetricGroup::value).isEqualTo("OVERRIDE");
     }
 }

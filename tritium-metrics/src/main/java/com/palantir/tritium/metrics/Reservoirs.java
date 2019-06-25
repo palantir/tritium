@@ -24,7 +24,6 @@ import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.SlidingTimeWindowArrayReservoir;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import org.HdrHistogram.Recorder;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
@@ -38,10 +37,6 @@ final class Reservoirs {
         throw new UnsupportedOperationException();
     }
 
-    private static Supplier<Recorder> twoSignificantDigits() {
-        return () -> new Recorder(2);
-    }
-
     /**
      * Metric registry which produces timers and histograms backed by high dynamic range histograms.
      * <p>
@@ -51,8 +46,7 @@ final class Reservoirs {
      */
     @Nonnull
     static Reservoir hdrHistogramReservoir() {
-        Recorder recorder = twoSignificantDigits().get();
-        return hdrHistogramReservoir(recorder);
+        return hdrHistogramReservoir(new Recorder(/* significant digits = */2));
     }
 
     @Nonnull

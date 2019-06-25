@@ -47,7 +47,7 @@ public class TaggedMetricsServiceInvocationEventHandlerTest {
     }
 
     @Parameterized.Parameters
-    public static Iterable<Supplier<Object>> data() {
+    public static ImmutableList<Supplier<Object>> data() {
         return ImmutableList.of(
                 DefaultTaggedMetricRegistry::new,
                 () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS)
@@ -66,7 +66,7 @@ public class TaggedMetricsServiceInvocationEventHandlerTest {
         TaggedMetricsServiceInvocationEventHandler handler =
                 new TaggedMetricsServiceInvocationEventHandler(registry, "quux");
 
-        invokeMethod(handler, testInterface, "doFoo", "bar", true);
+        invokeMethod(handler, testInterface, "doFoo", "bar", /* success= */true);
 
         Map<MetricName, Metric> metrics = registry.getMetrics();
         MetricName expectedMetricName = MetricName.builder()
@@ -86,7 +86,7 @@ public class TaggedMetricsServiceInvocationEventHandlerTest {
         TaggedMetricsServiceInvocationEventHandler handler =
                 new TaggedMetricsServiceInvocationEventHandler(registry, "quux");
 
-        invokeMethod(handler, testInterface, "doFoo", "bar", false);
+        invokeMethod(handler, testInterface, "doFoo", "bar", /* success= */false);
 
         Map<MetricName, Metric> metrics = registry.getMetrics();
         MetricName expectedMetricName = MetricName.builder()

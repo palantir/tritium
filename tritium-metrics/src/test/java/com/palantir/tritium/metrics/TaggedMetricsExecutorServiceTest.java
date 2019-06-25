@@ -47,7 +47,7 @@ public final class TaggedMetricsExecutorServiceTest {
     private static final MetricName QUEUED_DURATION = metricName("queued-duration");
 
     @Parameterized.Parameters
-    public static Iterable<Supplier<Object>> data() {
+    public static ImmutableList<Supplier<Object>> data() {
         return ImmutableList.of(
                 DefaultTaggedMetricRegistry::new,
                 () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS)
