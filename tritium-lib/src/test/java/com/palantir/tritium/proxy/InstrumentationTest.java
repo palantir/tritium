@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -56,6 +55,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.function.LongPredicate;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,7 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings("NullAway") // IntelliJ warnings about injected fields
+@SuppressWarnings("NullAway") // mock injection
 public class InstrumentationTest {
 
     @MetricGroup("DEFAULT")
@@ -193,7 +193,7 @@ public class InstrumentationTest {
         Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                    .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
+                    .withLogging(logger, level, (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG)
                     .build();
             executeManyTimes(instrumentedService, 100);
         }
@@ -207,15 +207,12 @@ public class InstrumentationTest {
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             for (int i = 0; i < 100; i++) {
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                        .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
+                        .withLogging(logger, level, (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
-                try {
-                    instrumentedService.throwsCheckedException();
-                    fail("Expected exception");
-                } catch (Exception expected) {
-                    assertThat(expected).isInstanceOf(TestImplementation.TestException.class);
-                    assertThat(expected.getCause()).isNull();
-                }
+
+                assertThatThrownBy(instrumentedService::throwsCheckedException)
+                        .isInstanceOf(TestImplementation.TestException.class)
+                        .hasCause(null);
             }
         }
     }
@@ -228,7 +225,7 @@ public class InstrumentationTest {
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             for (int i = 0; i < 100; i++) {
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                        .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
+                        .withLogging(logger, level, (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
 
                 assertThatExceptionOfType(TestImplementation.TestThrowable.class)
@@ -304,8 +301,10 @@ public class InstrumentationTest {
         Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(
                 Runnable.class, new TestImplementation());
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> builder.withLogging(null,
-                        com.palantir.tritium.event.log.LoggingLevel.INFO, LoggingInvocationEventHandler.NEVER_LOG))
+                .isThrownBy(() -> builder.withLogging(
+                        null,
+                        com.palantir.tritium.event.log.LoggingLevel.INFO,
+                        (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG))
                 .withMessage("logger");
     }
 
@@ -315,7 +314,10 @@ public class InstrumentationTest {
                 Runnable.class, new TestImplementation());
         Logger logger = LoggerFactory.getLogger(InstrumentationTest.class);
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> builder.withLogging(logger, null, LoggingInvocationEventHandler.NEVER_LOG))
+                .isThrownBy(() -> builder.withLogging(
+                        logger,
+                        null,
+                        (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG))
                 .withMessage("level");
     }
 

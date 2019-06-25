@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@SuppressWarnings("NullAway") // mock injection
 public class CaffeineStatsTest {
 
     @Mock Cache<?, ?> cache;
