@@ -21,7 +21,7 @@ enum JavaTracingTracer implements com.palantir.tritium.tracing.Tracer {
 
     @Override
     public void startSpan(String operationName) {
-        com.palantir.tracing.Tracer.startSpan(operationName);
+        com.palantir.tracing.Tracer.fastStartSpan(operationName);
     }
 
     @Override

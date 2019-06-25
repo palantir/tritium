@@ -22,7 +22,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import com.github.benmanes.caffeine.cache.Cache;
-import java.util.Collections;
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
 final class CaffeineCacheMetrics implements MetricSet {
@@ -41,8 +41,9 @@ final class CaffeineCacheMetrics implements MetricSet {
     }
 
     @Override
+    @SuppressWarnings("MutableMethodReturnType") // API
     public Map<String, Metric> getMetrics() {
-        return Collections.unmodifiableMap(
+        return ImmutableMap.copyOf(
                 CaffeineCacheStats.createCacheGauges(cache, name -> cacheName + '.' + name));
     }
 }
