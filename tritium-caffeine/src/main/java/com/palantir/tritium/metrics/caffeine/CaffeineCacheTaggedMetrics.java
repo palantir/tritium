@@ -21,10 +21,10 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Gauge;
 import com.github.benmanes.caffeine.cache.Cache;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.logsafe.Safe;
 import com.palantir.tritium.metrics.InternalCacheMetrics;
 import com.palantir.tritium.metrics.registry.MetricName;
-import java.util.Map;
 
 final class CaffeineCacheTaggedMetrics {
 
@@ -42,7 +42,7 @@ final class CaffeineCacheTaggedMetrics {
         return new CaffeineCacheTaggedMetrics(cache, cacheName);
     }
 
-    Map<MetricName, Gauge<?>> getMetrics() {
+    ImmutableMap<MetricName, Gauge<?>> getMetrics() {
         return CaffeineCacheStats.createCacheGauges(cache, InternalCacheMetrics.taggedMetricName(cacheName));
     }
 }

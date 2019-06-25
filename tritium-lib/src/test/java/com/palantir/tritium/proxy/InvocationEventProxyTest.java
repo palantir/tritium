@@ -36,6 +36,7 @@ import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,7 +46,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings("NullAway") // IntelliJ warnings about injected fields
+@SuppressWarnings("NullAway") // mock injection
 public class InvocationEventProxyTest {
 
     private static final Object[] EMPTY_ARGS = {};
@@ -74,21 +75,18 @@ public class InvocationEventProxyTest {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler();
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
-        Object result1 = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
-
-        assertThat(result1).isNotNull();
-        assertThat(result1.toString()).isEqualTo("test");
+        assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS))
+                .isNotNull().extracting(Object::toString).isEqualTo("test");
 
         Object result2 = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertThat(result2).isNotNull();
         assertThat(result2).isInstanceOf(DefaultInvocationContext.class);
-        assertThat(result2.toString()).contains(InvocationEventProxyTest.class.getName());
+        assertThat(Objects.requireNonNull(result2).toString()).contains(InvocationEventProxyTest.class.getName());
 
         InvocationContext context = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertThat(context).isNotNull();
-        assertThat(context.toString()).contains("startTimeNanos");
-        assertThat(context.toString()).contains("instance");
-        assertThat(context.toString()).contains("method");
+        assertThat(Objects.requireNonNull(context).toString())
+                .contains("startTimeNanos")
+                .contains("instance")
+                .contains("method");
     }
 
     @Test
@@ -107,8 +105,7 @@ public class InvocationEventProxyTest {
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
-        assertThat(result).isNotNull();
-        assertThat(result.toString()).isEqualTo("test");
+        assertThat(Objects.requireNonNull(result).toString()).isEqualTo("test");
     }
 
     @Test
@@ -125,8 +122,7 @@ public class InvocationEventProxyTest {
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
-        assertThat(result).isNotNull();
-        assertThat(result.toString()).isEqualTo("test");
+        assertThat(Objects.requireNonNull(result).toString()).isEqualTo("test");
 
         InvocationContext context = DefaultInvocationContext.of(this, getToStringMethod(), null);
         proxy.handleOnSuccess(context, result);
@@ -150,9 +146,7 @@ public class InvocationEventProxyTest {
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
-
-        assertThat(result).isNotNull();
-        assertThat(result.toString()).isEqualTo("test");
+        assertThat(Objects.requireNonNull(result).toString()).isEqualTo("test");
 
         InvocationContext context = DefaultInvocationContext.of(this, getToStringMethod(), null);
         RuntimeException expected = new RuntimeException("expected");

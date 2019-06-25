@@ -347,7 +347,7 @@ class InstrumentedSslEngine extends SSLEngine {
         }
 
         // Override(java9+)
-        @SuppressWarnings({"unchecked", "unused"})
+        @SuppressWarnings({"NoFunctionalReturnType", "unchecked", "unused"})
         public BiFunction<SSLEngine, List<String>, String> getHandshakeApplicationProtocolSelector() {
             try {
                 return (BiFunction<SSLEngine, List<String>, String>)

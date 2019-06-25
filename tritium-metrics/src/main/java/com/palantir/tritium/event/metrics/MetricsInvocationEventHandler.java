@@ -29,7 +29,6 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,7 +44,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private final String serviceName;
 
     //consider creating annotation handlers as separate objects
-    private final Map<AnnotationHelper.MethodSignature, String> metricGroups;
+    private final ImmutableMap<AnnotationHelper.MethodSignature, String> metricGroups;
     @Nullable private final String globalGroupPrefix;
 
     @SuppressWarnings("WeakerAccess") // public API
@@ -57,6 +56,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this.globalGroupPrefix = null;
     }
 
+    @SuppressWarnings("InconsistentOverloads")
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry, Class serviceClass, String serviceName, @Nullable String globalGroupPrefix) {
         super(getEnabledSupplier(serviceName));
@@ -72,7 +72,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
     }
 
-    private static Map<AnnotationHelper.MethodSignature, String> createMethodGroupMapping(Class<?> serviceClass) {
+    private static ImmutableMap<AnnotationHelper.MethodSignature, String> createMethodGroupMapping(
+            Class<?> serviceClass) {
         ImmutableMap.Builder<AnnotationHelper.MethodSignature, String> builder = ImmutableMap.builder();
 
         MetricGroup classGroup = AnnotationHelper.getSuperTypeAnnotation(serviceClass, MetricGroup.class);
@@ -91,6 +92,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         return builder.build();
     }
 
+    @SuppressWarnings("NoFunctionalReturnType") // helper
     static java.util.function.BooleanSupplier getEnabledSupplier(String serviceName) {
         return InstrumentationProperties.getSystemPropertySupplier(serviceName);
     }

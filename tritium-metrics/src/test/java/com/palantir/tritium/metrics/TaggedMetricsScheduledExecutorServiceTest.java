@@ -52,7 +52,7 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
     private static final MetricName SCHEDULED_PERCENT_OF_PERIOD = metricName("scheduled.percent-of-period");
 
     @Parameterized.Parameters
-    public static Iterable<Supplier<Object>> data() {
+    public static ImmutableList<Supplier<Object>> data() {
         return ImmutableList.of(
                 DefaultTaggedMetricRegistry::new,
                 () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS)
@@ -115,17 +115,17 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
         assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isEqualTo(0);
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(0);
 
-        executorService.schedule(() -> { }, 1L, TimeUnit.DAYS);
+        assertThat((Future<?>) executorService.schedule(() -> { }, 1L, TimeUnit.DAYS)).isNotNull();
 
         assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isEqualTo(1);
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(0);
 
-        executorService.scheduleAtFixedRate(() -> { }, 1L, 1L, TimeUnit.DAYS);
+        assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> { }, 1L, 1L, TimeUnit.DAYS)).isNotNull();
 
         assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isEqualTo(1);
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(1);
 
-        executorService.scheduleWithFixedDelay(() -> { }, 1L, 1L, TimeUnit.DAYS);
+        assertThat((Future<?>) executorService.scheduleWithFixedDelay(() -> { }, 1L, 1L, TimeUnit.DAYS)).isNotNull();
 
         assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isEqualTo(1);
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(2);
@@ -141,10 +141,11 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
 
         Semaphore startSemaphore = new Semaphore(0);
         Semaphore finishSemaphore = new Semaphore(1);
-        executorService.scheduleAtFixedRate(() -> {
+
+        assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> {
             startSemaphore.release();
             finishSemaphore.acquireUninterruptibly();
-        }, 0L, 1L, TimeUnit.MILLISECONDS);
+        }, 0L, 1L, TimeUnit.MILLISECONDS)).isNotDone();
 
         startSemaphore.acquire(2);
 
