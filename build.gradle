@@ -71,6 +71,11 @@ allprojects {
         }
 
         tasks.withType(JavaCompile).configureEach {
+            options.compilerArgs += [
+                // '-Werror', // disable due to https://github.com/immutables/immutables/issues/291 for now
+                '-Xlint:deprecation',
+                '-Xlint:unchecked',
+            ]
             options.errorprone.disableWarningsInGeneratedCode = true
             options.errorprone.errorproneArgs += [
                 '-Werror',
@@ -101,13 +106,20 @@ allprojects {
                 check -> warningsToPromote << check.canonicalName()
             }
 
+            warningsToPromote.removeAll([
+                'AndroidJdkLibsChecker', // ignore Android
+                'Java7ApiChecker', // tritium requires JDK8+
+                'StaticOrDefaultInterfaceMethod', // Android specific
+                'Var', // high noise, low signal
+            ])
+
             for (String checkName : warningsToPromote) {
                 options.errorprone.errorproneArgs << '-Xep:' + checkName + ':ERROR'
             }
 
             logger.info("Error-prone args: {}", options.errorprone.errorproneArgs)
 
-            if (generateErrorPronePatch) {
+            if (Boolean.TRUE.equals(generateErrorPronePatch) || Boolean.parseBoolean(generateErrorPronePatch)) {
                 def patchChecks = [
                     "PreferSafeLoggableExceptions",
                     "PreferCollectionTransform",
