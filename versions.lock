@@ -16,15 +16,15 @@ com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 c
 com.google.j2objc:j2objc-annotations:1.1 (2 constraints: 8f167910)
 com.palantir.safe-logging:preconditions:1.9.0 (2 constraints: ae11e6f9)
 com.palantir.safe-logging:safe-logging:1.9.0 (3 constraints: b3222d22)
-com.palantir.tracing:tracing:2.15.0 (1 constraints: 3a053e3b)
-com.palantir.tracing:tracing-api:2.15.0 (1 constraints: d00c0e16)
+com.palantir.tracing:tracing:2.16.0 (1 constraints: 3b05413b)
+com.palantir.tracing:tracing-api:2.16.0 (1 constraints: d10c1116)
 io.dropwizard.metrics:metrics-core:3.2.5 (1 constraints: 4f0c80f3)
 org.checkerframework:checker-qual:2.6.0 (3 constraints: 201fc302)
 org.codehaus.mojo:animal-sniffer-annotations:1.17 (1 constraints: ed09d8aa)
 org.hdrhistogram:HdrHistogram:2.1.11 (1 constraints: 3705303b)
 org.immutables:value:2.7.5 (1 constraints: 10050f36)
 org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:1.1.2 (1 constraints: 0605f535)
-org.slf4j:slf4j-api:1.7.26 (5 constraints: 7138a450)
+org.slf4j:slf4j-api:1.7.26 (5 constraints: 7538d951)
 
 [Test dependencies]
 ch.qos.logback:logback-classic:1.1.2 (1 constraints: 0605f535)
