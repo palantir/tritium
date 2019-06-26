@@ -440,6 +440,24 @@ public class MetricRegistriesTest {
                 });
     }
 
+    @Test
+    public void testMemoryPoolMetrics() {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        MetricRegistries.registerMemoryPools(registry);
+        assertThat(registry.getMetrics().keySet())
+                .allSatisfy(metricName -> {
+                    assertThat(metricName.safeName()).matches("jvm\\.memory\\.pools\\..+");
+                    assertThat(metricName.safeTags()).containsOnlyKeys("pool");
+                });
+        // n.b. Test does not check for 'used-after-gc' because it depends on the runtime
+        assertThat(registry.getMetrics().keySet()).extracting(MetricName::safeName).contains(
+                "jvm.memory.pools.max",
+                "jvm.memory.pools.used",
+                "jvm.memory.pools.committed",
+                "jvm.memory.pools.init",
+                "jvm.memory.pools.usage");
+    }
+
     private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {
         return clazz.cast(metrics.getMetrics()
                 .entrySet()
