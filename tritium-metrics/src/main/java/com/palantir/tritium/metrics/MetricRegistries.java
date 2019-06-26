@@ -275,6 +275,25 @@ public final class MetricRegistries {
     }
 
     /**
+     * Adds memory pool metrics to the given metric registry.
+     *
+     * Registers the following metrics, tagged with <pre>{memoryPool: NAME}</pre>.
+     * <ul>
+     *     <li>jvm.memory.pools.max</li>
+     *     <li>jvm.memory.pools.used</li>
+     *     <li>jvm.memory.pools.committed</li>
+     *     <li>jvm.memory.pools.init</li>
+     *     <li>jvm.memory.pools.usage</li>
+     *     <li>jvm.memory.pools.used-after-gc (Only for supported pools)</li>
+     * </ul>
+     *
+     * @param registry metric registry
+     */
+    public static void registerMemoryPools(TaggedMetricRegistry registry) {
+        MemoryPoolMetrics.register(checkNotNull(registry, "TaggedMetricRegistry is required"));
+    }
+
+    /**
      * Returns an instrumented {@link ScheduledExecutorService} that monitors the number of tasks submitted, running,
      * completed and also keeps a {@link com.codahale.metrics.Timer} for the task duration. Similar to
      * {@link com.codahale.metrics.InstrumentedScheduledExecutorService}, but produces tagged metrics to the
