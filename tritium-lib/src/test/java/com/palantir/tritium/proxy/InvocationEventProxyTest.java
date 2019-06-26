@@ -36,7 +36,6 @@ import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -76,14 +75,14 @@ public class InvocationEventProxyTest {
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
         assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS))
-                .isNotNull().extracting(Object::toString).isEqualTo("test");
+                .asString().isEqualTo("test");
 
         Object result2 = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertThat(result2).isInstanceOf(DefaultInvocationContext.class);
-        assertThat(Objects.requireNonNull(result2).toString()).contains(InvocationEventProxyTest.class.getName());
+        assertThat(result2).isInstanceOf(DefaultInvocationContext.class)
+                .asString().contains(InvocationEventProxyTest.class.getName());
 
         InvocationContext context = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertThat(Objects.requireNonNull(context).toString())
+        assertThat(context).asString()
                 .contains("startTimeNanos")
                 .contains("instance")
                 .contains("method");
@@ -105,7 +104,7 @@ public class InvocationEventProxyTest {
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
-        assertThat(Objects.requireNonNull(result).toString()).isEqualTo("test");
+        assertThat(result).asString().isEqualTo("test");
     }
 
     @Test
@@ -122,7 +121,7 @@ public class InvocationEventProxyTest {
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
-        assertThat(Objects.requireNonNull(result).toString()).isEqualTo("test");
+        assertThat(result).asString().isEqualTo("test");
 
         InvocationContext context = DefaultInvocationContext.of(this, getToStringMethod(), null);
         proxy.handleOnSuccess(context, result);
@@ -146,7 +145,7 @@ public class InvocationEventProxyTest {
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
         Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertThat(Objects.requireNonNull(result).toString()).isEqualTo("test");
+        assertThat(result).asString().isEqualTo("test");
 
         InvocationContext context = DefaultInvocationContext.of(this, getToStringMethod(), null);
         RuntimeException expected = new RuntimeException("expected");
@@ -178,7 +177,7 @@ public class InvocationEventProxyTest {
             }
         };
 
-        assertThat(proxy.toString()).isEqualTo("Hello, world");
+        assertThat(proxy).asString().isEqualTo("Hello, world");
     }
 
     @Test
