@@ -429,6 +429,17 @@ public class MetricRegistriesTest {
         assertParsesTimestamp("2019-03-29T23:38:51.092Z");
     }
 
+    @Test
+    public void testGarbageCollectionMetrics() {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        MetricRegistries.registerGarbageCollection(registry);
+        assertThat(registry.getMetrics().keySet())
+                .allSatisfy(metricName -> {
+                    assertThat(metricName.safeName()).matches("jvm\\.gc\\.(time|count)");
+                    assertThat(metricName.safeTags()).containsOnlyKeys("collector");
+                });
+    }
+
     private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {
         return clazz.cast(metrics.getMetrics()
                 .entrySet()

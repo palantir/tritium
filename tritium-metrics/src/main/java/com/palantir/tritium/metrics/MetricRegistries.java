@@ -264,6 +264,17 @@ public final class MetricRegistries {
     }
 
     /**
+     * Adds Garbage Collection metrics to the given metric registry.
+     *
+     * Registers gauges <pre>jvm.gc.count</pre> and <pre>jvm.gc.time</pre> tagged with <pre>{collector: NAME}</pre>.
+     *
+     * @param registry metric registry
+     */
+    public static void registerGarbageCollection(TaggedMetricRegistry registry) {
+        GarbageCollectorMetrics.register(checkNotNull(registry, "TaggedMetricRegistry is required"));
+    }
+
+    /**
      * Returns an instrumented {@link ScheduledExecutorService} that monitors the number of tasks submitted, running,
      * completed and also keeps a {@link com.codahale.metrics.Timer} for the task duration. Similar to
      * {@link com.codahale.metrics.InstrumentedScheduledExecutorService}, but produces tagged metrics to the
