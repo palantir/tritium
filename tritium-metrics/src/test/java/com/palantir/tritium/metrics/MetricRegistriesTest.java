@@ -447,7 +447,7 @@ public class MetricRegistriesTest {
         assertThat(registry.getMetrics().keySet())
                 .allSatisfy(metricName -> {
                     assertThat(metricName.safeName()).matches("jvm\\.memory\\.pools\\..+");
-                    assertThat(metricName.safeTags()).containsOnlyKeys("pool");
+                    assertThat(metricName.safeTags()).containsOnlyKeys("memoryPool");
                 });
         // n.b. Test does not check for 'used-after-gc' because it depends on the runtime
         assertThat(registry.getMetrics().keySet()).extracting(MetricName::safeName).contains(

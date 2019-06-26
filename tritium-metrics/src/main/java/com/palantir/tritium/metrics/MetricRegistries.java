@@ -277,7 +277,7 @@ public final class MetricRegistries {
     /**
      * Adds memory pool metrics to the given metric registry.
      *
-     * Registers the following metrics, tagged with <pre>{pool: NAME}</pre>.
+     * Registers the following metrics, tagged with <pre>{memoryPool: NAME}</pre>.
      * <ul>
      *     <li>jvm.memory.pools.max</li>
      *     <li>jvm.memory.pools.used</li>

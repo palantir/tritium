@@ -32,7 +32,7 @@ import java.lang.management.MemoryUsage;
 final class MemoryPoolMetrics {
 
     /**
-     * Registers the following metrics, tagged with <pre>{pool: NAME}</pre>.
+     * Registers the following metrics, tagged with <pre>{memoryPool: NAME}</pre>.
      * <ul>
      *     <li>jvm.memory.pools.max</li>
      *     <li>jvm.memory.pools.used</li>
@@ -77,7 +77,7 @@ final class MemoryPoolMetrics {
     private static MetricName name(String pool, String suffix) {
         return MetricName.builder()
                 .safeName("jvm.memory.pools." + suffix)
-                .putSafeTags("pool", pool)
+                .putSafeTags("memoryPool", pool)
                 .build();
     }
 
