@@ -153,7 +153,7 @@ public class CompositeInvocationEventHandlerTest {
     public void testToString() {
         InvocationEventHandler<InvocationContext> handler = CompositeInvocationEventHandler.of(
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new SimpleInvocationEventHandler()));
-        assertThat(handler.toString())
+        assertThat(handler).asString()
                 .startsWith("CompositeInvocationEventHandler{handlers=[INSTANCE, ")
                 .endsWith("]}");
     }
