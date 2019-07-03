@@ -1,3 +1,7 @@
+<p align="right">
+<a href="https://autorelease.general.dmz.palantir.tech/palantir/tritium"><img src="https://img.shields.io/badge/Perform%20an-Autorelease-success.svg" alt="Autorelease"></a>
+</p>
+
 # [Tritium](https://github.com/palantir/tritium)
 
 Tritium is a library for instrumenting applications  to provide better observability at runtime. Tritium allows for instrumentation of service interfaces through a Java proxy, providing call backs to extensible invocation event handlers. Two main invocation handlers currently provided are:
