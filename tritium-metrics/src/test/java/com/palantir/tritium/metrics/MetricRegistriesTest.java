@@ -29,15 +29,19 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.MetricSet;
 import com.codahale.metrics.Snapshot;
+import com.codahale.metrics.Timer;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -456,6 +460,41 @@ public class MetricRegistriesTest {
                 "jvm.memory.pools.committed",
                 "jvm.memory.pools.init",
                 "jvm.memory.pools.usage");
+    }
+
+    @Test
+    public void testRegisterAll() {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        Gauge<Long> gauge = () -> 1L;
+        Meter meter = new Meter();
+        Histogram histogram = new Histogram(new ExponentiallyDecayingReservoir());
+        Counter counter = new Counter();
+        Timer timer = new Timer();
+        MetricSet metricSet = () -> ImmutableMap.of(
+                "gauge", gauge,
+                "meter", meter,
+                "histogram", histogram,
+                "counter", counter,
+                "timer", timer);
+        MetricRegistries.registerAll(registry, "tritium", metricSet);
+        assertThat(registry.getMetrics()).isEqualTo(ImmutableMap.of(
+                simpleName("tritium.gauge"), gauge,
+                simpleName("tritium.meter"), meter,
+                simpleName("tritium.histogram"), histogram,
+                simpleName("tritium.counter"), counter,
+                simpleName("tritium.timer"), timer));
+    }
+
+    @Test
+    public void testRegisterAllUnknownType() {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        MetricSet metricSet = () -> ImmutableMap.of("unknown", new Metric() {});
+        assertThatThrownBy(() -> MetricRegistries.registerAll(registry, "prefix", metricSet))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private static MetricName simpleName(String name) {
+        return MetricName.builder().safeName(name).build();
     }
 
     private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {
