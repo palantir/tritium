@@ -1,8 +1,8 @@
 apply from: "${rootDir}/gradle/publish-jar.gradle"
 
 dependencies {
-    api project(':tritium-metrics')
-    api 'io.dropwizard.metrics:metrics-core'
+    api project(':tritium-registry')
+    implementation project(':tritium-metrics')
 
     implementation 'io.dropwizard.metrics:metrics-jvm'
     implementation 'com.google.guava:guava'
