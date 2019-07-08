@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: Add new `tritium-metrics-jvm` module with standard JVM instrumentation
+  links:
+  - https://github.com/palantir/tritium/pull/308
