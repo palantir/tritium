@@ -17,12 +17,10 @@
 package com.palantir.tritium.metrics.jvm;
 
 import com.codahale.metrics.JvmAttributeGaugeSet;
-import com.codahale.metrics.MetricSet;
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -47,16 +45,14 @@ public final class JvmMetrics {
         Jdk9CompatibleFileDescriptorRatioGauge.register(registry);
         OperatingSystemMetrics.register(registry);
         SafepointMetrics.register(registry);
-        ImmutableMap<String, MetricSet> dropwizardMetricSets = ImmutableMap.<String, MetricSet>builder()
-                .put("jvm.attribute", new JvmAttributeGaugeSet())
-                .put("jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()))
-                .put("jvm.classloader", new ClassLoadingGaugeSet())
-                .put("jvm.memory", () -> Maps.filterKeys(
-                        // Memory pool metrics are already provided by MetricRegistries.registerMemoryPools
-                        new MemoryUsageGaugeSet().getMetrics(), name -> !name.startsWith("pools")))
-                .put("jvm.threads", new ThreadStatesGaugeSet())
-                .build();
-        dropwizardMetricSets.forEach((prefix, metric) -> MetricRegistries.registerAll(registry, prefix, metric));
+        MetricRegistries.registerAll(registry, "jvm.attribute", new JvmAttributeGaugeSet());
+        MetricRegistries.registerAll(registry, "jvm.buffers",
+                new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
+        MetricRegistries.registerAll(registry, "jvm.classloader", new ClassLoadingGaugeSet());
+        MetricRegistries.registerAll(registry, "jvm.memory", () -> Maps.filterKeys(
+                // Memory pool metrics are already provided by MetricRegistries.registerMemoryPools
+                new MemoryUsageGaugeSet().getMetrics(), name -> !name.startsWith("pools")));
+        MetricRegistries.registerAll(registry, "jvm.threads", new ThreadStatesGaugeSet());
     }
 
     private JvmMetrics() {
