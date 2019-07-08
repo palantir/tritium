@@ -20,17 +20,25 @@ import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Clock;
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.MetricSet;
 import com.codahale.metrics.Reservoir;
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
+import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -440,5 +448,40 @@ public final class MetricRegistries {
                 }
             }
         }
+    }
+
+    /**
+     * Registers a Dropwizard {@link MetricSet} with a Tritium {@link TaggedMetricRegistry}.
+     * Semantics match calling {@link MetricRegistry#register(String, Metric)} with a {@link MetricSet}.
+     *
+     * @param registry Target Tritium registry
+     * @param prefix Metric name prefix
+     * @param metricSet Set to register with the tagged registry
+     */
+    public static void registerAll(TaggedMetricRegistry registry, String prefix, MetricSet metricSet) {
+        Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
+        Preconditions.checkNotNull(prefix, "Prefix is required");
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(prefix), "Prefix cannot be blank");
+        Preconditions.checkNotNull(metricSet, "MetricSet is required");
+        metricSet.getMetrics().forEach((name, metric) -> {
+            String safeName = MetricRegistry.name(prefix, name);
+            MetricName metricName = MetricName.builder().safeName(safeName).build();
+            if (metric instanceof Gauge) {
+                registry.gauge(metricName, (Gauge<?>) metric);
+            } else if (metric instanceof Counter) {
+                registry.counter(metricName, () -> (Counter) metric);
+            } else if (metric instanceof Histogram) {
+                registry.histogram(metricName, () -> (Histogram) metric);
+            } else if (metric instanceof Meter) {
+                registry.meter(metricName, () -> (Meter) metric);
+            } else if (metric instanceof Timer) {
+                registry.timer(metricName, () -> (Timer) metric);
+            } else if (metric instanceof MetricSet) {
+                registerAll(registry, safeName, (MetricSet) metric);
+            } else {
+                throw new SafeIllegalArgumentException("Unknown Metric Type",
+                        SafeArg.of("type", metric.getClass()));
+            }
+        });
     }
 }

@@ -1,0 +1,18 @@
+apply from: "${rootDir}/gradle/publish-jar.gradle"
+
+dependencies {
+    api project(':tritium-registry')
+    implementation project(':tritium-metrics')
+
+    implementation 'io.dropwizard.metrics:metrics-jvm'
+    implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:preconditions'
+    implementation 'com.palantir.safe-logging:safe-logging'
+    implementation 'org.slf4j:slf4j-api'
+
+    testImplementation 'junit:junit'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.awaitility:awaitility'
+    testImplementation 'org.mockito:mockito-core'
+}
+
