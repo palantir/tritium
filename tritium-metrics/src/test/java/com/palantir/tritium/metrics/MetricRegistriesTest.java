@@ -470,19 +470,23 @@ public class MetricRegistriesTest {
         Histogram histogram = new Histogram(new ExponentiallyDecayingReservoir());
         Counter counter = new Counter();
         Timer timer = new Timer();
-        MetricSet metricSet = () -> ImmutableMap.of(
-                "gauge", gauge,
-                "meter", meter,
-                "histogram", histogram,
-                "counter", counter,
-                "timer", timer);
+        MetricSet metricSet = () -> ImmutableMap.<String, Metric>builder()
+                .put("gauge", gauge)
+                .put("meter", meter)
+                .put("histogram", histogram)
+                .put("counter", counter)
+                .put("timer", timer)
+                .put("set", (MetricSet) () -> ImmutableMap.of("gauge", gauge))
+                .build();
         MetricRegistries.registerAll(registry, "tritium", metricSet);
-        assertThat(registry.getMetrics()).isEqualTo(ImmutableMap.of(
-                simpleName("tritium.gauge"), gauge,
-                simpleName("tritium.meter"), meter,
-                simpleName("tritium.histogram"), histogram,
-                simpleName("tritium.counter"), counter,
-                simpleName("tritium.timer"), timer));
+        assertThat(registry.getMetrics()).isEqualTo(ImmutableMap.<MetricName, Metric>builder()
+                .put(simpleName("tritium.gauge"), gauge)
+                .put(simpleName("tritium.meter"), meter)
+                .put(simpleName("tritium.histogram"), histogram)
+                .put(simpleName("tritium.counter"), counter)
+                .put(simpleName("tritium.timer"), timer)
+                .put(simpleName("tritium.set.gauge"), gauge)
+                .build());
     }
 
     @Test

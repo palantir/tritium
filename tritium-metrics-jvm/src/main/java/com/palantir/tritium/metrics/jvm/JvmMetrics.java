@@ -22,6 +22,7 @@ import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.google.common.collect.Maps;
+import com.palantir.logsafe.Preconditions;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ManagementFactory;
@@ -40,6 +41,7 @@ public final class JvmMetrics {
      * @param registry metric registry
      */
     public static void register(TaggedMetricRegistry registry) {
+        Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
         MetricRegistries.registerGarbageCollection(registry);
         MetricRegistries.registerMemoryPools(registry);
         Jdk9CompatibleFileDescriptorRatioGauge.register(registry);

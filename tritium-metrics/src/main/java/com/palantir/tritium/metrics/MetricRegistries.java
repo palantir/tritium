@@ -31,6 +31,7 @@ import com.codahale.metrics.MetricSet;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.logsafe.Preconditions;
@@ -460,9 +461,11 @@ public final class MetricRegistries {
     public static void registerAll(TaggedMetricRegistry registry, String prefix, MetricSet metricSet) {
         Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
         Preconditions.checkNotNull(prefix, "Prefix is required");
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(prefix), "Prefix cannot be blank");
         Preconditions.checkNotNull(metricSet, "MetricSet is required");
         metricSet.getMetrics().forEach((name, metric) -> {
-            MetricName metricName = MetricName.builder().safeName(MetricRegistry.name(prefix, name)).build();
+            String safeName = MetricRegistry.name(prefix, name);
+            MetricName metricName = MetricName.builder().safeName(safeName).build();
             if (metric instanceof Gauge) {
                 registry.gauge(metricName, (Gauge<?>) metric);
             } else if (metric instanceof Counter) {
@@ -473,6 +476,8 @@ public final class MetricRegistries {
                 registry.meter(metricName, () -> (Meter) metric);
             } else if (metric instanceof Timer) {
                 registry.timer(metricName, () -> (Timer) metric);
+            } else if (metric instanceof MetricSet) {
+                registerAll(registry, safeName, (MetricSet) metric);
             } else {
                 throw new SafeIllegalArgumentException("Unknown Metric Type",
                         SafeArg.of("type", metric.getClass()));
