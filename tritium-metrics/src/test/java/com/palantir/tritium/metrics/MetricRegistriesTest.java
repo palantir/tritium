@@ -89,8 +89,7 @@ public class MetricRegistriesTest {
         assertThat(metrics.getGauges().keySet()).containsExactly(
                 MetricRegistries.RESERVOIR_TYPE_METRIC_NAME,
                 "com.palantir.tritium.metrics.snapshot.begin",
-                "com.palantir.tritium.metrics.snapshot.now"
-        );
+                "com.palantir.tritium.metrics.snapshot.now");
         report(metrics);
     }
 
@@ -201,8 +200,7 @@ public class MetricRegistriesTest {
                 "test.cache.load.success.count",
                 "test.cache.miss.count",
                 "test.cache.miss.ratio",
-                "test.cache.request.count"
-        );
+                "test.cache.request.count");
 
         when(cache.stats()).thenReturn(new CacheStats(1, 2, 3, 4, 5, 6));
         when(cache.size()).thenReturn(42L);
@@ -244,8 +242,7 @@ public class MetricRegistriesTest {
                 "test.cache.load.success.count",
                 "test.cache.miss.count",
                 "test.cache.miss.ratio",
-                "test.cache.request.count"
-        );
+                "test.cache.request.count");
 
         when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
         assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(0L);
