@@ -55,8 +55,7 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
     public static ImmutableList<Supplier<Object>> data() {
         return ImmutableList.of(
                 DefaultTaggedMetricRegistry::new,
-                () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS)
-        );
+                () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS));
     }
 
     @Parameterized.Parameter

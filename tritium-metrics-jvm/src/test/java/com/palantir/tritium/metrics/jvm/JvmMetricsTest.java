@@ -82,8 +82,7 @@ public class JvmMetricsTest {
             "jvm.threads.terminated.count",
             "jvm.threads.blocked.count",
             "os.load.1",
-            "os.load.norm.1"
-    );
+            "os.load.norm.1");
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
