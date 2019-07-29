@@ -40,7 +40,7 @@ public class JavaTracingTracerTest {
                 .hasSize(1)
                 .first()
                 .extracting("operation")
-                .contains("test");
+                .isEqualTo("test");
     }
 
 }
