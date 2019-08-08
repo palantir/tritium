@@ -8,6 +8,7 @@ dependencies {
     api project(':tritium-api')
     api project(':tritium-core')
     api project(':tritium-metrics')
+    api project(':tritium-registry')
     api 'com.github.ben-manes.caffeine:caffeine'
     api 'io.dropwizard.metrics:metrics-core'
 

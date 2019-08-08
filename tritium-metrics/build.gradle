@@ -10,6 +10,7 @@ dependencies {
     api project(':tritium-registry')
     api 'io.dropwizard.metrics:metrics-core'
 
+    implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
