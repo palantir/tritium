@@ -192,6 +192,7 @@ public class InstrumentationTest {
 
         Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
+            @SuppressWarnings("deprecation") // explicitly testing
             TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
                     .withLogging(logger, level, (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG)
                     .build();
@@ -206,6 +207,7 @@ public class InstrumentationTest {
         Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             for (int i = 0; i < 100; i++) {
+                @SuppressWarnings("deprecation") // explicitly testing
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
                         .withLogging(logger, level, (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
@@ -224,6 +226,7 @@ public class InstrumentationTest {
         Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             for (int i = 0; i < 100; i++) {
+                @SuppressWarnings("deprecation") // explicitly testing
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
                         .withLogging(logger, level, (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
@@ -297,6 +300,7 @@ public class InstrumentationTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation") // explicitly testing
     public void testNullLogger() {
         Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(
                 Runnable.class, new TestImplementation());
@@ -309,6 +313,7 @@ public class InstrumentationTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation") // explicitly testing
     public void testNullLogLevel() {
         Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(
                 Runnable.class, new TestImplementation());

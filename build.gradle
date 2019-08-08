@@ -32,6 +32,7 @@ allprojects {
     apply plugin: 'java-library'
     apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
+    apply plugin: 'com.palantir.baseline-exact-dependencies'
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
@@ -66,7 +67,6 @@ allprojects {
 
     plugins.withId('com.palantir.baseline-error-prone', {
         dependencies {
-            compileOnly 'com.google.code.findbugs:jsr305'
             errorprone 'com.uber.nullaway:nullaway'
         }
 
@@ -82,8 +82,7 @@ allprojects {
                 '-Xlint:deprecation',
                 '-Xlint:unchecked',
                 '-XepDisableWarningsInGeneratedCode',
-                // skipping Immutable* explicitly due to https://github.com/google/error-prone/issues/1165
-                '-XepExcludedPaths:.*(generated|Immutable).*',
+                '-XepExcludedPaths:.*(generated).*',
                 '-XepOpt:NullAway:AnnotatedPackages=com.palantir',
             ]
 
@@ -139,5 +138,8 @@ allprojects {
         }
     }
     tasks.check.dependsOn(javadoc)
+
+    tasks.check.dependsOn(checkImplicitDependencies)
+
 }
 

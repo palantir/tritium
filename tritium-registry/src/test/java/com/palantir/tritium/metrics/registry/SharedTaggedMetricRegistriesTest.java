@@ -25,6 +25,7 @@ import org.junit.Test;
 public class SharedTaggedMetricRegistriesTest {
     @Test
     public void all_default_methods_return_the_same_thing() {
+        @SuppressWarnings("deprecation")
         TaggedMetricRegistry deprecated = DefaultTaggedMetricRegistry.getDefault();
         TaggedMetricRegistry defaultRegistry = SharedTaggedMetricRegistries.getSingleton();
 
