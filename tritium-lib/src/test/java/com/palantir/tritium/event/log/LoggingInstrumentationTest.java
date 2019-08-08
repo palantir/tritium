@@ -63,6 +63,7 @@ public class LoggingInstrumentationTest {
     public void testNoLogging() {
         TestImplementation delegate = new TestImplementation();
         Logger logger = getLogger();
+        @SuppressWarnings("deprecation") // explicitly testing
         Runnable instrumentedService = Instrumentation.builder(Runnable.class, delegate)
                 .withLogging(logger, LoggingLevel.TRACE, LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
                 .build();
@@ -81,6 +82,7 @@ public class LoggingInstrumentationTest {
             }
         };
         Logger logger = getLogger();
+        @SuppressWarnings("deprecation") // explicitly testing
         TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
                 .withLogging(logger, LoggingLevel.ERROR, LoggingInvocationEventHandler.NEVER_LOG)
                 .build();
