@@ -6,11 +6,11 @@ dependencies {
     api project(':tritium-core')
     api project(':tritium-metrics')
     api project(':tritium-proxy')
+    api project(':tritium-registry')
     api project(':tritium-slf4j')
     api project(':tritium-tracing')
     api 'io.dropwizard.metrics:metrics-core'
 
-    implementation project(':tritium-registry')
     implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.google.errorprone:error_prone_annotations'
     implementation 'com.google.guava:guava'
