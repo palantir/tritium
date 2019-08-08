@@ -148,6 +148,7 @@ allprojects {
     tasks.check.dependsOn(javadoc)
 
     tasks.check.dependsOn(checkImplicitDependencies)
+    tasks.check.dependsOn(checkUnusedDependencies)
 
 }
 
