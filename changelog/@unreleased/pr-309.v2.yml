@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Add `process.cpu.utilization` gauge for process cpu load.
+  links:
+  - https://github.com/palantir/tritium/pull/309

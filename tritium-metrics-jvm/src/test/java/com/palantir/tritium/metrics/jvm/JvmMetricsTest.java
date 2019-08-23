@@ -82,7 +82,9 @@ public class JvmMetricsTest {
             "jvm.threads.terminated.count",
             "jvm.threads.blocked.count",
             "os.load.1",
-            "os.load.norm.1");
+            "os.load.norm.1",
+            "process.cpu.utilization"
+    );
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -130,6 +132,17 @@ public class JvmMetricsTest {
                 .get(MetricName.builder().safeName("os.load.1").build());
         assertThat(systemLoad.getValue()).isPositive();
         assertThat(systemLoadNormalized.getValue()).isPositive();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCpuLoad() {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        JvmMetrics.register(registry);
+        Gauge<Double> processCpuLoad = (Gauge<Double>) registry.getMetrics()
+                .get(MetricName.builder().safeName("process.cpu.utilization").build());
+        double processLoad = processCpuLoad.getValue();
+        assertThat(processLoad).isGreaterThanOrEqualTo(0D).isLessThanOrEqualTo(1D);
     }
 
     @Test
