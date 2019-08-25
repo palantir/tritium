@@ -25,6 +25,12 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unused") // used by junit parameterized tests
 public final class TestTaggedMetricRegistries {
+
+    public static final String REGISTRIES = "com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries";
+
+    public static final String REGISTRY_SUPPLIERS =
+            "com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registrySuppliers";
+
     private TestTaggedMetricRegistries() {}
 
     public static Stream<TaggedMetricRegistry> registries() {

@@ -29,6 +29,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
+import com.palantir.tritium.registry.test.TestTaggedMetricRegistries;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -75,19 +76,19 @@ final class TaggedMetricRegistryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testCounter(TaggedMetricRegistry registry) {
         testNonsuppliedCall(registry::counter);
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testSuppliedCounter(TaggedMetricRegistry registry) {
         testSuppliedCall(registry::counter, new Counter(), new Counter());
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testGauge(TaggedMetricRegistry registry) {
         Gauge<Integer> gauge1 = registry.gauge(METRIC_1, () -> 1);
         Gauge<Integer> gauge2 = registry.gauge(METRIC_2, () -> 2);
@@ -101,13 +102,13 @@ final class TaggedMetricRegistryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testHistogram(TaggedMetricRegistry registry) {
         testNonsuppliedCall(registry::histogram);
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testSuppliedHistogram(TaggedMetricRegistry registry) {
         testSuppliedCall(registry::histogram,
                 new Histogram(new ExponentiallyDecayingReservoir()),
@@ -115,31 +116,31 @@ final class TaggedMetricRegistryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testMeter(TaggedMetricRegistry registry) {
         testNonsuppliedCall(registry::meter);
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testSuppliedMeter(TaggedMetricRegistry registry) {
         testSuppliedCall(registry::meter, new Meter(), new Meter());
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testTimer(TaggedMetricRegistry registry) {
         testNonsuppliedCall(registry::timer);
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testSuppliedTimer(TaggedMetricRegistry registry) {
         testSuppliedCall(registry::timer, new Timer(), new Timer());
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testExistingMetric(TaggedMetricRegistry registry) {
         registry.counter(METRIC_1);
 
@@ -153,7 +154,7 @@ final class TaggedMetricRegistryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testRemoveMetric(TaggedMetricRegistry registry) {
         Gauge<Integer> gauge = () -> 42;
         Gauge<Integer> registeredGauge = registry.gauge(METRIC_1, gauge);
@@ -165,7 +166,7 @@ final class TaggedMetricRegistryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registrySuppliers")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRY_SUPPLIERS)
     void testAddMetricRegistry(Supplier<TaggedMetricRegistry> registrySupplier) {
         TaggedMetricRegistry registry = registrySupplier.get();
         String name = "name";
@@ -180,7 +181,7 @@ final class TaggedMetricRegistryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registrySuppliers")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRY_SUPPLIERS)
     void testReplaceMetricRegistry(Supplier<TaggedMetricRegistry> registrySupplier) {
         TaggedMetricRegistry registry = registrySupplier.get();
         String name = "name";
@@ -208,7 +209,7 @@ final class TaggedMetricRegistryTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.registry.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testGetMetrics(TaggedMetricRegistry registry) {
         MetricName metricName = MetricName.builder()
                 .safeName("counter1")

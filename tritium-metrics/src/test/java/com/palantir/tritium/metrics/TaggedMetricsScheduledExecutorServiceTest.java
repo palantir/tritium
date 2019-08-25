@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.codahale.metrics.MetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -45,7 +46,7 @@ final class TaggedMetricsScheduledExecutorServiceTest {
     private static final MetricName SCHEDULED_PERCENT_OF_PERIOD = metricName("scheduled.percent-of-period");
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.metrics.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testMetrics(TaggedMetricRegistry registry) throws Exception {
         ScheduledExecutorService executorService = MetricRegistries.instrument(
                 registry, Executors.newSingleThreadScheduledExecutor(), NAME);
@@ -83,7 +84,7 @@ final class TaggedMetricsScheduledExecutorServiceTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.metrics.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testScheduledMetrics(TaggedMetricRegistry registry) {
         ScheduledExecutorService executorService = MetricRegistries.instrument(
                 registry, Executors.newSingleThreadScheduledExecutor(), NAME);
@@ -110,7 +111,7 @@ final class TaggedMetricsScheduledExecutorServiceTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.metrics.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testScheduledDurationMetrics(TaggedMetricRegistry registry) throws Exception {
         ScheduledExecutorService executorService = MetricRegistries.instrument(
                 registry, Executors.newSingleThreadScheduledExecutor(), NAME);

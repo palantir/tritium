@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.codahale.metrics.MetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,7 +40,7 @@ final class TaggedMetricsExecutorServiceTest {
     private static final MetricName QUEUED_DURATION = metricName("queued-duration");
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.metrics.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testMetrics(TaggedMetricRegistry registry) throws Exception {
         ExecutorService executorService =
                 MetricRegistries.instrument(registry, Executors.newSingleThreadExecutor(), NAME);

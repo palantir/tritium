@@ -25,6 +25,7 @@ import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
 import java.util.Map;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -41,7 +42,7 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.metrics.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testTaggedServiceMetricsCaptured(TaggedMetricRegistry registry) throws Exception {
         TestImplementation testInterface = new TestImplementation();
 
@@ -60,7 +61,7 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
     }
 
     @ParameterizedTest
-    @MethodSource("com.palantir.tritium.metrics.test.TestTaggedMetricRegistries#registries")
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testTaggedServiceMetricsCapturedAsErrors(TaggedMetricRegistry registry) throws Exception {
         TestImplementation testInterface = new TestImplementation();
 
