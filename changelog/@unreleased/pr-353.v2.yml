@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Migrates all tests to JUnit 5 Jupiter
+  links:
+  - https://github.com/palantir/tritium/pull/353
