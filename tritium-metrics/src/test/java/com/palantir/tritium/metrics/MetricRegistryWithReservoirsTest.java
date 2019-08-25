@@ -26,15 +26,15 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Timer;
 import java.util.function.Supplier;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @SuppressWarnings("NullAway") // mock injection
-public class MetricRegistryWithReservoirsTest {
+final class MetricRegistryWithReservoirsTest {
 
     @Mock
     private Supplier<Reservoir> mockSupplier;
@@ -44,14 +44,14 @@ public class MetricRegistryWithReservoirsTest {
 
     private MetricRegistryWithReservoirs metrics;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         when(mockSupplier.get()).thenReturn(mockReservoir);
         metrics = new MetricRegistryWithReservoirs(mockSupplier);
     }
 
     @Test
-    public void histogram() {
+    void histogram() {
         Histogram histogram = metrics.histogram("test");
         assertThat(histogram).isNotNull();
         assertThat(metrics.histogram("test")).isSameAs(histogram);
@@ -61,7 +61,7 @@ public class MetricRegistryWithReservoirsTest {
     }
 
     @Test
-    public void timer() {
+    void timer() {
         Timer timer = metrics.timer("test");
         assertThat(timer).isNotNull();
         assertThat(metrics.timer("test")).isSameAs(timer);

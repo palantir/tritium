@@ -45,11 +45,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.xnio.Options;
 import org.xnio.Sequence;
 
-public class InstrumentedSslContextTest {
+final class InstrumentedSslContextTest {
 
     private static final String ENABLED_CIPHER = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
     private static final String ENABLED_PROTOCOL = "TLSv1.2";
@@ -58,7 +58,7 @@ public class InstrumentedSslContextTest {
     private static final int PORT = 4483;
 
     @Test
-    public void testClientInstrumentationHttpsUrlConnection() throws Exception {
+    void testClientInstrumentationHttpsUrlConnection() throws Exception {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         try (Closeable ignored = server(newServerContext())) {
             SSLContext context = MetricRegistries.instrument(metrics, newClientContext(), "client-context");
@@ -78,7 +78,7 @@ public class InstrumentedSslContextTest {
     }
 
     @Test
-    public void testClientInstrumentationOkHttp() throws Exception {
+    void testClientInstrumentationOkHttp() throws Exception {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         SSLSocketFactory socketFactory = MetricRegistries.instrument(
                 metrics, newClientContext().getSocketFactory(), "okhttp-client");
@@ -105,7 +105,7 @@ public class InstrumentedSslContextTest {
     }
 
     @Test
-    public void testClientInstrumentationOkHttpHttp2() throws Exception {
+    void testClientInstrumentationOkHttpHttp2() throws Exception {
         assumeThat(IS_JAVA_8).describedAs("Java 8 does not support ALPN without additional help").isFalse();
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         SSLSocketFactory socketFactory = MetricRegistries.instrument(
@@ -133,7 +133,7 @@ public class InstrumentedSslContextTest {
     }
 
     @Test
-    public void testServerInstrumentationHttp2() throws Exception {
+    void testServerInstrumentationHttp2() throws Exception {
         assumeThat(IS_JAVA_8).describedAs("Java 8 does not support ALPN without additional help").isFalse();
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         OkHttpClient client = new OkHttpClient.Builder()
@@ -159,7 +159,7 @@ public class InstrumentedSslContextTest {
     }
 
     @Test
-    public void testServerInstrumentation() throws Exception {
+    void testServerInstrumentation() throws Exception {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         try (Closeable ignored = server(MetricRegistries.instrument(metrics, newServerContext(), "server-context"))) {
             HttpsURLConnection con = (HttpsURLConnection) new URL("https://localhost:" + PORT).openConnection();
@@ -178,13 +178,13 @@ public class InstrumentedSslContextTest {
     }
 
     @Test
-    public void testSslEngineUnwrapNotInstrumented() throws IOException, GeneralSecurityException {
+    void testSslEngineUnwrapNotInstrumented() throws IOException, GeneralSecurityException {
         SSLEngine engine = newServerContext().createSSLEngine();
         assertThat(MetricRegistries.unwrap(engine)).isSameAs(engine);
     }
 
     @Test
-    public void testSslEngineUnwrapInstrumentedTwice() throws IOException, GeneralSecurityException {
+    void testSslEngineUnwrapInstrumentedTwice() throws IOException, GeneralSecurityException {
         SSLContext context = newServerContext();
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         SSLContext wrapped = MetricRegistries.instrument(

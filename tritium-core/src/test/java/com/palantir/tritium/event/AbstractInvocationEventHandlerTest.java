@@ -19,13 +19,13 @@ package com.palantir.tritium.event;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.function.BooleanSupplier;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class AbstractInvocationEventHandlerTest {
+final class AbstractInvocationEventHandlerTest {
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         System.clearProperty("instrument");
         System.getProperties().entrySet().removeIf(entry ->
                 entry.getKey().toString().startsWith("instrument"));
@@ -33,14 +33,14 @@ public class AbstractInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSystemPropertySupplierEnabledByDefault() {
+    void testSystemPropertySupplierEnabledByDefault() {
         BooleanSupplier supplier = AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
         assertThat(supplier.getAsBoolean()).isTrue();
     }
 
     @Test
-    public void testSystemPropertySupplierInstrumentFalse() {
+    void testSystemPropertySupplierInstrumentFalse() {
         System.setProperty("instrument", "false");
         BooleanSupplier supplier = AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
@@ -48,7 +48,7 @@ public class AbstractInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSystemPropertySupplierInstrumentTrue() {
+    void testSystemPropertySupplierInstrumentTrue() {
         System.setProperty("instrument", "true");
         BooleanSupplier supplier = AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
@@ -56,7 +56,7 @@ public class AbstractInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSystemPropertySupplierInstrumentClassFalse() {
+    void testSystemPropertySupplierInstrumentClassFalse() {
         System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "false");
         BooleanSupplier supplier = AbstractInvocationEventHandler
                 .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
@@ -64,7 +64,7 @@ public class AbstractInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSystemPropertySupplierInstrumentClassTrue() {
+    void testSystemPropertySupplierInstrumentClassTrue() {
         System.clearProperty("instrument");
         System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "true");
         BooleanSupplier supplier = AbstractInvocationEventHandler

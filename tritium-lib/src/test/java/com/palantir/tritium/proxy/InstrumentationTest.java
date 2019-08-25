@@ -19,7 +19,6 @@ package com.palantir.tritium.proxy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -55,18 +54,17 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.function.LongPredicate;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @SuppressWarnings("NullAway") // mock injection
-public class InstrumentationTest {
+final class InstrumentationTest {
 
     @MetricGroup("DEFAULT")
     interface AnnotatedInterface {
@@ -84,14 +82,11 @@ public class InstrumentationTest {
     // Exceed the HotSpot JIT thresholds
     private static final int INVOCATION_ITERATIONS = 150000;
 
-    @Mock
-    private InvocationEventHandler<InvocationContext> mockHandler;
-
     private final MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
     private final TaggedMetricRegistry taggedMetricRegistry = new DefaultTaggedMetricRegistry();
 
-    @After
-    public void after() {
+    @AfterEach
+    void after() {
         try (ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build()) {
             if (!metrics.getMetrics().isEmpty()) {
                 System.out.println("Untagged Metrics:");
@@ -102,7 +97,7 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testEmptyHandlers() {
+    void testEmptyHandlers() {
         TestInterface delegate = new TestImplementation();
         TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate,
                 Collections.emptyList(), InstrumentationFilters.INSTRUMENT_NONE);
@@ -111,7 +106,7 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testDeprecatedEmptyHandlers() {
+    void testDeprecatedEmptyHandlers() {
         TestInterface delegate = new TestImplementation();
         @SuppressWarnings("deprecation") // explicitly testing
         TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate, Collections.emptyList());
@@ -120,7 +115,7 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testBuilder() {
+    void testBuilder() {
         TestImplementation delegate = new TestImplementation();
 
         MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
@@ -146,13 +141,13 @@ public class InstrumentationTest {
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
 
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
-        assertTrue(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax() >= 0L);
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax() >= 0L).isTrue();
 
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
     }
 
     @Test
-    public void testMetricGroupBuilder() {
+    void testMetricGroupBuilder() {
         AnnotatedInterface delegate = mock(AnnotatedInterface.class);
         String globalPrefix = "com.business.service";
 
@@ -187,21 +182,21 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testLogLevels() {
+    void testLogLevels() {
         TestImplementation delegate = new TestImplementation();
 
         Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             @SuppressWarnings("deprecation") // explicitly testing
             TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                    .withLogging(logger, level, (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG)
+                    .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
                     .build();
             executeManyTimes(instrumentedService, 100);
         }
     }
 
     @Test
-    public void testCheckedExceptions() {
+    void testCheckedExceptions() {
         TestImplementation delegate = new TestImplementation();
 
         Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
@@ -209,7 +204,7 @@ public class InstrumentationTest {
             for (int i = 0; i < 100; i++) {
                 @SuppressWarnings("deprecation") // explicitly testing
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                        .withLogging(logger, level, (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG)
+                        .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
 
                 assertThatThrownBy(instrumentedService::throwsCheckedException)
@@ -220,7 +215,7 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testThrowables() {
+    void testThrowables() {
         TestImplementation delegate = new TestImplementation();
 
         Logger logger = Instrumentation.getPerformanceLoggerForInterface(TestInterface.class);
@@ -228,7 +223,7 @@ public class InstrumentationTest {
             for (int i = 0; i < 100; i++) {
                 @SuppressWarnings("deprecation") // explicitly testing
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                        .withLogging(logger, level, (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG)
+                        .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
 
                 assertThatExceptionOfType(TestImplementation.TestThrowable.class)
@@ -240,7 +235,7 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testFilterSkips() {
+    void testFilterSkips(@Mock InvocationEventHandler<InvocationContext> mockHandler) {
         TestInterface delegate = new TestImplementation();
         TestInterface instrumented = Instrumentation.builder(TestInterface.class, delegate)
                 .withFilter(methodNameFilter("bulk"))
@@ -255,7 +250,7 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testFilterMatches() throws Exception {
+    void testFilterMatches(@Mock InvocationEventHandler<InvocationContext> mockHandler) throws Exception {
         TestInterface delegate = new TestImplementation();
         TestInterface instrumented = Instrumentation.builder(TestInterface.class, delegate)
                 .withFilter(methodNameFilter("bulk"))
@@ -277,21 +272,21 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testNullInterface() {
+    void testNullInterface() {
         assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> Instrumentation.builder(null, new Object()))
                 .withMessage("class");
     }
 
     @Test
-    public void testNullDelegate() {
+    void testNullDelegate() {
         assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> Instrumentation.builder(Runnable.class, null))
                 .withMessage("delegate");
     }
 
     @Test
-    public void testNullMetricRegistry() {
+    void testNullMetricRegistry() {
         Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(Runnable.class,
                 new TestImplementation());
         assertThatExceptionOfType(NullPointerException.class)
@@ -301,20 +296,20 @@ public class InstrumentationTest {
 
     @Test
     @SuppressWarnings("deprecation") // explicitly testing
-    public void testNullLogger() {
+    void testNullLogger() {
         Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(
                 Runnable.class, new TestImplementation());
         assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> builder.withLogging(
                         null,
                         com.palantir.tritium.event.log.LoggingLevel.INFO,
-                        (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG))
+                        LoggingInvocationEventHandler.NEVER_LOG))
                 .withMessage("logger");
     }
 
     @Test
     @SuppressWarnings("deprecation") // explicitly testing
-    public void testNullLogLevel() {
+    void testNullLogLevel() {
         Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(
                 Runnable.class, new TestImplementation());
         Logger logger = LoggerFactory.getLogger(InstrumentationTest.class);
@@ -322,12 +317,12 @@ public class InstrumentationTest {
                 .isThrownBy(() -> builder.withLogging(
                         logger,
                         null,
-                        (LongPredicate) LoggingInvocationEventHandler.NEVER_LOG))
+                        LoggingInvocationEventHandler.NEVER_LOG))
                 .withMessage("level");
     }
 
     @Test
-    public void testNullFilter() {
+    void testNullFilter() {
         Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(Runnable.class,
                 new TestImplementation());
         assertThatExceptionOfType(NullPointerException.class)
@@ -336,7 +331,7 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testTaggedMetrics() {
+    void testTaggedMetrics() {
         TestImplementation delegate = new TestImplementation();
         TestInterface runnable =
                 Instrumentation.builder(TestInterface.class, delegate)
@@ -359,7 +354,7 @@ public class InstrumentationTest {
     }
 
     @Test
-    public void testInaccessibleConstructor() throws NoSuchMethodException {
+    void testInaccessibleConstructor() throws NoSuchMethodException {
         Constructor<Instrumentation> constructor = Instrumentation.class.getDeclaredConstructor();
         assertThat(constructor.isAccessible()).isFalse();
         constructor.setAccessible(true);
@@ -368,6 +363,7 @@ public class InstrumentationTest {
                 .hasRootCauseExactlyInstanceOf(UnsupportedOperationException.class);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static InstrumentationFilter methodNameFilter(String methodName) {
         return (instance, method, args) -> method.getName().equals(methodName);
     }

@@ -37,9 +37,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.SortedMap;
 import javax.annotation.Nullable;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.impl.SimpleLogger;
 import org.slf4j.impl.TestLogs;
 
@@ -69,12 +69,12 @@ public class TritiumTest {
     @Nullable
     private String previousLogLevel = null;
 
-    @Before
+    @BeforeEach
     public void before() {
         previousLogLevel = System.setProperty(LOG_KEY, LoggingLevel.TRACE.name());
     }
 
-    @After
+    @AfterEach
     public void after() {
         if (previousLogLevel == null) {
             System.clearProperty(LOG_KEY);

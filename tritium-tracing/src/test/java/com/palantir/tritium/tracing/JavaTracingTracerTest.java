@@ -22,7 +22,7 @@ import com.palantir.tracing.AlwaysSampler;
 import com.palantir.tracing.api.Span;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JavaTracingTracerTest {
 

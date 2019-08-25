@@ -19,23 +19,17 @@ package com.palantir.tritium.event.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.Metric;
-import com.google.common.collect.ImmutableList;
+import com.palantir.logsafe.exceptions.SafeRuntimeException;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
-import com.palantir.tritium.metrics.registry.SlidingWindowTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
-public class TaggedMetricsServiceInvocationEventHandlerTest {
+final class TaggedMetricsServiceInvocationEventHandlerTest {
 
     public static final class TestImplementation {
 
@@ -46,20 +40,9 @@ public class TaggedMetricsServiceInvocationEventHandlerTest {
 
     }
 
-    @Parameterized.Parameters
-    public static ImmutableList<Supplier<Object>> data() {
-        return ImmutableList.of(
-                DefaultTaggedMetricRegistry::new,
-                () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS));
-    }
-
-    @Parameterized.Parameter
-    public Supplier<TaggedMetricRegistry> registrySupplier = () -> null;
-
-    @Test
-    public void testTaggedServiceMetricsCaptured() throws Exception {
-        TaggedMetricRegistry registry = registrySupplier.get();
-
+    @ParameterizedTest
+    @MethodSource("com.palantir.tritium.metrics.test.TestTaggedMetricRegistries#registries")
+    void testTaggedServiceMetricsCaptured(TaggedMetricRegistry registry) throws Exception {
         TestImplementation testInterface = new TestImplementation();
 
         TaggedMetricsServiceInvocationEventHandler handler =
@@ -76,10 +59,9 @@ public class TaggedMetricsServiceInvocationEventHandlerTest {
         assertThat(metrics).containsKey(expectedMetricName);
     }
 
-    @Test
-    public void testTaggedServiceMetricsCapturedAsErrors() throws Exception {
-        TaggedMetricRegistry registry = registrySupplier.get();
-
+    @ParameterizedTest
+    @MethodSource("com.palantir.tritium.metrics.test.TestTaggedMetricRegistries#registries")
+    void testTaggedServiceMetricsCapturedAsErrors(TaggedMetricRegistry registry) throws Exception {
         TestImplementation testInterface = new TestImplementation();
 
         TaggedMetricsServiceInvocationEventHandler handler =
@@ -92,20 +74,20 @@ public class TaggedMetricsServiceInvocationEventHandlerTest {
                 .safeName("quux-failures")
                 .putSafeTags("service-name", "TestImplementation")
                 .putSafeTags("endpoint", "doFoo")
-                .putSafeTags("cause", RuntimeException.class.getName())
+                .putSafeTags("cause", SafeRuntimeException.class.getName())
                 .build();
         assertThat(metrics).containsKey(expectedMetricName);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static void invokeMethod(
             AbstractInvocationEventHandler handler, Object obj, String methodName, Object result, boolean success)
             throws Exception {
-
         InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
         if (success) {
             handler.onSuccess(context, result);
         } else {
-            handler.onFailure(context, new RuntimeException("fail"));
+            handler.onFailure(context, new SafeRuntimeException("fail"));
         }
     }
 }

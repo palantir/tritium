@@ -17,7 +17,6 @@
 package com.palantir.tritium;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
@@ -27,11 +26,9 @@ import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import org.junit.Ignore;
-import org.junit.Test;
 import org.slf4j.impl.TestLogs;
 
-public class JitCompilationTest {
+public final class JitCompilationTest {
 
     private static final long COUNT = 5_000_000L;
 
@@ -59,14 +56,12 @@ public class JitCompilationTest {
     private final MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
     private final TestInterface instrumentedService = Tritium.instrument(TestInterface.class, delegate, metricRegistry);
 
-    @Test
-    @Ignore // skip during CI
-    public void jitAllSuccess() {
+    private void jitAllSuccess() {
         ThreadLocalRandom current = ThreadLocalRandom.current();
         long sum = 0;
         for (int i = 0; i < COUNT; i++) {
             String test = instrumentedService.test();
-            assertNotNull(test);
+            assertThat(test).isNotNull();
             sum += test.length();
             sum += current.nextInt(10);
         }
@@ -75,9 +70,7 @@ public class JitCompilationTest {
         assertThat(sum).isGreaterThanOrEqualTo(delegate.test().length() * COUNT);
     }
 
-    @Test
-    @Ignore // skip during CI
-    public void jitWithSomeExceptions() {
+    private void jitWithSomeExceptions() {
         ThreadLocalRandom current = ThreadLocalRandom.current();
         long sum = 0;
         int exceptionCount = 0;

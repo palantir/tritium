@@ -23,32 +23,32 @@ import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class InstrumentationFiltersTest {
+final class InstrumentationFiltersTest {
 
     private final TestInterface instance = mock(TestImplementation.class);
     private final Method method = testMethod();
     private final Object[] args = new Object[0];
 
     @Test
-    public void testInstrumentAll() {
+    void testInstrumentAll() {
         assertThat(InstrumentationFilters.INSTRUMENT_ALL.shouldInstrument(instance, method, args)).isTrue();
     }
 
     @Test
-    public void testInstrumentNone() {
+    void testInstrumentNone() {
         assertThat(InstrumentationFilters.INSTRUMENT_NONE.shouldInstrument(instance, method, args)).isFalse();
     }
 
     @Test
-    public void testFromTrueSupplier() {
+    void testFromTrueSupplier() {
         InstrumentationFilter filter = InstrumentationFilters.from((java.util.function.BooleanSupplier) () -> true);
         assertThat(filter.shouldInstrument(instance, method, args)).isTrue();
     }
 
     @Test
-    public void testFromFalseSupplier() {
+    void testFromFalseSupplier() {
         InstrumentationFilter filter = InstrumentationFilters.from((java.util.function.BooleanSupplier) () -> false);
         assertThat(filter.shouldInstrument(instance, method, args)).isFalse();
     }

@@ -24,19 +24,19 @@ import com.palantir.tritium.metrics.registry.MetricName;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @SuppressWarnings("NullAway") // mock injection
-public class InternalCacheMetricsTest {
+final class InternalCacheMetricsTest {
 
     @Mock InternalCacheMetrics.Stats stats;
 
     @Test
-    public void createMetrics() {
+    void createMetrics() {
         Map<String, Gauge<?>> metrics = InternalCacheMetrics.createMetrics(emptyStats(), Function.identity());
         assertThat(metrics)
                 .containsOnlyKeys(
@@ -57,7 +57,7 @@ public class InternalCacheMetricsTest {
     }
 
     @Test
-    public void noRequests() {
+    void noRequests() {
         when(stats.requestCount()).thenReturn(() -> 0L);
         when(stats.hitCount()).thenReturn(() -> 0L);
         when(stats.missCount()).thenReturn(() -> 0L);
@@ -69,7 +69,7 @@ public class InternalCacheMetricsTest {
     }
 
     @Test
-    public void taggedMetricName() {
+    void taggedMetricName() {
         Function<String, MetricName> function = InternalCacheMetrics.taggedMetricName("test");
         assertThat(function.apply("a")).isEqualTo(MetricName.builder()
                 .safeName("a")

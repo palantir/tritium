@@ -26,15 +26,15 @@ import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.io.Closeable;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-public class JvmMetricsTest {
+final class JvmMetricsTest {
 
     private static final ImmutableSet<String> EXPECTED_NAMES = ImmutableSet.of(
             "jvm.attribute.name",
@@ -86,11 +86,8 @@ public class JvmMetricsTest {
             "process.cpu.utilization"
     );
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
     @Test
-    public void testExpectedMetrics() {
+    void testExpectedMetrics() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
         assertThat(registry.getMetrics().keySet().stream()
@@ -100,7 +97,7 @@ public class JvmMetricsTest {
     }
 
     @Test
-    public void testFileDescriptors() throws IOException {
+    void testFileDescriptors(@TempDir File temporaryFolder) throws IOException {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
         Metric fileDescriptorsMetric =
@@ -111,7 +108,8 @@ public class JvmMetricsTest {
         List<Closeable> handles = new ArrayList<>();
         try {
             for (int i = 0; i < 100; i++) {
-                handles.add(new FileOutputStream(temporaryFolder.newFile()));
+                File file = new File(temporaryFolder, i + ".txt");
+                handles.add(new FileOutputStream(file));
             }
             assertThat(fileDescriptorsRatio.getValue()).isGreaterThan(initialDescriptorsRatio);
         } finally {
@@ -123,7 +121,7 @@ public class JvmMetricsTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testSystemLoad() {
+    void testSystemLoad() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
         Gauge<Double> systemLoadNormalized = (Gauge<Double>) registry.getMetrics()
@@ -136,7 +134,7 @@ public class JvmMetricsTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testCpuLoad() {
+    void testCpuLoad() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
         Gauge<Double> processCpuLoad = (Gauge<Double>) registry.getMetrics()
@@ -147,7 +145,7 @@ public class JvmMetricsTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testSafepoint() {
+    void testSafepoint() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
         Gauge<Long> safepointTime = (Gauge<Long>) registry.getMetrics()

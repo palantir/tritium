@@ -19,11 +19,11 @@ package com.palantir.tritium.tracing;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.lang.reflect.Method;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @SuppressWarnings("NullAway") // mock injection
 public class ReflectiveTracerTest {
 
