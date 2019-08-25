@@ -11,9 +11,11 @@ dependencies {
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'org.slf4j:slf4j-api'
 
-    testImplementation 'junit:junit'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.awaitility:awaitility'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+
 }
 

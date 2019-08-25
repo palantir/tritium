@@ -23,13 +23,14 @@ dependencies {
 
     testImplementation project(':tritium-test')
     testImplementation 'ch.qos.logback:logback-classic'
-    testImplementation 'com.google.guava:guava-testlib'
-    testImplementation 'junit:junit'
+    testImplementation 'com.squareup.okhttp3:okhttp'
+    testImplementation 'io.undertow:undertow-core'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.awaitility:awaitility'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testImplementation 'org.mockito:mockito-core'
-    testImplementation 'io.undertow:undertow-core'
-    testImplementation 'com.squareup.okhttp3:okhttp'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
 
 }
 
