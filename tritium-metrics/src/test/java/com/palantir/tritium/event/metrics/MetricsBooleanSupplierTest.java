@@ -16,76 +16,58 @@
 
 package com.palantir.tritium.event.metrics;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.palantir.tritium.event.InstrumentationProperties;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
-public class MetricsBooleanSupplierTest {
+final class MetricsBooleanSupplierTest {
 
     private static final String METRICS_SYSTEM_PROPERTY_PREFIX = "instrument";
 
-    @Parameterized.Parameters(name = "{index}: expected {0}: global={1}, handler={2}, service={3}")
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
+    static Stream<Arguments> data() {
+        return Stream.of(
                 // disabled
-                {false, false, false, false},
-                {false, false, false, true},
-                {false, false, true, false},
-                {false, false, true, true},
-                {false, true, false, false},
-                {false, true, true, false},
+                arguments(false, false, false, false),
+                arguments(false, false, false, true),
+                arguments(false, false, true, false),
+                arguments(false, false, true, true),
+                arguments(false, true, false, false),
+                arguments(false, true, true, false),
                 // enabled
-                {true, true, false, true},
-                {true, true, true, true},
-                });
+                arguments(true, true, false, true),
+                arguments(true, true, true, true)
+        );
     }
 
-    @SuppressWarnings({"WeakerAccess", "checkstyle:VisibilityModifier"})
-    @Parameterized.Parameter(value = 0)
-    public boolean expected;
-
-    @SuppressWarnings({"WeakerAccess", "checkstyle:VisibilityModifier"})
-    @Parameterized.Parameter(value = 1)
-    public boolean global;
-
-    @SuppressWarnings({"WeakerAccess", "checkstyle:VisibilityModifier"})
-    @Parameterized.Parameter(value = 2)
-    public boolean handler;
-
-    @SuppressWarnings({"WeakerAccess", "checkstyle:VisibilityModifier"})
-    @Parameterized.Parameter(value = 3)
-    public boolean service;
-
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         System.clearProperty(METRICS_SYSTEM_PROPERTY_PREFIX);
         System.getProperties().entrySet().removeIf(entry ->
                 entry.getKey().toString().startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
         InstrumentationProperties.reload();
     }
 
-    @After
-    public void after() {
+    @AfterEach
+    void after() {
         Set<Map.Entry<Object, Object>> entries = System.getProperties().entrySet();
         entries.removeIf(objectObjectEntry ->
                 String.valueOf(objectObjectEntry.getKey()).startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
         InstrumentationProperties.reload();
     }
 
-    @Test
-    public void testSupplier() {
+    @ParameterizedTest
+    @MethodSource("data")
+    void testSupplier(boolean expected, boolean global, boolean handler, boolean service) {
         System.setProperty(METRICS_SYSTEM_PROPERTY_PREFIX, String.valueOf(global));
         System.setProperty(
                 METRICS_SYSTEM_PROPERTY_PREFIX + ".com.palantir.tritium.event.metrics.MetricsInvocationEventHandler",
@@ -95,5 +77,4 @@ public class MetricsBooleanSupplierTest {
         BooleanSupplier supplier = MetricsInvocationEventHandler.getEnabledSupplier("test");
         assertThat(supplier.getAsBoolean()).isEqualTo(expected);
     }
-
 }

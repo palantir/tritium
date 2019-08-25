@@ -18,12 +18,12 @@ package com.palantir.tritium.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class DefaultInvocationContextTest {
+final class DefaultInvocationContextTest {
 
     @Test
-    public void testFactory() throws Exception {
+    void testFactory() throws Exception {
         InvocationContext context =
                 DefaultInvocationContext.of(this, Object.class.getDeclaredMethod("equals", Object.class),
                         new Object[] {"testArgument"});

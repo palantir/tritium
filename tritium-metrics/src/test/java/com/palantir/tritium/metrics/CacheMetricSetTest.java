@@ -23,32 +23,31 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import com.google.common.cache.Cache;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @SuppressWarnings({"BanGuavaCaches", // this implementation is explicitly for Guava caches
                    "NullAway"}) // IntelliJ warnings about injected fields
-public class CacheMetricSetTest {
+final class CacheMetricSetTest {
 
     @Mock
     Cache<String, String> cache;
 
-    private MetricSet cacheMetricSet;
     private Map<String, Metric> metrics;
 
-    @Before
-    public void before() {
-        cacheMetricSet = CacheMetricSet.create(cache, "test");
+    @BeforeEach
+    void before() {
+        MetricSet cacheMetricSet = CacheMetricSet.create(cache, "test");
         assertThat(cacheMetricSet).isNotNull();
         metrics = cacheMetricSet.getMetrics();
     }
 
     @Test
-    public void create() {
+    void create() {
         assertThat(metrics)
                 .containsOnlyKeys(
                         "test.cache.estimated.size",
@@ -66,18 +65,18 @@ public class CacheMetricSetTest {
     }
 
     @Test
-    public void estimatedSize() {
+    void estimatedSize() {
         assertThat(metrics.get("test.cache.estimated.size")).isInstanceOf(Gauge.class)
                 .returns(0L, metric -> ((Gauge) metric).getValue());
     }
 
     @Test
-    public void maximumSize() {
+    void maximumSize() {
         assertThat(metrics.get("test.cache.maximum.size")).isNull();
     }
 
     @Test
-    public void weightedSize() {
+    void weightedSize() {
         assertThat(metrics.get("test.cache.weighted.size")).isNull();
     }
 }

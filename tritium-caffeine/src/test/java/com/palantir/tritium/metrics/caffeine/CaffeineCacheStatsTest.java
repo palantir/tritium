@@ -32,17 +32,17 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Map;
 import java.util.function.Function;
 import org.awaitility.Duration;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
-public class CaffeineCacheStatsTest {
+final class CaffeineCacheStatsTest {
 
     private final MetricRegistry metricRegistry = new MetricRegistry();
     private final TaggedMetricRegistry taggedMetricRegistry = new DefaultTaggedMetricRegistry();
     private final Function<Integer, String> mapping = String::valueOf;
 
-    @After
-    public void after() {
+    @AfterEach
+    void after() {
         System.out.println("Metrics");
         try (ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build()) {
             reporter.report();
@@ -50,9 +50,7 @@ public class CaffeineCacheStatsTest {
 
         System.out.println("Tagged Metrics");
         Map<MetricName, Metric> metrics = taggedMetricRegistry.getMetrics();
-        metrics.forEach((metricName, metric) -> {
-            System.out.printf("metric: %s = %s%n", metricName, getValue(metric));
-        });
+        metrics.forEach((metricName, metric) -> System.out.printf("metric: %s = %s%n", metricName, getValue(metric)));
     }
 
     private static Object getValue(Metric metric) {
@@ -65,7 +63,7 @@ public class CaffeineCacheStatsTest {
     }
 
     @Test
-    public void registerCacheMetrics() {
+    void registerCacheMetrics() {
         Cache<Integer, String> cache = Caffeine.newBuilder()
                 .recordStats()
                 .maximumSize(2)
@@ -108,7 +106,7 @@ public class CaffeineCacheStatsTest {
     }
 
     @Test
-    public void registerCacheTaggedMetrics() {
+    void registerCacheTaggedMetrics() {
         Cache<Integer, String> cache = Caffeine.newBuilder()
                 .recordStats()
                 .maximumSize(2)

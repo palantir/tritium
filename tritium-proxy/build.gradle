@@ -3,10 +3,12 @@ apply from: "${rootDir}/gradle/publish-jar.gradle"
 dependencies {
 
     testImplementation project(':tritium-test')
-    testImplementation 'com.google.guava:guava-testlib'
-    testImplementation 'junit:junit'
+
+    testImplementation 'com.google.guava:guava'
     testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'org.slf4j:slf4j-simple'
 
 }

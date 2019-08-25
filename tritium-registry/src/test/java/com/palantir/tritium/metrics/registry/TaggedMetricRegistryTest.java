@@ -29,38 +29,17 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
-import com.google.common.collect.ImmutableList;
+import com.palantir.tritium.registry.test.TestTaggedMetricRegistries;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
-@RunWith(Parameterized.class)
-public final class TaggedMetricRegistryTest {
+final class TaggedMetricRegistryTest {
 
     private static final MetricName METRIC_1 = MetricName.builder().safeName("name").build();
     private static final MetricName METRIC_2 = MetricName.builder().safeName("name").putSafeTags("key", "val").build();
-
-    @Parameterized.Parameters
-    public static ImmutableList<Supplier<Object>> data() {
-        return ImmutableList.of(
-                DefaultTaggedMetricRegistry::new,
-                () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS));
-    }
-
-    @Parameterized.Parameter
-    public Supplier<TaggedMetricRegistry> registrySupplier = () -> null;
-
-    private TaggedMetricRegistry registry;
-
-    @Before
-    public void before() {
-        registry = registrySupplier.get();
-    }
 
     interface SuppliedMetricMethod<T extends Metric> {
         T metric(MetricName metricName, Supplier<T> supplier);
@@ -96,18 +75,21 @@ public final class TaggedMetricRegistryTest {
         Mockito.verify(mockSupplier, times(2)).get();
     }
 
-    @Test
-    public void testCounter() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testCounter(TaggedMetricRegistry registry) {
         testNonsuppliedCall(registry::counter);
     }
 
-    @Test
-    public void testSuppliedCounter() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testSuppliedCounter(TaggedMetricRegistry registry) {
         testSuppliedCall(registry::counter, new Counter(), new Counter());
     }
 
-    @Test
-    public void testGauge() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testGauge(TaggedMetricRegistry registry) {
         Gauge<Integer> gauge1 = registry.gauge(METRIC_1, () -> 1);
         Gauge<Integer> gauge2 = registry.gauge(METRIC_2, () -> 2);
 
@@ -119,40 +101,47 @@ public final class TaggedMetricRegistryTest {
         assertThat(registry.gauge(METRIC_2, () -> 4)).isSameAs(gauge2);
     }
 
-    @Test
-    public void testHistogram() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testHistogram(TaggedMetricRegistry registry) {
         testNonsuppliedCall(registry::histogram);
     }
 
-    @Test
-    public void testSuppliedHistogram() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testSuppliedHistogram(TaggedMetricRegistry registry) {
         testSuppliedCall(registry::histogram,
                 new Histogram(new ExponentiallyDecayingReservoir()),
                 new Histogram(new ExponentiallyDecayingReservoir()));
     }
 
-    @Test
-    public void testMeter() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testMeter(TaggedMetricRegistry registry) {
         testNonsuppliedCall(registry::meter);
     }
 
-    @Test
-    public void testSuppliedMeter() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testSuppliedMeter(TaggedMetricRegistry registry) {
         testSuppliedCall(registry::meter, new Meter(), new Meter());
     }
 
-    @Test
-    public void testTimer() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testTimer(TaggedMetricRegistry registry) {
         testNonsuppliedCall(registry::timer);
     }
 
-    @Test
-    public void testSuppliedTimer() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testSuppliedTimer(TaggedMetricRegistry registry) {
         testSuppliedCall(registry::timer, new Timer(), new Timer());
     }
 
-    @Test
-    public void testExistingMetric() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testExistingMetric(TaggedMetricRegistry registry) {
         registry.counter(METRIC_1);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
@@ -164,8 +153,9 @@ public final class TaggedMetricRegistryTest {
                 .withMessageContaining("safeTags={}");
     }
 
-    @Test
-    public void testRemoveMetric() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testRemoveMetric(TaggedMetricRegistry registry) {
         Gauge<Integer> gauge = () -> 42;
         Gauge<Integer> registeredGauge = registry.gauge(METRIC_1, gauge);
         assertThat(registeredGauge).isSameAs(gauge);
@@ -175,21 +165,25 @@ public final class TaggedMetricRegistryTest {
         assertThat(registry.remove(METRIC_1).isPresent()).isFalse();
     }
 
-    @Test
-    public void testAddMetricRegistry() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRY_SUPPLIERS)
+    void testAddMetricRegistry(Supplier<TaggedMetricRegistry> registrySupplier) {
+        TaggedMetricRegistry registry = registrySupplier.get();
         String name = "name";
         String tagKey = "tagKey";
         String tagValue = "tagValue";
         TaggedMetricRegistry child = registrySupplier.get();
         Meter meter = child.meter(MetricName.builder().safeName(name).build());
         registry.addMetrics(tagKey, tagValue, child);
-        assertMetric(name, tagKey, tagValue, meter);
+        assertMetric(registry, name, tagKey, tagValue, meter);
         registry.removeMetrics(tagKey, tagValue);
         assertThat(registry.getMetrics()).isEmpty();
     }
 
-    @Test
-    public void testReplaceMetricRegistry() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRY_SUPPLIERS)
+    void testReplaceMetricRegistry(Supplier<TaggedMetricRegistry> registrySupplier) {
+        TaggedMetricRegistry registry = registrySupplier.get();
         String name = "name";
         String tagKey = "tagKey";
         String tagValue = "tagValue";
@@ -198,24 +192,25 @@ public final class TaggedMetricRegistryTest {
         Meter firstMeter = firstChild.meter(MetricName.builder().safeName(name).build());
         registry.addMetrics(tagKey, tagValue, firstChild);
 
-        assertMetric(name, tagKey, tagValue, firstMeter);
+        assertMetric(registry, name, tagKey, tagValue, firstMeter);
 
         TaggedMetricRegistry secondChild = registrySupplier.get();
         Meter secondMeter = secondChild.meter(MetricName.builder().safeName(name).build());
 
         registry.addMetrics(tagKey, tagValue, secondChild);
-        assertMetric(name, tagKey, tagValue, secondMeter);
+        assertMetric(registry, name, tagKey, tagValue, secondMeter);
 
         assertThat(registry.removeMetrics(tagKey, tagValue, firstChild)).isFalse();
 
-        assertMetric(name, tagKey, tagValue, secondMeter);
+        assertMetric(registry, name, tagKey, tagValue, secondMeter);
 
         assertThat(registry.removeMetrics(tagKey, tagValue, secondChild)).isTrue();
         assertThat(registry.getMetrics()).isEmpty();
     }
 
-    @Test
-    public void testGetMetrics() {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testGetMetrics(TaggedMetricRegistry registry) {
         MetricName metricName = MetricName.builder()
                 .safeName("counter1")
                 .putSafeTags("tagA", Long.toString(1))
@@ -241,7 +236,12 @@ public final class TaggedMetricRegistryTest {
         assertThat(counter.getCount()).isEqualTo(1);
     }
 
-    private void assertMetric(String name, String tagKey, String tagValue, Meter meter) {
+    private void assertMetric(
+            TaggedMetricRegistry registry,
+            String name,
+            String tagKey,
+            String tagValue,
+            Meter meter) {
         assertThat(registry.getMetrics())
                 .containsEntry(MetricName.builder().safeName(name).putSafeTags(tagKey, tagValue).build(), meter);
     }

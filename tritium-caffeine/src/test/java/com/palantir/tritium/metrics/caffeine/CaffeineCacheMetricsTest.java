@@ -23,30 +23,30 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import com.github.benmanes.caffeine.cache.Cache;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @SuppressWarnings("NullAway") // mock injection
-public class CaffeineCacheMetricsTest {
+final class CaffeineCacheMetricsTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS) Cache<?, ?> cache;
 
     private Map<String, Metric> metrics;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         MetricSet cacheMetricSet = CaffeineCacheMetrics.create(cache, "test");
         assertThat(cacheMetricSet).isNotNull();
         metrics = cacheMetricSet.getMetrics();
     }
 
     @Test
-    public void createMetrics() {
+    void createMetrics() {
         assertThat(metrics)
                 .containsOnlyKeys(
                         "test.cache.estimated.size",
@@ -66,19 +66,19 @@ public class CaffeineCacheMetricsTest {
     }
 
     @Test
-    public void estimatedSize() {
+    void estimatedSize() {
         assertThat(metrics.get("test.cache.estimated.size")).isInstanceOf(Gauge.class)
                 .returns(0L, metric -> ((Gauge) metric).getValue());
     }
 
     @Test
-    public void maximumSize() {
+    void maximumSize() {
         assertThat(metrics.get("test.cache.maximum.size")).isInstanceOf(Gauge.class)
                 .returns(-1L, metric -> ((Gauge) metric).getValue());
     }
 
     @Test
-    public void weightedSize() {
+    void weightedSize() {
         assertThat(metrics.get("test.cache.weighted.size")).isInstanceOf(Gauge.class)
                 .returns(0L, metric -> ((Gauge) metric).getValue());
     }

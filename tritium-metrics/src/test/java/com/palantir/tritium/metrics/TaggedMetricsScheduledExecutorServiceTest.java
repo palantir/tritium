@@ -19,25 +19,19 @@ package com.palantir.tritium.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.collect.ImmutableList;
-import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
-import com.palantir.tritium.metrics.registry.SlidingWindowTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
-public final class TaggedMetricsScheduledExecutorServiceTest {
+final class TaggedMetricsScheduledExecutorServiceTest {
 
     private static final String NAME = "name";
 
@@ -51,28 +45,11 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
     private static final MetricName SCHEDULED_OVERRAN = metricName("scheduled.overrun");
     private static final MetricName SCHEDULED_PERCENT_OF_PERIOD = metricName("scheduled.percent-of-period");
 
-    @Parameterized.Parameters
-    public static ImmutableList<Supplier<Object>> data() {
-        return ImmutableList.of(
-                DefaultTaggedMetricRegistry::new,
-                () -> new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS));
-    }
-
-    @Parameterized.Parameter
-    public Supplier<TaggedMetricRegistry> registrySupplier = () -> null;
-
-    private ScheduledExecutorService executorService;
-    private TaggedMetricRegistry registry;
-
-    @Before
-    public void before() {
-        registry = registrySupplier.get();
-        executorService = MetricRegistries.instrument(
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testMetrics(TaggedMetricRegistry registry) throws Exception {
+        ScheduledExecutorService executorService = MetricRegistries.instrument(
                 registry, Executors.newSingleThreadScheduledExecutor(), NAME);
-    }
-
-    @Test
-    public void testMetrics() throws Exception {
         assertThat(registry.getMetrics())
                 .containsKeys(SUBMITTED, RUNNING, COMPLETED, DURATION);
 
@@ -106,8 +83,11 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
         assertThat(registry.timer(DURATION).getCount()).isEqualTo(1);
     }
 
-    @Test
-    public void testScheduledMetrics() throws Exception {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testScheduledMetrics(TaggedMetricRegistry registry) {
+        ScheduledExecutorService executorService = MetricRegistries.instrument(
+                registry, Executors.newSingleThreadScheduledExecutor(), NAME);
         assertThat(registry.getMetrics())
                 .containsKeys(SCHEDULED_ONCE, SCHEDULED_REPETITIVELY);
 
@@ -130,8 +110,11 @@ public final class TaggedMetricsScheduledExecutorServiceTest {
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(2);
     }
 
-    @Test
-    public void testScheduledDurationMetrics() throws Exception {
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testScheduledDurationMetrics(TaggedMetricRegistry registry) throws Exception {
+        ScheduledExecutorService executorService = MetricRegistries.instrument(
+                registry, Executors.newSingleThreadScheduledExecutor(), NAME);
         assertThat(registry.getMetrics())
                 .containsKeys(SCHEDULED_OVERRAN, SCHEDULED_PERCENT_OF_PERIOD);
 

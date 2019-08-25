@@ -18,12 +18,12 @@ package com.palantir.tritium.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class NoOpInvocationEventHandlerTest {
+final class NoOpInvocationEventHandlerTest {
 
     @Test
-    public void testIsEnabled() {
+    void testIsEnabled() {
         assertThat(NoOpInvocationEventHandler.INSTANCE.isEnabled()).isFalse();
     }
 

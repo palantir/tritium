@@ -33,16 +33,16 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
 import javax.annotation.Nullable;
 import org.awaitility.Duration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class InstrumentationPropertiesTest {
+final class InstrumentationPropertiesTest {
 
     private ListeningExecutorService executorService;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         executorService = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         System.clearProperty("instrument");
         System.getProperties().entrySet().removeIf(entry ->
@@ -50,19 +50,19 @@ public class InstrumentationPropertiesTest {
         InstrumentationProperties.reload();
     }
 
-    @After
-    public void after() {
+    @AfterEach
+    void after() {
         executorService.shutdownNow();
     }
 
     @Test
-    public void testSystemPropertySupplierEnabledByDefault() {
+    void testSystemPropertySupplierEnabledByDefault() {
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isTrue();
     }
 
     @Test
-    public void testSystemPropertySupplierInstrumentFalse() {
+    void testSystemPropertySupplierInstrumentFalse() {
         System.setProperty("instrument", "false");
         BooleanSupplier supplier = InstrumentationProperties
                 .getSystemPropertySupplier("test");
@@ -70,7 +70,7 @@ public class InstrumentationPropertiesTest {
     }
 
     @Test
-    public void testSystemPropertySupplierInstrumentTrue() {
+    void testSystemPropertySupplierInstrumentTrue() {
         System.setProperty("instrument", "true");
         BooleanSupplier supplier = InstrumentationProperties
                 .getSystemPropertySupplier("test");
@@ -78,7 +78,7 @@ public class InstrumentationPropertiesTest {
     }
 
     @Test
-    public void testSystemPropertySupplierInstrumentClassFalse() {
+    void testSystemPropertySupplierInstrumentClassFalse() {
         System.setProperty("instrument.test", "false");
         BooleanSupplier supplier = InstrumentationProperties
                 .getSystemPropertySupplier("test");
@@ -86,7 +86,7 @@ public class InstrumentationPropertiesTest {
     }
 
     @Test
-    public void testSystemPropertySupplierInstrumentClassTrue() {
+    void testSystemPropertySupplierInstrumentClassTrue() {
         System.clearProperty("instrument");
         System.setProperty("instrument.test", "true");
         BooleanSupplier supplier = InstrumentationProperties
@@ -96,7 +96,7 @@ public class InstrumentationPropertiesTest {
 
     @Test
     @SuppressWarnings("NullAway") // explicitly testing null
-    public void invalid() {
+    void invalid() {
         assertThatThrownBy(() -> InstrumentationProperties.getSystemPropertySupplier(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("name cannot be null or empty: {name=null}");
@@ -106,7 +106,7 @@ public class InstrumentationPropertiesTest {
     }
 
     @Test
-    public void racingSystemProperties() throws Exception {
+    void racingSystemProperties() throws Exception {
         CyclicBarrier barrier = new CyclicBarrier(8);
         List<Callable<Object>> tasks = ImmutableList.of(
                 () -> {

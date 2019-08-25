@@ -24,13 +24,13 @@ import com.codahale.metrics.MetricRegistry;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("NullAway")
-public class MetricsInvocationEventHandlerTest {
+final class MetricsInvocationEventHandlerTest {
 
     @MetricGroup("DEFAULT")
-    public interface AnnotatedTestInterface {
+    interface AnnotatedTestInterface {
 
         @MetricGroup("ONE")
         String methodA();
@@ -46,12 +46,12 @@ public class MetricsInvocationEventHandlerTest {
     }
 
     @MetricGroup("DEFAULT")
-    public interface AnnotatedOtherInterface {
+    interface AnnotatedOtherInterface {
         void methodE();
     }
 
     @Test
-    public void testFailure() throws Exception {
+    void testFailure() throws Exception {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
 
@@ -66,7 +66,7 @@ public class MetricsInvocationEventHandlerTest {
     }
 
     @Test
-    public void testOnSuccessNullContext() {
+    void testOnSuccessNullContext() {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
         assertThat(metricRegistry.getMeters().get("failures")).isNull();
@@ -77,7 +77,7 @@ public class MetricsInvocationEventHandlerTest {
     }
 
     @Test
-    public void testOnFailureNullContext() {
+    void testOnFailureNullContext() {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
         assertThat(metricRegistry.getMeters().get("failures")).isNull();
@@ -89,12 +89,12 @@ public class MetricsInvocationEventHandlerTest {
     }
 
     @Test
-    public void testSystemPropertySupplier_Handler_Enabled() {
+    void testSystemPropertySupplier_Handler_Enabled() {
         assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").getAsBoolean()).isTrue();
     }
 
     @Test
-    public void testMetricGroupAnnotations() throws Exception {
+    void testMetricGroupAnnotations() throws Exception {
         AnnotatedTestInterface obj = mock(AnnotatedTestInterface.class);
         when(obj.methodA()).thenReturn("ok");
 
@@ -132,14 +132,12 @@ public class MetricsInvocationEventHandlerTest {
 
     private static void callVoidMethod(
             MetricsInvocationEventHandler handler, Object obj, String methodName, boolean success) throws Exception {
-
         InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
         if (success) {
             handler.onSuccess(context, null);
         } else {
             handler.onFailure(context, new RuntimeException("test failure"));
         }
-
     }
 
 }

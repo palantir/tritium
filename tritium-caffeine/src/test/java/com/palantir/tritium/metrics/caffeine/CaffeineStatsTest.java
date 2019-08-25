@@ -17,6 +17,7 @@
 package com.palantir.tritium.metrics.caffeine;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -27,15 +28,15 @@ import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import java.util.Optional;
 import java.util.OptionalLong;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 @SuppressWarnings("NullAway") // mock injection
-public class CaffeineStatsTest {
+final class CaffeineStatsTest {
 
     @Mock Cache<?, ?> cache;
     @Mock Policy<?, ?> policy;
@@ -43,16 +44,16 @@ public class CaffeineStatsTest {
 
     private CaffeineStats stats;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    void before() {
         stats = new CaffeineStats(cache, () ->
                 new CacheStats(1, 2, 3, 4, 5, 6, 7));
-        when(cache.policy()).thenAnswer(ignored -> policy);
-        when(policy.eviction()).thenAnswer(ignored -> Optional.of(eviction));
+        lenient().when(cache.policy()).thenAnswer(ignored -> policy);
+        lenient().when(policy.eviction()).thenAnswer(ignored -> Optional.of(eviction));
     }
 
     @Test
-    public void estimatedSize() {
+    void estimatedSize() {
         when(cache.estimatedSize()).thenReturn(42L);
         assertThat(stats.estimatedSize().getValue()).isEqualTo(42);
         verify(cache).estimatedSize();
@@ -60,43 +61,43 @@ public class CaffeineStatsTest {
     }
 
     @Test
-    public void evictionCount() {
+    void evictionCount() {
         assertThat(stats.evictionCount().getValue()).isEqualTo(6);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
-    public void hitCount() {
+    void hitCount() {
         assertThat(stats.hitCount().getValue()).isEqualTo(1);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
-    public void hitRatio() {
+    void hitRatio() {
         assertThat(stats.hitRatio().getValue()).isEqualTo(1.0 / 3.0);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
-    public void loadAverageMillis() {
+    void loadAverageMillis() {
         assertThat(stats.loadAverageMillis().getValue()).isEqualTo((5.0d / 7.0d) / 1_000_000.0d);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
-    public void loadFailureCount() {
+    void loadFailureCount() {
         assertThat(stats.loadFailureCount().getValue()).isEqualTo(4);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
-    public void loadSuccessCount() {
+    void loadSuccessCount() {
         assertThat(stats.loadSuccessCount().getValue()).isEqualTo(3);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
-    public void maximumSize() {
+    void maximumSize() {
         when(eviction.getMaximum()).thenReturn(42L);
         assertThat(stats.maximumSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(42L);
         verify(cache).policy();
@@ -106,7 +107,7 @@ public class CaffeineStatsTest {
     }
 
     @Test
-    public void maximumSizeUnset() {
+    void maximumSizeUnset() {
         when(policy.eviction()).thenReturn(Optional.empty());
         assertThat(stats.maximumSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(-1L);
         verify(cache).policy();
@@ -115,19 +116,19 @@ public class CaffeineStatsTest {
     }
 
     @Test
-    public void missCount() {
+    void missCount() {
         assertThat(stats.missCount().getValue()).isEqualTo(2);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
-    public void missRatio() {
+    void missRatio() {
         assertThat(stats.missRatio().getValue()).isEqualTo(2.0 / 3.0);
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
     @Test
-    public void weightedSize() {
+    void weightedSize() {
         when(eviction.weightedSize()).thenReturn(OptionalLong.of(42L));
         assertThat(stats.weightedSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(42L);
         verify(cache).policy();
@@ -137,7 +138,7 @@ public class CaffeineStatsTest {
     }
 
     @Test
-    public void weightedSizeNoWeights() {
+    void weightedSizeNoWeights() {
         when(policy.eviction()).thenReturn(Optional.empty());
         assertThat(stats.weightedSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(0L);
         verify(cache).policy();

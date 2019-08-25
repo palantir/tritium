@@ -38,6 +38,9 @@ allprojects {
     targetCompatibility = '1.8'
 
     configurations {
+        testImplementationClasspath {
+            exclude module: 'junit'
+        }
         checkstyle {
             resolutionStrategy {
                 // checkstyle requires different Guava
@@ -121,13 +124,14 @@ allprojects {
     })
 
     tasks.withType(Test) {
+        useJUnitPlatform()
+        maxParallelForks Runtime.getRuntime().availableProcessors()
         testLogging {
-            showExceptions true
+            events "passed", "skipped", "failed"
             exceptionFormat "full"
             showCauses true
+            showExceptions true
             showStackTraces true
-
-            events "started", "passed", "skipped", "failed"
         }
     }
 

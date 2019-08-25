@@ -22,20 +22,16 @@ import com.codahale.metrics.Gauge;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.palantir.tritium.metrics.registry.MetricName;
 import java.util.Map;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
-@SuppressWarnings("NullAway") // mock injection
-public class CaffeineCacheTaggedMetricsTest {
-
-    @Mock
-    Cache<?, ?> cache;
+@ExtendWith(MockitoExtension.class)
+final class CaffeineCacheTaggedMetricsTest {
 
     @Test
-    public void createMetrics() {
+    void createMetrics(@Mock Cache<?, ?> cache) {
         CaffeineCacheTaggedMetrics cacheTaggedMetrics =
                 CaffeineCacheTaggedMetrics.create(cache, "test");
         assertThat(cacheTaggedMetrics).isNotNull();

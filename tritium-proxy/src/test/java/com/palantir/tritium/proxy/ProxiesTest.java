@@ -19,7 +19,6 @@ package com.palantir.tritium.proxy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -29,43 +28,43 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.Callable;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class ProxiesTest {
+final class ProxiesTest {
 
     @Test
-    public void testNewProxy() {
+    void testNewProxy() {
         TestInterface implementation = new TestImplementation();
         TestInterface proxy = Proxies.newProxy(TestInterface.class, implementation,
                 (delegate, method, args) -> method.invoke(implementation, args) + ", world");
-        assertEquals("hello, world", proxy.test());
+        assertThat(proxy.test()).isEqualTo("hello, world");
     }
 
     @Test
-    public void testInterfacesAdditionalInterfaces() {
+    void testInterfacesAdditionalInterfaces() {
         Class<?>[] interfaces = Proxies.interfaces(TestInterface.class, Runnable.class, ImmutableList.of(List.class));
         assertThat(interfaces).containsExactly(TestInterface.class, List.class, Runnable.class);
     }
 
     @Test
-    public void testInterfacesClassOfQClassOfQ() {
+    void testInterfacesClassOfQClassOfQ() {
         Class<?>[] interfaces = Proxies.interfaces(TestInterface.class, TestImplementation.class);
         assertThat(interfaces).containsExactly(TestInterface.class, Runnable.class);
     }
 
     @Test
-    public void testCheckIsInterface() {
+    void testCheckIsInterface() {
         Proxies.checkIsInterface(Runnable.class);
     }
 
     @Test
-    public void testCheckIsInterfaceOnClass() {
+    void testCheckIsInterfaceOnClass() {
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
                 Proxies.checkIsInterface(String.class));
     }
 
     @Test
-    public void testCheckAreAllInterfaces() {
+    void testCheckAreAllInterfaces() {
         Proxies.checkAreAllInterfaces(ImmutableSet.of(TestInterface.class,
                 Runnable.class,
                 Callable.class,
@@ -73,7 +72,7 @@ public class ProxiesTest {
     }
 
     @Test
-    public void testCheckAreAllInterfacesWithClass() {
+    void testCheckAreAllInterfacesWithClass() {
         ImmutableSet<Class<?>> interfaces = ImmutableSet.of(TestInterface.class,
                 String.class,
                 Runnable.class,
@@ -84,7 +83,7 @@ public class ProxiesTest {
     }
 
     @Test
-    public void testInaccessibleConstructor() throws NoSuchMethodException {
+    void testInaccessibleConstructor() throws NoSuchMethodException {
         Constructor<Proxies> constructor = Proxies.class.getDeclaredConstructor();
         assertThat(constructor.isAccessible()).isFalse();
         constructor.setAccessible(true);
