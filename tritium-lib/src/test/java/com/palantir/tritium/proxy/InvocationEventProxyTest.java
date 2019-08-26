@@ -65,7 +65,7 @@ public class InvocationEventProxyTest {
                 return "disabled";
             }
         };
-        proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        assertThat(proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("disabled".length());
     }
 
     @Test
@@ -74,14 +74,14 @@ public class InvocationEventProxyTest {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler();
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
-        assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS))
-                .asString().isEqualTo("test");
+        assertThat(proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS))
+                .isEqualTo("test".length());
 
-        Object result2 = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object result2 = proxy.handlePreInvocation(this, getStringLengthMethod(), EMPTY_ARGS);
         assertThat(result2).isInstanceOf(DefaultInvocationContext.class)
                 .asString().contains(InvocationEventProxyTest.class.getName());
 
-        InvocationContext context = proxy.handlePreInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        InvocationContext context = proxy.handlePreInvocation(this, getStringLengthMethod(), EMPTY_ARGS);
         assertThat(context).asString()
                 .contains("startTimeNanos")
                 .contains("instance")
@@ -102,9 +102,9 @@ public class InvocationEventProxyTest {
         };
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
-        Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object result = proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS);
 
-        assertThat(result).asString().isEqualTo("test");
+        assertThat(result).isEqualTo("test".length());
     }
 
     @Test
@@ -119,11 +119,11 @@ public class InvocationEventProxyTest {
 
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
-        Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object result = proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS);
 
-        assertThat(result).asString().isEqualTo("test");
+        assertThat(result).isEqualTo("test".length());
 
-        InvocationContext context = DefaultInvocationContext.of(this, getToStringMethod(), null);
+        InvocationContext context = DefaultInvocationContext.of(this, getStringLengthMethod(), null);
         proxy.handleOnSuccess(context, result);
     }
 
@@ -144,10 +144,10 @@ public class InvocationEventProxyTest {
 
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
-        Object result = proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertThat(result).asString().isEqualTo("test");
+        Object result = proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS);
+        assertThat(result).isEqualTo("test".length());
 
-        InvocationContext context = DefaultInvocationContext.of(this, getToStringMethod(), null);
+        InvocationContext context = DefaultInvocationContext.of(this, getStringLengthMethod(), null);
         RuntimeException expected = new RuntimeException("expected");
         Throwable throwable = proxy.handleOnFailure(context, expected);
         assertThat(throwable).isSameAs(expected);
@@ -156,15 +156,14 @@ public class InvocationEventProxyTest {
     @Test
     public void testToInvocationDebugString() throws Exception {
         Throwable cause = new RuntimeException("cause");
-        InvocationEventProxy.logInvocationWarning("test", this, getToStringMethod(), cause);
+        InvocationEventProxy.logInvocationWarning("test", this, getStringLengthMethod(), cause);
     }
 
     @Test
     public void testToInvocationContextDebugString() throws Exception {
         Throwable cause = new RuntimeException("cause");
-        InvocationContext context = DefaultInvocationContext.of("test", getToStringMethod(), EMPTY_ARGS);
-        Object result = "Hello, World!";
-        InvocationEventProxy.logInvocationWarning("test", context, result, cause);
+        InvocationContext context = DefaultInvocationContext.of("test", getStringLengthMethod(), EMPTY_ARGS);
+        InvocationEventProxy.logInvocationWarning("test", context, 13, cause);
     }
 
     @Test
@@ -185,9 +184,9 @@ public class InvocationEventProxyTest {
     public void testInstrumentInvocation() throws Throwable {
         InvocationEventProxy proxy = createTestProxy(new SimpleHandler());
 
-        assertThat(proxy.instrumentInvocation("test", getToStringMethod(), null)).isEqualTo("test");
-        assertThat(proxy.instrumentInvocation("test", getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
-        assertThatThrownBy(() -> proxy.instrumentInvocation("test", getToStringMethod(), new Object[] {"Hello"}))
+        assertThat(proxy.invoke("test", getStringLengthMethod(), null)).isEqualTo("test".length());
+        assertThat(proxy.invoke("test", getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
+        assertThatThrownBy(() -> proxy.invoke("test", getStringLengthMethod(), new Object[] {"Hello"}))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("wrong number of arguments");
     }
@@ -197,15 +196,15 @@ public class InvocationEventProxyTest {
     public void testInstrumentInvocationThrowsException() {
         InvocationEventProxy proxy = createSimpleTestProxy();
 
-        assertThatThrownBy(() -> proxy.instrumentInvocation("test", getThrowsCheckedExceptionMethod(), null))
+        assertThatThrownBy(() -> proxy.invoke("test", getThrowsCheckedExceptionMethod(), null))
                 .isInstanceOf(TestImplementation.TestException.class)
                 .hasMessage("Testing checked Exception handling");
 
-        assertThatThrownBy(() -> proxy.instrumentInvocation("test", getThrowsThrowableMethod(), null))
+        assertThatThrownBy(() -> proxy.invoke("test", getThrowsThrowableMethod(), null))
                 .isInstanceOf(TestImplementation.TestThrowable.class)
                 .hasMessage("TestThrowable");
 
-        assertThatThrownBy(() -> proxy.instrumentInvocation("test", getThrowsOutOfMemoryErrorMethod(), null))
+        assertThatThrownBy(() -> proxy.invoke("test", getThrowsOutOfMemoryErrorMethod(), null))
                 .isInstanceOf(OutOfMemoryError.class)
                 .hasMessage("Testing OOM");
     }
@@ -215,9 +214,9 @@ public class InvocationEventProxyTest {
     public void testExecute() throws Throwable {
         InvocationEventProxy proxy = createTestProxy(new SimpleHandler());
 
-        assertThat(proxy.execute(getToStringMethod(), null)).isEqualTo("test");
-        assertThat(proxy.execute(getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
-        assertThatThrownBy(() -> proxy.execute(getToStringMethod(), new Object[] {"Hello"}))
+        assertThat(proxy.invoke(proxy, getStringLengthMethod(), null)).isEqualTo("test".length());
+        assertThat(proxy.invoke(proxy, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
+        assertThatThrownBy(() -> proxy.invoke(proxy, getStringLengthMethod(), new Object[] {"Hello"}))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("wrong number of arguments");
     }
@@ -227,15 +226,15 @@ public class InvocationEventProxyTest {
     public void testExecuteThrowsExceptions() {
         InvocationEventProxy proxy = createSimpleTestProxy();
 
-        assertThatThrownBy(() -> proxy.execute(getThrowsCheckedExceptionMethod(), null))
+        assertThatThrownBy(() -> proxy.invoke(proxy, getThrowsCheckedExceptionMethod(), null))
                 .isInstanceOf(TestImplementation.TestException.class)
                 .hasMessage("Testing checked Exception handling");
 
-        assertThatThrownBy(() -> proxy.execute(getThrowsThrowableMethod(), null))
+        assertThatThrownBy(() -> proxy.invoke(proxy, getThrowsThrowableMethod(), null))
                 .isInstanceOf(TestImplementation.TestThrowable.class)
                 .hasMessage("TestThrowable");
 
-        assertThatThrownBy(() -> proxy.execute(getThrowsOutOfMemoryErrorMethod(), null))
+        assertThatThrownBy(() -> proxy.invoke(proxy, getThrowsOutOfMemoryErrorMethod(), null))
                 .isInstanceOf(OutOfMemoryError.class)
                 .hasMessage("Testing OOM");
     }
@@ -248,7 +247,7 @@ public class InvocationEventProxyTest {
                 .isEnabled();
 
         InvocationEventProxy proxy = createTestProxy(mockHandler, mockFilter);
-        assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
+        assertThat(proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
 
         verify(mockHandler).isEnabled();
         verifyNoMoreInteractions(mockFilter);
@@ -263,7 +262,7 @@ public class InvocationEventProxyTest {
         when(mockHandler.isEnabled()).thenReturn(true);
 
         InvocationEventProxy proxy = createTestProxy(mockHandler, mockFilter);
-        assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
+        assertThat(proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
 
         verify(mockHandler).isEnabled();
         verify(mockFilter).shouldInstrument(any(), any(), any());
@@ -277,7 +276,7 @@ public class InvocationEventProxyTest {
                 .isEnabled();
 
         InvocationEventProxy proxy = createTestProxy(mockHandler);
-        assertThat(proxy.handleInvocation(this, getToStringMethod(), EMPTY_ARGS)).isEqualTo("test");
+        assertThat(proxy.invoke(mockHandler, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
 
         verify(mockHandler).isEnabled();
         verifyZeroInteractions(mockFilter);
@@ -300,8 +299,9 @@ public class InvocationEventProxyTest {
         return createTestProxy(handler, InstrumentationFilters.INSTRUMENT_ALL);
     }
 
-    private static Method getToStringMethod() throws NoSuchMethodException {
-        return Object.class.getDeclaredMethod("toString");
+    // n.b. cannot use toString because it's special cased
+    private static Method getStringLengthMethod() throws NoSuchMethodException {
+        return String.class.getDeclaredMethod("length");
     }
 
     private static Method getThrowsOutOfMemoryErrorMethod() throws NoSuchMethodException {
