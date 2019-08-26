@@ -33,5 +33,6 @@ dependencies {
     jmh project(':tritium-test')
     jmh 'ch.qos.logback:logback-classic'
     jmh 'com.palantir.remoting3:tracing'
+    jmh 'org.immutables:value::annotations'
 
 }

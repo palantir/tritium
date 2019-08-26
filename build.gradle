@@ -66,6 +66,10 @@ allprojects {
                 because "Spark still uses 3.X, which can't co-exist with 4.X"
             }
         }
+
+        // Work around https://github.com/immutables/immutables/issues/291
+        compileOnly 'org.immutables:value::annotations'
+        testCompileOnly 'org.immutables:value::annotations'
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {
