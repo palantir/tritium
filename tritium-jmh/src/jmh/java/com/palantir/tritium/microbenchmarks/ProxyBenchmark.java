@@ -16,7 +16,6 @@
 
 package com.palantir.tritium.microbenchmarks;
 
-import com.palantir.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.tracing.Tracer;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
@@ -24,8 +23,6 @@ import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHandler;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongPredicate;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -39,6 +36,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -71,10 +69,8 @@ public class ProxyBenchmark {
     private Service instrumentedWithTracing;
     private Service instrumentedWithRemoting;
 
-    private ExecutorService executor;
-
     @Setup
-    public void before() {
+    public void before(Blackhole blackhole) {
         previousLogLevel = System.setProperty(DEFAULT_LOG_LEVEL, "WARN");
 
         raw = new TestService();
@@ -94,8 +90,6 @@ public class ProxyBenchmark {
                 .withMetrics(MetricRegistries.createWithHdrHistogramReservoirs())
                 .build();
 
-        executor = Executors.newSingleThreadExecutor();
-        Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
         instrumentedWithTracing = Instrumentation.builder(serviceInterface, raw)
                 .withHandler(TracingInvocationEventHandler.create("jmh"))
                 .build();
@@ -113,11 +107,14 @@ public class ProxyBenchmark {
                         (LongPredicate) LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
                 .withHandler(TracingInvocationEventHandler.create("jmh"))
                 .build();
+
+        // Prevent DCE from tracing
+        Tracer.subscribe("jmh", blackhole::consume);
     }
 
     @TearDown
     public void after() throws Exception {
-        executor.shutdown();
+        Tracer.unsubscribe("jmh");
         if (previousLogLevel == null) {
             System.clearProperty(DEFAULT_LOG_LEVEL);
         } else {
