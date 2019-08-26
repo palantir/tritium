@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 final class SharedTaggedMetricRegistriesTest {
     @Test
+    @SuppressWarnings("deprecation") // testing a deprecated registry
     void all_default_methods_return_the_same_thing() {
         TaggedMetricRegistry defaultRegistry = SharedTaggedMetricRegistries.getSingleton();
         assertThat(DefaultTaggedMetricRegistry.getDefault()).isSameAs(defaultRegistry);

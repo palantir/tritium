@@ -236,7 +236,7 @@ final class TaggedMetricRegistryTest {
         assertThat(counter.getCount()).isEqualTo(1);
     }
 
-    private void assertMetric(
+    private static void assertMetric(
             TaggedMetricRegistry registry,
             String name,
             String tagKey,

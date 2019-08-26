@@ -22,6 +22,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.RatioGauge;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.logsafe.Preconditions;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -103,7 +104,8 @@ final class JvmMetricsTest {
         Metric fileDescriptorsMetric =
                 registry.getMetrics().get(MetricName.builder().safeName("jvm.filedescriptor").build());
         assertThat(fileDescriptorsMetric).isInstanceOf(RatioGauge.class);
-        RatioGauge fileDescriptorsRatio = (RatioGauge) fileDescriptorsMetric;
+        RatioGauge fileDescriptorsRatio = Preconditions.checkNotNull(
+                (RatioGauge) fileDescriptorsMetric, "fileDescriptorsMetric");
         double initialDescriptorsRatio = fileDescriptorsRatio.getValue();
         List<Closeable> handles = new ArrayList<>();
         try {
@@ -128,8 +130,8 @@ final class JvmMetricsTest {
                 .get(MetricName.builder().safeName("os.load.norm.1").build());
         Gauge<Double> systemLoad = (Gauge<Double>) registry.getMetrics()
                 .get(MetricName.builder().safeName("os.load.1").build());
-        assertThat(systemLoad.getValue()).isPositive();
-        assertThat(systemLoadNormalized.getValue()).isPositive();
+        assertThat(systemLoad).satisfies(gauge -> assertThat(gauge.getValue()).isPositive());
+        assertThat(systemLoadNormalized).satisfies(gauge -> assertThat(gauge.getValue()).isPositive());
     }
 
     @Test
@@ -139,8 +141,8 @@ final class JvmMetricsTest {
         JvmMetrics.register(registry);
         Gauge<Double> processCpuLoad = (Gauge<Double>) registry.getMetrics()
                 .get(MetricName.builder().safeName("process.cpu.utilization").build());
-        double processLoad = processCpuLoad.getValue();
-        assertThat(processLoad).isGreaterThanOrEqualTo(0D).isLessThanOrEqualTo(1D);
+        assertThat(processCpuLoad).satisfies(gauge -> assertThat(gauge.getValue())
+                .isGreaterThanOrEqualTo(0D).isLessThanOrEqualTo(1D));
     }
 
     @Test
@@ -150,6 +152,6 @@ final class JvmMetricsTest {
         JvmMetrics.register(registry);
         Gauge<Long> safepointTime = (Gauge<Long>) registry.getMetrics()
                 .get(MetricName.builder().safeName("jvm.safepoint.time").build());
-        assertThat(safepointTime.getValue()).isNotNegative();
+        assertThat(safepointTime).satisfies(gauge -> assertThat(gauge.getValue()).isNotNegative());
     }
 }
