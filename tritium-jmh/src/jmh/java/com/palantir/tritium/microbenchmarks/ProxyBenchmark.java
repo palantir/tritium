@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.microbenchmarks;
 
+import com.google.common.collect.ImmutableList;
 import com.palantir.tracing.Tracer;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
@@ -25,6 +26,7 @@ import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHand
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongPredicate;
+import java.util.stream.IntStream;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -67,6 +69,7 @@ public class ProxyBenchmark {
     private Service instrumentedWithMetrics;
     private Service instrumentedWithEverything;
     private Service instrumentedWithTracing;
+    private Service instrumentedWithTracingNested;
     private Service instrumentedWithRemoting;
 
     @Setup
@@ -91,11 +94,19 @@ public class ProxyBenchmark {
                 .build();
 
         instrumentedWithTracing = Instrumentation.builder(serviceInterface, raw)
-                .withHandler(TracingInvocationEventHandler.create("jmh"))
+                .withHandler(TracingInvocationEventHandler.create(serviceInterface.getName()))
+                .build();
+
+        // Simulates call stacks with many traced services
+        instrumentedWithTracingNested = Instrumentation.builder(serviceInterface, raw)
+                .withHandlers(IntStream.range(0, 10)
+                        .mapToObj(index -> TracingInvocationEventHandler.create(serviceInterface.getName() + index))
+                        .collect(ImmutableList.toImmutableList()))
                 .build();
 
         instrumentedWithRemoting = Instrumentation.builder(serviceInterface, raw)
-                .withHandler(new RemotingCompatibleTracingInvocationEventHandler("jmh", Remoting3Tracer.INSTANCE))
+                .withHandler(new RemotingCompatibleTracingInvocationEventHandler(
+                        serviceInterface.getName(), Remoting3Tracer.INSTANCE))
                 .build();
 
         instrumentedWithEverything = Instrumentation.builder(serviceInterface, raw)
@@ -105,7 +116,7 @@ public class ProxyBenchmark {
                         Instrumentation.getPerformanceLoggerForInterface(serviceInterface),
                         LoggingLevel.TRACE,
                         (LongPredicate) LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
-                .withHandler(TracingInvocationEventHandler.create("jmh"))
+                .withHandler(TracingInvocationEventHandler.create(serviceInterface.getName()))
                 .build();
 
         // Prevent DCE from tracing
@@ -145,6 +156,11 @@ public class ProxyBenchmark {
     @Benchmark
     public String instrumentedWithTracing() {
         return instrumentedWithTracing.echo("test");
+    }
+
+    @Benchmark
+    public String instrumentedWithTracingNested() {
+        return instrumentedWithTracingNested.echo("test");
     }
 
     // @Benchmark
