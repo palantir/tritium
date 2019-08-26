@@ -18,6 +18,8 @@ package com.palantir.tritium.event.metrics;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -25,8 +27,11 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -50,6 +55,9 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
 
     private final TaggedMetricRegistry taggedMetricRegistry;
     private final String serviceName;
+    private final Meter globalFailureMeter;
+    private final ConcurrentMap<Method, Timer> timerCache = new ConcurrentHashMap<>();
+    private final Function<Method, Timer> onSuccessTimerMappingFunction;
 
     public TaggedMetricsServiceInvocationEventHandler(
             TaggedMetricRegistry taggedMetricRegistry,
@@ -57,6 +65,12 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
         super(getEnabledSupplier(serviceName));
         this.taggedMetricRegistry = checkNotNull(taggedMetricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
+        this.globalFailureMeter = taggedMetricRegistry.meter(FAILURES_METRIC);
+        this.onSuccessTimerMappingFunction = method -> taggedMetricRegistry.timer(MetricName.builder()
+                .safeName(serviceName)
+                .putSafeTags("service-name", method.getDeclaringClass().getSimpleName())
+                .putSafeTags("endpoint", method.getName())
+                .build());
     }
 
     @SuppressWarnings("NoFunctionalReturnType") // helper
@@ -77,19 +91,17 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
         debugIfNullContext(context);
         if (context != null) {
             long nanos = System.nanoTime() - context.getStartTimeNanos();
-            MetricName finalMetricName = MetricName.builder()
-                    .safeName(serviceName)
-                    .putSafeTags("service-name", context.getMethod().getDeclaringClass().getSimpleName())
-                    .putSafeTags("endpoint", context.getMethod().getName())
-                    .build();
-            taggedMetricRegistry.timer(finalMetricName)
-                    .update(nanos, TimeUnit.NANOSECONDS);
+            getSuccessTimer(context.getMethod()).update(nanos, TimeUnit.NANOSECONDS);
         }
+    }
+
+    private Timer getSuccessTimer(Method method) {
+        return timerCache.computeIfAbsent(method, onSuccessTimerMappingFunction);
     }
 
     @Override
     public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
-        markGlobalFailure();
+        globalFailureMeter.mark();
         debugIfNullContext(context);
         if (context != null) {
             MetricName failuresMetricName = MetricName.builder()
@@ -100,9 +112,5 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
                     .build();
             taggedMetricRegistry.meter(failuresMetricName).mark();
         }
-    }
-
-    private void markGlobalFailure() {
-        taggedMetricRegistry.meter(FAILURES_METRIC).mark();
     }
 }
