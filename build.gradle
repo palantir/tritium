@@ -75,7 +75,7 @@ allprojects {
 
         tasks.withType(JavaCompile).configureEach {
             options.compilerArgs += [
-                // '-Werror', // disable due to https://github.com/immutables/immutables/issues/291 for now
+                '-Werror',
                 '-Xlint:deprecation',
                 '-Xlint:unchecked',
             ]
