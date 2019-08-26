@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Optimize TracingInvocationEventHandler for nested use
+  links:
+  - https://github.com/palantir/tritium/pull/357
