@@ -342,11 +342,16 @@ final class InstrumentationTest {
         runnable.test();
         assertThat(delegate.invocationCount()).isEqualTo(1);
         Map<MetricName, Metric> taggedMetrics = taggedMetricRegistry.getMetrics();
-        assertThat(taggedMetrics.keySet()).containsOnly(MetricName.builder()
-                .safeName("testPrefix")
-                .putSafeTags("service-name", "TestInterface")
-                .putSafeTags("endpoint", "test")
-                .build());
+        assertThat(taggedMetrics.keySet()).containsExactly(
+                MetricName.builder()
+                        .safeName("testPrefix")
+                        .putSafeTags("service-name", "TestInterface")
+                        .putSafeTags("endpoint", "test")
+                        .build(),
+                // The failures metric is created eagerly
+                MetricName.builder()
+                        .safeName("failures")
+                        .build());
 
         assertThat(taggedMetrics.values())
                 .first().isInstanceOf(Timer.class)
