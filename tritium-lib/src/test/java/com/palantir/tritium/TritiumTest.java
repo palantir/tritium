@@ -113,13 +113,16 @@ public class TritiumTest {
     @Test
     public void testInstrumentWithTags() {
         assertThat(delegate.invocationCount()).isEqualTo(0);
-        assertThat(taggedMetricRegistry.getMetrics()).isEmpty();
+        assertThat(taggedMetricRegistry.getMetrics())
+                // The global failures metric is created eagerly
+                .containsOnlyKeys(MetricName.builder().safeName("failures").build());
 
         taggedInstrumentedService.test();
         assertThat(delegate.invocationCount()).isEqualTo(1);
 
         Map<MetricName, Metric> metrics = taggedMetricRegistry.getMetrics();
-        assertThat(metrics.keySet()).containsOnly(EXPECTED_TAGGED_METRIC_NAME);
+        assertThat(metrics.keySet())
+                .containsExactly(EXPECTED_TAGGED_METRIC_NAME, MetricName.builder().safeName("failures").build());
         Metric actual = metrics.get(EXPECTED_TAGGED_METRIC_NAME);
         assertThat(actual).isInstanceOf(Timer.class);
         Timer timer = (Timer) actual;
