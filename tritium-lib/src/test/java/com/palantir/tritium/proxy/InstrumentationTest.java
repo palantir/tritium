@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.Tagged;
 import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
@@ -55,11 +57,13 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -412,6 +416,123 @@ final class InstrumentationTest {
                 .build();
         assertThat(instrumented).asString().isEqualTo("com.palantir.tritium.test.TestImplementation");
         verifyNoMoreInteractions(mockHandler);
+    }
+
+    @Test
+    void testInstrumentAnonymousClass() {
+        Supplier<String> anonymousSupplier = new Supplier<String>() {
+            @Override
+            public String get() {
+                return "AnonymousSupplier.get";
+            }
+
+            @Override
+            public String toString() {
+                return "AnonymousSupplier";
+            }
+        };
+        Supplier<?> result = Instrumentation.builder(Supplier.class, anonymousSupplier)
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(result.get()).isEqualTo("AnonymousSupplier.get");
+        assertThat(result.toString()).isEqualTo("AnonymousSupplier");
+    }
+
+    @Test
+    void testInstrumentPrivateClass() {
+        Supplier<?> result = Instrumentation.builder(Supplier.class, new PrivateSupplier())
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(result.get()).isEqualTo("PrivateSupplier.get");
+        assertThat(result.toString()).isEqualTo("PrivateSupplier");
+    }
+
+    private static final class PrivateSupplier implements Supplier<String> {
+
+        @Override
+        public String get() {
+            return "PrivateSupplier.get";
+        }
+
+        @Override
+        public String toString() {
+            return "PrivateSupplier";
+        }
+    }
+
+    @Test
+    void testInstrumentMultipleInterfacesProvideSameMethod(
+            @Mock InvocationEventHandler<InvocationContext> mockHandler) {
+        when(mockHandler.isEnabled()).thenReturn(true);
+        when(mockHandler.preInvocation(any(), any(), any()))
+                .thenAnswer((Answer<InvocationContext>) invocation -> DefaultInvocationContext.of(
+                        invocation.getMock(), invocation.getMethod(), invocation.getArguments()));
+        ParentInterface result = Instrumentation.builder(ParentInterface.class, new DefaultParent())
+                .withHandler(mockHandler)
+                .build();
+        assertThat(result.getValue()).isEqualTo(3);
+        assertThat(result.getString()).isEqualTo("string");
+        verify(mockHandler, times(2)).isEnabled();
+        verify(mockHandler, times(2)).preInvocation(any(), any(), any());
+        verify(mockHandler, times(2)).onSuccess(any(), any());
+        verifyNoMoreInteractions(mockHandler);
+        assertThat(result)
+                .isInstanceOf(FirstInterface.class)
+                .isInstanceOf(SecondInterface.class)
+                .isInstanceOf(ParentInterface.class);
+    }
+
+    @Test
+    void testAdditionalInterfaces(@Mock InvocationEventHandler<InvocationContext> mockHandler) {
+        when(mockHandler.isEnabled()).thenReturn(true);
+        when(mockHandler.preInvocation(any(), any(), any()))
+                .thenAnswer((Answer<InvocationContext>) invocation -> DefaultInvocationContext.of(
+                        invocation.getMock(), invocation.getMethod(), invocation.getArguments()));
+        FirstInterface result = Instrumentation.builder(FirstInterface.class, new DefaultParent())
+                .withHandler(mockHandler)
+                .build();
+        assertThat(result)
+                .isInstanceOf(FirstInterface.class)
+                .isInstanceOf(SecondInterface.class)
+                .isInstanceOf(ParentInterface.class);
+
+        assertThat(result.getValue()).isEqualTo(3);
+        assertThat(result).isInstanceOfSatisfying(ParentInterface.class,
+                parentInterface -> assertThat(parentInterface.getString()).isEqualTo("string"));
+        verify(mockHandler, times(2)).isEnabled();
+        verify(mockHandler, times(2)).preInvocation(any(), any(), any());
+        verify(mockHandler, times(2)).onSuccess(any(), any());
+        verifyNoMoreInteractions(mockHandler);
+    }
+
+    public interface FirstInterface {
+
+        int getValue();
+
+    }
+
+    public interface SecondInterface {
+
+        int getValue();
+
+    }
+
+    public interface ParentInterface extends FirstInterface, SecondInterface {
+
+        String getString();
+    }
+
+    public static final class DefaultParent implements ParentInterface {
+
+        @Override
+        public int getValue() {
+            return 3;
+        }
+
+        @Override
+        public String getString() {
+            return "string";
+        }
     }
 
     @SuppressWarnings("SameParameterValue")
