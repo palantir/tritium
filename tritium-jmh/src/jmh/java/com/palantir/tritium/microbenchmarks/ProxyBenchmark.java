@@ -20,6 +20,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.palantir.tracing.Tracer;
 import com.palantir.tritium.Tritium;
+import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
@@ -37,6 +38,7 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -65,6 +67,20 @@ public class ProxyBenchmark {
 
     private static final String DEFAULT_LOG_LEVEL = "org.slf4j.simpleLogger.defaultLogLevel";
 
+    @Param({"BYTE_BUDDY", "DYNAMIC_PROXY"})
+    private InstrumentationMode mode;
+
+    @SuppressWarnings("unused")
+    public enum InstrumentationMode {
+        BYTE_BUDDY,
+        DYNAMIC_PROXY;
+
+        void initialize() {
+            System.setProperty("instrument.dynamic-proxy", Boolean.toString(this.equals(DYNAMIC_PROXY)));
+            InstrumentationProperties.reload();
+        }
+    }
+
     private String previousLogLevel;
 
     private Service raw;
@@ -82,6 +98,7 @@ public class ProxyBenchmark {
 
     @Setup
     public void before(Blackhole blackhole) {
+        mode.initialize();
         previousLogLevel = System.setProperty(DEFAULT_LOG_LEVEL, "WARN");
 
         raw = new TestService();
