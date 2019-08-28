@@ -56,6 +56,7 @@ final class BlackholeInvocationEventHandler implements InvocationEventHandler<In
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
         consume(context, cause);
     }
+
     private void consume(@Nullable Object obj0, @Nullable Object obj1, @Nullable Object obj2) {
         consume(obj0, obj1);
         blackhole.consume(obj2);
