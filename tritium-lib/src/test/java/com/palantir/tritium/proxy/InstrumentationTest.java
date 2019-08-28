@@ -46,6 +46,7 @@ import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
+import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -366,6 +367,51 @@ final class InstrumentationTest {
         assertThatThrownBy(constructor::newInstance)
                 .isInstanceOf(InvocationTargetException.class)
                 .hasRootCauseExactlyInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void testEquals_separateInstanceWithSameArgs() {
+        TestImplementation delegate = new TestImplementation();
+        InvocationEventHandler<InvocationContext> handler = TracingInvocationEventHandler.create("test");
+        TestInterface proxy0 = Instrumentation.builder(TestInterface.class, delegate).withHandler(handler).build();
+        TestInterface proxy1 = Instrumentation.builder(TestInterface.class, delegate).withHandler(handler).build();
+        assertThat(proxy0).isNotEqualTo(proxy1);
+    }
+
+    @Test
+    void testEquals_sameInstance() {
+        TestInterface proxy = Instrumentation.builder(TestInterface.class, new TestImplementation())
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(proxy).isEqualTo(proxy);
+    }
+
+    @Test
+    void testHashCode_constant() {
+        TestInterface proxy = Instrumentation.builder(TestInterface.class, new TestImplementation())
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(proxy.hashCode()).isEqualTo(proxy.hashCode());
+    }
+
+    @Test
+    void testHashCode_notDelegated() {
+        TestInterface delegate = new TestImplementation();
+        TestInterface proxy = Instrumentation.builder(TestInterface.class, delegate)
+                .withPerformanceTraceLogging()
+                .build();
+        // Small chance of a flake if we get unlucky
+        assertThat(proxy.hashCode()).isNotEqualTo(delegate.hashCode());
+    }
+
+    @Test
+    void testToString_delegateWithoutInstrumentation(@Mock InvocationEventHandler<InvocationContext> mockHandler) {
+        TestInterface delegate = new TestImplementation();
+        TestInterface instrumented = Instrumentation.builder(TestInterface.class, delegate)
+                .withHandler(mockHandler)
+                .build();
+        assertThat(instrumented).asString().isEqualTo("com.palantir.tritium.test.TestImplementation");
+        verifyNoMoreInteractions(mockHandler);
     }
 
     @SuppressWarnings("SameParameterValue")

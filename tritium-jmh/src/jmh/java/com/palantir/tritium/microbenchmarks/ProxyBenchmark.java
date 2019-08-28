@@ -66,6 +66,7 @@ public class ProxyBenchmark {
 
     private Service raw;
     private Service instrumentedWithoutHandlers;
+    private Service instrumentedWithEnabledNopHandler;
     private Service instrumentedWithPerformanceLogging;
     private Service instrumentedWithMetrics;
     private Service instrumentedWithTaggedMetrics;
@@ -82,6 +83,10 @@ public class ProxyBenchmark {
 
         Class<Service> serviceInterface = Service.class;
         instrumentedWithoutHandlers = Instrumentation.builder(serviceInterface, raw).build();
+
+        instrumentedWithEnabledNopHandler = Instrumentation.builder(serviceInterface, raw)
+                .withHandler(new BlackholeInvocationEventHandler(blackhole))
+                .build();
 
         instrumentedWithPerformanceLogging = Instrumentation.builder(serviceInterface, raw)
                 // similar to .withPerformanceTraceLogging() but always log
@@ -147,6 +152,11 @@ public class ProxyBenchmark {
     // @Benchmark
     public String instrumentedWithoutHandlers() {
         return instrumentedWithoutHandlers.echo("test");
+    }
+
+    @Benchmark
+    public String instrumentedWithEnabledNopHandler() {
+        return instrumentedWithEnabledNopHandler.echo("test");
     }
 
     @Benchmark

@@ -19,10 +19,10 @@ package com.palantir.tritium.proxy;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.reflect.AbstractInvocationHandler;
 import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InstrumentationFilters;
@@ -32,14 +32,14 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class InvocationEventProxy extends AbstractInvocationHandler implements InvocationHandler {
+abstract class InvocationEventProxy implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(InvocationEventProxy.class);
+    private static final Object[] EMPTY_ARRAY = new Object[0];
 
     private final InstrumentationFilter filter;
     private final InvocationEventHandler<?> eventHandler;
@@ -88,39 +88,62 @@ abstract class InvocationEventProxy extends AbstractInvocationHandler implements
         }
     }
 
+    /** Optimized to avoid excessive stack frames for readable stack traces. */
     @Override
     @Nullable
-    @SuppressWarnings("checkstyle:illegalthrows")
-    protected final Object handleInvocation(
-            @Nonnull Object proxy,
-            @Nonnull Method method,
-            @Nonnull Object[] args) throws Throwable {
-        if (isEnabled(proxy, method, args)) {
-            return instrumentInvocation(proxy, method, args);
+    public final Object invoke(Object proxy, Method method, @Nullable Object[] nullableArgs) throws Throwable {
+        Object[] arguments = nullableArgs == null ? EMPTY_ARRAY : nullableArgs;
+        if (isSpecialMethod(method, arguments)) {
+            return handleSpecialMethod(proxy, method, arguments);
+        }
+        if (isEnabled(proxy, method, arguments)) {
+            InvocationContext context = handlePreInvocation(proxy, method, arguments);
+            try {
+                Object result = method.invoke(getDelegate(), arguments);
+                return handleOnSuccess(context, result);
+            } catch (Throwable t) {
+                throw invocationFailed(context, t);
+            }
         } else {
-            return execute(method, args);
+            try {
+                return method.invoke(getDelegate(), arguments);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
         }
     }
 
-    /**
-     * {@link #invoke} delegates to this method upon any method invocation on the instance, except
-     * {@link Object#equals}, {@link Object#hashCode} and {@link Object#toString}. The result will be returned as the
-     * proxied method's return value.
-     * <p>
-     * <p>
-     * Unlike {@link #invoke}, {@code args} will never be null. When the method has no parameter, an empty array is
-     * passed in.
-     */
-    @Nullable
-    @SuppressWarnings("checkstyle:illegalthrows")
-    @VisibleForTesting
-    final Object instrumentInvocation(Object instance, Method method, Object[] args) throws Throwable {
-        InvocationContext context = handlePreInvocation(instance, method, args);
-        try {
-            return invoke(context, method, args);
-        } catch (Throwable t) {
-            throw invocationFailed(context, t);
+    private static boolean isSpecialMethod(Method method, Object[] arguments) {
+        return isHashCode(method, arguments) || isEquals(method, arguments) || isToString(method, arguments);
+    }
+
+    private Object handleSpecialMethod(Object proxy, Method method, Object[] arguments) {
+        if (isHashCode(method, arguments)) {
+            return hashCode();
         }
+        if (isEquals(method, arguments)) {
+            Object arg = arguments[0];
+            return arg != null && proxy == arg;
+        }
+        if (isToString(method, arguments)) {
+            return toString();
+        }
+        throw new SafeIllegalStateException("Method does not require special handling",
+                SafeArg.of("method", method.toString()));
+    }
+
+    private static boolean isEquals(Method method, Object[] arguments) {
+        return arguments.length == 1
+                && "equals".equals(method.getName())
+                && method.getParameterTypes()[0] == Object.class;
+    }
+
+    private static boolean isHashCode(Method method, Object[] arguments) {
+        return arguments.length == 0 && "hashCode".equals(method.getName());
+    }
+
+    private static boolean isToString(Method method, Object[] arguments) {
+        return arguments.length == 0 && "toString".equals(method.getName());
     }
 
     @Nullable
@@ -132,24 +155,6 @@ abstract class InvocationEventProxy extends AbstractInvocationHandler implements
             logInvocationWarning("preInvocation", instance, method, e);
         }
         return null;
-    }
-
-    @Nullable
-    @SuppressWarnings("checkstyle:illegalthrows")
-    private Object invoke(@Nullable InvocationContext context, Method method, Object[] args) throws Throwable {
-        Object result = execute(method, args);
-        return handleOnSuccess(context, result);
-    }
-
-    @Nullable
-    @SuppressWarnings("checkstyle:illegalthrows")
-    @VisibleForTesting
-    final Object execute(Method method, Object[] args) throws Throwable {
-        try {
-            return method.invoke(getDelegate(), args);
-        } catch (InvocationTargetException e) {
-            throw e.getCause();
-        }
     }
 
     @Nullable
