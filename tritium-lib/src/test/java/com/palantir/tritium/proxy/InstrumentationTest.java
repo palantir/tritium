@@ -41,6 +41,8 @@ import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
+import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
+import com.palantir.tritium.event.metrics.TaggedMetricsServiceInvocationEventHandler;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
@@ -53,6 +55,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -533,6 +536,58 @@ final class InstrumentationTest {
         public String getString() {
             return "string";
         }
+    }
+
+    @Test
+    void testStackDepth() {
+        StackTraceSupplier stackTraceSupplier = () -> cleanStackTrace(new Exception().getStackTrace());
+        StackTraceSupplier instrumentedStackSupplier =
+                Instrumentation.builder(StackTraceSupplier.class, stackTraceSupplier)
+                        .withPerformanceTraceLogging()
+                        .build();
+        StackTraceElement[] rawStack = stackTraceSupplier.get();
+        StackTraceElement[] instrumentedStack = instrumentedStackSupplier.get();
+        // The value isn't particularly important, this test exists to force us to acknowledge changes in
+        // stack trace length due to Tritium instrumentation. It's not uncommon to have >10 Tritium proxies
+        // in a single trace, so increases in frames can make debugging more difficult.
+        assertThat(instrumentedStack).hasSize(rawStack.length + 6);
+    }
+
+    @Test
+    void testStackDepth_notFunctionOfHandlers() {
+        StackTraceSupplier stackTraceSupplier = () -> cleanStackTrace(new Exception().getStackTrace());
+        StackTraceSupplier singleHandlerInstrumentedStackSupplier =
+                Instrumentation.builder(StackTraceSupplier.class, stackTraceSupplier)
+                        // Use enabled event handlers to avoid bugs from optimizations on disabled handlers
+                        .withHandler(new TaggedMetricsServiceInvocationEventHandler(
+                                new DefaultTaggedMetricRegistry(), "test0"))
+                        .build();
+        StackTraceSupplier multipleHandlerInstrumentedStackSupplier =
+                Instrumentation.builder(StackTraceSupplier.class, stackTraceSupplier)
+                        .withHandler(new TaggedMetricsServiceInvocationEventHandler(
+                                new DefaultTaggedMetricRegistry(), "test1"))
+                        .withHandler(new MetricsInvocationEventHandler(new MetricRegistry(), "test2"))
+                        .build();
+        StackTraceElement[] singleHandlerInstrumentedStackTrace = singleHandlerInstrumentedStackSupplier.get();
+        StackTraceElement[] multipleHandlerInstrumentedStack = multipleHandlerInstrumentedStackSupplier.get();
+        // Tritium frames should not scale with the number of registered InvocationEventHandler instances.
+        assertThat(singleHandlerInstrumentedStackTrace).hasSameSizeAs(multipleHandlerInstrumentedStack);
+    }
+
+    public interface StackTraceSupplier extends Supplier<StackTraceElement[]> {}
+
+    /** Provides a subsection of the input stack trace relevant to this test. */
+    private StackTraceElement[] cleanStackTrace(StackTraceElement[] stackTrace) {
+        String className = getClass().getName();
+        int lastTestFrame = -1;
+        for (int i = 0; i < stackTrace.length; i++) {
+            StackTraceElement element = stackTrace[i];
+            if (className.equals(element.getClassName())) {
+                lastTestFrame = i;
+            }
+        }
+        assertThat(lastTestFrame).isNotNegative();
+        return Arrays.copyOf(stackTrace, lastTestFrame + 1);
     }
 
     @SuppressWarnings("SameParameterValue")
