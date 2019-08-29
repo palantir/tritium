@@ -16,11 +16,14 @@
 
 package com.palantir.tritium.microbenchmarks;
 
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.palantir.tracing.Tracer;
+import com.palantir.tritium.Tritium;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
+import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.SharedTaggedMetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHandler;
@@ -74,6 +77,8 @@ public class ProxyBenchmark {
     private Service instrumentedWithTracing;
     private Service instrumentedWithTracingNested;
     private Service instrumentedWithRemoting;
+    private Service instrumentedDefaultUntagged;
+    private Service instrumentedDefaultTagged;
 
     @Setup
     public void before(Blackhole blackhole) {
@@ -129,6 +134,12 @@ public class ProxyBenchmark {
                         (LongPredicate) LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
                 .withHandler(TracingInvocationEventHandler.create(serviceInterface.getName()))
                 .build();
+
+        instrumentedDefaultUntagged = Tritium.instrument(
+                serviceInterface, raw, new MetricRegistry());
+
+        instrumentedDefaultTagged = Tritium.instrument(
+                serviceInterface, raw, new DefaultTaggedMetricRegistry());
 
         // Prevent DCE from tracing
         Tracer.subscribe("jmh", blackhole::consume);
@@ -192,6 +203,16 @@ public class ProxyBenchmark {
     @Benchmark
     public String instrumentedWithEverything() {
         return instrumentedWithEverything.echo("test");
+    }
+
+    @Benchmark
+    public String instrumentedDefaultUntagged() {
+        return instrumentedDefaultUntagged.echo("test");
+    }
+
+    @Benchmark
+    public String instrumentedDefaultTagged() {
+        return instrumentedDefaultTagged.echo("test");
     }
 
     public interface Service {
