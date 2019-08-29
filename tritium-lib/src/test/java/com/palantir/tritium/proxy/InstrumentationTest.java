@@ -41,6 +41,8 @@ import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
+import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
+import com.palantir.tritium.event.metrics.TaggedMetricsServiceInvocationEventHandler;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
@@ -57,6 +59,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -533,6 +536,40 @@ final class InstrumentationTest {
         public String getString() {
             return "string";
         }
+    }
+
+    @Test
+    void testStackDepth() {
+        IntSupplier stackDepthSupplier = () -> new Exception().getStackTrace().length;
+        IntSupplier instrumentedStackDepthSupplier = Instrumentation.builder(IntSupplier.class, stackDepthSupplier)
+                .withPerformanceTraceLogging()
+                .build();
+        int rawStackDepth = stackDepthSupplier.getAsInt();
+        int instrumentedStackDepth = instrumentedStackDepthSupplier.getAsInt();
+        // The value isn't particularly important, this test exists to force us to acknowledge changes in
+        // stack trace length due to Tritium instrumentation. It's not uncommon to have >10 Tritium proxies
+        // in a single trace, so increases in frames can make debugging more difficult.
+        assertThat(instrumentedStackDepth).isEqualTo(rawStackDepth + 6);
+    }
+
+    @Test
+    void testStackDepth_notFunctionOfHandlers() {
+        IntSupplier stackDepthSupplier = () -> new Exception().getStackTrace().length;
+        IntSupplier singleHandlerInstrumentedStackDepthSupplier =
+                Instrumentation.builder(IntSupplier.class, stackDepthSupplier)
+                        // Use enabled event handlers to avoid bugs from optimizations on disabled handlers
+                        .withHandler(new TaggedMetricsServiceInvocationEventHandler(
+                                new DefaultTaggedMetricRegistry(), "test0"))
+                        .build();
+        IntSupplier multipleHandlerInstrumentedStackDepthSupplier =
+                Instrumentation.builder(IntSupplier.class, stackDepthSupplier)
+                        .withHandler(new TaggedMetricsServiceInvocationEventHandler(
+                                new DefaultTaggedMetricRegistry(), "test1"))
+                        .withHandler(new MetricsInvocationEventHandler(new MetricRegistry(), "test2"))
+                        .build();
+        // Tritium frames should not scale with the number of registered InvocationEventHandler instances.
+        assertThat(singleHandlerInstrumentedStackDepthSupplier.getAsInt())
+                .isEqualTo(multipleHandlerInstrumentedStackDepthSupplier.getAsInt());
     }
 
     @SuppressWarnings("SameParameterValue")
