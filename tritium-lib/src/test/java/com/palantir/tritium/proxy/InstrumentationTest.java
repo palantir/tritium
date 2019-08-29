@@ -550,7 +550,6 @@ final class InstrumentationTest {
         // The value isn't particularly important, this test exists to force us to acknowledge changes in
         // stack trace length due to Tritium instrumentation. It's not uncommon to have >10 Tritium proxies
         // in a single trace, so increases in frames can make debugging more difficult.
-        // assertThat(instrumentedStack).size
         assertThat(instrumentedStack).hasSize(rawStack.length + 6);
     }
 
