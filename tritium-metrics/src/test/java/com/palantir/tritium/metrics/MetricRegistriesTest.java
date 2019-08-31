@@ -47,13 +47,13 @@ import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -288,7 +288,7 @@ final class MetricRegistriesTest {
         assertThat(cache.get(2)).isEqualTo("2");
         assertThat(cache.get(1)).isEqualTo("1");
 
-        await().atMost(Duration.TEN_SECONDS).untilAsserted(() ->
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
                 assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
                         .getValue()).isEqualTo(4L));
 
