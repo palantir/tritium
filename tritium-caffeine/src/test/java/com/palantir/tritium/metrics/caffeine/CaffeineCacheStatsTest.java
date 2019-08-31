@@ -94,10 +94,9 @@ final class CaffeineCacheStatsTest {
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-            assertThat(metricRegistry.getGauges().get("test.cache.request.count")).isNotNull()
-                    .extracting(Gauge::getValue).isEqualTo(4L);
-        });
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
+                assertThat(metricRegistry.getGauges().get("test.cache.request.count")).isNotNull()
+                        .extracting(Gauge::getValue).isEqualTo(4L));
 
         assertThat(metricRegistry.getGauges().get("test.cache.hit.count")).isNotNull()
                 .extracting(Gauge::getValue).isEqualTo(1L);
@@ -133,10 +132,9 @@ final class CaffeineCacheStatsTest {
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-            assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
-                    .getValue()).isEqualTo(4L);
-        });
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
+                assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
+                        .getValue()).isEqualTo(4L));
 
         assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.count").getValue()).isEqualTo(1L);
         assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.miss.count").getValue()).isEqualTo(3L);
