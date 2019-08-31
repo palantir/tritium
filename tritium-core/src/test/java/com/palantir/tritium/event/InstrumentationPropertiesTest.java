@@ -27,12 +27,12 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.palantir.tritium.api.functions.BooleanSupplier;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
 import javax.annotation.Nullable;
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -168,7 +168,7 @@ final class InstrumentationPropertiesTest {
             }
         }, MoreExecutors.directExecutor());
 
-        await().atMost(Duration.FIVE_SECONDS).untilAsserted(() -> {
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
             assertThat(successfulAsList.get()).hasSize(expectedTaskCount);
             assertThat(barrier.getNumberWaiting()).isZero();
         });

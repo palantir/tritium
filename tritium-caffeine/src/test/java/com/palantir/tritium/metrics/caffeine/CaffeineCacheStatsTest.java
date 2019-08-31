@@ -29,9 +29,9 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
-import org.awaitility.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -94,7 +94,7 @@ final class CaffeineCacheStatsTest {
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        await().atMost(Duration.TEN_SECONDS).untilAsserted(() -> {
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
             assertThat(metricRegistry.getGauges().get("test.cache.request.count")).isNotNull()
                     .extracting(Gauge::getValue).isEqualTo(4L);
         });
@@ -133,7 +133,7 @@ final class CaffeineCacheStatsTest {
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        await().atMost(Duration.TEN_SECONDS).untilAsserted(() -> {
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
             assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
                     .getValue()).isEqualTo(4L);
         });
