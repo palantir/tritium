@@ -3,7 +3,6 @@ apply from: "${rootDir}/gradle/publish-jar.gradle"
 dependencies {
 
     annotationProcessor "org.immutables:value"
-    compileOnly 'org.immutables:value::annotations'
 
     api project(':tritium-api')
     api project(':tritium-core')
@@ -32,5 +31,8 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
 
+    // Work around https://github.com/immutables/immutables/issues/291
+    compileOnly 'org.immutables:value::annotations'
+    testCompileOnly 'org.immutables:value::annotations'
 }
 

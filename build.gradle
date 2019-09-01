@@ -67,9 +67,6 @@ allprojects {
             }
         }
 
-        // Work around https://github.com/immutables/immutables/issues/291
-        compileOnly 'org.immutables:value::annotations'
-        testCompileOnly 'org.immutables:value::annotations'
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {

@@ -1,6 +1,7 @@
 apply from: "${rootDir}/gradle/publish-jar.gradle"
 
 dependencies {
+
     api project(':tritium-registry')
     implementation project(':tritium-metrics')
 
@@ -17,5 +18,8 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
 
+    // Work around https://github.com/immutables/immutables/issues/291
+    compileOnly 'org.immutables:value::annotations'
+    testCompileOnly 'org.immutables:value::annotations'
 }
 
