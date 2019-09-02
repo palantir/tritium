@@ -182,7 +182,7 @@ final class InstrumentationTest {
         for (int i = 0; i < invocations; i++) {
             instrumentedService.test();
         }
-        System.out.printf("%s took %s for %d iterations %n", getClass(), timer, INVOCATION_ITERATIONS);
+        System.out.printf("%s took %s for %d iterations %n", getClass(), timer, invocations );
 
         timer.reset().start();
         instrumentedService.test();
