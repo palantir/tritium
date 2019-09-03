@@ -80,7 +80,10 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private void success(@Nonnull InvocationContext[] contexts, @Nullable Object result) {
         for (int i = contexts.length - 1; i > -1; i--) {
-            handleSuccess(tryGetEnabledHandler(i), contexts[i], result);
+            InvocationContext context = contexts[i];
+            if (context != null) {
+                handleSuccess(handlers.get(i), context, result);
+            }
         }
     }
 
@@ -94,7 +97,10 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private void failure(InvocationContext[] contexts, @Nonnull Throwable cause) {
         for (int i = contexts.length - 1; i > -1; i--) {
-            handleFailure(tryGetEnabledHandler(i), contexts[i], cause);
+            InvocationContext context = contexts[i];
+            if (context != null) {
+                handleFailure(handlers.get(i), context, cause);
+            }
         }
     }
 

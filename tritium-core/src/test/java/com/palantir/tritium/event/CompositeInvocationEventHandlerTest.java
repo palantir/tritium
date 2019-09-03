@@ -18,6 +18,11 @@ package com.palantir.tritium.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.palantir.tritium.test.event.ThrowingInvocationEventHandler;
 import java.lang.reflect.Method;
@@ -43,6 +48,46 @@ final class CompositeInvocationEventHandlerTest {
 
         InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
         compositeHandler.onSuccess(context, "test");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testDisabledWhileRunning_success() throws NoSuchMethodException {
+        InvocationEventHandler<InvocationContext> handler = mock(InvocationEventHandler.class);
+        when(handler.preInvocation(any(), any(), any())).thenReturn(mock(InvocationContext.class));
+        when(handler.isEnabled()).thenReturn(true, false);
+        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
+                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, handler));
+
+        assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
+
+        InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        compositeHandler.onSuccess(context, "test");
+
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onSuccess(any(), any());
+        verifyNoMoreInteractions(handler);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testDisabledWhileRunning_failure() throws NoSuchMethodException {
+        InvocationEventHandler<InvocationContext> handler = mock(InvocationEventHandler.class);
+        when(handler.preInvocation(any(), any(), any())).thenReturn(mock(InvocationContext.class));
+        when(handler.isEnabled()).thenReturn(true, false);
+        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
+                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, handler));
+
+        assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
+
+        InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        compositeHandler.onFailure(context, new RuntimeException());
+
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onFailure(any(), any());
+        verifyNoMoreInteractions(handler);
     }
 
     @Test
