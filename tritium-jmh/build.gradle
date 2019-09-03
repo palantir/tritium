@@ -33,6 +33,9 @@ dependencies {
     jmh project(':tritium-test')
     jmh 'ch.qos.logback:logback-classic'
     jmh 'com.palantir.remoting3:tracing'
-    jmh 'org.immutables:value::annotations'
 
+    // Work around https://github.com/immutables/immutables/issues/291
+    compileOnly 'org.immutables:value::annotations'
+    jmhCompileOnly 'org.immutables:value::annotations'
+    testCompileOnly 'org.immutables:value::annotations'
 }

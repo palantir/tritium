@@ -67,9 +67,6 @@ allprojects {
             }
         }
 
-        // Work around https://github.com/immutables/immutables/issues/291
-        compileOnly 'org.immutables:value::annotations'
-        testCompileOnly 'org.immutables:value::annotations'
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {
@@ -148,6 +145,7 @@ allprojects {
     tasks.check.dependsOn(javadoc)
 
     tasks.check.dependsOn(checkImplicitDependencies)
+    tasks.check.dependsOn(checkUnusedDependencies)
 
 }
 

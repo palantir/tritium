@@ -6,7 +6,6 @@ dependencies {
     api project(':tritium-core')
 
     implementation 'com.google.code.findbugs:jsr305'
-    implementation 'com.google.errorprone:error_prone_annotations'
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
@@ -19,5 +18,8 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'org.slf4j:slf4j-simple'
 
+    // Work around https://github.com/immutables/immutables/issues/291
+    compileOnly 'org.immutables:value::annotations'
+    testCompileOnly 'org.immutables:value::annotations'
 }
 
