@@ -20,7 +20,6 @@ import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 import static com.palantir.logsafe.Preconditions.checkState;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -36,6 +35,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.ClassFileVersion;
@@ -46,8 +46,6 @@ import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.LoadedTypeInitializer;
 import net.bytebuddy.implementation.MethodCall;
-import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.implementation.bind.MethodDelegationBinder;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.matcher.ElementMatchers;
@@ -133,13 +131,6 @@ final class ByteBuddyInstrumentation {
             List<Method> allMethods = new ArrayList<>();
             for (Class<?> iface : interfaces) {
                 boolean allowDirectAccess = iface.isAssignableFrom(interfaceClass);
-                // If the method is not available on our target interface, add an internal getter to cast the delegate
-                // object into the target interface.
-                if (!allowDirectAccess) {
-                    builder = builder.defineMethod(delegateMethod(iface), iface, Modifier.PRIVATE | Modifier.FINAL)
-                            .intercept(FieldAccessor.ofField("delegate")
-                                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC));
-                }
                 for (Method method : iface.getMethods()) {
                     int index = allMethods.size();
                     allMethods.add(method);
@@ -152,14 +143,14 @@ final class ByteBuddyInstrumentation {
                                     .bind(ByteBuddyInstrumentationAdvice.MethodIndex.class, index)
                                     .to(ByteBuddyInstrumentationAdvice.class)
                                     .wrap(allowDirectAccess
-                                            ? MethodDelegation.withDefaultConfiguration()
-                                            .withResolvers(MethodDelegationBinder.AmbiguityResolver.DEFAULT,
-                                                    MethodDelegationBinder.AmbiguityResolver.Directional.LEFT)
-                                            .toField("delegate")
-                                            : MethodDelegation.withDefaultConfiguration()
-                                                    .withResolvers(MethodDelegationBinder.AmbiguityResolver.DEFAULT,
-                                                            MethodDelegationBinder.AmbiguityResolver.Directional.LEFT)
-                                                    .toMethodReturnOf(delegateMethod(iface))));
+                                            ? MethodCall.invokeSelf().onField("delegate").withAllArguments()
+                                            : MethodCall.invokeSelf()
+                                                    // Byte buddy doesn't seem to allow casting from fields, but
+                                                    // we can cast the result of a trivial call (in this case
+                                                    // Objects.requireNonNull) into the desired type.
+                                                    .onMethodCall(passThroughMethod().withField("delegate"))
+                                                    .withAllArguments()
+                                                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)));
                 }
             }
             return builder
@@ -175,6 +166,10 @@ final class ByteBuddyInstrumentation {
                     .load(classLoader)
                     .getLoaded();
         });
+    }
+
+    private static MethodCall.WithoutSpecifiedTarget passThroughMethod() throws NoSuchMethodException {
+        return MethodCall.invoke(Objects.class.getMethod("requireNonNull", Object.class));
     }
 
     private static <T, U extends T> ImmutableList<Class<?>> getAdditionalInterfaces(
@@ -245,17 +240,6 @@ final class ByteBuddyInstrumentation {
         } catch (ReflectiveOperationException | Error e) {
             return false;
         }
-    }
-
-    private static final CharMatcher ILLEGAL_METHOD_CHARS = CharMatcher.inRange('a', 'z')
-            .or(CharMatcher.inRange('A', 'Z'))
-            .or(CharMatcher.inRange('0', '9'))
-            .negate()
-            .precomputed();
-
-    private static String delegateMethod(Class<?> iface) {
-        checkNotNull(iface, "Interface class is required");
-        return "instrumentation_delegateAs" + ILLEGAL_METHOD_CHARS.replaceFrom(iface.getName(), '_');
     }
 
     private static final class StaticFieldLoadedTypeInitializer implements LoadedTypeInitializer {
