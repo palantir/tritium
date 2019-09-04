@@ -49,6 +49,7 @@ import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.test.LessSpecificReturn;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
@@ -624,5 +625,31 @@ public abstract class InstrumentationTest {
         assertThat(doubleInstrumented.getClass())
                 .describedAs("The instrumentation class should be reused")
                 .isEqualTo(instrumented.getClass());
+    }
+
+    @Test
+    void testHigherParentSpecificity() {
+        Parent instrumentedService = Instrumentation.builder(Parent.class, new Impl())
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(instrumentedService.run()).isEqualTo(2);
+        assertThat(instrumentedService.specificity()).isEqualTo("more specific");
+    }
+
+    public interface Parent extends LessSpecificReturn {
+        int run();
+    }
+
+    private static final class Impl implements Parent {
+
+        @Override
+        public String specificity() {
+            return "more specific";
+        }
+
+        @Override
+        public int run() {
+            return 2;
+        }
     }
 }
