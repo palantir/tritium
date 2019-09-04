@@ -22,6 +22,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
@@ -33,7 +34,6 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.bytebuddy.ByteBuddy;
@@ -59,14 +59,14 @@ final class ByteBuddyInstrumentation {
     // Offset to avoid duplicate fqcns
     private static final AtomicInteger offset = new AtomicInteger();
     // Reuse generated classes when possible
-    private static final TypeCache<List<Class<?>>> cache = new TypeCache.WithInlineExpunction<>(TypeCache.Sort.WEAK);
+    private static final TypeCache<ImmutableList<Class<?>>> cache =
+            new TypeCache.WithInlineExpunction<>(TypeCache.Sort.WEAK);
     private static final Joiner UNDERSCORE_JOINER = Joiner.on('_');
 
     private ByteBuddyInstrumentation() {
         throw new UnsupportedOperationException();
     }
 
-    @SuppressWarnings("unchecked")
     static <T, U extends T> T instrument(
             Class<T> interfaceClass,
             U delegate,
@@ -88,11 +88,11 @@ final class ByteBuddyInstrumentation {
         // Use the interface classloader to avoid creating additional proxies for other loaders delegating
         // to the same type.
         ClassLoader classLoader = getClassLoader(interfaceClass);
-        ImmutableList<Class<?>> interfaces = Arrays.stream(Proxies.interfaces(interfaceClass, delegate.getClass()))
-                .filter(iface -> isAccessibleFrom(classLoader, iface))
-                .collect(ImmutableList.toImmutableList());
+        @SuppressWarnings("unchecked") ImmutableList<Class<?>> additionalInterfaces = getAdditionalInterfaces(
+                classLoader, interfaceClass, (Class<? extends U>) delegate.getClass());
+
         try {
-            return (T) newInstrumentationClass(classLoader, interfaces)
+            return newInstrumentationClass(classLoader, interfaceClass, additionalInterfaces)
                     .getConstructor(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
                     .newInstance(delegate, CompositeInvocationEventHandler.of(handlers), instrumentationFilter);
         } catch (ReflectiveOperationException e) {
@@ -100,9 +100,14 @@ final class ByteBuddyInstrumentation {
         }
     }
 
-    private static Class<?> newInstrumentationClass(ClassLoader classLoader, List<Class<?>> interfaces) {
-        Class<?> interfaceClass = interfaces.get(0);
-        return cache.findOrInsert(classLoader, interfaces, () -> {
+    @SuppressWarnings("unchecked")
+    private static <T> Class<? extends T> newInstrumentationClass(ClassLoader classLoader,
+            Class<T> interfaceClass, ImmutableList<Class<?>> additionalInterfaces) {
+        ImmutableList<Class<?>> interfaces = ImmutableList.<Class<?>>builder()
+                .add(interfaceClass)
+                .addAll(additionalInterfaces)
+                .build();
+        return (Class<? extends T>) cache.findOrInsert(classLoader, interfaces, () -> {
             DynamicType.Builder.MethodDefinition.ReceiverTypeDefinition<Object> builder =
                     new ByteBuddy(ClassFileVersion.ofThisVm(ClassFileVersion.JAVA_V8))
                             .subclass(Object.class)
@@ -156,6 +161,26 @@ final class ByteBuddyInstrumentation {
                     .load(classLoader, ClassLoadingStrategy.Default.WRAPPER)
                     .getLoaded();
         });
+    }
+
+    private static <T, U extends T> ImmutableList<Class<?>> getAdditionalInterfaces(
+            ClassLoader classLoader, Class<T> interfaceClass, Class<U> delegateClass) {
+        Class<?>[] discoveredInterfaces = Proxies.interfaces(interfaceClass, delegateClass);
+        ImmutableList.Builder<Class<?>> additionalInterfaces =
+                ImmutableList.builderWithExpectedSize(discoveredInterfaces.length - 1);
+        Preconditions.checkState(
+                interfaceClass.equals(discoveredInterfaces[0]), "Expected the provided interface first");
+        for (int i = 1; i < discoveredInterfaces.length; i++) {
+            Class<?> additionalInterface = discoveredInterfaces[i];
+            if (isAccessibleFrom(classLoader, additionalInterface)) {
+                additionalInterfaces.add(additionalInterface);
+            } else {
+                log.debug("Instrumented service of type {} cannot implement {} because the interface is not accessible",
+                        SafeArg.of("delegateType", delegateClass),
+                        SafeArg.of("inaccessibleInterface", additionalInterface));
+            }
+        }
+        return additionalInterfaces.build();
     }
 
     private static ClassLoader getClassLoader(Class<?> clazz) {
