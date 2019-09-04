@@ -18,7 +18,6 @@ package com.palantir.tritium.event;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
-import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import java.lang.reflect.Method;
@@ -37,7 +36,10 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     @SuppressWarnings("unchecked")
     private CompositeInvocationEventHandler(List<InvocationEventHandler<InvocationContext>> handlers) {
-        this.handlers = ImmutableList.copyOf(handlers).toArray(new InvocationEventHandler[0]);
+        this.handlers = checkNotNull(handlers, "handlers").toArray(new InvocationEventHandler[0]);
+        for (InvocationEventHandler<InvocationContext> handler : handlers) {
+            checkNotNull(handler, "Null handlers are not allowed");
+        }
     }
 
     public static InvocationEventHandler<InvocationContext> of(
@@ -45,7 +47,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         if (handlers.isEmpty()) {
             return NoOpInvocationEventHandler.INSTANCE;
         } else if (handlers.size() == 1) {
-            return checkNotNull(handlers.iterator().next(), "at index 0");
+            return checkNotNull(handlers.iterator().next(), "Null handlers are not allowed");
         } else {
             return new CompositeInvocationEventHandler(handlers);
         }
@@ -54,7 +56,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     @Nullable
     private InvocationEventHandler<InvocationContext> tryGetEnabledHandler(int index) {
         InvocationEventHandler<InvocationContext> handler = handlers[index];
-        if (handler != null && handler.isEnabled()) {
+        if (handler.isEnabled()) {
             return handler;
         }
         return null;
@@ -138,12 +140,12 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             @Nullable Object result) {
-        try {
-            if (context != null) {
+        if (context != null) {
+            try {
                 handler.onSuccess(context, result);
+            } catch (RuntimeException exception) {
+                eventFailed("onSuccess", context, result, exception);
             }
-        } catch (RuntimeException exception) {
-            eventFailed("onSuccess", context, result, exception);
         }
     }
 
@@ -151,12 +153,12 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             Throwable cause) {
-        try {
-            if (context != null) {
+        if (context != null) {
+            try {
                 handler.onFailure(context, cause);
+            } catch (RuntimeException exception) {
+                eventFailed("onFailure", context, cause, exception);
             }
-        } catch (RuntimeException exception) {
-            eventFailed("onFailure", context, cause, exception);
         }
     }
 

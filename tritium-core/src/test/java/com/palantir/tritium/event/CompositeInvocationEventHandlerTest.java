@@ -146,16 +146,16 @@ final class CompositeInvocationEventHandlerTest {
     void testNullHandler() {
         assertThatThrownBy(() -> CompositeInvocationEventHandler.of(Collections.singletonList(null)))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessage("at index 0");
+                .hasMessage("Null handlers are not allowed");
         assertThatThrownBy(
                 () -> CompositeInvocationEventHandler.of(Arrays.asList(NoOpInvocationEventHandler.INSTANCE, null)))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessage("at index 1");
+                .hasMessage("Null handlers are not allowed");
         assertThatThrownBy(
                 () -> CompositeInvocationEventHandler.of(
                         Arrays.asList(null, NoOpInvocationEventHandler.INSTANCE, null)))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessage("at index 0");
+                .hasMessage("Null handlers are not allowed");
     }
 
     @Test
