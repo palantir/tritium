@@ -172,8 +172,7 @@ final class ByteBuddyInstrumentation {
         if (clazz == null) {
             return true;
         }
-        return (clazz.isInterface() || Modifier.isPublic(clazz.getModifiers()))
-                && isAccessible(clazz.getEnclosingClass());
+        return Modifier.isPublic(clazz.getModifiers()) && isAccessible(clazz.getEnclosingClass());
     }
 
     /** Detect if clazz is reachable using the provided loader. */
