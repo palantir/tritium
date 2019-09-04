@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: CompositeInvocationEventHandler correctly completes delegate handlers
+    when they are disabled in flight
+  links:
+  - https://github.com/palantir/tritium/pull/379
