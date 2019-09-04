@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("DesignForExtension")
-public class TestImplementation implements TestInterface, Runnable {
+public class TestImplementation implements TestInterface, Runnable, MoreSpecificReturn {
 
     private final AtomicInteger invocationCount = new AtomicInteger();
     private final TestException checkedException = new TestException("Testing checked Exception handling");
@@ -69,6 +69,11 @@ public class TestImplementation implements TestInterface, Runnable {
 
     public int invocationCount() {
         return invocationCount.get();
+    }
+
+    @Override
+    public String specificity() {
+        return "specificity";
     }
 
     public static class TestException extends Exception {

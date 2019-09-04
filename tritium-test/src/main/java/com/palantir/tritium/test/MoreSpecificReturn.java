@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2016 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2019 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,8 @@
 
 package com.palantir.tritium.test;
 
-import java.util.Collection;
-import java.util.Set;
+public interface MoreSpecificReturn {
 
-public interface TestInterface extends LessSpecificReturn {
-
-    String test();
-
-    void multiArgumentMethod(String string, int count, Collection<String> foo);
-
-    void bulk(Set<?> set);
-
-    int throwsCheckedException() throws Exception;
-
-    @SuppressWarnings("checkstyle:illegalthrows")
-    int throwsThrowable() throws Throwable;
-
-    void throwsOutOfMemoryError();
+    String specificity();
 
 }
