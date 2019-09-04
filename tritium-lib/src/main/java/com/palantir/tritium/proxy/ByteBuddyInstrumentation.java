@@ -16,13 +16,14 @@
 
 package com.palantir.tritium.proxy;
 
+import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
+import static com.palantir.logsafe.Preconditions.checkState;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
@@ -42,7 +43,6 @@ import net.bytebuddy.TypeCache;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.LoadedTypeInitializer;
 import net.bytebuddy.implementation.MethodCall;
@@ -103,6 +103,13 @@ final class ByteBuddyInstrumentation {
     @SuppressWarnings("unchecked")
     private static <T> Class<? extends T> newInstrumentationClass(ClassLoader classLoader,
             Class<T> interfaceClass, ImmutableList<Class<?>> additionalInterfaces) {
+        checkNotNull(classLoader, "classLoader");
+        checkNotNull(interfaceClass, "interfaceClass");
+        checkNotNull(additionalInterfaces, "additionalInterfaces");
+        checkArgument(!additionalInterfaces.contains(interfaceClass),
+                "additionalInterfaces must not contain interfaceClass",
+                SafeArg.of("additionalInterfaces", additionalInterfaces),
+                SafeArg.of("interfaceClass", interfaceClass));
         ImmutableList<Class<?>> interfaces = ImmutableList.<Class<?>>builder()
                 .add(interfaceClass)
                 .addAll(additionalInterfaces)
@@ -158,7 +165,7 @@ final class ByteBuddyInstrumentation {
                     .defineField("methods", Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
                     .initializer(new StaticFieldLoadedTypeInitializer("methods", allMethods.toArray(new Method[0])))
                     .make()
-                    .load(classLoader, ClassLoadingStrategy.Default.WRAPPER)
+                    .load(classLoader)
                     .getLoaded();
         });
     }
@@ -168,8 +175,7 @@ final class ByteBuddyInstrumentation {
         Class<?>[] discoveredInterfaces = Proxies.interfaces(interfaceClass, delegateClass);
         ImmutableList.Builder<Class<?>> additionalInterfaces =
                 ImmutableList.builderWithExpectedSize(discoveredInterfaces.length - 1);
-        Preconditions.checkState(
-                interfaceClass.equals(discoveredInterfaces[0]), "Expected the provided interface first");
+        checkState(interfaceClass.equals(discoveredInterfaces[0]), "Expected the provided interface first");
         for (int i = 1; i < discoveredInterfaces.length; i++) {
             Class<?> additionalInterface = discoveredInterfaces[i];
             if (isAccessibleFrom(classLoader, additionalInterface)) {
@@ -184,30 +190,49 @@ final class ByteBuddyInstrumentation {
     }
 
     private static ClassLoader getClassLoader(Class<?> clazz) {
+        checkNotNull(clazz, "Class is required");
         ClassLoader loader = clazz.getClassLoader();
         // Some internal classes return a null classloader, in these cases we provide the instrumentation loader.
         if (loader == null) {
-            return ByteBuddyInstrumentation.class.getClassLoader();
+            // No reason to broaden beyond the instrumentation classloader because instrumentation
+            ClassLoader instrumentationClassLoader = ByteBuddyInstrumentation.class.getClassLoader();
+            if (instrumentationClassLoader != null && isClassLoadable(instrumentationClassLoader, clazz)) {
+                return instrumentationClassLoader;
+            }
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            if (contextClassLoader != null && isClassLoadable(contextClassLoader, clazz)) {
+                return contextClassLoader;
+            }
+            throw new SafeIllegalStateException("Failed to find a classloader for class",
+                    SafeArg.of("class", clazz));
         }
         return loader;
     }
 
     private static boolean isAccessible(Class<?> clazz) {
-        // Base case for enclosing class accessibility check
-        if (clazz == null) {
-            return true;
-        }
-        return Modifier.isPublic(clazz.getModifiers()) && isAccessible(clazz.getEnclosingClass());
+        checkNotNull(clazz, "Class is required");
+        return Modifier.isPublic(clazz.getModifiers())
+                // If there is an enclosing class, it must also be accessible
+                && (clazz.getEnclosingClass() == null || isAccessible(clazz.getEnclosingClass()));
     }
 
     /** Detect if clazz is reachable using the provided loader. */
     private static boolean isAccessibleFrom(ClassLoader loader, Class<?> clazz) {
+        checkNotNull(loader, "ClassLoader is required");
+        checkNotNull(clazz, "Class is required");
         if (!isAccessible(clazz)) {
             return false;
         }
-        if (loader.equals(getClassLoader(clazz))) {
+        // Fast check to avoid potentially slow loading
+        if (loader.equals(clazz.getClassLoader())) {
             return true;
         }
+        return isClassLoadable(loader, clazz);
+    }
+
+    private static boolean isClassLoadable(ClassLoader loader, Class<?> clazz) {
+        checkNotNull(loader, "ClassLoader is required");
+        checkNotNull(clazz, "Class is required");
         try {
             return clazz.equals(loader.loadClass(clazz.getName()));
         } catch (ReflectiveOperationException | Error e) {
@@ -222,6 +247,7 @@ final class ByteBuddyInstrumentation {
             .precomputed();
 
     private static String delegateMethod(Class<?> iface) {
+        checkNotNull(iface, "Interface class is required");
         return "instrumentation_delegateAs" + ILLEGAL_METHOD_CHARS.replaceFrom(iface.getName(), '_');
     }
 

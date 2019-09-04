@@ -57,6 +57,9 @@ class ByteBuddyInstrumentationPackageAccessTest {
         Runnable instrumented = Instrumentation.builder(Runnable.class, raw)
                 .withPerformanceTraceLogging()
                 .build();
+        assertThat(raw)
+                .isInstanceOf(PackagePrivateInterface.class)
+                .isInstanceOf(PackagePrivateClass.PublicInterface.class);
         assertThat(instrumented)
                 .isNotInstanceOfAny(PackagePrivateInterface.class, PackagePrivateClass.PublicInterface.class);
     }

@@ -610,4 +610,19 @@ public abstract class InstrumentationTest {
     private static InstrumentationFilter methodNameFilter(String methodName) {
         return (instance, method, args) -> method.getName().equals(methodName);
     }
+
+    @Test
+    void testMultipleTritiumWrappersResultInSameClass() {
+        Runnable raw = () -> {};
+        Runnable instrumented = Instrumentation.builder(Runnable.class, raw)
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(instrumented.getClass()).isNotEqualTo(raw.getClass());
+        Runnable doubleInstrumented = Instrumentation.builder(Runnable.class, instrumented)
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(doubleInstrumented.getClass())
+                .describedAs("The instrumentation class should be reused")
+                .isEqualTo(instrumented.getClass());
+    }
 }
