@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,10 +33,11 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeInvocationEventHandler.class);
 
-    private final List<InvocationEventHandler<InvocationContext>> handlers;
+    private final InvocationEventHandler<InvocationContext>[] handlers;
 
+    @SuppressWarnings("unchecked")
     private CompositeInvocationEventHandler(List<InvocationEventHandler<InvocationContext>> handlers) {
-        this.handlers = ImmutableList.copyOf(handlers);
+        this.handlers = ImmutableList.copyOf(handlers).toArray(new InvocationEventHandler[0]);
     }
 
     public static InvocationEventHandler<InvocationContext> of(
@@ -51,7 +53,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     @Nullable
     private InvocationEventHandler<InvocationContext> tryGetEnabledHandler(int index) {
-        InvocationEventHandler<InvocationContext> handler = handlers.get(index);
+        InvocationEventHandler<InvocationContext> handler = handlers[index];
         if (handler != null && handler.isEnabled()) {
             return handler;
         }
@@ -60,10 +62,9 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     @Override
     public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        final int count = handlers.size();
-        InvocationContext[] contexts = new InvocationContext[count];
+        InvocationContext[] contexts = new InvocationContext[handlers.length];
 
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < handlers.length; i++) {
             contexts[i] = handlePreInvocation(tryGetEnabledHandler(i), instance, method, args);
         }
 
@@ -80,10 +81,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private void success(@Nonnull InvocationContext[] contexts, @Nullable Object result) {
         for (int i = contexts.length - 1; i > -1; i--) {
-            InvocationContext context = contexts[i];
-            if (context != null) {
-                handleSuccess(handlers.get(i), context, result);
-            }
+            handleSuccess(handlers[i], contexts[i], result);
         }
     }
 
@@ -97,10 +95,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private void failure(InvocationContext[] contexts, @Nonnull Throwable cause) {
         for (int i = contexts.length - 1; i > -1; i--) {
-            InvocationContext context = contexts[i];
-            if (context != null) {
-                handleFailure(handlers.get(i), context, cause);
-            }
+            handleFailure(handlers[i], contexts[i], cause);
         }
     }
 
@@ -122,7 +117,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     @Override
     public String toString() {
-        return "CompositeInvocationEventHandler{" + "handlers=" + handlers + '}';
+        return "CompositeInvocationEventHandler{" + "handlers=" + Arrays.toString(handlers) + '}';
     }
 
     private static void preInvocationFailed(
@@ -140,11 +135,11 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     private static void handleSuccess(
-            @Nullable InvocationEventHandler<?> handler,
+            InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             @Nullable Object result) {
         try {
-            if (handler != null) {
+            if (context != null) {
                 handler.onSuccess(context, result);
             }
         } catch (RuntimeException exception) {
@@ -153,11 +148,11 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     private static void handleFailure(
-            @Nullable InvocationEventHandler<?> handler,
+            InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             Throwable cause) {
         try {
-            if (handler != null) {
+            if (context != null) {
                 handler.onFailure(context, cause);
             }
         } catch (RuntimeException exception) {
