@@ -1,5 +1,5 @@
 type: improvement
 improvement:
-  description: Tritium provides an opt-in flag to use ByteBuddy instead of dynamic proxies. The `instrument.dynamic-proxy` property may be set `false` to byte-buddy instrumentation.
+  description: Tritium provides an opt-in flag to use ByteBuddy instead of dynamic proxies. The `instrument.dynamic-proxy` property may be set `false` to use byte-buddy instrumentation.
   links:
   - https://github.com/palantir/tritium/pull/378
