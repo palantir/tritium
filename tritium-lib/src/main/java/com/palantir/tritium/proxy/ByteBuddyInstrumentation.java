@@ -47,6 +47,7 @@ import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.LoadedTypeInitializer;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.bind.MethodDelegationBinder;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.matcher.ElementMatchers;
@@ -151,8 +152,14 @@ final class ByteBuddyInstrumentation {
                                     .bind(ByteBuddyInstrumentationAdvice.MethodIndex.class, index)
                                     .to(ByteBuddyInstrumentationAdvice.class)
                                     .wrap(allowDirectAccess
-                                            ? MethodDelegation.toField("delegate")
-                                            : MethodDelegation.toMethodReturnOf(delegateMethod(iface))));
+                                            ? MethodDelegation.withDefaultConfiguration()
+                                            .withResolvers(MethodDelegationBinder.AmbiguityResolver.DEFAULT,
+                                                    MethodDelegationBinder.AmbiguityResolver.Directional.LEFT)
+                                            .toField("delegate")
+                                            : MethodDelegation.withDefaultConfiguration()
+                                                    .withResolvers(MethodDelegationBinder.AmbiguityResolver.DEFAULT,
+                                                            MethodDelegationBinder.AmbiguityResolver.Directional.LEFT)
+                                                    .toMethodReturnOf(delegateMethod(iface))));
                 }
             }
             return builder
