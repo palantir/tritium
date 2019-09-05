@@ -38,6 +38,7 @@ import com.palantir.tritium.Tagged;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationFilters;
+import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
@@ -48,6 +49,7 @@ import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.test.LessSpecificReturn;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
@@ -62,6 +64,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -71,11 +74,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("NullAway") // mock injection
-final class InstrumentationTest {
+@SuppressWarnings({"NullAway", "WeakerAccess"}) // mock injection
+public abstract class InstrumentationTest {
 
     @MetricGroup("DEFAULT")
-    interface AnnotatedInterface {
+    public interface AnnotatedInterface {
         @MetricGroup("ONE")
         void method();
 
@@ -93,6 +96,14 @@ final class InstrumentationTest {
     private final MetricRegistry metrics = MetricRegistries.createWithHdrHistogramReservoirs();
     private final TaggedMetricRegistry taggedMetricRegistry = new DefaultTaggedMetricRegistry();
 
+    abstract boolean useByteBuddy();
+
+    @BeforeEach
+    void before() {
+        System.setProperty("instrument.dynamic-proxy", Boolean.toString(!useByteBuddy()));
+        InstrumentationProperties.reload();
+    }
+
     @AfterEach
     void after() {
         try (ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build()) {
@@ -102,6 +113,8 @@ final class InstrumentationTest {
             }
             Tagged.report(reporter, taggedMetricRegistry);
         }
+        System.clearProperty("instrument.dynamic-proxy");
+        InstrumentationProperties.reload();
     }
 
     @Test
@@ -551,7 +564,8 @@ final class InstrumentationTest {
         // The value isn't particularly important, this test exists to force us to acknowledge changes in
         // stack trace length due to Tritium instrumentation. It's not uncommon to have >10 Tritium proxies
         // in a single trace, so increases in frames can make debugging more difficult.
-        assertThat(instrumentedStack).hasSize(rawStack.length + 6);
+        int instrumentedStackSize = useByteBuddy() ? 1 : 6;
+        assertThat(instrumentedStack).hasSize(rawStack.length + instrumentedStackSize);
     }
 
     @Test
@@ -575,11 +589,13 @@ final class InstrumentationTest {
         assertThat(singleHandlerInstrumentedStackTrace).hasSameSizeAs(multipleHandlerInstrumentedStack);
     }
 
-    public interface StackTraceSupplier extends Supplier<StackTraceElement[]> {}
+    public interface StackTraceSupplier {
+        StackTraceElement[] get();
+    }
 
     /** Provides a subsection of the input stack trace relevant to this test. */
-    private StackTraceElement[] cleanStackTrace(StackTraceElement[] stackTrace) {
-        String className = getClass().getName();
+    private static StackTraceElement[] cleanStackTrace(StackTraceElement[] stackTrace) {
+        String className = InstrumentationTest.class.getName();
         int lastTestFrame = -1;
         for (int i = 0; i < stackTrace.length; i++) {
             StackTraceElement element = stackTrace[i];
@@ -594,5 +610,46 @@ final class InstrumentationTest {
     @SuppressWarnings("SameParameterValue")
     private static InstrumentationFilter methodNameFilter(String methodName) {
         return (instance, method, args) -> method.getName().equals(methodName);
+    }
+
+    @Test
+    void testMultipleTritiumWrappersResultInSameClass() {
+        Runnable raw = () -> {};
+        Runnable instrumented = Instrumentation.builder(Runnable.class, raw)
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(instrumented.getClass()).isNotEqualTo(raw.getClass());
+        Runnable doubleInstrumented = Instrumentation.builder(Runnable.class, instrumented)
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(doubleInstrumented.getClass())
+                .describedAs("The instrumentation class should be reused")
+                .isEqualTo(instrumented.getClass());
+    }
+
+    @Test
+    void testHigherParentSpecificity() {
+        Parent instrumentedService = Instrumentation.builder(Parent.class, new Impl())
+                .withPerformanceTraceLogging()
+                .build();
+        assertThat(instrumentedService.run()).isEqualTo(2);
+        assertThat(instrumentedService.specificity()).isEqualTo("more specific");
+    }
+
+    public interface Parent extends LessSpecificReturn {
+        int run();
+    }
+
+    private static final class Impl implements Parent {
+
+        @Override
+        public String specificity() {
+            return "more specific";
+        }
+
+        @Override
+        public int run() {
+            return 2;
+        }
     }
 }

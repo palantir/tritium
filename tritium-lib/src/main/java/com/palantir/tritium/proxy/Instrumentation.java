@@ -23,6 +23,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.InstrumentationFilters;
+import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
@@ -58,8 +59,12 @@ public final class Instrumentation {
             return delegate;
         }
 
-        return Proxies.newProxy(interfaceClass, delegate,
-                new InstrumentationProxy<>(instrumentationFilter, handlers, delegate));
+        if (InstrumentationProperties.isSpecificEnabled("dynamic-proxy")) {
+            return Proxies.newProxy(interfaceClass, delegate,
+                    new InstrumentationProxy<>(instrumentationFilter, handlers, delegate));
+        } else {
+            return ByteBuddyInstrumentation.instrument(interfaceClass, delegate, handlers, instrumentationFilter);
+        }
     }
 
     /**

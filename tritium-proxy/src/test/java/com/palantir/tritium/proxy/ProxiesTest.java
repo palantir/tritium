@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.tritium.test.MoreSpecificReturn;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Constructor;
@@ -49,7 +50,7 @@ final class ProxiesTest {
     @Test
     void testInterfacesClassOfQClassOfQ() {
         Class<?>[] interfaces = Proxies.interfaces(TestInterface.class, TestImplementation.class);
-        assertThat(interfaces).containsExactly(TestInterface.class, Runnable.class);
+        assertThat(interfaces).containsExactly(TestInterface.class, Runnable.class, MoreSpecificReturn.class);
     }
 
     @Test
