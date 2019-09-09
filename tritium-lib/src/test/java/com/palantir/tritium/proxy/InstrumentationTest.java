@@ -393,7 +393,7 @@ public abstract class InstrumentationTest {
     @Test
     void testEquals_separateInstanceWithSameArgs() {
         TestImplementation delegate = new TestImplementation();
-        InvocationEventHandler<InvocationContext> handler = TracingInvocationEventHandler.create("test");
+        InvocationEventHandler<?> handler = TracingInvocationEventHandler.create("test");
         TestInterface proxy0 = Instrumentation.builder(TestInterface.class, delegate).withHandler(handler).build();
         TestInterface proxy1 = Instrumentation.builder(TestInterface.class, delegate).withHandler(handler).build();
         assertThat(proxy0).isNotEqualTo(proxy1);

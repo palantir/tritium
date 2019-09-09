@@ -25,11 +25,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.palantir.tracing.AlwaysSampler;
 import com.palantir.tracing.AsyncSlf4jSpanObserver;
+import com.palantir.tracing.CloseableTracer;
 import com.palantir.tracing.Tracer;
 import com.palantir.tracing.Tracers;
 import com.palantir.tracing.api.Span;
 import com.palantir.tracing.api.SpanObserver;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
@@ -49,7 +49,7 @@ import org.slf4j.MDC;
 @SuppressWarnings("NullAway") // mock injection
 public class TracingInvocationEventHandlerTest {
 
-    private InvocationEventHandler<InvocationContext> handler;
+    private InvocationEventHandler<Object> handler;
     private TestInterface instance;
     private Method method;
     private Object[] args;
@@ -58,12 +58,13 @@ public class TracingInvocationEventHandlerTest {
     @Mock
     private SpanObserver mockSpanObserver;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     public void before() throws Exception {
         Tracer.getAndClearTrace();
         MDC.clear();
         executor = MoreExecutors.newDirectExecutorService();
-        handler = TracingInvocationEventHandler.create("testComponent");
+        handler = (InvocationEventHandler<Object>) TracingInvocationEventHandler.create("testComponent");
         assertThat(handler).isInstanceOf(TracingInvocationEventHandler.class);
         com.palantir.tracing.Tracer.setSampler(AlwaysSampler.INSTANCE);
         Tracer.subscribe("sysout", System.out::println);
@@ -87,21 +88,16 @@ public class TracingInvocationEventHandlerTest {
 
     @Test
     public void testPreInvocation() {
-        long startNanoseconds = System.nanoTime();
-
-        InvocationContext context = handler.preInvocation(instance, method, args);
+        Object context = handler.preInvocation(instance, method, args);
 
         assertThat(context).isNotNull();
-        assertThat(context.getMethod()).isEqualTo(method);
-        assertThat(context.getArgs()).isEqualTo(args);
-        assertThat(context.getStartTimeNanos()).isGreaterThan(startNanoseconds);
-        assertThat(context.getStartTimeNanos()).isLessThan(System.nanoTime());
+        assertThat(context).isInstanceOf(CloseableTracer.class);
         assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNotNull();
     }
 
     @Test
     public void testSuccess() {
-        InvocationContext context = handler.preInvocation(instance, method, args);
+        Object context = handler.preInvocation(instance, method, args);
 
         assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNotNull();
 
@@ -117,7 +113,7 @@ public class TracingInvocationEventHandlerTest {
 
     @Test
     public void testFailure() {
-        InvocationContext context = handler.preInvocation(instance, method, args);
+        Object context = handler.preInvocation(instance, method, args);
 
         assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNotNull();
 

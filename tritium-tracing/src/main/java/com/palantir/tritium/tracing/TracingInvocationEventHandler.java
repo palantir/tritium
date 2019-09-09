@@ -19,18 +19,17 @@ package com.palantir.tritium.tracing;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.base.Strings;
+import com.palantir.tracing.CloseableTracer;
 import com.palantir.tracing.Tracer;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public final class TracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+public final class TracingInvocationEventHandler extends AbstractInvocationEventHandler<CloseableTracer> {
 
     private final String component;
 
@@ -51,7 +50,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
      * @param component component name
      * @return tracing event handler
      */
-    public static InvocationEventHandler<InvocationContext> create(String component) {
+    public static InvocationEventHandler<?> create(String component) {
         if (RemotingCompatibleTracingInvocationEventHandler.requiresRemotingFallback()) {
             return RemotingCompatibleTracingInvocationEventHandler.create(component);
         }
@@ -60,11 +59,11 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        InvocationContext context = DefaultInvocationContext.of(instance, method, args);
-        String operationName = getOperationName(method);
-        Tracer.fastStartSpan(operationName);
-        return context;
+    public CloseableTracer preInvocation(
+            @SuppressWarnings("unused") @Nonnull Object instance,
+            @Nonnull Method method,
+            @SuppressWarnings("unused") @Nonnull Object[] args) {
+        return CloseableTracer.startSpan(getOperationName(method));
     }
 
     private String getOperationName(Method method) {
@@ -72,20 +71,20 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext context, @Nullable Object unusedResult) {
+    public void onSuccess(@Nullable CloseableTracer context, @Nullable Object unusedResult) {
         complete(context);
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable unusedCause) {
+    public void onFailure(@Nullable CloseableTracer context, @Nonnull Throwable unusedCause) {
         complete(context);
     }
 
-    private void complete(@Nullable InvocationContext context) {
+    private void complete(@Nullable CloseableTracer context) {
         debugIfNullContext(context);
         // Context is null if no span was created, in which case the existing span should not be completed
         if (context != null) {
-            Tracer.fastCompleteSpan();
+            context.close();
         }
     }
 
