@@ -20,7 +20,6 @@ import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -50,11 +49,11 @@ final class ByteBuddyInstrumentationAdvice {
 
     @Nullable
     @Advice.OnMethodEnter
-    static InvocationContext enter(
+    static Object enter(
             @Advice.This Object proxy,
             @Advice.AllArguments Object[] arguments,
             @Advice.FieldValue("instrumentationFilter") InstrumentationFilter filter,
-            @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
+            @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<Object> eventHandler,
             @Advice.FieldValue("methods") Method[] methods,
             @MethodIndex int index) {
         Method method = methods[index];
@@ -77,8 +76,8 @@ final class ByteBuddyInstrumentationAdvice {
     static void exit(
             @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object result,
             @Advice.Thrown Throwable thrown,
-            @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
-            @Advice.Enter InvocationContext context) {
+            @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<Object> eventHandler,
+            @Advice.Enter Object context) {
         if (context != null) {
             try {
                 if (thrown == null) {

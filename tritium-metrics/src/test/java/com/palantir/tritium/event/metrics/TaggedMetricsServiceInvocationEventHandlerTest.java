@@ -82,7 +82,8 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
 
     @SuppressWarnings("SameParameterValue")
     private static void invokeMethod(
-            AbstractInvocationEventHandler handler, Object obj, String methodName, Object result, boolean success)
+            AbstractInvocationEventHandler<InvocationContext> handler, Object obj, String methodName, Object result,
+            boolean success)
             throws Exception {
         InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
         if (success) {

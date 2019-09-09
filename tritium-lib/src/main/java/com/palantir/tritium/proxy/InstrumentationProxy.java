@@ -17,17 +17,14 @@
 package com.palantir.tritium.proxy;
 
 import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
-import java.util.List;
 
-class InstrumentationProxy<T> extends InvocationEventProxy {
+class InstrumentationProxy<T, U> extends InvocationEventProxy<U> {
 
     private final T delegate;
 
-    InstrumentationProxy(InstrumentationFilter instrumentationFilter,
-            List<InvocationEventHandler<InvocationContext>> handlers, T delegate) {
-        super(handlers, instrumentationFilter);
+    InstrumentationProxy(InstrumentationFilter instrumentationFilter, InvocationEventHandler<U> handler, T delegate) {
+        super(handler, instrumentationFilter);
         this.delegate = delegate;
     }
 

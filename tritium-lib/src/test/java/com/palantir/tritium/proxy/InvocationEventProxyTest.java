@@ -25,17 +25,15 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.event.NoOpInvocationEventHandler;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.List;
 import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -58,8 +56,9 @@ public class InvocationEventProxyTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testDisabled() throws Throwable {
-        InvocationEventProxy proxy = new InvocationEventProxy(
-                Collections.emptyList(), InstrumentationFilters.from((BooleanSupplier) () -> false)) {
+
+        InvocationEventProxy<InvocationContext> proxy = new InvocationEventProxy<InvocationContext>(
+                NoOpInvocationEventHandler.INSTANCE, InstrumentationFilters.from((BooleanSupplier) () -> false)) {
             @Override
             Object getDelegate() {
                 return "disabled";
@@ -81,11 +80,8 @@ public class InvocationEventProxyTest {
         assertThat(result2).isInstanceOf(DefaultInvocationContext.class)
                 .asString().contains(InvocationEventProxyTest.class.getName());
 
-        InvocationContext context = proxy.handlePreInvocation(this, getStringLengthMethod(), EMPTY_ARGS);
-        assertThat(context).asString()
-                .contains("startTimeNanos")
-                .contains("instance")
-                .contains("method");
+        Object context = proxy.handlePreInvocation(this, getStringLengthMethod(), EMPTY_ARGS);
+        assertThat(context).isNotNull();
     }
 
     @Test
@@ -117,7 +113,7 @@ public class InvocationEventProxyTest {
             }
         };
 
-        InvocationEventProxy proxy = createTestProxy(testHandler);
+        InvocationEventProxy<InvocationContext> proxy = createTestProxy(testHandler);
 
         Object result = proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS);
 
@@ -142,7 +138,7 @@ public class InvocationEventProxyTest {
             }
         };
 
-        InvocationEventProxy proxy = createTestProxy(testHandler);
+        InvocationEventProxy<InvocationContext> proxy = createTestProxy(testHandler);
 
         Object result = proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS);
         assertThat(result).isEqualTo("test".length());
@@ -168,8 +164,8 @@ public class InvocationEventProxyTest {
 
     @Test
     public void testInstrumentToString() {
-        List<InvocationEventHandler<InvocationContext>> handlers = Collections.emptyList();
-        InvocationEventProxy proxy = new InvocationEventProxy(handlers) {
+        InvocationEventProxy<InvocationContext> proxy = new InvocationEventProxy<InvocationContext>(
+                NoOpInvocationEventHandler.INSTANCE, InstrumentationFilters.INSTRUMENT_ALL) {
             @Override
             Object getDelegate() {
                 return "Hello, world";
@@ -282,20 +278,21 @@ public class InvocationEventProxyTest {
         verifyZeroInteractions(mockFilter);
     }
 
-    private static InvocationEventProxy createSimpleTestProxy() {
-        return new TestProxy(
+    private static InvocationEventProxy<InvocationContext> createSimpleTestProxy() {
+        return new TestProxy<>(
                 new TestImplementation(),
-                ImmutableList.of(new SimpleHandler()),
+                new SimpleHandler(),
                 InstrumentationFilters.INSTRUMENT_ALL);
     }
 
-    private static InvocationEventProxy createTestProxy(
+    private static InvocationEventProxy<InvocationContext> createTestProxy(
             InvocationEventHandler<InvocationContext> handler,
             InstrumentationFilter filter) {
-        return new TestProxy("test", ImmutableList.of(handler), filter);
+        return new TestProxy<>("test", handler, filter);
     }
 
-    private static InvocationEventProxy createTestProxy(InvocationEventHandler<InvocationContext> handler) {
+    private static InvocationEventProxy<InvocationContext> createTestProxy(
+            InvocationEventHandler<InvocationContext> handler) {
         return createTestProxy(handler, InstrumentationFilters.INSTRUMENT_ALL);
     }
 
@@ -337,14 +334,14 @@ public class InvocationEventProxyTest {
         public void onFailure(@Nullable InvocationContext unusedContext, @Nonnull Throwable unusedCause) {}
     }
 
-    private static class TestProxy extends InvocationEventProxy {
+    private static class TestProxy<T> extends InvocationEventProxy<T> {
         private final Object delegate;
 
         TestProxy(
                 Object delegate,
-                List<InvocationEventHandler<InvocationContext>> handlers,
+                InvocationEventHandler<T> handler,
                 InstrumentationFilter filter) {
-            super(handlers, filter);
+            super(handler, filter);
             this.delegate = delegate;
         }
 

@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  * @see java.lang.reflect.InvocationHandler
  * @param <C> invocation context
  */
-public interface InvocationEventHandler<C extends InvocationContext> {
+public interface InvocationEventHandler<C> {
 
     /**
      * Returns true if this event handler instance is enabled, otherwise false.
@@ -57,7 +57,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * @param context the current invocation context.
      * @param result the return value from invocation, or null if {@link Void}.
      */
-    void onSuccess(@Nullable InvocationContext context, @Nullable Object result);
+    void onSuccess(@Nullable C context, @Nullable Object result);
 
     /**
      * Invoked when an invocation fails.
@@ -69,6 +69,6 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * @param context the current invocation context.
      * @param cause the throwable which caused the failure.
      */
-    void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause);
+    void onFailure(@Nullable C context, @Nonnull Throwable cause);
 
 }

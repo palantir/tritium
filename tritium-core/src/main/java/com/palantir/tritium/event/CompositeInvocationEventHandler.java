@@ -28,22 +28,20 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class CompositeInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+public final class CompositeInvocationEventHandler extends AbstractInvocationEventHandler<Object[]> {
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeInvocationEventHandler.class);
 
-    private final InvocationEventHandler<InvocationContext>[] handlers;
+    private final InvocationEventHandler<?>[] handlers;
 
-    @SuppressWarnings("unchecked")
-    private CompositeInvocationEventHandler(List<InvocationEventHandler<InvocationContext>> handlers) {
+    private CompositeInvocationEventHandler(List<InvocationEventHandler<?>> handlers) {
         this.handlers = checkNotNull(handlers, "handlers").toArray(new InvocationEventHandler[0]);
-        for (InvocationEventHandler<InvocationContext> handler : handlers) {
+        for (InvocationEventHandler<?> handler : handlers) {
             checkNotNull(handler, "Null handlers are not allowed");
         }
     }
 
-    public static InvocationEventHandler<InvocationContext> of(
-            List<InvocationEventHandler<InvocationContext>> handlers) {
+    public static InvocationEventHandler<?> of(List<InvocationEventHandler<?>> handlers) {
         if (handlers.isEmpty()) {
             return NoOpInvocationEventHandler.INSTANCE;
         } else if (handlers.size() == 1) {
@@ -54,8 +52,8 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     @Nullable
-    private InvocationEventHandler<InvocationContext> tryGetEnabledHandler(int index) {
-        InvocationEventHandler<InvocationContext> handler = handlers[index];
+    private InvocationEventHandler<?> tryGetEnabledHandler(int index) {
+        InvocationEventHandler<?> handler = handlers[index];
         if (handler.isEnabled()) {
             return handler;
         }
@@ -63,47 +61,49 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        InvocationContext[] contexts = new InvocationContext[handlers.length];
+    public Object[] preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+        Object[] contexts = new Object[handlers.length];
 
         for (int i = 0; i < handlers.length; i++) {
             contexts[i] = handlePreInvocation(tryGetEnabledHandler(i), instance, method, args);
         }
 
-        return new CompositeInvocationContext(instance, method, args, contexts);
+        return contexts;
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
+    public void onSuccess(@Nullable Object[] context, @Nullable Object result) {
         debugIfNullContext(context);
         if (context != null) {
-            success(((CompositeInvocationContext) context).getContexts(), result);
+            success(context, result);
         }
     }
 
-    private void success(@Nonnull InvocationContext[] contexts, @Nullable Object result) {
+    @SuppressWarnings("unchecked")
+    private void success(@Nonnull Object[] contexts, @Nullable Object result) {
         for (int i = contexts.length - 1; i > -1; i--) {
-            handleSuccess(handlers[i], contexts[i], result);
+            handleSuccess((InvocationEventHandler<Object>) handlers[i], contexts[i], result);
         }
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+    public void onFailure(@Nullable Object[] context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
         if (context != null) {
-            failure(((CompositeInvocationContext) context).getContexts(), cause);
+            failure(context, cause);
         }
     }
 
-    private void failure(InvocationContext[] contexts, @Nonnull Throwable cause) {
+    @SuppressWarnings("unchecked")
+    private void failure(Object[] contexts, @Nonnull Throwable cause) {
         for (int i = contexts.length - 1; i > -1; i--) {
-            handleFailure(handlers[i], contexts[i], cause);
+            handleFailure((InvocationEventHandler<Object>) handlers[i], contexts[i], cause);
         }
     }
 
     @Nullable
-    private static InvocationContext handlePreInvocation(
-            @Nullable InvocationEventHandler<? extends InvocationContext> handler,
+    private static Object handlePreInvocation(
+            @Nullable InvocationEventHandler<?> handler,
             Object instance,
             Method method,
             Object[] args) {
@@ -123,7 +123,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     private static void preInvocationFailed(
-            @Nullable InvocationEventHandler<? extends InvocationContext> handler,
+            @Nullable InvocationEventHandler<?> handler,
             @Nullable Object instance,
             Method method,
             @Nullable Exception exception) {
@@ -136,9 +136,9 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
                 exception);
     }
 
-    private static void handleSuccess(
-            InvocationEventHandler<?> handler,
-            @Nullable InvocationContext context,
+    private static <T> void handleSuccess(
+            InvocationEventHandler<T> handler,
+            @Nullable T context,
             @Nullable Object result) {
         if (context != null) {
             try {
@@ -149,9 +149,9 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
-    private static void handleFailure(
-            InvocationEventHandler<?> handler,
-            @Nullable InvocationContext context,
+    private static <T> void handleFailure(
+            InvocationEventHandler<T> handler,
+            @Nullable T context,
             Throwable cause) {
         if (context != null) {
             try {
@@ -164,7 +164,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private static void eventFailed(
             String event,
-            @Nullable InvocationContext context,
+            @Nullable Object context,
             @Nullable Object result,
             RuntimeException exception) {
         logger.warn(
@@ -173,23 +173,5 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
                 UnsafeArg.of("context", context),
                 UnsafeArg.of("result", result),
                 exception);
-    }
-
-    static class CompositeInvocationContext extends DefaultInvocationContext {
-
-        private final InvocationContext[] contexts;
-
-        CompositeInvocationContext(
-                Object instance,
-                Method method,
-                @Nullable Object[] args,
-                InvocationContext[] contexts) {
-            super(System.nanoTime(), instance, method, args);
-            this.contexts = checkNotNull(contexts);
-        }
-
-        InvocationContext[] getContexts() {
-            return contexts;
-        }
     }
 }

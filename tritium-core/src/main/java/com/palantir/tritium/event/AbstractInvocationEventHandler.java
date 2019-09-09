@@ -28,8 +28,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <C> invocation context
  */
-public abstract class AbstractInvocationEventHandler<C extends InvocationContext>
-        implements InvocationEventHandler<C> {
+public abstract class AbstractInvocationEventHandler<C> implements InvocationEventHandler<C> {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationEventHandler.class);
 
@@ -78,7 +77,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      *
      * @param context invocation context
      */
-    protected final void debugIfNullContext(@Nullable InvocationContext context) {
+    protected final void debugIfNullContext(@Nullable C context) {
         if (context == null) {
             logger.debug(
                     "{} encountered null metric context, likely due to exception in preInvocation",
@@ -98,7 +97,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      * @return false if "instrument.fully.qualified.class.Name" is set to "false", otherwise true
      */
     protected static com.palantir.tritium.api.functions.BooleanSupplier getSystemPropertySupplier(
-            Class<? extends InvocationEventHandler<InvocationContext>> clazz) {
+            Class<? extends InvocationEventHandler<?>> clazz) {
         checkNotNull(clazz, "clazz");
         return InstrumentationProperties.getSystemPropertySupplier(clazz.getName());
     }

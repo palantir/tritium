@@ -38,30 +38,32 @@ final class CompositeInvocationEventHandlerTest {
     private static final Object[] EMPTY_ARGS = {};
 
     @Test
-    @SuppressWarnings("checkstyle:illegalthrows")
+    @SuppressWarnings({"checkstyle:illegalthrows", "unchecked"})
     void testSimpleFlow() throws Throwable {
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE,
-                        new SimpleInvocationEventHandler()));
+        InvocationEventHandler<Object> compositeHandler =
+                (InvocationEventHandler<Object>) CompositeInvocationEventHandler.of(
+                        Arrays.asList(NoOpInvocationEventHandler.INSTANCE,
+                                new SimpleInvocationEventHandler()));
 
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
-        InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
         compositeHandler.onSuccess(context, "test");
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void testDisabledWhileRunning_success() throws NoSuchMethodException {
-        InvocationEventHandler<InvocationContext> handler = mock(InvocationEventHandler.class);
+        InvocationEventHandler<Object> handler = mock(InvocationEventHandler.class);
         when(handler.preInvocation(any(), any(), any())).thenReturn(mock(InvocationContext.class));
         when(handler.isEnabled()).thenReturn(true, false);
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, handler));
+        InvocationEventHandler<Object> compositeHandler =
+                (InvocationEventHandler<Object>) CompositeInvocationEventHandler.of(
+                        Arrays.asList(NoOpInvocationEventHandler.INSTANCE, handler));
 
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
-        InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
         compositeHandler.onSuccess(context, "test");
 
         verify(handler).isEnabled();
@@ -73,15 +75,16 @@ final class CompositeInvocationEventHandlerTest {
     @Test
     @SuppressWarnings("unchecked")
     void testDisabledWhileRunning_failure() throws NoSuchMethodException {
-        InvocationEventHandler<InvocationContext> handler = mock(InvocationEventHandler.class);
+        InvocationEventHandler<Object> handler = mock(InvocationEventHandler.class);
         when(handler.preInvocation(any(), any(), any())).thenReturn(mock(InvocationContext.class));
         when(handler.isEnabled()).thenReturn(true, false);
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, handler));
+        InvocationEventHandler<Object> compositeHandler =
+                (InvocationEventHandler<Object>) CompositeInvocationEventHandler.of(
+                        Arrays.asList(NoOpInvocationEventHandler.INSTANCE, handler));
 
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
-        InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
         compositeHandler.onFailure(context, new RuntimeException());
 
         verify(handler).isEnabled();
@@ -92,52 +95,53 @@ final class CompositeInvocationEventHandlerTest {
 
     @Test
     void testSuccessHandlerFailureShouldNotThrow() throws Exception {
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
-                    @Override
-                    public InvocationContext preInvocation(
-                            @Nonnull Object instance,
-                            @Nonnull Method method,
-                            @Nonnull Object[] args) {
-                        return DefaultInvocationContext.of(instance, method, args);
-                    }
-                }));
+        @SuppressWarnings("unchecked") InvocationEventHandler<Object> compositeHandler =
+                (InvocationEventHandler<Object>) CompositeInvocationEventHandler.of(
+                        Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
+                            @Override
+                            public InvocationContext preInvocation(
+                                    @Nonnull Object instance,
+                                    @Nonnull Method method,
+                                    @Nonnull Object[] args) {
+                                return DefaultInvocationContext.of(instance, method, args);
+                            }
+                        }));
 
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
-        InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
         compositeHandler.onSuccess(context, "test");
     }
 
     @Test
     void testFailureHandlerFailureShouldNotThrow() throws Exception {
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
-                    @Override
-                    public InvocationContext preInvocation(
-                            @Nonnull Object instance,
-                            @Nonnull Method method,
-                            @Nonnull Object[] args) {
-                        return DefaultInvocationContext.of(instance, method, args);
-                    }
-                }));
+        @SuppressWarnings("unchecked") InvocationEventHandler<Object> compositeHandler =
+                (InvocationEventHandler<Object>) CompositeInvocationEventHandler.of(
+                        Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
+                            @Override
+                            public InvocationContext preInvocation(
+                                    @Nonnull Object instance,
+                                    @Nonnull Method method,
+                                    @Nonnull Object[] args) {
+                                return DefaultInvocationContext.of(instance, method, args);
+                            }
+                        }));
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
-        InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
         compositeHandler.onFailure(context, new RuntimeException("simple failure"));
     }
 
     @Test
     void testEmpty() throws Exception {
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
-                Collections.emptyList());
+        @SuppressWarnings("unchecked") InvocationEventHandler<Object> compositeHandler =
+                (InvocationEventHandler<Object>) CompositeInvocationEventHandler.of(Collections.emptyList());
         assertThat(compositeHandler).isInstanceOf(NoOpInvocationEventHandler.class);
         assertThat(compositeHandler).isSameAs(NoOpInvocationEventHandler.INSTANCE);
 
-        InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
+        Object context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
 
         assertThat(context).isNotNull();
-        assertThat(context.getMethod().getName()).isEqualTo("toString");
         compositeHandler.onSuccess(context, "Hello World");
         compositeHandler.onFailure(context, new RuntimeException());
     }
@@ -160,44 +164,42 @@ final class CompositeInvocationEventHandlerTest {
 
     @Test
     void testPreInvocationThrowingHandler() throws Exception {
-        @SuppressWarnings("unchecked") List<InvocationEventHandler<InvocationContext>> handlers =
+        List<InvocationEventHandler<?>> handlers =
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE, createThrowingHandler(true));
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(handlers);
+        InvocationEventHandler<?> compositeHandler = CompositeInvocationEventHandler.of(handlers);
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
-        InvocationContext context = compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
-        assertThat(context).isInstanceOf(InvocationContext.class);
+        compositeHandler.preInvocation(this, getToStringMethod(), EMPTY_ARGS);
     }
 
     @Test
     void testThrowingOnSuccess() throws Exception {
-        @SuppressWarnings("unchecked") List<InvocationEventHandler<InvocationContext>> handlers =
+        List<InvocationEventHandler<?>> handlers =
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE, createThrowingHandler(true));
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(handlers);
+        @SuppressWarnings("unchecked") InvocationEventHandler<Object[]> compositeHandler =
+                (InvocationEventHandler<Object[]>) CompositeInvocationEventHandler.of(handlers);
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
-        InvocationContext context = new CompositeInvocationEventHandler.CompositeInvocationContext(this,
-                getToStringMethod(), null, new InvocationContext[] {null, null});
-        compositeHandler.onSuccess(context, "Hello World");
+        compositeHandler.onSuccess(new Object[] {null, null}, "Hello World");
     }
 
     @Test
     void testThrowingOnFailure() throws Exception {
-        InvocationEventHandler<InvocationContext> throwingHandler = createThrowingHandler(true);
-        @SuppressWarnings("unchecked") List<InvocationEventHandler<InvocationContext>> handlers =
+        InvocationEventHandler<?> throwingHandler = createThrowingHandler(true);
+        List<InvocationEventHandler<?>> handlers =
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE, throwingHandler);
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(handlers);
+        @SuppressWarnings("unchecked") InvocationEventHandler<Object[]> compositeHandler =
+                (InvocationEventHandler<Object[]>) CompositeInvocationEventHandler.of(handlers);
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
-        InvocationContext context = new CompositeInvocationEventHandler.CompositeInvocationContext(this,
-                getToStringMethod(), null, new InvocationContext[] {null, null});
-        compositeHandler.onFailure(context, new RuntimeException());
+        compositeHandler.onFailure(new Object[] {null, null}, new RuntimeException());
     }
 
     @Test
     void testToString() {
-        InvocationEventHandler<InvocationContext> handler = CompositeInvocationEventHandler.of(
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new SimpleInvocationEventHandler()));
+        @SuppressWarnings("unchecked") InvocationEventHandler<Object[]> handler =
+                (InvocationEventHandler<Object[]>) CompositeInvocationEventHandler.of(
+                        Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new SimpleInvocationEventHandler()));
         assertThat(handler).asString()
                 .startsWith("CompositeInvocationEventHandler{handlers=[INSTANCE, ")
                 .endsWith("]}");

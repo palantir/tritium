@@ -28,8 +28,6 @@ import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.logsafe.exceptions.SafeRuntimeException;
 import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.event.CompositeInvocationEventHandler;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -69,12 +67,12 @@ final class ByteBuddyInstrumentation {
     static <T, U extends T> T instrument(
             Class<T> interfaceClass,
             U delegate,
-            List<InvocationEventHandler<InvocationContext>> handlers,
+            InvocationEventHandler<?> handler,
             InstrumentationFilter instrumentationFilter) {
         checkNotNull(interfaceClass, "interfaceClass");
         checkNotNull(delegate, "delegate");
         checkNotNull(instrumentationFilter, "instrumentationFilter");
-        checkNotNull(handlers, "handlers");
+        checkNotNull(handler, "handlers");
 
         if (!isAccessible(interfaceClass)) {
             log.warn("Interface {} is not accessible. Delegate {} of type {} will not be instrumented",
@@ -93,7 +91,7 @@ final class ByteBuddyInstrumentation {
         try {
             return newInstrumentationClass(classLoader, interfaceClass, additionalInterfaces)
                     .getConstructor(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
-                    .newInstance(delegate, CompositeInvocationEventHandler.of(handlers), instrumentationFilter);
+                    .newInstance(delegate, handler, instrumentationFilter);
         } catch (ReflectiveOperationException e) {
             throw new SafeRuntimeException("Failed to instrumented delegate", e);
         }

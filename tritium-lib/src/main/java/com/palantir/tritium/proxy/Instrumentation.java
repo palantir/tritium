@@ -22,9 +22,9 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
@@ -46,9 +46,10 @@ public final class Instrumentation {
         throw new UnsupportedOperationException();
     }
 
+    @SuppressWarnings("unchecked")
     static <T, U extends T> T wrap(Class<T> interfaceClass,
                                    U delegate,
-                                   List<InvocationEventHandler<InvocationContext>> handlers,
+                                   List<InvocationEventHandler<?>> handlers,
                                    InstrumentationFilter instrumentationFilter) {
         checkNotNull(interfaceClass, "interfaceClass");
         checkNotNull(delegate, "delegate");
@@ -59,11 +60,13 @@ public final class Instrumentation {
             return delegate;
         }
 
+        InvocationEventHandler<Object> handler =
+                (InvocationEventHandler<Object>) CompositeInvocationEventHandler.of(handlers);
         if (InstrumentationProperties.isSpecificEnabled("dynamic-proxy", false)) {
             return Proxies.newProxy(interfaceClass, delegate,
-                    new InstrumentationProxy<>(instrumentationFilter, handlers, delegate));
+                    new InstrumentationProxy<>(instrumentationFilter, handler, delegate));
         } else {
-            return ByteBuddyInstrumentation.instrument(interfaceClass, delegate, handlers, instrumentationFilter);
+            return ByteBuddyInstrumentation.instrument(interfaceClass, delegate, handler, instrumentationFilter);
         }
     }
 
@@ -75,7 +78,7 @@ public final class Instrumentation {
     @Deprecated
     static <T, U extends T> T wrap(Class<T> interfaceClass,
                                    U delegate,
-                                   List<InvocationEventHandler<InvocationContext>> handlers) {
+                                   List<InvocationEventHandler<?>> handlers) {
         return wrap(interfaceClass, delegate, handlers, InstrumentationFilters.INSTRUMENT_ALL);
     }
 
@@ -111,8 +114,7 @@ public final class Instrumentation {
 
         private final Class<T> interfaceClass;
         private final U delegate;
-        private final ImmutableList.Builder<InvocationEventHandler<InvocationContext>> handlers = ImmutableList
-                .builder();
+        private final ImmutableList.Builder<InvocationEventHandler<?>> handlers = ImmutableList.builder();
         private InstrumentationFilter filter = InstrumentationFilters.INSTRUMENT_ALL;
 
         private Builder(Class<T> interfaceClass, U delegate) {
@@ -187,12 +189,12 @@ public final class Instrumentation {
             return this;
         }
 
-        public Builder<T, U> withHandler(InvocationEventHandler<InvocationContext> handler) {
+        public Builder<T, U> withHandler(InvocationEventHandler<?> handler) {
             checkNotNull(handler, "handler");
             return withHandlers(Collections.singleton(handler));
         }
 
-        public Builder<T, U> withHandlers(Iterable<InvocationEventHandler<InvocationContext>> additionalHandlers) {
+        public Builder<T, U> withHandlers(Iterable<InvocationEventHandler<?>> additionalHandlers) {
             checkNotNull(additionalHandlers, "additionalHandlers");
             this.handlers.addAll(additionalHandlers);
             return this;

@@ -24,41 +24,25 @@ import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.event.CompositeInvocationEventHandler;
-import com.palantir.tritium.event.InstrumentationFilters;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class InvocationEventProxy implements InvocationHandler {
+abstract class InvocationEventProxy<T> implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(InvocationEventProxy.class);
     private static final Object[] EMPTY_ARRAY = new Object[0];
 
     private final InstrumentationFilter filter;
-    private final InvocationEventHandler<?> eventHandler;
+    private final InvocationEventHandler<T> eventHandler;
 
-    /**
-     * Always enabled instrumentation handler.
-     *
-     * @param handlers event handlers
-     */
-    protected InvocationEventProxy(List<InvocationEventHandler<InvocationContext>> handlers) {
-        this(handlers, InstrumentationFilters.INSTRUMENT_ALL);
-    }
-
-    protected InvocationEventProxy(List<InvocationEventHandler<InvocationContext>> handlers,
-                                   InstrumentationFilter filter) {
-        checkNotNull(filter, "filter");
-        checkNotNull(handlers, "handlers");
-        this.eventHandler = CompositeInvocationEventHandler.of(handlers);
-        this.filter = filter;
+    protected InvocationEventProxy(InvocationEventHandler<T> handler, InstrumentationFilter filter) {
+        this.eventHandler = checkNotNull(handler, "handler");
+        this.filter = checkNotNull(filter, "filter");
     }
 
     /**
@@ -97,7 +81,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
             return handleSpecialMethod(proxy, method, arguments);
         }
         if (isEnabled(proxy, method, arguments)) {
-            InvocationContext context = handlePreInvocation(proxy, method, arguments);
+            T context = handlePreInvocation(proxy, method, arguments);
             try {
                 Object result = method.invoke(getDelegate(), arguments);
                 return handleOnSuccess(context, result);
@@ -148,7 +132,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
 
     @Nullable
     @VisibleForTesting
-    final InvocationContext handlePreInvocation(Object instance, Method method, Object[] args) {
+    final T handlePreInvocation(Object instance, Method method, Object[] args) {
         try {
             return eventHandler.preInvocation(instance, method, args);
         } catch (RuntimeException e) {
@@ -159,7 +143,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
 
     @Nullable
     @VisibleForTesting
-    final Object handleOnSuccess(@Nullable InvocationContext context, @Nullable Object result) {
+    final Object handleOnSuccess(@Nullable T context, @Nullable Object result) {
         try {
             eventHandler.onSuccess(context, result);
         } catch (RuntimeException e) {
@@ -168,14 +152,14 @@ abstract class InvocationEventProxy implements InvocationHandler {
         return result;
     }
 
-    private Throwable invocationFailed(@Nullable InvocationContext context, Throwable cause) {
+    private Throwable invocationFailed(@Nullable T context, Throwable cause) {
         if (cause instanceof InvocationTargetException) {
             return handleOnFailure(context, cause.getCause());
         }
         return handleOnFailure(context, cause);
     }
 
-    final Throwable handleOnFailure(@Nullable InvocationContext context, Throwable cause) {
+    final Throwable handleOnFailure(@Nullable T context, Throwable cause) {
         try {
             eventHandler.onFailure(context, cause);
         } catch (RuntimeException e) {
@@ -185,14 +169,14 @@ abstract class InvocationEventProxy implements InvocationHandler {
     }
 
     private static void logInvocationWarningOnSuccess(
-            @Nullable InvocationContext context,
+            @Nullable Object context,
             @Nullable Object result,
             Exception cause) {
         logInvocationWarning("onSuccess", context, result, cause);
     }
 
     private static void logInvocationWarningOnFailure(
-            @Nullable InvocationContext context,
+            @Nullable Object context,
             @Nullable Throwable result,
             Exception cause) {
         logInvocationWarning("onFailure", context, result, cause);
@@ -204,7 +188,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
 
     static void logInvocationWarning(
             String event,
-            @Nullable InvocationContext context,
+            @Nullable Object context,
             @Nullable Object result,
             Throwable cause) {
         if (logger.isWarnEnabled()) {
