@@ -106,7 +106,7 @@ public final class MetricRegistries {
      * @param windowUnit unit for window
      * @return metric registry
      */
-    public static MetricRegistry createWithSlidingTimeWindowReservoirsWhoops(long window, TimeUnit windowUnit) {
+    public static MetricRegistry createWithSlidingTimeWindowReservoirs(long window, TimeUnit windowUnit) {
         return createWithReservoirType(() -> Reservoirs.slidingTimeWindowArrayReservoir(window, windowUnit));
     }
 
