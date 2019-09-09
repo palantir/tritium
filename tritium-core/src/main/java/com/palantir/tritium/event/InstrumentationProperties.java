@@ -26,6 +26,7 @@ import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +47,22 @@ public final class InstrumentationProperties {
 
     @SuppressWarnings("WeakerAccess") // public API
     public static boolean isSpecificEnabled(String name) {
-        String qualifiedValue = instrumentationProperties().get(INSTRUMENT_PREFIX + "." + name);
-        return "true".equalsIgnoreCase(qualifiedValue) || qualifiedValue == null;
+        return isSpecificEnabled(name, true);
+    }
+
+    @SuppressWarnings("WeakerAccess") // public API
+    public static boolean isSpecificEnabled(String name, boolean defaultValue) {
+        String qualifiedValue = getSpecific(name);
+        if (qualifiedValue == null) {
+            return defaultValue;
+        }
+        return "true".equalsIgnoreCase(qualifiedValue);
+    }
+
+    /** Applies the {@link #INSTRUMENT_PREFIX} and returns the current value. */
+    @Nullable
+    private static String getSpecific(String name) {
+        return instrumentationProperties().get(INSTRUMENT_PREFIX + "." + name);
     }
 
     @SuppressWarnings("WeakerAccess") // public API
@@ -100,5 +115,4 @@ public final class InstrumentationProperties {
         log.debug("Reloaded instrumentation properties {}", map);
         return map;
     }
-
 }

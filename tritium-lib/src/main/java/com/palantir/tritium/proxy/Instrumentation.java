@@ -59,7 +59,7 @@ public final class Instrumentation {
             return delegate;
         }
 
-        if (InstrumentationProperties.isSpecificEnabled("dynamic-proxy")) {
+        if (InstrumentationProperties.isSpecificEnabled("dynamic-proxy", false)) {
             return Proxies.newProxy(interfaceClass, delegate,
                     new InstrumentationProxy<>(instrumentationFilter, handlers, delegate));
         } else {
