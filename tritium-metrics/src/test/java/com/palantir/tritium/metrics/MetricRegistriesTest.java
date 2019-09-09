@@ -112,7 +112,7 @@ final class MetricRegistriesTest {
 
     @Test
     void testSlidingTimeWindowHistogram() {
-        metrics = MetricRegistries.createWithSlidingTimeWindowReservoirs(1, TimeUnit.MINUTES);
+        metrics = MetricRegistries.createWithSlidingTimeWindowReservoirsWhoops(1, TimeUnit.MINUTES);
         assertThat(metrics).isNotNull();
 
         Histogram histogram = metrics.histogram("histogram");
