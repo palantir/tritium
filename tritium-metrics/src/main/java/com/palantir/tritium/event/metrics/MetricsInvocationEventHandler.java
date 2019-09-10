@@ -22,9 +22,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
@@ -36,7 +34,7 @@ import javax.annotation.Nullable;
 /**
  * {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics.
  */
-public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<MetricsInvocationContext> {
 
     private static final String FAILURES = "failures";
 
@@ -98,12 +96,15 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        return DefaultInvocationContext.of(instance, method, args);
+    public MetricsInvocationContext preInvocation(
+            @SuppressWarnings("unused") @Nonnull Object instance,
+            @Nonnull Method method,
+            @SuppressWarnings("unused") @Nonnull Object[] args) {
+        return new MetricsInvocationContext(method, System.nanoTime());
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext context, @Nullable Object unusedResult) {
+    public void onSuccess(@Nullable MetricsInvocationContext context, @Nullable Object unusedResult) {
         debugIfNullContext(context);
         if (context != null) {
             long nanos = updateTimer(context);
@@ -112,7 +113,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+    public void onFailure(@Nullable MetricsInvocationContext context, @Nonnull Throwable cause) {
         markGlobalFailure();
         debugIfNullContext(context);
         if (context != null) {
@@ -124,14 +125,14 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         }
     }
 
-    private long updateTimer(InvocationContext context) {
+    private long updateTimer(MetricsInvocationContext context) {
         long nanos = System.nanoTime() - context.getStartTimeNanos();
         metricRegistry.timer(getBaseMetricName(context))
                 .update(nanos, TimeUnit.NANOSECONDS);
         return nanos;
     }
 
-    private String getBaseMetricName(InvocationContext context) {
+    private String getBaseMetricName(MetricsInvocationContext context) {
         return serviceName + '.' + context.getMethod().getName();
     }
 
@@ -139,7 +140,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         metricRegistry.meter(FAILURES).mark();
     }
 
-    private void handleSuccessAnnotations(InvocationContext context, long nanos) {
+    private void handleSuccessAnnotations(MetricsInvocationContext context, long nanos) {
         String metricName = getAnnotatedMetricName(context);
         if (metricName != null) {
             metricRegistry.timer(serviceName + '.' + metricName)
@@ -152,7 +153,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         }
     }
 
-    private void handleFailureAnnotations(InvocationContext context, long nanos) {
+    private void handleFailureAnnotations(MetricsInvocationContext context, long nanos) {
         String metricName = getAnnotatedMetricName(context);
         if (metricName != null) {
             metricRegistry.timer(serviceName + '.' + metricName + '.' + FAILURES)
@@ -166,7 +167,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Nullable
-    private String getAnnotatedMetricName(InvocationContext context) {
+    private String getAnnotatedMetricName(MetricsInvocationContext context) {
         return metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
     }
 }

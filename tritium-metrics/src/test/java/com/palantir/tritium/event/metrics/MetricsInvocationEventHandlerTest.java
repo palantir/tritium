@@ -21,8 +21,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.MetricRegistry;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import org.junit.jupiter.api.Test;
 
@@ -55,8 +53,8 @@ final class MetricsInvocationEventHandlerTest {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
 
-        InvocationContext context = mock(InvocationContext.class);
-        when(context.getMethod()).thenReturn(String.class.getDeclaredMethod("length"));
+        MetricsInvocationContext context = new MetricsInvocationContext(
+                 String.class.getDeclaredMethod("length"), 0L);
         assertThat(metricRegistry.getMeters().get("failures")).isNull();
 
         handler.onFailure(context, new RuntimeException("unexpected"));
@@ -132,7 +130,8 @@ final class MetricsInvocationEventHandlerTest {
 
     private static void callVoidMethod(
             MetricsInvocationEventHandler handler, Object obj, String methodName, boolean success) throws Exception {
-        InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
+        MetricsInvocationContext context = new MetricsInvocationContext(
+                obj.getClass().getMethod(methodName), System.nanoTime());
         if (success) {
             handler.onSuccess(context, null);
         } else {
