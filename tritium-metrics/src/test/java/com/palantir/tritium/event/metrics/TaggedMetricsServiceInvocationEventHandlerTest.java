@@ -20,9 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.Metric;
 import com.palantir.logsafe.exceptions.SafeRuntimeException;
-import com.palantir.tritium.event.AbstractInvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
@@ -82,10 +79,11 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
 
     @SuppressWarnings("SameParameterValue")
     private static void invokeMethod(
-            AbstractInvocationEventHandler<InvocationContext> handler, Object obj, String methodName, Object result,
+            TaggedMetricsServiceInvocationEventHandler handler, Object obj, String methodName, Object result,
             boolean success)
             throws Exception {
-        InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
+        MetricsInvocationContext context = new MetricsInvocationContext(
+                obj.getClass().getMethod(methodName), System.nanoTime());
         if (success) {
             handler.onSuccess(context, result);
         } else {

@@ -21,9 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
@@ -48,7 +46,8 @@ import javax.annotation.Nullable;
  *     <li>Tag - cause: When an error is hit, this will be filled with the full class name of the cause.</li>
  * </ul>
  */
-public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+public class TaggedMetricsServiceInvocationEventHandler
+        extends AbstractInvocationEventHandler<MetricsInvocationContext> {
 
     private static final String FAILURES_METRIC_NAME = "failures";
     private static final MetricName FAILURES_METRIC = MetricName.builder().safeName(FAILURES_METRIC_NAME).build();
@@ -79,15 +78,15 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     @Override
-    public final InvocationContext preInvocation(
-            @Nonnull Object instance,
+    public final MetricsInvocationContext preInvocation(
+            @SuppressWarnings("unused") @Nonnull Object instance,
             @Nonnull Method method,
-            @Nonnull Object[] args) {
-        return DefaultInvocationContext.of(instance, method, args);
+            @SuppressWarnings("unused") @Nonnull Object[] args) {
+        return new MetricsInvocationContext(method, System.nanoTime());
     }
 
     @Override
-    public final void onSuccess(@Nullable InvocationContext context, @Nullable Object unusedResult) {
+    public final void onSuccess(@Nullable MetricsInvocationContext context, @Nullable Object unusedResult) {
         debugIfNullContext(context);
         if (context != null) {
             long nanos = System.nanoTime() - context.getStartTimeNanos();
@@ -100,7 +99,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     @Override
-    public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+    public final void onFailure(@Nullable MetricsInvocationContext context, @Nonnull Throwable cause) {
         globalFailureMeter.mark();
         debugIfNullContext(context);
         if (context != null) {
