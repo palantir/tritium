@@ -26,10 +26,6 @@ apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'com.palantir.git-version'
 
-subprojects {
-    apply plugin: 'com.palantir.revapi'
-}
-
 allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
