@@ -116,9 +116,9 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         markGlobalFailure();
         debugIfNullContext(context);
         if (context != null) {
-            String failuresMetricName = MetricRegistry.name(getBaseMetricName(context), FAILURES);
+            String failuresMetricName = getBaseMetricName(context) + '.' + FAILURES;
             metricRegistry.meter(failuresMetricName).mark();
-            metricRegistry.meter(MetricRegistry.name(failuresMetricName, cause.getClass().getName())).mark();
+            metricRegistry.meter(failuresMetricName + '.' + cause.getClass().getName()).mark();
             long nanos = updateTimer(context);
             handleFailureAnnotations(context, nanos);
         }
@@ -132,7 +132,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     private String getBaseMetricName(InvocationContext context) {
-        return MetricRegistry.name(serviceName, context.getMethod().getName());
+        return serviceName + '.' + context.getMethod().getName();
     }
 
     private void markGlobalFailure() {
@@ -142,11 +142,11 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private void handleSuccessAnnotations(InvocationContext context, long nanos) {
         String metricName = getAnnotatedMetricName(context);
         if (metricName != null) {
-            metricRegistry.timer(MetricRegistry.name(serviceName, metricName))
+            metricRegistry.timer(serviceName + '.' + metricName)
                     .update(nanos, TimeUnit.NANOSECONDS);
 
             if (globalGroupPrefix != null) {
-                metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName))
+                metricRegistry.timer(globalGroupPrefix + '.' + metricName)
                         .update(nanos, TimeUnit.NANOSECONDS);
             }
         }
@@ -155,11 +155,11 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private void handleFailureAnnotations(InvocationContext context, long nanos) {
         String metricName = getAnnotatedMetricName(context);
         if (metricName != null) {
-            metricRegistry.timer(MetricRegistry.name(serviceName, metricName, FAILURES))
+            metricRegistry.timer(serviceName + '.' + metricName + '.' + FAILURES)
                     .update(nanos, TimeUnit.NANOSECONDS);
 
             if (globalGroupPrefix != null) {
-                metricRegistry.timer(MetricRegistry.name(globalGroupPrefix, metricName, FAILURES))
+                metricRegistry.timer(globalGroupPrefix + '.' + metricName + '.' + FAILURES)
                         .update(nanos, TimeUnit.NANOSECONDS);
             }
         }

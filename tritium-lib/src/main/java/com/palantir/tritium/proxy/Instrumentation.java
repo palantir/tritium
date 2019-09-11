@@ -132,7 +132,7 @@ public final class Instrumentation {
             this.handlers.add(new MetricsInvocationEventHandler(
                     metricRegistry,
                     delegate.getClass(),
-                    MetricRegistry.name(interfaceClass.getName()),
+                    interfaceClass.getName(),
                     globalPrefix));
             return this;
         }
