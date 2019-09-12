@@ -6,3 +6,4 @@ auto-label:
     circleci/manage-circleci: [ "merge when ready" ]
   tags:
     roomba: [ "merge when ready" ]
+    automerge: [ "merge when ready" ]
