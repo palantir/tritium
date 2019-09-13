@@ -103,7 +103,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
+    public void onSuccess(@Nullable InvocationContext context, @Nullable Object unusedResult) {
         debugIfNullContext(context);
         if (context != null) {
             long nanos = updateTimer(context);
