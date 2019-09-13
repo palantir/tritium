@@ -243,7 +243,7 @@ public class ProxyBenchmark {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] unusedArgs) throws Exception {
         Options options = new OptionsBuilder()
                 .include(ProxyBenchmark.class.getSimpleName())
                 .warmupTime(TimeValue.seconds(1))
