@@ -72,12 +72,12 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
+    public void onSuccess(@Nullable InvocationContext context, @Nullable Object unusedResult) {
         complete(context);
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable unusedCause) {
         complete(context);
     }
 

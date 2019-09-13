@@ -87,7 +87,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     @Override
-    public final void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
+    public final void onSuccess(@Nullable InvocationContext context, @Nullable Object unusedResult) {
         debugIfNullContext(context);
         if (context != null) {
             long nanos = System.nanoTime() - context.getStartTimeNanos();
