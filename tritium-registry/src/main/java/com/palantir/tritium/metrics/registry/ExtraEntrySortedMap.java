@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 
-@SuppressWarnings({"JdkObsolete", "NullableDereference"})
+@SuppressWarnings({"JdkObsolete", "NullableDereference", "NullAway"})
 final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements SortedMap<K, V> {
     private final Ordering<? super K> ordering;
     private final SortedMap<K, V> base;
