@@ -20,7 +20,7 @@ import com.palantir.logsafe.Safe;
 import java.util.SortedMap;
 import org.immutables.value.Value;
 
-@Value.Immutable(prehash = true)
+@Value.Immutable
 @Value.Style(
         get = {"get*", "is*"},
         overshadowImplementation = true,
@@ -46,5 +46,11 @@ public interface MetricName {
         return new Builder();
     }
 
-    class Builder extends ImmutableMetricName.Builder {}
+    class Builder extends ImmutableMetricName.Builder {
+        // We cannot use the immutables implementation because it causes too much hashcode pain.
+        @Override
+        public MetricName build() {
+            return RealMetricName.create(super.build());
+        }
+    }
 }

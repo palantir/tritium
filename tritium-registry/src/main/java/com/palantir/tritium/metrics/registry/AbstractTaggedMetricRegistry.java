@@ -152,11 +152,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
         result.putAll(registry);
         taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
                 .forEach((metricName, metric) -> result.put(
-                        MetricName.builder()
-                                .from(metricName)
-                                .putSafeTags(tag.getKey(), tag.getValue())
-                                .build(),
-                        metric)));
+                        RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
 
         return result.build();
     }
