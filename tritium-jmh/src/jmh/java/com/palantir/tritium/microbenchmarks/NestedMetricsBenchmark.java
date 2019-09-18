@@ -79,7 +79,10 @@ public class NestedMetricsBenchmark {
     private static TaggedMetricRegistry constructSubRegistry() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         for (int i = 0; i < 100; i++) {
-            Meter meter = registry.meter(MetricName.builder().safeName("some metric " + i).build());
+            Meter meter = registry.meter(MetricName.builder()
+                    .safeName("some metric " + i)
+                    .putSafeTags("some tag", "some tag value")
+                    .build());
             for (int j = 0; j < 1000; j++) {
                 meter.mark();
             }
