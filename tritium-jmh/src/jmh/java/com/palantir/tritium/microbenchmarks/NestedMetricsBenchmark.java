@@ -90,7 +90,7 @@ public class NestedMetricsBenchmark {
         return registry;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] _args) throws Exception {
         Options opt = new OptionsBuilder()
                 .include(NestedMetricsBenchmark.class.getSimpleName())
                 .addProfiler(GCProfiler.class)
