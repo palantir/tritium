@@ -33,85 +33,85 @@ import java.util.SortedMap;
 
 final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements SortedMap<K, V> {
     private final Ordering<? super K> ordering;
-    private final SortedMap<K, V> left;
+    private final SortedMap<K, V> base;
     private final K extraKey;
     private final V extraValue;
     private final int extraEntryHashCode;
 
-    ExtraEntrySortedMap(SortedMap<K, V> left, K extraKey, V extraValue) {
-        this.left = left;
+    ExtraEntrySortedMap(SortedMap<K, V> base, K extraKey, V extraValue) {
+        this.base = base;
         this.extraKey = extraKey;
         this.extraValue = extraValue;
-        this.ordering = Ordering.from(left.comparator());
+        this.ordering = Ordering.from(base.comparator());
         this.extraEntryHashCode = Maps.immutableEntry(extraKey, extraValue).hashCode();
     }
 
     @Override
     public Comparator<? super K> comparator() {
-        return left.comparator();
+        return base.comparator();
     }
 
     @Override
     public SortedMap<K, V> subMap(K fromKey, K toKey) {
-        SortedMap<K, V> delegate = left.subMap(fromKey, toKey);
+        SortedMap<K, V> newBase = base.subMap(fromKey, toKey);
         if (ordering.compare(fromKey, extraKey) <= 0 && ordering.compare(toKey, extraKey) > 0) {
-            return new ExtraEntrySortedMap<>(delegate, extraKey, extraValue);
+            return new ExtraEntrySortedMap<>(newBase, extraKey, extraValue);
         }
-        return delegate;
+        return newBase;
     }
 
     @Override
     public SortedMap<K, V> headMap(K toKey) {
-        SortedMap<K, V> delegate = left.headMap(toKey);
+        SortedMap<K, V> newBase = base.headMap(toKey);
         if (ordering.compare(toKey, extraKey) > 0) {
-            return new ExtraEntrySortedMap<>(delegate, extraKey, extraValue);
+            return new ExtraEntrySortedMap<>(newBase, extraKey, extraValue);
         }
-        return delegate;
+        return newBase;
     }
 
     @Override
     public SortedMap<K, V> tailMap(K fromKey) {
-        SortedMap<K, V> delegate = left.tailMap(fromKey);
+        SortedMap<K, V> newBase = base.tailMap(fromKey);
         if (ordering.compare(fromKey, extraKey) <= 0) {
-            return new ExtraEntrySortedMap<>(delegate, extraKey, extraValue);
+            return new ExtraEntrySortedMap<>(newBase, extraKey, extraValue);
         }
-        return delegate;
+        return newBase;
     }
 
     @Override
     public K firstKey() {
-        if (left.isEmpty()) {
+        if (base.isEmpty()) {
             return extraKey;
         }
-        return ordering.min(left.firstKey(), extraKey);
+        return ordering.min(base.firstKey(), extraKey);
     }
 
     @Override
     public K lastKey() {
-        if (left.isEmpty()) {
+        if (base.isEmpty()) {
             return extraKey;
         }
-        return ordering.max(left.lastKey(), extraKey);
+        return ordering.max(base.lastKey(), extraKey);
     }
 
     @Override
     public int size() {
-        return left.size() + 1;
+        return base.size() + 1;
     }
 
     @Override
     public boolean isEmpty() {
-        return left.isEmpty();
+        return base.isEmpty();
     }
 
     @Override
     public boolean containsKey(Object key) {
-        return extraKey.equals(key) || left.containsKey(key);
+        return extraKey.equals(key) || base.containsKey(key);
     }
 
     @Override
     public boolean containsValue(Object value) {
-        return extraValue.equals(value) || left.containsValue(value);
+        return extraValue.equals(value) || base.containsValue(value);
     }
 
     @Override
@@ -119,7 +119,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         if (extraKey.equals(key)) {
             return extraValue;
         }
-        return left.get(key);
+        return base.get(key);
     }
 
     @Override
@@ -147,12 +147,12 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         return new AbstractSet<K>() {
             @Override
             public Iterator<K> iterator() {
-                return new MergeIterator<>(left.keySet().iterator(), extraKey, ordering);
+                return new MergeIterator<>(base.keySet().iterator(), extraKey, ordering);
             }
 
             @Override
             public int size() {
-                return left.size() + 1;
+                return base.size() + 1;
             }
         };
     }
@@ -167,7 +167,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
 
             @Override
             public int size() {
-                return left.values().size() + 1;
+                return base.values().size() + 1;
             }
         };
     }
@@ -178,14 +178,14 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
             @Override
             public Iterator<Map.Entry<K, V>> iterator() {
                 return new MergeIterator<>(
-                        left.entrySet().iterator(),
+                        base.entrySet().iterator(),
                         Maps.immutableEntry(extraKey, extraValue),
                         ordering.onResultOf(Map.Entry::getKey));
             }
 
             @Override
             public int size() {
-                return left.size() + 1;
+                return base.size() + 1;
             }
         };
     }
@@ -195,7 +195,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         if (other instanceof ExtraEntrySortedMap) {
             ExtraEntrySortedMap otherMap = (ExtraEntrySortedMap) other;
             if (extraKey.equals(otherMap.extraKey) && extraValue.equals(otherMap.extraValue)) {
-                return left.equals(otherMap.left);
+                return base.equals(otherMap.base);
             }
         }
         return super.equals(other);
@@ -203,37 +203,37 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
 
     @Override
     public int hashCode() {
-        return left.hashCode() + extraEntryHashCode;
+        return base.hashCode() + extraEntryHashCode;
     }
 
     private static final class MergeIterator<T> extends AbstractIterator<T> {
-        private final PeekingIterator<T> delegate;
+        private final PeekingIterator<T> newBase;
         private final T option;
         private final Comparator<? super T> comparator;
         private boolean usedOption = false;
 
-        private MergeIterator(Iterator<T> delegate, T option, Comparator<? super T> comparator) {
-            this.delegate = Iterators.peekingIterator(delegate);
+        private MergeIterator(Iterator<T> newBase, T option, Comparator<? super T> comparator) {
+            this.newBase = Iterators.peekingIterator(newBase);
             this.option = option;
             this.comparator = comparator;
         }
 
         @Override
         protected T computeNext() {
-            if (!delegate.hasNext() && usedOption) {
+            if (!newBase.hasNext() && usedOption) {
                 return endOfData();
-            } else if (!delegate.hasNext()) {
+            } else if (!newBase.hasNext()) {
                 usedOption = true;
                 return option;
             } else if (usedOption) {
-                return delegate.next();
+                return newBase.next();
             }
-            T element = delegate.peek();
+            T element = newBase.peek();
             if (comparator.compare(element, option) >= 0) {
                 usedOption = true;
                 return option;
             }
-            return delegate.next();
+            return newBase.next();
         }
     }
 }
