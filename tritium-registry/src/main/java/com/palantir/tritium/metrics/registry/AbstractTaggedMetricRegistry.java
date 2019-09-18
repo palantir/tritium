@@ -32,6 +32,7 @@ import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 
@@ -155,6 +156,18 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
                         RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
 
         return result.build();
+    }
+
+    @Override
+    public final void forEachMetric(BiConsumer<MetricName, Metric> consumer) {
+        registry.forEach(consumer);
+        taggedRegistries.forEach((tag, metrics) -> metrics.forEachMetric((metricName, metric) ->
+                consumer.accept(
+                        MetricName.builder()
+                                .from(metricName)
+                                .putSafeTags(tag.getKey(), tag.getValue())
+                                .build(),
+                        metric)));
     }
 
     @Override

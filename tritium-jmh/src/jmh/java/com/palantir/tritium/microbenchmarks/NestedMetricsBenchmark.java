@@ -49,8 +49,16 @@ public class NestedMetricsBenchmark {
     }
 
     @Benchmark
-    public void benchmark(Blackhole blackhole) {
+    public void benchmarkGetMetrics(Blackhole blackhole) {
         metrics.getMetrics().forEach((name, metric) -> {
+            blackhole.consume(name);
+            blackhole.consume(metric);
+        });
+    }
+
+    @Benchmark
+    public void benchmarkForEach(Blackhole blackhole) {
+        metrics.forEachMetric((name, metric) -> {
             blackhole.consume(name);
             blackhole.consume(metric);
         });
