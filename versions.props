@@ -26,6 +26,8 @@ org.mockito:* = 3.0.0
 org.mpierce.metrics.reservoir:* = 1.1.2
 org.openjdk.jmh:* = 1.21
 org.slf4j:* = 1.7.26
+net.jqwik:jqwik = 1.2.0
+
 
 # dependency-upgrader:OFF
 io.dropwizard.metrics:* = 3.2.5

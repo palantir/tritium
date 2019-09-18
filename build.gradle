@@ -125,7 +125,9 @@ allprojects {
     })
 
     tasks.withType(Test) {
-        useJUnitPlatform()
+        useJUnitPlatform {
+            includeEngines 'jqwik'
+        }
         maxParallelForks Runtime.getRuntime().availableProcessors()
         testLogging {
             events "passed", "skipped", "failed"
