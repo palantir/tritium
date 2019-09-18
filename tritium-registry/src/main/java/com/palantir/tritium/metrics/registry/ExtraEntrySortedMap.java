@@ -49,6 +49,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         this.extraValue = checkNotNull(extraValue, "extraValue");
         this.ordering = Ordering.from(base.comparator());
         this.extraEntryHashCode = Maps.immutableEntry(extraKey, extraValue).hashCode();
+        // This line of code is roughly a 50% perf regression for iterating through metrics. Remove if causing issues.
         checkArgument(!base.containsKey(extraKey), "Base must not contain the extra key that is to be added");
     }
 
