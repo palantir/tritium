@@ -101,7 +101,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
 
     @Override
     public boolean isEmpty() {
-        return base.isEmpty();
+        return false;
     }
 
     @Override
