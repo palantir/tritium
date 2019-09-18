@@ -131,17 +131,17 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
     }
 
     @Override
-    public V put(K key, V value) {
+    public V put(K _key, V _value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public V remove(Object key) {
+    public V remove(Object _key) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void putAll(Map<? extends K, ? extends V> other) {
+    public void putAll(Map<? extends K, ? extends V> _other) {
         throw new UnsupportedOperationException();
     }
 

@@ -59,7 +59,7 @@ public final class Instrumentation {
             return delegate;
         }
 
-        if (InstrumentationProperties.isSpecificEnabled("dynamic-proxy")) {
+        if (InstrumentationProperties.isSpecificEnabled("dynamic-proxy", false)) {
             return Proxies.newProxy(interfaceClass, delegate,
                     new InstrumentationProxy<>(instrumentationFilter, handlers, delegate));
         } else {
@@ -132,7 +132,7 @@ public final class Instrumentation {
             this.handlers.add(new MetricsInvocationEventHandler(
                     metricRegistry,
                     delegate.getClass(),
-                    MetricRegistry.name(interfaceClass.getName()),
+                    interfaceClass.getName(),
                     globalPrefix));
             return this;
         }

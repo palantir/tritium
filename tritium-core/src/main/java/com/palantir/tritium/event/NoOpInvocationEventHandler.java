@@ -38,12 +38,12 @@ public enum NoOpInvocationEventHandler implements InvocationEventHandler<Invocat
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
+    public void onSuccess(@Nullable InvocationContext unusedContext, @Nullable Object unusedResult) {
         // no-op
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+    public void onFailure(@Nullable InvocationContext unusedContext, @Nonnull Throwable unusedCause) {
         // no-op
     }
 }

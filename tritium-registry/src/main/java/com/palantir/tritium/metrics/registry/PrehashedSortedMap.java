@@ -18,7 +18,6 @@ package com.palantir.tritium.metrics.registry;
 
 import com.google.common.collect.ForwardingSortedMap;
 import com.google.common.collect.ImmutableSortedMap;
-import java.util.SortedMap;
 
 /**
  * A sorted map implementation which prehashes for faster usage in hashmaps.
@@ -28,8 +27,8 @@ final class PrehashedSortedMap<K, V> extends ForwardingSortedMap<K, V> {
     private final ImmutableSortedMap<K, V> delegate;
     private final int hashCode;
 
-    PrehashedSortedMap(SortedMap<K, V> delegate) {
-        this.delegate = ImmutableSortedMap.copyOf(delegate);
+    PrehashedSortedMap(ImmutableSortedMap<K, V> delegate) {
+        this.delegate = delegate;
         this.hashCode = this.delegate.hashCode();
     }
 

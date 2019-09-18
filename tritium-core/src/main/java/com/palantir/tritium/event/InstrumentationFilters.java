@@ -24,14 +24,20 @@ public enum InstrumentationFilters implements InstrumentationFilter {
 
     INSTRUMENT_ALL {
         @Override
-        public boolean shouldInstrument(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+        public boolean shouldInstrument(
+                @Nonnull Object unusedInstance,
+                @Nonnull Method unusedMethod,
+                @Nonnull Object[] unusedArgs) {
             return true;
         }
     },
 
     INSTRUMENT_NONE {
         @Override
-        public boolean shouldInstrument(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+        public boolean shouldInstrument(
+                @Nonnull Object unusedInstance,
+                @Nonnull Method unusedMethod,
+                @Nonnull Object[] unusedArgs) {
             return false;
         }
     };
