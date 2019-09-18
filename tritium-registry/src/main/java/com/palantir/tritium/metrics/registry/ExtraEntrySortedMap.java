@@ -16,11 +16,11 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.PeekingIterator;
 import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -147,7 +147,8 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         return new AbstractSet<K>() {
             @Override
             public Iterator<K> iterator() {
-                return new MergeIterator<>(base.keySet().iterator(), extraKey, ordering);
+                return Iterables.mergeSorted(ImmutableList.of(base.keySet(), ImmutableList.of(extraKey)), ordering)
+                        .iterator();
             }
 
             @Override
@@ -177,10 +178,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         return new AbstractSet<Map.Entry<K, V>>() {
             @Override
             public Iterator<Map.Entry<K, V>> iterator() {
-                return new MergeIterator<>(
-                        base.entrySet().iterator(),
-                        Maps.immutableEntry(extraKey, extraValue),
-                        ordering.onResultOf(Map.Entry::getKey));
+                return Iterators.transform(keySet().iterator(), key -> Maps.immutableEntry(key, get(key)));
             }
 
             @Override
@@ -204,36 +202,5 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
     @Override
     public int hashCode() {
         return base.hashCode() + extraEntryHashCode;
-    }
-
-    private static final class MergeIterator<T> extends AbstractIterator<T> {
-        private final PeekingIterator<T> newBase;
-        private final T option;
-        private final Comparator<? super T> comparator;
-        private boolean usedOption = false;
-
-        private MergeIterator(Iterator<T> newBase, T option, Comparator<? super T> comparator) {
-            this.newBase = Iterators.peekingIterator(newBase);
-            this.option = option;
-            this.comparator = comparator;
-        }
-
-        @Override
-        protected T computeNext() {
-            if (!newBase.hasNext() && usedOption) {
-                return endOfData();
-            } else if (!newBase.hasNext()) {
-                usedOption = true;
-                return option;
-            } else if (usedOption) {
-                return newBase.next();
-            }
-            T element = newBase.peek();
-            if (comparator.compare(element, option) >= 0) {
-                usedOption = true;
-                return option;
-            }
-            return newBase.next();
-        }
     }
 }
