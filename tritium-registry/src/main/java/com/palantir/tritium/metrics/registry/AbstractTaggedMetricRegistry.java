@@ -163,10 +163,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
         registry.forEach(consumer);
         taggedRegistries.forEach((tag, metrics) -> metrics.forEachMetric((metricName, metric) ->
                 consumer.accept(
-                        MetricName.builder()
-                                .from(metricName)
-                                .putSafeTags(tag.getKey(), tag.getValue())
-                                .build(),
+                        RealMetricName.create(metricName, tag.getKey(), tag.getValue()),
                         metric)));
     }
 
