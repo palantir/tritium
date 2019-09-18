@@ -31,6 +31,7 @@ import net.jqwik.api.Property;
 import net.jqwik.api.constraints.IntRange;
 import net.jqwik.api.constraints.Size;
 
+@SuppressWarnings("JdkObsolete")
 class ExtraEntrySortedMapTest {
 
     @Property(tries = 10_000, seed = "3619154246571270871")
