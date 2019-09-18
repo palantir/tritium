@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Nested metric registries cause fewer allocations.
+  links:
+  - https://github.com/palantir/tritium/pull/430

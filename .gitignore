@@ -32,3 +32,6 @@ out/
 
 # Gc logs
 build*.gc.log
+
+# Jqwik property based testing
+.jqwik-database

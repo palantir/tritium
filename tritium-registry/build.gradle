@@ -20,6 +20,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'net.jqwik:jqwik'
 
     // Work around https://github.com/immutables/immutables/issues/291
     compileOnly 'org.immutables:value::annotations'
