@@ -120,8 +120,8 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         return extraValue.equals(value) || base.containsValue(value);
     }
 
-    @Override
     @Nullable
+    @Override
     public V get(Object key) {
         if (extraKey.equals(key)) {
             return extraValue;
