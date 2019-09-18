@@ -38,7 +38,6 @@ public final class DropwizardTaggedMetricSet implements TaggedMetricSet {
 
     @Override
     public void forEachMetric(BiConsumer<MetricName, Metric> consumer) {
-        metricSet.getMetrics()
-                .forEach((name, metric) -> consumer.accept(MetricName.builder().safeName(name).build(), metric));
+        metricSet.getMetrics().forEach((name, metric) -> consumer.accept(RealMetricName.create(name), metric));
     }
 }

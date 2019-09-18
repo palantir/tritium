@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import java.util.SortedMap;
 
 final class RealMetricName implements MetricName {
+    private static final SortedMap<String, String> EMPTY = prehash(ImmutableSortedMap.of());
     private final String safeName;
     private final SortedMap<String, String> safeTags;
     private final int hashCode;
@@ -62,6 +63,10 @@ final class RealMetricName implements MetricName {
         }
         MetricName otherMetric = (MetricName) other;
         return safeName().equals(otherMetric.safeName()) && safeTags().equals(otherMetric.safeTags());
+    }
+
+    static MetricName create(String safeName) {
+        return new RealMetricName(safeName, EMPTY);
     }
 
     static MetricName create(MetricName other) {
