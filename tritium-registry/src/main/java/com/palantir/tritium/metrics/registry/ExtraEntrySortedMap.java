@@ -20,7 +20,6 @@ import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
@@ -34,16 +33,17 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import javax.annotation.Nullable;
 
-@SuppressWarnings({"JdkObsolete", "NullableDereference", "NullAway"})
+@SuppressWarnings("JdkObsolete")
 final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements SortedMap<K, V> {
     private final Ordering<? super K> ordering;
-    private final ImmutableSortedMap<K, V> base;
+    private final SortedMap<K, V> base;
     private final K extraKey;
     private final V extraValue;
     private final int extraEntryHashCode;
 
-    ExtraEntrySortedMap(ImmutableSortedMap<K, V> base, K extraKey, V extraValue) {
+    ExtraEntrySortedMap(SortedMap<K, V> base, K extraKey, V extraValue) {
         this.base = checkNotNull(base, "base");
         this.extraKey = checkNotNull(extraKey, "extraKey");
         this.extraValue = checkNotNull(extraValue, "extraValue");
@@ -59,7 +59,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
 
     @Override
     public SortedMap<K, V> subMap(K fromKey, K toKey) {
-        ImmutableSortedMap<K, V> newBase = base.subMap(fromKey, toKey);
+        SortedMap<K, V> newBase = base.subMap(fromKey, toKey);
         if (ordering.compare(fromKey, extraKey) <= 0 && ordering.compare(toKey, extraKey) > 0) {
             return new ExtraEntrySortedMap<>(newBase, extraKey, extraValue);
         }
@@ -68,7 +68,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
 
     @Override
     public SortedMap<K, V> headMap(K toKey) {
-        ImmutableSortedMap<K, V> newBase = base.headMap(toKey);
+        SortedMap<K, V> newBase = base.headMap(toKey);
         if (ordering.compare(toKey, extraKey) > 0) {
             return new ExtraEntrySortedMap<>(newBase, extraKey, extraValue);
         }
@@ -77,7 +77,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
 
     @Override
     public SortedMap<K, V> tailMap(K fromKey) {
-        ImmutableSortedMap<K, V> newBase = base.tailMap(fromKey);
+        SortedMap<K, V> newBase = base.tailMap(fromKey);
         if (ordering.compare(fromKey, extraKey) <= 0) {
             return new ExtraEntrySortedMap<>(newBase, extraKey, extraValue);
         }
@@ -121,6 +121,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
     }
 
     @Override
+    @Nullable
     public V get(Object key) {
         if (extraKey.equals(key)) {
             return extraValue;

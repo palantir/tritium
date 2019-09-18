@@ -28,13 +28,13 @@ final class PrehashedSortedMap<K, V> extends ForwardingSortedMap<K, V> {
     private final ImmutableSortedMap<K, V> delegate;
     private final int hashCode;
 
-    PrehashedSortedMap(ImmutableSortedMap<K, V> delegate) {
-        this.delegate = delegate;
-        this.hashCode = delegate.hashCode();
+    PrehashedSortedMap(SortedMap<K, V> delegate) {
+        this.delegate = ImmutableSortedMap.copyOf(delegate);
+        this.hashCode = this.delegate.hashCode();
     }
 
     @Override
-    protected SortedMap<K, V> delegate() {
+    protected ImmutableSortedMap<K, V> delegate() {
         return delegate;
     }
 

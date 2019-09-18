@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import static com.palantir.logsafe.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableSortedMap;
 import java.util.SortedMap;
 
@@ -66,7 +68,7 @@ final class RealMetricName implements MetricName {
     }
 
     static MetricName create(String safeName) {
-        return new RealMetricName(safeName, EMPTY);
+        return new RealMetricName(checkNotNull(safeName, "safeName"), EMPTY);
     }
 
     static MetricName create(MetricName other) {

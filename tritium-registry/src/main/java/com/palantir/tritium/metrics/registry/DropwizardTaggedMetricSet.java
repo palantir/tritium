@@ -33,7 +33,7 @@ public final class DropwizardTaggedMetricSet implements TaggedMetricSet {
     @Override
     public Map<MetricName, Metric> getMetrics() {
         return metricSet.getMetrics().entrySet().stream()
-                .collect(toMap(entry -> MetricName.builder().safeName(entry.getKey()).build(), Map.Entry::getValue));
+                .collect(toMap(entry -> RealMetricName.create(entry.getKey()), Map.Entry::getValue));
     }
 
     @Override
