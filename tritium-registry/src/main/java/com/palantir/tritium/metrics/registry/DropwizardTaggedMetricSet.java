@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toMap;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public final class DropwizardTaggedMetricSet implements TaggedMetricSet {
     private final MetricSet metricSet;
@@ -33,5 +34,10 @@ public final class DropwizardTaggedMetricSet implements TaggedMetricSet {
     public Map<MetricName, Metric> getMetrics() {
         return metricSet.getMetrics().entrySet().stream()
                 .collect(toMap(entry -> MetricName.builder().safeName(entry.getKey()).build(), Map.Entry::getValue));
+    }
+
+    @Override
+    public void forEachMetric(BiConsumer<MetricName, Metric> consumer) {
+        metricSet.getMetrics().forEach((name, metric) -> consumer.accept(RealMetricName.create(name), metric));
     }
 }

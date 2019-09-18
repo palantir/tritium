@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Metric;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public interface TaggedMetricSet {
     /**
@@ -26,4 +27,8 @@ public interface TaggedMetricSet {
      * @return map of metrics
      */
     Map<MetricName, Metric> getMetrics();
+
+    default void forEachMetric(BiConsumer<MetricName, Metric> consumer) {
+        getMetrics().forEach(consumer);
+    }
 }
