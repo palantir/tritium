@@ -66,13 +66,13 @@ public class ReflectiveTracerTest {
     public static final class MockTracer {
         private MockTracer() {}
 
-        public static void start(String unused) {}
+        public static void start(String _value) {}
 
         public static void stop() {}
 
-        public static void badStart(Integer unused) {}
+        public static void badStart(Integer _value) {}
 
-        public static void badStop(String unused) {}
+        public static void badStop(String _value) {}
     }
 
 }

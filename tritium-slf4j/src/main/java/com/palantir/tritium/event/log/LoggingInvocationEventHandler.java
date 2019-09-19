@@ -90,12 +90,12 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     @Override
-    public final void onSuccess(@Nullable InvocationContext context, @Nullable Object unusedResult) {
+    public final void onSuccess(@Nullable InvocationContext context, @Nullable Object _result) {
         logInvocation(context);
     }
 
     @Override
-    public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable unusedCause) {
+    public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable _cause) {
         logInvocation(context);
     }
 

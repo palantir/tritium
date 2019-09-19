@@ -40,7 +40,7 @@ public class TestImplementation implements TestInterface, Runnable, MoreSpecific
     }
 
     @Override
-    public void multiArgumentMethod(String unusedString, int unusedCount, Collection<String> unusedCollection) {
+    public void multiArgumentMethod(String _string, int _count, Collection<String> _collection) {
         test();
     }
 

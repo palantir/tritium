@@ -25,9 +25,9 @@ public enum InstrumentationFilters implements InstrumentationFilter {
     INSTRUMENT_ALL {
         @Override
         public boolean shouldInstrument(
-                @Nonnull Object unusedInstance,
-                @Nonnull Method unusedMethod,
-                @Nonnull Object[] unusedArgs) {
+                @Nonnull Object _instance,
+                @Nonnull Method _method,
+                @Nonnull Object[] _args) {
             return true;
         }
     },
@@ -35,9 +35,9 @@ public enum InstrumentationFilters implements InstrumentationFilter {
     INSTRUMENT_NONE {
         @Override
         public boolean shouldInstrument(
-                @Nonnull Object unusedInstance,
-                @Nonnull Method unusedMethod,
-                @Nonnull Object[] unusedArgs) {
+                @Nonnull Object _instance,
+                @Nonnull Method _method,
+                @Nonnull Object[] _args) {
             return false;
         }
     };
