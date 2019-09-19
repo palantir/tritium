@@ -64,7 +64,7 @@ public final class RemotingCompatibleTracingInvocationEventHandler
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext context, @Nullable Object unusedResult) {
+    public void onSuccess(@Nullable InvocationContext context, @Nullable Object _result) {
         debugIfNullContext(context);
         if (context != null) {
             tracer.completeSpan();
@@ -72,7 +72,7 @@ public final class RemotingCompatibleTracingInvocationEventHandler
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable unusedCause) {
+    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable _cause) {
         debugIfNullContext(context);
         if (context != null) {
             tracer.completeSpan();

@@ -221,10 +221,10 @@ final class CompositeInvocationEventHandlerTest {
         }
 
         @Override
-        public void onSuccess(@Nullable InvocationContext unusedContext, @Nullable Object unusedResult) {}
+        public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {}
 
         @Override
-        public void onFailure(@Nullable InvocationContext unusedContext, @Nonnull Throwable unusedCause) {}
+        public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {}
     }
 
 }

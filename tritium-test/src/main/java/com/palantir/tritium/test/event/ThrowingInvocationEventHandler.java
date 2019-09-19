@@ -34,19 +34,19 @@ public class ThrowingInvocationEventHandler implements InvocationEventHandler<In
 
     @Override
     public com.palantir.tritium.event.InvocationContext preInvocation(
-            @Nonnull Object unusedInstance,
-            @Nonnull Method unusedMethod,
-            @Nonnull Object[] unusedArgs) {
+            @Nonnull Object _instance,
+            @Nonnull Method _method,
+            @Nonnull Object[] _args) {
         throw new SafeIllegalStateException("preInvocation always throws");
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext unusedContext, @Nullable Object unusedResult) {
+    public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {
         throw new SafeIllegalStateException("onSuccess always throws");
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext unusedContext, @Nonnull Throwable unusedCause) {
+    public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {
         throw new SafeIllegalStateException("onFailure always throws");
     }
 

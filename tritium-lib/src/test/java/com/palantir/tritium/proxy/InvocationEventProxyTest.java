@@ -94,9 +94,9 @@ public class InvocationEventProxyTest {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler() {
             @Override
             public InvocationContext preInvocation(
-                    @Nonnull Object unusedInstance,
-                    @Nonnull Method unusedMethod,
-                    @Nonnull Object[] unusedArgs) {
+                    @Nonnull Object _instance,
+                    @Nonnull Method _method,
+                    @Nonnull Object[] _args) {
                 throw new IllegalStateException("expected");
             }
         };
@@ -112,7 +112,7 @@ public class InvocationEventProxyTest {
     public void testInstrumentOnSuccessThrows() throws Throwable {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler() {
             @Override
-            public void onSuccess(@Nullable InvocationContext unusedContext, @Nullable Object unusedResult) {
+            public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {
                 throw new IllegalStateException("expected");
             }
         };
@@ -132,12 +132,12 @@ public class InvocationEventProxyTest {
     public void testInstrumentOnFailureThrows() throws Throwable {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler() {
             @Override
-            public void onSuccess(@Nullable InvocationContext unusedContext, @Nullable Object unusedResult) {
+            public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {
                 throw new IllegalStateException("expected");
             }
 
             @Override
-            public void onFailure(@Nullable InvocationContext unusedContext, @Nonnull Throwable unusedCause) {
+            public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {
                 throw new IllegalStateException("expected");
             }
         };
@@ -331,10 +331,10 @@ public class InvocationEventProxyTest {
         }
 
         @Override
-        public void onSuccess(@Nullable InvocationContext unusedContext, @Nullable Object unusedResult) {}
+        public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {}
 
         @Override
-        public void onFailure(@Nullable InvocationContext unusedContext, @Nonnull Throwable unusedCause) {}
+        public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {}
     }
 
     private static class TestProxy extends InvocationEventProxy {

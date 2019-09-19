@@ -38,7 +38,7 @@ public final class JitCompilationTest {
         TestLogs.logTo("/dev/null");
     }
 
-    public static void main(String[] unusedArgs) {
+    public static void main(String[] _args) {
         JitCompilationTest test = new JitCompilationTest();
         test.jitAllSuccess();
         test.jitWithSomeExceptions();
