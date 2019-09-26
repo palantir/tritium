@@ -93,7 +93,7 @@ final class TaggedMetricRegistryTest {
         Gauge<Integer> gauge1 = registry.gauge(METRIC_1, () -> 1);
         Gauge<Integer> gauge2 = registry.gauge(METRIC_2, () -> 2);
 
-        assertThat(gauge1.getValue()).isEqualTo(1);
+        assertThat(gauge1.getValue()).isOne();
         assertThat(gauge2.getValue()).isEqualTo(2);
 
         assertThat(gauge1).isNotSameAs(gauge2);
@@ -233,7 +233,7 @@ final class TaggedMetricRegistryTest {
                         .putSafeTags("tagA", Long.toString(1))
                         .putSafeTags("tagB", Integer.toString(2))
                         .build()));
-        assertThat(counter.getCount()).isEqualTo(1);
+        assertThat(counter.getCount()).isOne();
     }
 
     private static void assertMetric(

@@ -62,7 +62,7 @@ final class MetricsInvocationEventHandlerTest {
         handler.onFailure(context, new RuntimeException("unexpected"));
 
         assertThat(metricRegistry.getMeters().get("failures")).isNotNull();
-        assertThat(metricRegistry.getMeters().get("failures").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.getMeters().get("failures").getCount()).isOne();
     }
 
     @Test
@@ -85,7 +85,7 @@ final class MetricsInvocationEventHandlerTest {
         handler.onFailure(null, new RuntimeException("expected"));
 
         assertThat(metricRegistry.getMeters().get("failures")).isNotNull();
-        assertThat(metricRegistry.getMeters().get("failures").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.getMeters().get("failures").getCount()).isOne();
     }
 
     @Test
@@ -117,13 +117,13 @@ final class MetricsInvocationEventHandlerTest {
         callVoidMethod(handler, obj, "methodA", /* success= */false);
 
         assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE").getCount()).isEqualTo(2L);
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".TWO").getCount()).isEqualTo(1L);
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE.failures").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".TWO").getCount()).isOne();
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".DEFAULT").getCount()).isOne();
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE.failures").getCount()).isOne();
 
         //AnnotatedOtherInterface
         callVoidMethod(otherHandler, other, "methodE", /* success= */true);
-        assertThat(metricRegistry.timer(other.getClass().getName() + ".DEFAULT").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(other.getClass().getName() + ".DEFAULT").getCount()).isOne();
 
         //GlobalPrefix Tests
         assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(2L);

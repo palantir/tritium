@@ -67,9 +67,9 @@ public class LoggingInstrumentationTest {
         Runnable instrumentedService = Instrumentation.builder(Runnable.class, delegate)
                 .withLogging(logger, LoggingLevel.TRACE, LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
                 .build();
-        assertThat(delegate.invocationCount()).isEqualTo(0);
+        assertThat(delegate.invocationCount()).isZero();
         instrumentedService.run();
-        assertThat(delegate.invocationCount()).isEqualTo(1);
+        assertThat(delegate.invocationCount()).isOne();
     }
 
     @Test
@@ -86,11 +86,11 @@ public class LoggingInstrumentationTest {
         TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
                 .withLogging(logger, LoggingLevel.ERROR, LoggingInvocationEventHandler.NEVER_LOG)
                 .build();
-        assertThat(delegate.invocationCount()).isEqualTo(0);
+        assertThat(delegate.invocationCount()).isZero();
         assertThatExceptionOfType(RuntimeException.class)
                 .isThrownBy(instrumentedService::test)
                 .withMessage("expected");
-        assertThat(delegate.invocationCount()).isEqualTo(1);
+        assertThat(delegate.invocationCount()).isOne();
     }
 
 
@@ -112,7 +112,7 @@ public class LoggingInstrumentationTest {
 
         assertThat(LoggingInvocationEventHandler.isEnabled(logger, level)).isTrue();
 
-        assertThat(delegate.invocationCount()).isEqualTo(0);
+        assertThat(delegate.invocationCount()).isZero();
 
         instrumented.multiArgumentMethod("test", 1, Collections.singletonList("hello"));
 
@@ -133,7 +133,7 @@ public class LoggingInstrumentationTest {
                 assertThat(logger.isTraceEnabled()).isTrue();
                 break;
         }
-        assertThat(delegate.invocationCount()).isEqualTo(1);
+        assertThat(delegate.invocationCount()).isOne();
     }
 
 

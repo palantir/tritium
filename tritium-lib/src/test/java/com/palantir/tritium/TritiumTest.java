@@ -90,17 +90,17 @@ public class TritiumTest {
 
     @Test
     public void testInstrument() {
-        assertThat(delegate.invocationCount()).isEqualTo(0);
+        assertThat(delegate.invocationCount()).isZero();
         assertThat(metricRegistry.getTimers().get(Runnable.class.getName())).isNull();
 
         instrumentedService.test();
-        assertThat(delegate.invocationCount()).isEqualTo(1);
+        assertThat(delegate.invocationCount()).isOne();
 
         SortedMap<String, Timer> timers = metricRegistry.getTimers();
         assertThat(timers.keySet()).hasSize(1);
         assertThat(timers.keySet()).isEqualTo(ImmutableSet.of(EXPECTED_METRIC_NAME));
         assertThat(timers.get(EXPECTED_METRIC_NAME)).isNotNull();
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(1);
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isOne();
 
         instrumentedService.test();
 
@@ -112,13 +112,13 @@ public class TritiumTest {
 
     @Test
     public void testInstrumentWithTags() {
-        assertThat(delegate.invocationCount()).isEqualTo(0);
+        assertThat(delegate.invocationCount()).isZero();
         assertThat(taggedMetricRegistry.getMetrics())
                 // The global failures metric is created eagerly
                 .containsOnlyKeys(MetricName.builder().safeName("failures").build());
 
         taggedInstrumentedService.test();
-        assertThat(delegate.invocationCount()).isEqualTo(1);
+        assertThat(delegate.invocationCount()).isOne();
 
         Map<MetricName, Metric> metrics = taggedMetricRegistry.getMetrics();
         assertThat(metrics.keySet())
@@ -126,7 +126,7 @@ public class TritiumTest {
         Metric actual = metrics.get(EXPECTED_TAGGED_METRIC_NAME);
         assertThat(actual).isInstanceOf(Timer.class);
         Timer timer = (Timer) actual;
-        assertThat(timer.getCount()).isEqualTo(1);
+        assertThat(timer.getCount()).isOne();
 
         taggedInstrumentedService.test();
 
@@ -147,12 +147,10 @@ public class TritiumTest {
         String methodMetricName = MetricRegistry.name(TestInterface.class, "throwsOutOfMemoryError");
         assertThat(metricRegistry.meter(
                 MetricRegistry.name(methodMetricName, "failures"))
-                .getCount())
-                .isEqualTo(0);
+                .getCount()).isZero();
         assertThat(metricRegistry.meter(
                 MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
-                .getCount())
-                .isEqualTo(0);
+                .getCount()).isZero();
 
         assertThatThrownBy(instrumentedService::throwsOutOfMemoryError)
                 .isInstanceOf(OutOfMemoryError.class)
@@ -160,12 +158,10 @@ public class TritiumTest {
 
         assertThat(metricRegistry.meter(
                 MetricRegistry.name(methodMetricName, "failures"))
-                .getCount())
-                .isEqualTo(1);
+                .getCount()).isOne();
         assertThat(metricRegistry.meter(
                 MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
-                .getCount())
-                .isEqualTo(1);
+                .getCount()).isOne();
     }
 
     @Test

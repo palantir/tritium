@@ -100,14 +100,14 @@ final class MetricRegistriesTest {
 
         Histogram histogram = metrics.histogram("histogram");
         histogram.update(42L);
-        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogram.getCount()).isOne();
         Snapshot histogramSnapshot = histogram.getSnapshot();
-        assertThat(histogram.getCount()).isEqualTo(1);
-        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogram.getCount()).isOne();
+        assertThat(histogramSnapshot.size()).isOne();
         assertThat(histogramSnapshot.getMax()).isEqualTo(42);
 
         metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
-        assertThat(metrics.timer("timer").getCount()).isEqualTo(1);
+        assertThat(metrics.timer("timer").getCount()).isOne();
     }
 
     @Test
@@ -117,14 +117,14 @@ final class MetricRegistriesTest {
 
         Histogram histogram = metrics.histogram("histogram");
         histogram.update(42L);
-        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogram.getCount()).isOne();
         Snapshot histogramSnapshot = histogram.getSnapshot();
-        assertThat(histogram.getCount()).isEqualTo(1);
-        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogram.getCount()).isOne();
+        assertThat(histogramSnapshot.size()).isOne();
         assertThat(histogramSnapshot.getMax()).isEqualTo(42);
 
         metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
-        assertThat(metrics.timer("timer").getCount()).isEqualTo(1);
+        assertThat(metrics.timer("timer").getCount()).isOne();
     }
 
     @Test
@@ -139,10 +139,10 @@ final class MetricRegistriesTest {
 
         Histogram histogram = metrics.histogram("histogram");
         histogram.update(42L);
-        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogram.getCount()).isOne();
         Snapshot histogramSnapshot = histogram.getSnapshot();
-        assertThat(histogram.getCount()).isEqualTo(1);
-        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogram.getCount()).isOne();
+        assertThat(histogramSnapshot.size()).isOne();
         assertThat(histogramSnapshot.getMax()).isEqualTo(42);
 
         clock.advance(window / 2, windowUnit);
@@ -157,17 +157,17 @@ final class MetricRegistriesTest {
 
         histogramSnapshot = histogram.getSnapshot();
         assertThat(histogram.getCount()).isEqualTo(2);
-        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogramSnapshot.size()).isOne();
         assertThat(histogramSnapshot.getMax()).isEqualTo(1337);
 
         clock.advance(window, windowUnit);
 
         histogramSnapshot = histogram.getSnapshot();
         assertThat(histogram.getCount()).isEqualTo(2);
-        assertThat(histogramSnapshot.size()).isEqualTo(0);
+        assertThat(histogramSnapshot.size()).isZero();
 
         metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
-        assertThat(metrics.timer("timer").getCount()).isEqualTo(1);
+        assertThat(metrics.timer("timer").getCount()).isOne();
     }
 
     @Test
@@ -177,14 +177,14 @@ final class MetricRegistriesTest {
 
         Histogram histogram = metrics.histogram("histogram");
         histogram.update(42L);
-        assertThat(histogram.getCount()).isEqualTo(1);
+        assertThat(histogram.getCount()).isOne();
         Snapshot histogramSnapshot = histogram.getSnapshot();
-        assertThat(histogram.getCount()).isEqualTo(1);
-        assertThat(histogramSnapshot.size()).isEqualTo(1);
+        assertThat(histogram.getCount()).isOne();
+        assertThat(histogramSnapshot.size()).isOne();
         assertThat(histogramSnapshot.getMax()).isEqualTo(42);
 
         metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
-        assertThat(metrics.timer("timer").getCount()).isEqualTo(1);
+        assertThat(metrics.timer("timer").getCount()).isOne();
     }
 
     @Test
