@@ -53,10 +53,10 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         assertThat(registry.getMetrics())
                 .containsKeys(SUBMITTED, RUNNING, COMPLETED, DURATION);
 
-        assertThat(registry.meter(SUBMITTED).getCount()).isEqualTo(0);
-        assertThat(registry.counter(RUNNING).getCount()).isEqualTo(0);
-        assertThat(registry.meter(COMPLETED).getCount()).isEqualTo(0);
-        assertThat(registry.timer(DURATION).getCount()).isEqualTo(0);
+        assertThat(registry.meter(SUBMITTED).getCount()).isZero();
+        assertThat(registry.counter(RUNNING).getCount()).isZero();
+        assertThat(registry.meter(COMPLETED).getCount()).isZero();
+        assertThat(registry.timer(DURATION).getCount()).isZero();
 
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch finishLatch = new CountDownLatch(1);
@@ -69,18 +69,18 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         executorService.shutdown();
         startLatch.await();
 
-        assertThat(registry.meter(SUBMITTED).getCount()).isEqualTo(1);
-        assertThat(registry.counter(RUNNING).getCount()).isEqualTo(1);
-        assertThat(registry.meter(COMPLETED).getCount()).isEqualTo(0);
-        assertThat(registry.timer(DURATION).getCount()).isEqualTo(0);
+        assertThat(registry.meter(SUBMITTED).getCount()).isOne();
+        assertThat(registry.counter(RUNNING).getCount()).isOne();
+        assertThat(registry.meter(COMPLETED).getCount()).isZero();
+        assertThat(registry.timer(DURATION).getCount()).isZero();
 
         finishLatch.countDown();
         future.get();
 
-        assertThat(registry.meter(SUBMITTED).getCount()).isEqualTo(1);
-        assertThat(registry.counter(RUNNING).getCount()).isEqualTo(0);
-        assertThat(registry.meter(COMPLETED).getCount()).isEqualTo(1);
-        assertThat(registry.timer(DURATION).getCount()).isEqualTo(1);
+        assertThat(registry.meter(SUBMITTED).getCount()).isOne();
+        assertThat(registry.counter(RUNNING).getCount()).isZero();
+        assertThat(registry.meter(COMPLETED).getCount()).isOne();
+        assertThat(registry.timer(DURATION).getCount()).isOne();
     }
 
     @ParameterizedTest
@@ -91,22 +91,22 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         assertThat(registry.getMetrics())
                 .containsKeys(SCHEDULED_ONCE, SCHEDULED_REPETITIVELY);
 
-        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isEqualTo(0);
-        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(0);
+        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isZero();
+        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isZero();
 
         assertThat((Future<?>) executorService.schedule(() -> { }, 1L, TimeUnit.DAYS)).isNotNull();
 
-        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isEqualTo(1);
-        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(0);
+        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isOne();
+        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isZero();
 
         assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> { }, 1L, 1L, TimeUnit.DAYS)).isNotNull();
 
-        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isEqualTo(1);
-        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(1);
+        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isOne();
+        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isOne();
 
         assertThat((Future<?>) executorService.scheduleWithFixedDelay(() -> { }, 1L, 1L, TimeUnit.DAYS)).isNotNull();
 
-        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isEqualTo(1);
+        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isOne();
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(2);
     }
 
@@ -118,8 +118,8 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         assertThat(registry.getMetrics())
                 .containsKeys(SCHEDULED_OVERRAN, SCHEDULED_PERCENT_OF_PERIOD);
 
-        assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isEqualTo(0);
-        assertThat(registry.histogram(SCHEDULED_PERCENT_OF_PERIOD).getCount()).isEqualTo(0);
+        assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isZero();
+        assertThat(registry.histogram(SCHEDULED_PERCENT_OF_PERIOD).getCount()).isZero();
 
         Semaphore startSemaphore = new Semaphore(0);
         Semaphore finishSemaphore = new Semaphore(1);
@@ -131,14 +131,14 @@ final class TaggedMetricsScheduledExecutorServiceTest {
 
         startSemaphore.acquire(2);
 
-        assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isEqualTo(0);
-        assertThat(registry.histogram(SCHEDULED_PERCENT_OF_PERIOD).getCount()).isEqualTo(1);
+        assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isZero();
+        assertThat(registry.histogram(SCHEDULED_PERCENT_OF_PERIOD).getCount()).isOne();
 
         TimeUnit.MILLISECONDS.sleep(2);
         finishSemaphore.release();
         startSemaphore.acquire();
 
-        assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isEqualTo(1);
+        assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isOne();
         assertThat(registry.histogram(SCHEDULED_PERCENT_OF_PERIOD).getCount()).isEqualTo(2);
     }
 

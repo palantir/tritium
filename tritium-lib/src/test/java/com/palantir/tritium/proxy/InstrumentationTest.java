@@ -146,17 +146,17 @@ public abstract class InstrumentationTest {
                 .withPerformanceTraceLogging()
                 .build();
 
-        assertThat(delegate.invocationCount()).isEqualTo(0);
+        assertThat(delegate.invocationCount()).isZero();
         assertThat(metricRegistry.getTimers().get(Runnable.class.getName())).isNull();
 
         instrumentedService.test();
-        assertThat(delegate.invocationCount()).isEqualTo(1);
+        assertThat(delegate.invocationCount()).isOne();
 
         SortedMap<String, Timer> timers = metricRegistry.getTimers();
         assertThat(timers.keySet()).hasSize(1);
         assertThat(timers.keySet()).isEqualTo(ImmutableSet.of(EXPECTED_METRIC_NAME));
         assertThat(timers.get(EXPECTED_METRIC_NAME)).isNotNull();
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(1);
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isOne();
 
         executeManyTimes(instrumentedService, INVOCATION_ITERATIONS);
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
@@ -185,9 +185,9 @@ public abstract class InstrumentationTest {
 
         assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".ONE").getCount()).isEqualTo(2L);
         assertThat(metricRegistry.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
-        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".DEFAULT").getCount()).isEqualTo(1L);
-        assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(1L);
-        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".method").getCount()).isEqualTo(1L);
+        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".DEFAULT").getCount()).isOne();
+        assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isOne();
+        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".method").getCount()).isOne();
     }
 
     private void executeManyTimes(TestInterface instrumentedService, int invocations) {
@@ -360,9 +360,9 @@ public abstract class InstrumentationTest {
                         .withTaggedMetrics(taggedMetricRegistry, "testPrefix")
                         .withMetrics(metrics)
                         .build();
-        assertThat(delegate.invocationCount()).isEqualTo(0);
+        assertThat(delegate.invocationCount()).isZero();
         runnable.test();
-        assertThat(delegate.invocationCount()).isEqualTo(1);
+        assertThat(delegate.invocationCount()).isOne();
         Map<MetricName, Metric> taggedMetrics = taggedMetricRegistry.getMetrics();
         assertThat(taggedMetrics.keySet()).containsExactly(
                 MetricName.builder()

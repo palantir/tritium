@@ -47,11 +47,11 @@ final class TaggedMetricsExecutorServiceTest {
         assertThat(registry.getMetrics())
                 .containsKeys(SUBMITTED, RUNNING, COMPLETED, DURATION, QUEUED_DURATION);
 
-        assertThat(registry.meter(SUBMITTED).getCount()).isEqualTo(0);
-        assertThat(registry.counter(RUNNING).getCount()).isEqualTo(0);
-        assertThat(registry.meter(COMPLETED).getCount()).isEqualTo(0);
-        assertThat(registry.timer(DURATION).getCount()).isEqualTo(0);
-        assertThat(registry.timer(QUEUED_DURATION).getCount()).isEqualTo(0);
+        assertThat(registry.meter(SUBMITTED).getCount()).isZero();
+        assertThat(registry.counter(RUNNING).getCount()).isZero();
+        assertThat(registry.meter(COMPLETED).getCount()).isZero();
+        assertThat(registry.timer(DURATION).getCount()).isZero();
+        assertThat(registry.timer(QUEUED_DURATION).getCount()).isZero();
 
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch finishLatch = new CountDownLatch(1);
@@ -64,20 +64,20 @@ final class TaggedMetricsExecutorServiceTest {
         executorService.shutdown();
         startLatch.await();
 
-        assertThat(registry.meter(SUBMITTED).getCount()).isEqualTo(1);
-        assertThat(registry.counter(RUNNING).getCount()).isEqualTo(1);
-        assertThat(registry.meter(COMPLETED).getCount()).isEqualTo(0);
-        assertThat(registry.timer(DURATION).getCount()).isEqualTo(0);
-        assertThat(registry.timer(QUEUED_DURATION).getCount()).isEqualTo(1);
+        assertThat(registry.meter(SUBMITTED).getCount()).isOne();
+        assertThat(registry.counter(RUNNING).getCount()).isOne();
+        assertThat(registry.meter(COMPLETED).getCount()).isZero();
+        assertThat(registry.timer(DURATION).getCount()).isZero();
+        assertThat(registry.timer(QUEUED_DURATION).getCount()).isOne();
 
         finishLatch.countDown();
         future.get();
 
-        assertThat(registry.meter(SUBMITTED).getCount()).isEqualTo(1);
-        assertThat(registry.counter(RUNNING).getCount()).isEqualTo(0);
-        assertThat(registry.meter(COMPLETED).getCount()).isEqualTo(1);
-        assertThat(registry.timer(DURATION).getCount()).isEqualTo(1);
-        assertThat(registry.timer(QUEUED_DURATION).getCount()).isEqualTo(1);
+        assertThat(registry.meter(SUBMITTED).getCount()).isOne();
+        assertThat(registry.counter(RUNNING).getCount()).isZero();
+        assertThat(registry.meter(COMPLETED).getCount()).isOne();
+        assertThat(registry.timer(DURATION).getCount()).isOne();
+        assertThat(registry.timer(QUEUED_DURATION).getCount()).isOne();
     }
 
     private static MetricName metricName(String metricName) {

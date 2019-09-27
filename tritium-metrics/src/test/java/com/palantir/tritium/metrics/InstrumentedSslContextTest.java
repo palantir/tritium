@@ -74,7 +74,7 @@ final class InstrumentedSslContextTest {
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
-        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
+        assertThat(metrics.meter(name).getCount()).isOne();
     }
 
     @Test
@@ -101,7 +101,7 @@ final class InstrumentedSslContextTest {
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
-        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
+        assertThat(metrics.meter(name).getCount()).isOne();
     }
 
     @Test
@@ -129,7 +129,7 @@ final class InstrumentedSslContextTest {
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
-        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
+        assertThat(metrics.meter(name).getCount()).isOne();
     }
 
     @Test
@@ -155,7 +155,7 @@ final class InstrumentedSslContextTest {
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
-        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
+        assertThat(metrics.meter(name).getCount()).isOne();
     }
 
     @Test
@@ -174,7 +174,7 @@ final class InstrumentedSslContextTest {
                 .putSafeTags("protocol", ENABLED_PROTOCOL)
                 .build();
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
-        assertThat(metrics.meter(name).getCount()).isEqualTo(1);
+        assertThat(metrics.meter(name).getCount()).isOne();
     }
 
     @Test

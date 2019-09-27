@@ -68,7 +68,7 @@ final class CaffeineStatsTest {
 
     @Test
     void hitCount() {
-        assertThat(stats.hitCount().getValue()).isEqualTo(1);
+        assertThat(stats.hitCount().getValue()).isOne();
         verifyNoMoreInteractions(cache, policy, eviction);
     }
 
