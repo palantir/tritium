@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
@@ -279,7 +279,7 @@ public class InvocationEventProxyTest {
         assertThat(proxy.invoke(mockHandler, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
 
         verify(mockHandler).isEnabled();
-        verifyZeroInteractions(mockFilter);
+        verifyNoInteractions(mockFilter);
     }
 
     private static InvocationEventProxy createSimpleTestProxy() {
