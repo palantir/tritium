@@ -82,7 +82,7 @@ final class MetricRegistriesTest {
     @Test
     void defaultMetrics() {
         metrics = MetricRegistries.createWithHdrHistogramReservoirs();
-        assertThat(metrics.getGauges().size()).isEqualTo(3);
+        assertThat(metrics.getGauges()).hasSize(3);
         assertThat(metrics.getGauges()).containsKey(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME);
         assertThat(metrics.getGauges().get(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME).getValue())
                 .isEqualTo(HdrHistogramReservoir.class.getName());
@@ -406,7 +406,7 @@ final class MetricRegistriesTest {
         metrics.counter("non.matching");
 
         SortedMap<String, Metric> metricsMatching = MetricRegistries.metricsMatching(metrics, palantirFilter);
-        assertThat(metricsMatching.size()).isEqualTo(2);
+        assertThat(metricsMatching).hasSize(2);
         assertThat(metricsMatching.keySet())
                 .containsExactly("test.a", "test.b");
         assertThat(metricsMatching.values())

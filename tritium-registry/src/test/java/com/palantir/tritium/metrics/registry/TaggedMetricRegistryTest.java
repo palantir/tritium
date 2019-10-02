@@ -162,7 +162,7 @@ final class TaggedMetricRegistryTest {
 
         Optional<Metric> removedGauge = registry.remove(METRIC_1);
         assertThat(removedGauge).isPresent().get().isSameAs(gauge);
-        assertThat(registry.remove(METRIC_1).isPresent()).isFalse();
+        assertThat(registry.remove(METRIC_1)).isNotPresent();
     }
 
     @ParameterizedTest
