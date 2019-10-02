@@ -336,22 +336,22 @@ final class MetricRegistriesTest {
     void testRegisterSafeDuplicateIgnored() {
         Metric mockMetric1 = mock(Counter.class, "metric1");
         assertThat(MetricRegistries.registerSafe(metrics, "test", mockMetric1)).isSameAs(mockMetric1);
-        assertThat(metrics.getMetrics().get("test")).isEqualTo(mockMetric1);
+        assertThat(metrics.getMetrics()).containsEntry("test", mockMetric1);
 
         Metric mockMetric2 = mock(Counter.class, "metric2");
         assertThat(MetricRegistries.registerSafe(metrics, "test", mockMetric2)).isSameAs(mockMetric1);
-        assertThat(metrics.getMetrics().get("test")).isEqualTo(mockMetric1);
+        assertThat(metrics.getMetrics()).containsEntry("test", mockMetric1);
     }
 
     @Test
     void testRegisterWithReplacement() {
         Metric mockMetric1 = mock(Metric.class, "metric1");
         assertThat(MetricRegistries.registerWithReplacement(metrics, "test", mockMetric1)).isEqualTo(mockMetric1);
-        assertThat(metrics.getMetrics().get("test")).isEqualTo(mockMetric1);
+        assertThat(metrics.getMetrics()).containsEntry("test", mockMetric1);
 
         Metric mockMetric2 = mock(Metric.class, "metric2");
         assertThat(MetricRegistries.registerWithReplacement(metrics, "test", mockMetric2)).isEqualTo(mockMetric2);
-        assertThat(metrics.getMetrics().get("test")).isEqualTo(mockMetric2);
+        assertThat(metrics.getMetrics()).containsEntry("test", mockMetric2);
     }
 
     @Test
