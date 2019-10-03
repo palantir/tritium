@@ -24,8 +24,10 @@ import java.lang.management.OperatingSystemMXBean;
 final class OperatingSystemMetrics {
     private static final MetricName OS_LOAD_NORM_1 = MetricName.builder().safeName("os.load.norm.1").build();
     private static final MetricName OS_LOAD_1 = MetricName.builder().safeName("os.load.1").build();
-    private static final MetricName OS_PROCESS_CPU_UTILIZATION
+    private static final MetricName PROCESS_CPU_UTILIZATION
             = MetricName.builder().safeName("process.cpu.utilization").build();
+    private static final MetricName PROCESS_CPU_TIME
+            = MetricName.builder().safeName("process.cpu.time.nanoseconds").build();
 
     static void register(TaggedMetricRegistry registry) {
         OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();
@@ -33,7 +35,8 @@ final class OperatingSystemMetrics {
         registry.gauge(OS_LOAD_1, osMxBean::getSystemLoadAverage);
         if (osMxBean instanceof com.sun.management.OperatingSystemMXBean) {
             com.sun.management.OperatingSystemMXBean sunBean = (com.sun.management.OperatingSystemMXBean) osMxBean;
-            registry.gauge(OS_PROCESS_CPU_UTILIZATION, sunBean::getProcessCpuLoad);
+            registry.gauge(PROCESS_CPU_UTILIZATION, sunBean::getProcessCpuLoad);
+            registry.gauge(PROCESS_CPU_TIME, sunBean::getProcessCpuTime);
         }
     }
 

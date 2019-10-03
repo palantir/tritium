@@ -84,6 +84,7 @@ final class JvmMetricsTest {
             "jvm.threads.blocked.count",
             "os.load.1",
             "os.load.norm.1",
+            "process.cpu.time.nanoseconds",
             "process.cpu.utilization"
     );
 
