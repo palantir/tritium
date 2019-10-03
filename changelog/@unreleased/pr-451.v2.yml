@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Report Process CPU time as `process.cpu.time.nanoseconds`
+  links:
+  - https://github.com/palantir/tritium/pull/451
