@@ -147,7 +147,7 @@ public abstract class InstrumentationTest {
                 .build();
 
         assertThat(delegate.invocationCount()).isZero();
-        assertThat(metricRegistry.getTimers().get(Runnable.class.getName())).isNull();
+        assertThat(metricRegistry.getTimers()).doesNotContainKey(Runnable.class.getName());
 
         instrumentedService.test();
         assertThat(delegate.invocationCount()).isOne();
@@ -155,7 +155,7 @@ public abstract class InstrumentationTest {
         SortedMap<String, Timer> timers = metricRegistry.getTimers();
         assertThat(timers.keySet()).hasSize(1);
         assertThat(timers.keySet()).isEqualTo(ImmutableSet.of(EXPECTED_METRIC_NAME));
-        assertThat(timers.get(EXPECTED_METRIC_NAME)).isNotNull();
+        assertThat(timers).containsKey(EXPECTED_METRIC_NAME);
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isOne();
 
         executeManyTimes(instrumentedService, INVOCATION_ITERATIONS);

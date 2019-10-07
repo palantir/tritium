@@ -57,11 +57,11 @@ final class MetricsInvocationEventHandlerTest {
 
         InvocationContext context = mock(InvocationContext.class);
         when(context.getMethod()).thenReturn(String.class.getDeclaredMethod("length"));
-        assertThat(metricRegistry.getMeters().get("failures")).isNull();
+        assertThat(metricRegistry.getMeters()).doesNotContainKey("failures");
 
         handler.onFailure(context, new RuntimeException("unexpected"));
 
-        assertThat(metricRegistry.getMeters().get("failures")).isNotNull();
+        assertThat(metricRegistry.getMeters()).containsKey("failures");
         assertThat(metricRegistry.getMeters().get("failures").getCount()).isOne();
     }
 
@@ -69,22 +69,22 @@ final class MetricsInvocationEventHandlerTest {
     void testOnSuccessNullContext() {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
-        assertThat(metricRegistry.getMeters().get("failures")).isNull();
+        assertThat(metricRegistry.getMeters()).doesNotContainKey("failures");
 
         handler.onSuccess(null, new Object());
 
-        assertThat(metricRegistry.getMeters().get("failures")).isNull();
+        assertThat(metricRegistry.getMeters()).doesNotContainKey("failures");
     }
 
     @Test
     void testOnFailureNullContext() {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
-        assertThat(metricRegistry.getMeters().get("failures")).isNull();
+        assertThat(metricRegistry.getMeters()).doesNotContainKey("failures");
 
         handler.onFailure(null, new RuntimeException("expected"));
 
-        assertThat(metricRegistry.getMeters().get("failures")).isNotNull();
+        assertThat(metricRegistry.getMeters()).containsKey("failures");
         assertThat(metricRegistry.getMeters().get("failures").getCount()).isOne();
     }
 

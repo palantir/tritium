@@ -72,11 +72,11 @@ final class CacheMetricSetTest {
 
     @Test
     void maximumSize() {
-        assertThat(metrics.get("test.cache.maximum.size")).isNull();
+        assertThat(metrics).doesNotContainKey("test.cache.maximum.size");
     }
 
     @Test
     void weightedSize() {
-        assertThat(metrics.get("test.cache.weighted.size")).isNull();
+        assertThat(metrics).doesNotContainKey("test.cache.weighted.size");
     }
 }
