@@ -1,0 +1,8 @@
+type: improvement
+improvement:
+  description: |-
+    When remoting3 tracing is detected and fallback is required:
+      * Memoize fallback determination and tracer to reduce overhead
+      * Only log the first time fallback is required to reduce noise
+  links:
+  - https://github.com/palantir/tritium/pull/468

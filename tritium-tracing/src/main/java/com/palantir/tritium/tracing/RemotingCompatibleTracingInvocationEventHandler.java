@@ -19,7 +19,9 @@ package com.palantir.tritium.tracing;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Suppliers;
 import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -28,6 +30,8 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -37,6 +41,44 @@ public final class RemotingCompatibleTracingInvocationEventHandler
         extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final Logger logger = LoggerFactory.getLogger(RemotingCompatibleTracingInvocationEventHandler.class);
+
+    private static final AtomicBoolean shouldLogFallbackError = new AtomicBoolean();
+
+    private static final Supplier<Boolean> requiresFallback = Suppliers.memoize(() -> {
+        try {
+            return isUsingMultipleTracers(loadRemoting3TracersClass());
+        } catch (ReflectiveOperationException e) {
+            // expected case when remoting3 is not on classpath
+            return false;
+        }
+    });
+
+    private static final Supplier<Tracer> tracerFactory = Suppliers.memoize(() -> {
+        // Ugly reflection based check to determine what implementation of tracing to use to avoid duplicate
+        // traces as remoting3's tracing classes delegate functionality to tracing-java in remoting 3.43.0+
+        // and remoting3.tracing.Tracers.wrap now returns a "com.palantir.tracing.Tracers" implementation.
+        //
+        // a) remoting3 prior to 3.43.0+ -> use reflection based remoting3 tracer
+        // b) remoting3 3.43.0+ -> use tracing-java
+        // c) no remoting3 -> use tracing-java
+
+        try {
+            Class<?> tracersClass = loadRemoting3TracersClass();
+            if (isUsingMultipleTracers(tracersClass)) {
+                Class<?> tracerClass = tracersClass.getClassLoader().loadClass("com.palantir.remoting3.tracing.Tracer");
+                Method startSpanMethod = tracerClass.getMethod("startSpan", String.class);
+                Method completeSpanMethod = tracerClass.getMethod("fastCompleteSpan");
+                if (startSpanMethod != null && completeSpanMethod != null) {
+                    return new ReflectiveTracer(startSpanMethod, completeSpanMethod);
+                }
+            }
+        } catch (ReflectiveOperationException e) {
+            // expected case when remoting3 is not on classpath
+            logger.debug("Remoting3 unavailable, using Java tracing", e);
+        }
+
+        return JavaTracingTracer.INSTANCE;
+    });
 
     private final String component;
     private final Tracer tracer;
@@ -48,7 +90,7 @@ public final class RemotingCompatibleTracingInvocationEventHandler
     }
 
     static InvocationEventHandler<InvocationContext> create(String component) {
-        return new RemotingCompatibleTracingInvocationEventHandler(component, createTracer());
+        return new RemotingCompatibleTracingInvocationEventHandler(component, tracerFactory.get());
     }
 
     @Override
@@ -96,16 +138,7 @@ public final class RemotingCompatibleTracingInvocationEventHandler
      * @return true if we detect that remoting3's tracing does not delegate to tracing-java
      */
     static boolean requiresRemotingFallback() {
-        try {
-            if (isUsingMultipleTracers(loadRemoting3TracersClass())) {
-                return true;
-            }
-        } catch (ReflectiveOperationException e) {
-            // expected case when remoting3 is not on classpath
-            return false;
-        }
-
-        return false;
+        return Boolean.TRUE.equals(requiresFallback.get());
     }
 
     private static boolean isUsingMultipleTracers(Class<?> tracersClass)
@@ -118,10 +151,13 @@ public final class RemotingCompatibleTracingInvocationEventHandler
                 String expectedTracingPackage = com.palantir.tracing.Tracers.class.getPackage().getName();
                 String actualTracingPackage = wrappedTrace.getClass().getPackage().getName();
                 if (!Objects.equals(expectedTracingPackage, actualTracingPackage)) {
-                    logger.error("Multiple tracing implementations detected, expected '{}' but found '{}',"
-                                    + " using legacy remoting3 tracing for backward compatibility",
-                            SafeArg.of("expectedPackage", expectedTracingPackage),
-                            SafeArg.of("actualPackage", actualTracingPackage));
+                    if (shouldLogFallbackError.compareAndSet(false, true)) {
+                        logger.error("Multiple tracing implementations detected, expected '{}' but found '{}',"
+                                        + " using legacy remoting3 tracing for backward compatibility",
+                                SafeArg.of("expectedPackage", expectedTracingPackage),
+                                SafeArg.of("actualPackage", actualTracingPackage),
+                                new SafeIllegalStateException("Multiple tracing implementations detected"));
+                    }
                     return true;
                 }
             }
@@ -129,32 +165,4 @@ public final class RemotingCompatibleTracingInvocationEventHandler
 
         return false;
     }
-
-    static Tracer createTracer() {
-        // Ugly reflection based check to determine what implementation of tracing to use to avoid duplicate
-        // traces as remoting3's tracing classes delegate functionality to tracing-java in remoting 3.43.0+
-        // and remoting3.tracing.Tracers.wrap now returns a "com.palantir.tracing.Tracers" implementation.
-        //
-        // a) remoting3 prior to 3.43.0+ -> use reflection based remoting3 tracer
-        // b) remoting3 3.43.0+ -> use tracing-java
-        // c) no remoting3 -> use tracing-java
-
-        try {
-            Class<?> tracersClass = loadRemoting3TracersClass();
-            if (isUsingMultipleTracers(tracersClass)) {
-                Class<?> tracerClass = tracersClass.getClassLoader().loadClass("com.palantir.remoting3.tracing.Tracer");
-                Method startSpanMethod = tracerClass.getMethod("startSpan", String.class);
-                Method completeSpanMethod = tracerClass.getMethod("fastCompleteSpan");
-                if (startSpanMethod != null && completeSpanMethod != null) {
-                    return new ReflectiveTracer(startSpanMethod, completeSpanMethod);
-                }
-            }
-        } catch (ReflectiveOperationException e) {
-            // expected case when remoting3 is not on classpath
-            logger.debug("Remoting3 unavailable, using Java tracing", e);
-        }
-
-        return JavaTracingTracer.INSTANCE;
-    }
-
 }
