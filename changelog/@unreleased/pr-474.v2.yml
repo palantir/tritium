@@ -1,0 +1,6 @@
+type: feature
+feature:
+  description: Tritium now aligns dependencies to ensure that all tritium jars are
+    resolved to the same version.
+  links:
+  - https://github.com/palantir/tritium/pull/474
