@@ -5,6 +5,8 @@ dependencies {
 
     annotationProcessor "org.immutables:value"
 
+    api platform(project(":tritium-platform"))
+
     api project(':tritium-api')
     api project(':tritium-core')
     api project(':tritium-registry')

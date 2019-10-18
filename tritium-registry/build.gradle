@@ -7,6 +7,7 @@ dependencies {
     annotationProcessor 'org.immutables:value'
     compileOnly 'com.google.auto.service:auto-service'
 
+    api platform(project(":tritium-platform"))
     api 'io.dropwizard.metrics:metrics-core'
 
     implementation 'com.google.code.findbugs:jsr305'

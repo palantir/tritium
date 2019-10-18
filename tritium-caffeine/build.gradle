@@ -6,6 +6,7 @@ targetCompatibility = 1.8
 
 dependencies {
 
+    api platform(project(":tritium-platform"))
     api project(':tritium-metrics')
     api project(':tritium-registry')
     api 'com.github.ben-manes.caffeine:caffeine'

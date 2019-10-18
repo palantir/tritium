@@ -3,6 +3,7 @@ apply plugin: 'com.palantir.revapi'
 
 dependencies {
 
+    api platform(project(":tritium-platform"))
     api project(':tritium-api')
     api project(':tritium-core')
 

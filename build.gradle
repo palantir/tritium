@@ -31,6 +31,18 @@ allprojects {
     group 'com.palantir.tritium'
     version gitVersion()
 
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://dl.bintray.com/palantir/releases/'
+        }
+        maven {
+            url 'https://dl.bintray.com/marshallpierce/maven/'
+        }
+    }
+}
+
+configure(subprojects - project(':tritium-platform')) {
     apply plugin: 'java-library'
     apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
@@ -48,16 +60,6 @@ allprojects {
                 // checkstyle requires different Guava
                 force 'com.google.guava:guava:25.1-jre'
             }
-        }
-    }
-
-    repositories {
-        mavenCentral()
-        maven {
-            url 'https://dl.bintray.com/palantir/releases/'
-        }
-        maven {
-            url 'https://dl.bintray.com/marshallpierce/maven/'
         }
     }
 

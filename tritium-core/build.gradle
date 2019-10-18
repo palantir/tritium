@@ -3,6 +3,7 @@ apply plugin: 'com.palantir.revapi'
 
 dependencies {
 
+    api platform(project(":tritium-platform"))
     api project(':tritium-api')
 
     implementation 'com.google.code.findbugs:jsr305'

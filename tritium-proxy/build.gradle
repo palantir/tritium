@@ -3,6 +3,8 @@ apply plugin: 'com.palantir.revapi'
 
 dependencies {
 
+    api platform(project(":tritium-platform"))
+
     testImplementation project(':tritium-test')
 
     testImplementation 'com.google.guava:guava'
