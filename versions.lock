@@ -24,7 +24,7 @@ net.bytebuddy:byte-buddy:1.10.2 (2 constraints: 7a1096ca)
 org.checkerframework:checker-qual:2.10.0 (3 constraints: 4d1f241d)
 org.codehaus.mojo:animal-sniffer-annotations:1.17 (1 constraints: ed09d8aa)
 org.hdrhistogram:HdrHistogram:2.1.11 (1 constraints: 3705303b)
-org.immutables:value:2.7.5 (1 constraints: 10050f36)
+org.immutables:value:2.8.1 (1 constraints: 0d050e36)
 org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:1.1.2 (1 constraints: 0605f535)
 org.slf4j:slf4j-api:1.7.26 (6 constraints: 6447ea68)
 
