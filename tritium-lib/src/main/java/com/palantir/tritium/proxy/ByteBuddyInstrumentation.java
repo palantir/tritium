@@ -26,7 +26,6 @@ import com.google.common.collect.Lists;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
-import com.palantir.logsafe.exceptions.SafeRuntimeException;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InvocationContext;
@@ -94,8 +93,13 @@ final class ByteBuddyInstrumentation {
             return newInstrumentationClass(classLoader, interfaceClass, additionalInterfaces)
                     .getConstructor(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
                     .newInstance(delegate, CompositeInvocationEventHandler.of(handlers), instrumentationFilter);
-        } catch (ReflectiveOperationException e) {
-            throw new SafeRuntimeException("Failed to instrumented delegate", e);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            log.error("Failed to instrument interface {}. Delegate {} of type {} will not be instrumented",
+                    SafeArg.of("interface", interfaceClass),
+                    UnsafeArg.of("delegate", delegate),
+                    SafeArg.of("delegateType", delegate.getClass()),
+                    e);
+            return delegate;
         }
     }
 
