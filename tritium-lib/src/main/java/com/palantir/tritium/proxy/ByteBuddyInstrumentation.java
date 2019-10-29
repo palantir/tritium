@@ -196,6 +196,20 @@ final class ByteBuddyInstrumentation {
     }
 
     private static ClassLoader getClassLoader(Class<?> clazz) {
+        ClassLoader serviceClassLoader = getServiceClassLoader(clazz);
+        ClassLoader instrumentationClassLoader = ByteBuddyInstrumentation.class.getClassLoader();
+        if (Objects.equals(instrumentationClassLoader, serviceClassLoader)) {
+            return instrumentationClassLoader;
+        }
+        return isClassLoadable(instrumentationClassLoader, clazz)
+                // Prefer the instrumentation classloader when it's broader than the services classloader
+                // to avoid problems accessing tritium from generated instrumentation, and for better
+                // generated class caching.
+                ? instrumentationClassLoader
+                : serviceClassLoader;
+    }
+
+    private static ClassLoader getServiceClassLoader(Class<?> clazz) {
         checkNotNull(clazz, "Class is required");
         ClassLoader loader = clazz.getClassLoader();
         // Some internal classes return a null classloader, in these cases we provide the instrumentation loader.
