@@ -214,6 +214,8 @@ final class ByteBuddyInstrumentation {
                 // to avoid problems accessing tritium from generated instrumentation, and for better
                 // generated class caching.
                 ? instrumentationClassLoader
+                // However in some scenarios, the instrumentationClassLoader does not have access to the
+                // service interface, so we must use the serviceClassLoader.
                 : serviceClassLoader;
     }
 
