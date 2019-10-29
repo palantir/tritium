@@ -1,0 +1,7 @@
+type: fix
+fix:
+  description: Fix Instrumentation for interfaces in minimal classloaders that cannot
+    access Tritium. If the loader for tritium classes cannot access the interface,
+    an error is logged, but the application can continue.
+  links:
+  - https://github.com/palantir/tritium/pull/480
