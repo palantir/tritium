@@ -86,6 +86,14 @@ final class ByteBuddyInstrumentation {
         // Use the interface classloader to avoid creating additional proxies for other loaders delegating
         // to the same type.
         ClassLoader classLoader = getClassLoader(interfaceClass);
+        if (!isClassLoadable(classLoader, InvocationEventHandler.class)) {
+            log.warn("Unable to find a classloader with access to both the service interface {} and Tritium. "
+                    + "Delegate {} of type {} will not be instrumented",
+                    SafeArg.of("interface", interfaceClass),
+                    UnsafeArg.of("delegate", delegate),
+                    SafeArg.of("delegateType", delegate.getClass()));
+            return delegate;
+        }
         @SuppressWarnings("unchecked") ImmutableList<Class<?>> additionalInterfaces = getAdditionalInterfaces(
                 classLoader, interfaceClass, (Class<? extends U>) delegate.getClass());
 
@@ -243,16 +251,16 @@ final class ByteBuddyInstrumentation {
         if (!isAccessible(clazz)) {
             return false;
         }
-        // Fast check to avoid potentially slow loading
-        if (loader.equals(clazz.getClassLoader())) {
-            return true;
-        }
         return isClassLoadable(loader, clazz);
     }
 
     private static boolean isClassLoadable(ClassLoader loader, Class<?> clazz) {
         checkNotNull(loader, "ClassLoader is required");
         checkNotNull(clazz, "Class is required");
+        // Fast check to avoid potentially slow loading
+        if (loader.equals(clazz.getClassLoader())) {
+            return true;
+        }
         try {
             return clazz.equals(loader.loadClass(clazz.getName()));
         } catch (ReflectiveOperationException | Error e) {
