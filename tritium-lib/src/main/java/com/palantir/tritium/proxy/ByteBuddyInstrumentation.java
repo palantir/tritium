@@ -94,8 +94,13 @@ final class ByteBuddyInstrumentation {
             return newInstrumentationClass(classLoader, interfaceClass, additionalInterfaces)
                     .getConstructor(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
                     .newInstance(delegate, CompositeInvocationEventHandler.of(handlers), instrumentationFilter);
-        } catch (ReflectiveOperationException e) {
-            throw new SafeRuntimeException("Failed to instrumented delegate", e);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            log.error("Failed to instrument interface {}. Delegate {} of type {} will not be instrumented",
+                    SafeArg.of("interface", interfaceClass),
+                    UnsafeArg.of("delegate", delegate),
+                    SafeArg.of("delegateType", delegate.getClass()),
+                    e);
+            return delegate;
         }
     }
 
