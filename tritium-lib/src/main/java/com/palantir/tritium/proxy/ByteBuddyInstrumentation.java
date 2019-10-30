@@ -26,7 +26,6 @@ import com.google.common.collect.Lists;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
-import com.palantir.logsafe.exceptions.SafeRuntimeException;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InvocationContext;
@@ -87,6 +86,14 @@ final class ByteBuddyInstrumentation {
         // Use the interface classloader to avoid creating additional proxies for other loaders delegating
         // to the same type.
         ClassLoader classLoader = getClassLoader(interfaceClass);
+        if (!isClassLoadable(classLoader, InvocationEventHandler.class)) {
+            log.warn("Unable to find a classloader with access to both the service interface {} and Tritium. "
+                    + "Delegate {} of type {} will not be instrumented",
+                    SafeArg.of("interface", interfaceClass),
+                    UnsafeArg.of("delegate", delegate),
+                    SafeArg.of("delegateType", delegate.getClass()));
+            return delegate;
+        }
         @SuppressWarnings("unchecked") ImmutableList<Class<?>> additionalInterfaces = getAdditionalInterfaces(
                 classLoader, interfaceClass, (Class<? extends U>) delegate.getClass());
 
@@ -94,8 +101,13 @@ final class ByteBuddyInstrumentation {
             return newInstrumentationClass(classLoader, interfaceClass, additionalInterfaces)
                     .getConstructor(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
                     .newInstance(delegate, CompositeInvocationEventHandler.of(handlers), instrumentationFilter);
-        } catch (ReflectiveOperationException e) {
-            throw new SafeRuntimeException("Failed to instrumented delegate", e);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            log.error("Failed to instrument interface {}. Delegate {} of type {} will not be instrumented",
+                    SafeArg.of("interface", interfaceClass),
+                    UnsafeArg.of("delegate", delegate),
+                    SafeArg.of("delegateType", delegate.getClass()),
+                    e);
+            return delegate;
         }
     }
 
@@ -192,6 +204,22 @@ final class ByteBuddyInstrumentation {
     }
 
     private static ClassLoader getClassLoader(Class<?> clazz) {
+        ClassLoader serviceClassLoader = getServiceClassLoader(clazz);
+        ClassLoader instrumentationClassLoader = ByteBuddyInstrumentation.class.getClassLoader();
+        if (Objects.equals(instrumentationClassLoader, serviceClassLoader)) {
+            return instrumentationClassLoader;
+        }
+        return isClassLoadable(instrumentationClassLoader, clazz)
+                // Prefer the instrumentation classloader when it's broader than the services classloader
+                // to avoid problems accessing tritium from generated instrumentation, and for better
+                // generated class caching.
+                ? instrumentationClassLoader
+                // However in some scenarios, the instrumentationClassLoader does not have access to the
+                // service interface, so we must use the serviceClassLoader.
+                : serviceClassLoader;
+    }
+
+    private static ClassLoader getServiceClassLoader(Class<?> clazz) {
         checkNotNull(clazz, "Class is required");
         ClassLoader loader = clazz.getClassLoader();
         // Some internal classes return a null classloader, in these cases we provide the instrumentation loader.
@@ -225,16 +253,16 @@ final class ByteBuddyInstrumentation {
         if (!isAccessible(clazz)) {
             return false;
         }
-        // Fast check to avoid potentially slow loading
-        if (loader.equals(clazz.getClassLoader())) {
-            return true;
-        }
         return isClassLoadable(loader, clazz);
     }
 
     private static boolean isClassLoadable(ClassLoader loader, Class<?> clazz) {
         checkNotNull(loader, "ClassLoader is required");
         checkNotNull(clazz, "Class is required");
+        // Fast check to avoid potentially slow loading
+        if (loader.equals(clazz.getClassLoader())) {
+            return true;
+        }
         try {
             return clazz.equals(loader.loadClass(clazz.getName()));
         } catch (ReflectiveOperationException | Error e) {
