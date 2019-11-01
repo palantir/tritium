@@ -236,7 +236,7 @@ public class ProxyBenchmark {
         String echo(String input);
     }
 
-    private static class TestService implements Service {
+    private static final class TestService implements Service {
         @Override
         public String echo(String input) {
             return input;

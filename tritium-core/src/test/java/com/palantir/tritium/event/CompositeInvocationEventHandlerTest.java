@@ -211,7 +211,7 @@ final class CompositeInvocationEventHandlerTest {
         return new ThrowingInvocationEventHandler(isEnabled);
     }
 
-    private static class SimpleInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+    private static final class SimpleInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
         @Override
         public InvocationContext preInvocation(
                 @Nonnull Object instance,
