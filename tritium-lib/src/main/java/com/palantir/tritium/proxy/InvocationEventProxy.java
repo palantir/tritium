@@ -101,8 +101,10 @@ abstract class InvocationEventProxy implements InvocationHandler {
             try {
                 Object result = method.invoke(getDelegate(), arguments);
                 return handleOnSuccess(context, result);
+            } catch (InvocationTargetException ite) {
+                throw handleOnFailure(context, ite.getCause());
             } catch (Throwable t) {
-                throw invocationFailed(context, t);
+                throw handleOnFailure(context, t);
             }
         } else {
             try {
@@ -166,13 +168,6 @@ abstract class InvocationEventProxy implements InvocationHandler {
             logInvocationWarningOnSuccess(context, result, e);
         }
         return result;
-    }
-
-    private Throwable invocationFailed(@Nullable InvocationContext context, Throwable cause) {
-        if (cause instanceof InvocationTargetException) {
-            return handleOnFailure(context, cause.getCause());
-        }
-        return handleOnFailure(context, cause);
     }
 
     final Throwable handleOnFailure(@Nullable InvocationContext context, Throwable cause) {
