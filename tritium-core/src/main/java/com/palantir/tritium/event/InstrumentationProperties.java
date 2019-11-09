@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -112,7 +113,7 @@ public final class InstrumentationProperties {
                 .collect(ImmutableMap.toImmutableMap(
                         entry -> String.valueOf(entry.getKey()),
                         entry -> String.valueOf(entry.getValue())));
-        log.debug("Reloaded instrumentation properties {}", map);
+        log.debug("Reloaded instrumentation properties {}", UnsafeArg.of("instrumentationProperties", map));
         return map;
     }
 }
