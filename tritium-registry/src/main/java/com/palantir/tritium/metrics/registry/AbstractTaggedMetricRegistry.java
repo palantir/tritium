@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegistry {
 
@@ -112,8 +113,24 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     @SuppressWarnings("unchecked")
+    public final <T> Optional<Gauge<T>> gauge(MetricName metricName) {
+        return Optional.ofNullable(checkMetricType(metricName, Gauge.class, registry.get(metricName)));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public final <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge) {
         return getOrAdd(metricName, Gauge.class, () -> gauge);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public final <T> void registerOrReplaceGauge(MetricName metricName, Gauge<T> gauge) {
+        Metric existing = registry.put(metricName, gauge);
+        if (existing != null && !(existing instanceof Gauge)) {
+            registry.replace(metricName, existing);
+            throw invalidMetric(metricName, gauge.getClass(), existing);
+        }
     }
 
     @Override
@@ -193,14 +210,26 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
             Class<T> metricClass,
             Supplier<T> metricSupplier) {
         Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
-        if (!metricClass.isInstance(metric)) {
-            throw new SafeIllegalArgumentException(
-                    "Metric name already used for different metric type",
-                    SafeArg.of("metricName", metricName.safeName()),
-                    SafeArg.of("existingMetricType", metric.getClass().getSimpleName()),
-                    SafeArg.of("newMetricType", metricClass.getSimpleName()),
-                    SafeArg.of("safeTags", metricName.safeTags()));
+        return checkNotNull(checkMetricType(metricName, metricClass, metric), "metric");
+    }
+
+    @Nullable
+    static <T extends Metric> T checkMetricType(MetricName metricName, Class<T> metricClass, @Nullable Metric metric) {
+        if (metric == null || metricClass.isInstance(metric)) {
+            return metricClass.cast(metric);
         }
-        return metricClass.cast(metric);
+        throw invalidMetric(metricName, metricClass, metric);
+    }
+
+    private static <T extends Metric> SafeIllegalArgumentException invalidMetric(
+            MetricName metricName,
+            Class<T> metricClass,
+            Metric metric) {
+        return new SafeIllegalArgumentException(
+                "Metric name already used for different metric type",
+                SafeArg.of("metricName", metricName.safeName()),
+                SafeArg.of("existingMetricType", metric.getClass().getSimpleName()),
+                SafeArg.of("newMetricType", metricClass.getSimpleName()),
+                SafeArg.of("safeTags", metricName.safeTags()));
     }
 }

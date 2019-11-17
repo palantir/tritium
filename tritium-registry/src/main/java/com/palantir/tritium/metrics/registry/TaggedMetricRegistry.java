@@ -61,6 +61,23 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
     Histogram histogram(MetricName metricName, Supplier<Histogram> histogramSupplier);
 
     /**
+     * Returns existing gauge metric for the specified metric name or null if none has been registered.
+     *
+     * @implNote Implementations should override this method with a more efficient mechanism.
+     *
+     * @param metricName metric name
+     * @return gauge metric or empty
+     */
+    @SuppressWarnings("unchecked")
+    default <T> Optional<Gauge<T>> gauge(MetricName metricName) {
+        Metric metric = getMetrics().get(metricName);
+        if (metric instanceof Gauge) {
+            return Optional.of((Gauge<T>) metric);
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Returns existing or new gauge metric for the specified metric name.
      *
      * @param metricName metric name
@@ -69,6 +86,22 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      */
     // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
     <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge);
+
+    /**
+     * Registers and returns the specified gauge, replacing any existing gauge with the specified metric name.
+     *
+     * @param metricName metric name
+     * @param gauge gauge
+     */
+    // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
+    default <T> void registerOrReplaceGauge(MetricName metricName, Gauge<T> gauge) {
+        Gauge<T> existing = gauge(metricName, gauge);
+        if (existing == gauge) {
+            return;
+        }
+        remove(metricName);
+        gauge(metricName, gauge);
+    }
 
     /**
      * Returns existing or new counter metric for the specified metric name.
