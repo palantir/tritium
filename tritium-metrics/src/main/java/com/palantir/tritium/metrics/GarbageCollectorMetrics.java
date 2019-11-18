@@ -17,8 +17,6 @@
 package com.palantir.tritium.metrics;
 
 import com.google.common.base.CharMatcher;
-import com.palantir.logsafe.Preconditions;
-import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -34,23 +32,16 @@ final class GarbageCollectorMetrics {
      * Registers gauges <pre>jvm.gc.count</pre> and <pre>jvm.gc.time</pre> tagged with <pre>{collector: NAME}</pre>.
      */
     static void register(TaggedMetricRegistry metrics) {
-        Preconditions.checkNotNull(metrics, "TaggedMetricRegistry is required");
+        JvmGcMetrics gcMetrics = JvmGcMetrics.of(metrics);
         for (GarbageCollectorMXBean gc : ManagementFactory.getGarbageCollectorMXBeans()) {
             String collector = canonicalName(gc.getName());
-            metrics.gauge(name(collector, "count"), gc::getCollectionCount);
-            metrics.gauge(name(collector, "time"), gc::getCollectionTime);
+            gcMetrics.count().collector(collector).build(gc::getCollectionCount);
+            gcMetrics.time().collector(collector).build(gc::getCollectionTime);
         }
     }
 
     private static String canonicalName(String collectorName) {
         return CharMatcher.whitespace().replaceFrom(collectorName, "-");
-    }
-
-    private static MetricName name(String collector, String suffix) {
-        return MetricName.builder()
-                .safeName("jvm.gc." + suffix)
-                .putSafeTags("collector", collector)
-                .build();
     }
 
     private GarbageCollectorMetrics() {}

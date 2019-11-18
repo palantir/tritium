@@ -318,7 +318,7 @@ public final class MetricRegistries {
             String name) {
         return new TaggedMetricsScheduledExecutorService(
                 checkNotNull(delegate, "delegate"),
-                checkNotNull(registry, "registry"),
+                ExecutorMetrics.of(registry),
                 checkNotNull(name, "name"));
     }
 
@@ -342,7 +342,7 @@ public final class MetricRegistries {
         }
         return new TaggedMetricsExecutorService(
                 checkNotNull(delegate, "delegate"),
-                checkNotNull(registry, "registry"),
+                ExecutorMetrics.of(registry),
                 checkNotNull(name, "name"));
     }
 
@@ -358,7 +358,7 @@ public final class MetricRegistries {
     public static SSLContext instrument(TaggedMetricRegistry registry, SSLContext context, String name) {
         return new InstrumentedSslContext(
                 checkNotNull(context, "context"),
-                checkNotNull(registry, "registry"),
+                TlsMetrics.of(registry),
                 checkNotNull(name, "name"));
     }
 
@@ -374,7 +374,7 @@ public final class MetricRegistries {
     public static SSLSocketFactory instrument(TaggedMetricRegistry registry, SSLSocketFactory factory, String name) {
         return new InstrumentedSslSocketFactory(
                 checkNotNull(factory, "factory"),
-                checkNotNull(registry, "registry"),
+                TlsMetrics.of(registry),
                 checkNotNull(name, "name"));
     }
 

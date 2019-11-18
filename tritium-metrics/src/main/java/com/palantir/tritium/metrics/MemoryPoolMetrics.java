@@ -18,7 +18,6 @@ package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.RatioGauge;
 import com.google.common.base.CharMatcher;
-import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
@@ -43,15 +42,16 @@ final class MemoryPoolMetrics {
      * </ul>
      */
     static void register(TaggedMetricRegistry registry) {
+        JvmMemoryPoolsMetrics metrics = JvmMemoryPoolsMetrics.of(registry);
         for (MemoryPoolMXBean memoryPool : ManagementFactory.getMemoryPoolMXBeans()) {
             String poolName = canonicalName(memoryPool.getName());
 
-            registry.gauge(name(poolName, "max"), () -> memoryPool.getUsage().getMax());
-            registry.gauge(name(poolName, "used"), () -> memoryPool.getUsage().getUsed());
-            registry.gauge(name(poolName, "committed"), () -> memoryPool.getUsage().getCommitted());
-            registry.gauge(name(poolName, "init"), () -> memoryPool.getUsage().getInit());
+            metrics.max().memoryPool(poolName).build(() -> memoryPool.getUsage().getMax());
+            metrics.used().memoryPool(poolName).build(() -> memoryPool.getUsage().getUsed());
+            metrics.committed().memoryPool(poolName).build(() -> memoryPool.getUsage().getCommitted());
+            metrics.init().memoryPool(poolName).build(() -> memoryPool.getUsage().getInit());
 
-            registry.gauge(name(poolName, "usage"), new RatioGauge() {
+            metrics.usage().memoryPool(poolName).build(new RatioGauge() {
                 @Override
                 protected Ratio getRatio() {
                     MemoryUsage memoryUsage = memoryPool.getUsage();
@@ -64,7 +64,7 @@ final class MemoryPoolMetrics {
 
             // MetricPool.getCollectionUsage is not supported by all implementations, returning null in some cases.
             if (memoryPool.getCollectionUsage() != null) {
-                registry.gauge(name(poolName, "used-after-gc"), () -> memoryPool.getCollectionUsage().getUsed());
+                metrics.usedAfterGc().memoryPool(poolName).build(() -> memoryPool.getCollectionUsage().getUsed());
             }
 
         }
@@ -72,13 +72,6 @@ final class MemoryPoolMetrics {
 
     private static String canonicalName(String collectorName) {
         return CharMatcher.whitespace().replaceFrom(collectorName, "-");
-    }
-
-    private static MetricName name(String pool, String suffix) {
-        return MetricName.builder()
-                .safeName("jvm.memory.pools." + suffix)
-                .putSafeTags("memoryPool", pool)
-                .build();
     }
 
     private MemoryPoolMetrics() {}

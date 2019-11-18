@@ -1,0 +1,88 @@
+options:
+  javaPackage: com.palantir.tritium.metrics
+  javaVisibility: packagePrivate
+namespaces:
+  jvm.gc:
+    docs: Java virtual machine garbage collection metrics.
+    metrics:
+      count:
+        type: gauge
+        tags: [collector]
+        docs: The total number of collections that have occurred since the JVM started.
+      time:
+        type: gauge
+        tags: [collector]
+        docs: The accumulated collection elapsed time in milliseconds.
+  jvm.memory.pools:
+    docs: Java virtual machine memory usage metrics by memory pool.
+    metrics:
+      max:
+        type: gauge
+        tags: [memoryPool]
+        docs: Gauge of the maximum number of bytes that can be used by the corresponding pool.
+      used:
+        type: gauge
+        tags: [memoryPool]
+        docs: Gauge of the number of bytes used by the corresponding pool.
+      committed:
+        type: gauge
+        tags: [memoryPool]
+        docs: Gauge of the number of bytes that the jvm has committed to use by the corresponding pool.
+      init:
+        type: gauge
+        tags: [memoryPool]
+        docs: Gauge of the number of bytes that the jvm initially requested to the os by the corresponding pool.
+      usage:
+        type: gauge
+        tags: [memoryPool]
+        docs: Gauge of the ratio of the number of bytes used to the maximum number of bytes that can be used by the corresponding pool.
+      used-after-gc:
+        type: gauge
+        tags: [memoryPool]
+        docs: Gauge of the number of bytes used after the last garbage collection by the corresponding pool. Note that this metrics is not supported by all implementations.
+  tls:
+    docs: Transport layer security (previously knownn as SSL) metrics.
+    metrics:
+      handshake:
+        type: meter
+        tags: [context, cipher, protocol]
+        docs: Measures the rate of TLS handshake by SSLContext, cipher suite, and TLS protocol. A high rate of handnshake suggests that clients are not properly reusing conections, which results in additional CPU overhead and round trips.
+  executor:
+    docs: Executor metrics.
+    metrics:
+      submitted:
+        type: meter
+        tags: [executor]
+        docs: A meter of the number of submitted tasks.
+      running:
+        type: counter
+        tags: [executor]
+        docs: A gauge of the number of running tasks.
+      completed:
+        type: meter
+        tags: [executor]
+        docs: A meter of the number of completed tasks.
+      duration:
+        type: timer
+        tags: [executor]
+        docs: A timer of the time it took to run a task.
+      queued-duration:
+        type: timer
+        tags: [executor]
+        docs: A timer of the time it took a task to start running after it was submitted.
+      scheduled.once:
+        type: meter
+        tags: [executor]
+        docs: A meter of the number of one-shot scheduled tasks. Applies only to scheduled executors.
+      scheduled.repetitively:
+        type: meter
+        tags: [executor]
+        docs: A meter of the number of repetitive scheduled tasks. Applies only to scheduled executors.
+      scheduled.overrun:
+        type: counter
+        tags: [executor]
+        docs: A gauge of the number of fixed-rate scheduled tasks that overran the scheduled rate. Applies only to scheduled executors.
+      scheduled.percent-of-period:
+        type: histogram
+        tags: [executor]
+        docs: A histogram of the time it took to run a fixed-rate scheduled task as a percentage of the scheduled rate. Applies only to scheduled executors.

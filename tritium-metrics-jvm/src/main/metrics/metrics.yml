@@ -1,0 +1,30 @@
+options:
+  javaPackage: com.palantir.tritium.metrics.jvm
+  javaVisibility: packagePrivate
+namespaces:
+  os:
+    docs: Operating System Metrics
+    metrics:
+      load.1:
+        type: gauge
+        docs: Gauge of the system load average. The system load average is the sum of the number of runnable entities queued to the available processors and the number of runnable entities running on the available processors averaged over a period of time.
+      load.norm.1:
+        type: gauge
+        docs: Gauge based on `os.load.1` normalized for the number of available processors. This is designed to provide a hint about the system load, values are positive and may be greater than one.
+  process:
+    docs: JVM Process Metrics
+    metrics:
+      cpu.utilization:
+        type: gauge
+        docs: Gauge of the CPU load from the Witchcraft JVM process. Values range from zero to one.
+  jvm:
+    docs: JVM Metrics
+    # The default 'JvmMetrics' name collides with the public JvmMetrics utility.
+    shortName: InternalJvm
+    metrics:
+      safepoint.time:
+        type: gauge
+        docs: The accumulated elapsed time waiting at safepoints in ms (equivalent to `+PrintGCApplicationStoppedTime`). It helps debugging stop-the-world GCing, or biased locking going badly. See https://stackoverflow.com/questions/29666057/analyzing-gc-logs/29673564#29673564 for details.
+      filedescriptor:
+        type: gauge
+        docs: Ratio of open file descriptors to the maximum allowed open file descriptors. When this value reaches 1, attempts to open files (including sockets) will fail.

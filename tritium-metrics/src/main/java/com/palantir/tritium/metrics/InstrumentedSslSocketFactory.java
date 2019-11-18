@@ -16,8 +16,6 @@
 
 package com.palantir.tritium.metrics;
 
-import com.palantir.tritium.metrics.registry.MetricName;
-import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -31,7 +29,7 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
     private final SSLSocketFactory delegate;
     private final HandshakeCompletedListener listener;
 
-    InstrumentedSslSocketFactory(SSLSocketFactory delegate, TaggedMetricRegistry metrics, String name) {
+    InstrumentedSslSocketFactory(SSLSocketFactory delegate, TlsMetrics metrics, String name) {
         this.delegate = delegate;
         this.listener = newHandshakeListener(metrics, name);
     }
@@ -95,13 +93,12 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
         return socket;
     }
 
-    static HandshakeCompletedListener newHandshakeListener(TaggedMetricRegistry metrics, String name) {
-        return event -> metrics.meter(MetricName.builder()
-                .safeName("tls.handshake")
-                .putSafeTags("context", name)
-                .putSafeTags("cipher", event.getCipherSuite())
-                .putSafeTags("protocol", event.getSession().getProtocol())
-                .build())
+    static HandshakeCompletedListener newHandshakeListener(TlsMetrics metrics, String name) {
+        return event -> metrics.handshake()
+                .context(name)
+                .cipher(event.getCipherSuite())
+                .protocol(event.getSession().getProtocol())
+                .build()
                 .mark();
     }
 }
