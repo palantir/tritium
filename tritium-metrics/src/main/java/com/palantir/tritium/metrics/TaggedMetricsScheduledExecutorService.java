@@ -42,6 +42,10 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
     private final Meter completed;
     private final Timer duration;
 
+    private final Meter scheduledOnce;
+    private final Meter scheduledRepetitively;
+    private final Counter scheduledOverrun;
+
     TaggedMetricsScheduledExecutorService(
             ScheduledExecutorService delegate,
             TaggedMetricRegistry registry,
@@ -52,26 +56,34 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
         this.running = registry.counter(createMetricName("running", name));
         this.completed = registry.meter(createMetricName("completed", name));
         this.duration = registry.timer(createMetricName("duration", name));
+
+        this.scheduledOnce = registry.meter(createMetricName("scheduled.once", name));
+        this.scheduledRepetitively = registry.meter(createMetricName("scheduled.repetitively", name));
+        this.scheduledOverrun = registry.counter(createMetricName("scheduled.overrun", name));
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable task, long delay, TimeUnit unit) {
+        scheduledOnce.mark();
         return delegate.schedule(new TaggedMetricsRunnable(task), delay, unit);
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
+        scheduledOnce.mark();
         return delegate.schedule(new TaggedMetricsCallable<>(callable), delay, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long initialDelay, long period, TimeUnit unit) {
+        scheduledRepetitively.mark();
         return delegate.scheduleAtFixedRate(
-                new TaggedMetricsScheduledRunnable(task), initialDelay, period, unit);
+                new TaggedMetricsScheduledRunnable(task, period, unit), initialDelay, period, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long initialDelay, long delay, TimeUnit unit) {
+        scheduledRepetitively.mark();
         return delegate.scheduleWithFixedDelay(new TaggedMetricsRunnable(task), initialDelay, delay, unit);
     }
 
@@ -185,19 +197,26 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
     private class TaggedMetricsScheduledRunnable implements Runnable {
 
         private final Runnable task;
+        private final long periodInNanos;
 
-        TaggedMetricsScheduledRunnable(Runnable task) {
+        TaggedMetricsScheduledRunnable(Runnable task, long period, TimeUnit unit) {
             this.task = task;
+            this.periodInNanos = unit.toNanos(period);
         }
 
         @Override
         public void run() {
             running.inc();
+            Timer.Context context = duration.time();
             try {
                 task.run();
             } finally {
+                long elapsed = context.stop();
                 running.dec();
                 completed.mark();
+                if (elapsed > periodInNanos) {
+                    scheduledOverrun.inc();
+                }
             }
         }
     }

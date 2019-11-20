@@ -26,6 +26,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -37,6 +39,10 @@ final class TaggedMetricsScheduledExecutorServiceTest {
     private static final MetricName RUNNING = metricName("running");
     private static final MetricName COMPLETED = metricName("completed");
     private static final MetricName DURATION = metricName("duration");
+
+    private static final MetricName SCHEDULED_ONCE = metricName("scheduled.once");
+    private static final MetricName SCHEDULED_REPETITIVELY = metricName("scheduled.repetitively");
+    private static final MetricName SCHEDULED_OVERRAN = metricName("scheduled.overrun");
 
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
@@ -74,6 +80,61 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         assertThat(registry.counter(RUNNING).getCount()).isZero();
         assertThat(registry.meter(COMPLETED).getCount()).isOne();
         assertThat(registry.timer(DURATION).getCount()).isOne();
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testScheduledMetrics(TaggedMetricRegistry registry) {
+        ScheduledExecutorService executorService = MetricRegistries.instrument(
+                registry, Executors.newSingleThreadScheduledExecutor(), NAME);
+        assertThat(registry.getMetrics())
+                .containsKeys(SCHEDULED_ONCE, SCHEDULED_REPETITIVELY);
+
+        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isZero();
+        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isZero();
+
+        assertThat((Future<?>) executorService.schedule(() -> { }, 1L, TimeUnit.DAYS)).isNotNull();
+
+        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isOne();
+        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isZero();
+
+        assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> { }, 1L, 1L, TimeUnit.DAYS)).isNotNull();
+
+        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isOne();
+        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isOne();
+
+        assertThat((Future<?>) executorService.scheduleWithFixedDelay(() -> { }, 1L, 1L, TimeUnit.DAYS)).isNotNull();
+
+        assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isOne();
+        assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(2);
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testScheduledDurationMetrics(TaggedMetricRegistry registry) throws Exception {
+        ScheduledExecutorService executorService = MetricRegistries.instrument(
+                registry, Executors.newSingleThreadScheduledExecutor(), NAME);
+        assertThat(registry.getMetrics()).containsKeys(SCHEDULED_OVERRAN);
+
+        assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isZero();
+
+        Semaphore startSemaphore = new Semaphore(0);
+        Semaphore finishSemaphore = new Semaphore(1);
+
+        assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> {
+            startSemaphore.release();
+            finishSemaphore.acquireUninterruptibly();
+        }, 0L, 1L, TimeUnit.MILLISECONDS)).isNotDone();
+
+        startSemaphore.acquire(2);
+
+        assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isZero();
+
+        TimeUnit.MILLISECONDS.sleep(2);
+        finishSemaphore.release();
+        startSemaphore.acquire();
+
+        assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isOne();
     }
 
     private static MetricName metricName(String metricName) {
