@@ -3,14 +3,10 @@ break:
   description: |-
     The `TaggedMetricsScheduledExecutorService` no longer reports the following metrics:
 
-    * executor.scheduled.once.count
-    * executor.scheduled.overrun.count
-    * executor.scheduled.repetitively.count
-    * executor.scheduled.percent_of_period.count
-    * executor.scheduled.percent_of_period.max
-    * executor.scheduled.percent_of_period.p95
-    * executor.scheduled.percent_of_period.p99
-    * executor.scheduled.percent_of_period.p999
+    * `executor.scheduled.once` meter
+    * `executor.scheduled.overrun` meter
+    * `executor.scheduled.repetitively` counter
+    * `executor.scheduled.percent_of_period` histogram
 
     It was observed that these metrics are not actually being used.
   links:
