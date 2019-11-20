@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Migrate several metrics to metric-schema
+  links:
+  - https://github.com/palantir/tritium/pull/502
