@@ -1,0 +1,17 @@
+type: break
+break:
+  description: |-
+    The `TaggedMetricsScheduledExecutorService` no longer reports the following metrics:
+
+    * executor.scheduled.once.count
+    * executor.scheduled.overrun.count
+    * executor.scheduled.repetitively.count
+    * executor.scheduled.percent_of_period.count
+    * executor.scheduled.percent_of_period.max
+    * executor.scheduled.percent_of_period.p95
+    * executor.scheduled.percent_of_period.p99
+    * executor.scheduled.percent_of_period.p999
+
+    It was observed that these metrics are not actually being used.
+  links:
+  - https://github.com/palantir/tritium/pull/505
