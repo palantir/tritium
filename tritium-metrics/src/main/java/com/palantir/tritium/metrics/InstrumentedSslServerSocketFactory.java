@@ -16,7 +16,6 @@
 
 package com.palantir.tritium.metrics;
 
-import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -35,7 +34,7 @@ final class InstrumentedSslServerSocketFactory extends SSLServerSocketFactory {
     private final SSLServerSocketFactory delegate;
     private final HandshakeCompletedListener listener;
 
-    InstrumentedSslServerSocketFactory(SSLServerSocketFactory delegate, TaggedMetricRegistry metrics, String name) {
+    InstrumentedSslServerSocketFactory(SSLServerSocketFactory delegate, TlsMetrics metrics, String name) {
         this.delegate = delegate;
         this.listener = InstrumentedSslSocketFactory.newHandshakeListener(metrics, name);
     }

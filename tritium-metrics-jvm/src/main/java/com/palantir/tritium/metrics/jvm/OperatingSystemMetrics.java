@@ -16,24 +16,20 @@
 
 package com.palantir.tritium.metrics.jvm;
 
-import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 
 final class OperatingSystemMetrics {
-    private static final MetricName OS_LOAD_NORM_1 = MetricName.builder().safeName("os.load.norm.1").build();
-    private static final MetricName OS_LOAD_1 = MetricName.builder().safeName("os.load.1").build();
-    private static final MetricName OS_PROCESS_CPU_UTILIZATION
-            = MetricName.builder().safeName("process.cpu.utilization").build();
 
     static void register(TaggedMetricRegistry registry) {
+        OsMetrics osMetrics = OsMetrics.of(registry);
         OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();
-        registry.gauge(OS_LOAD_NORM_1, () -> osMxBean.getSystemLoadAverage() / osMxBean.getAvailableProcessors());
-        registry.gauge(OS_LOAD_1, osMxBean::getSystemLoadAverage);
+        osMetrics.loadNorm1(() -> osMxBean.getSystemLoadAverage() / osMxBean.getAvailableProcessors());
+        osMetrics.load1(osMxBean::getSystemLoadAverage);
         if (osMxBean instanceof com.sun.management.OperatingSystemMXBean) {
             com.sun.management.OperatingSystemMXBean sunBean = (com.sun.management.OperatingSystemMXBean) osMxBean;
-            registry.gauge(OS_PROCESS_CPU_UTILIZATION, sunBean::getProcessCpuLoad);
+            ProcessMetrics.of(registry).cpuUtilization(sunBean::getProcessCpuLoad);
         }
     }
 
