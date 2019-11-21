@@ -63,36 +63,7 @@ final class ByteBuddyInstrumentation {
     private static final Joiner UNDERSCORE_JOINER = Joiner.on('_');
     private static final String LOGGER_FIELD = "log";
     private static final String METHODS_FIELD = "methods";
-    // A sentinel value is used to differentiate null contexts returned by handlers from
-    // invocations on disabled handlers.
     private static final String DISABLED_HANDLER_SENTINEL_FIELD = "DISABLED_HANDLER_SENTINEL";
-    private static final InvocationContext DISABLED_HANDLER_SENTINEL = new InvocationContext() {
-
-        @Override
-        public long getStartTimeNanos() {
-            throw fail();
-        }
-
-        @Nullable
-        @Override
-        public Object getInstance() {
-            throw fail();
-        }
-
-        @Override
-        public Method getMethod() {
-            throw fail();
-        }
-
-        @Override
-        public Object[] getArgs() {
-            throw fail();
-        }
-
-        private RuntimeException fail() {
-            throw new UnsupportedOperationException("methods should not be invoked");
-        }
-    };
 
     private ByteBuddyInstrumentation() {
         throw new UnsupportedOperationException();
@@ -211,7 +182,7 @@ final class ByteBuddyInstrumentation {
                             Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
                     .initializer(new StaticFieldLoadedTypeInitializer(METHODS_FIELD, allMethods.toArray(new Method[0])))
                     .initializer(new StaticFieldLoadedTypeInitializer(
-                            DISABLED_HANDLER_SENTINEL_FIELD, DISABLED_HANDLER_SENTINEL))
+                            DISABLED_HANDLER_SENTINEL_FIELD, DisabledHandlerSentinel.INSTANCE))
                     .initializer(LoggerInitializer.INSTANCE)
                     .make()
                     .load(classLoader)
@@ -356,5 +327,36 @@ final class ByteBuddyInstrumentation {
         return "com.palantir.tritium.proxy.Instrumented"
                 + UNDERSCORE_JOINER.join(Lists.transform(interfaceClasses, Class::getSimpleName))
                 + '$' + offset.getAndIncrement();
+    }
+
+    // A sentinel value is used to differentiate null contexts returned by handlers from
+    // invocations on disabled handlers.
+    private enum DisabledHandlerSentinel implements InvocationContext {
+        INSTANCE;
+
+        @Override
+        public long getStartTimeNanos() {
+            throw fail();
+        }
+
+        @Nullable
+        @Override
+        public Object getInstance() {
+            throw fail();
+        }
+
+        @Override
+        public Method getMethod() {
+            throw fail();
+        }
+
+        @Override
+        public Object[] getArgs() {
+            throw fail();
+        }
+
+        private static RuntimeException fail() {
+            throw new UnsupportedOperationException("methods should not be invoked");
+        }
     }
 }
