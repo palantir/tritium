@@ -16,7 +16,6 @@
 
 package com.palantir.tritium.proxy;
 
-import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.api.event.InstrumentationFilter;
@@ -61,6 +60,7 @@ final class ByteBuddyInstrumentationAdvice {
             if (eventHandler.isEnabled() && filter.shouldInstrument(proxy, method, arguments)) {
                 return eventHandler.preInvocation(proxy, method, arguments);
             }
+            return disabledHandlerSentinel;
         } catch (Throwable t) {
             if (logger.isWarnEnabled()) {
                 logger.warn(
@@ -68,8 +68,8 @@ final class ByteBuddyInstrumentationAdvice {
                         UnsafeArg.of("instance", Objects.toString(proxy)),
                         t);
             }
+            return null;
         }
-        return disabledHandlerSentinel;
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, backupArguments = false)
@@ -89,17 +89,14 @@ final class ByteBuddyInstrumentationAdvice {
                 }
             } catch (Throwable t) {
                 if (logger.isWarnEnabled()) {
+                    Object value = thrown == null ? result : thrown;
                     logger.warn(
                             "Failure occurred handling post-invocation: {}, {}",
                             UnsafeArg.of("context", context),
-                            safeSimpleClassName("result", thrown == null ? result : thrown),
+                            SafeArg.of("result", value == null ? "null" : value.getClass().getSimpleName()),
                             t);
                 }
             }
         }
-    }
-
-    static SafeArg<String> safeSimpleClassName(@CompileTimeConstant String name, @Nullable Object object) {
-        return SafeArg.of(name, object == null ? "null" : object.getClass().getSimpleName());
     }
 }

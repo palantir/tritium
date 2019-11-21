@@ -54,7 +54,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
     /**
      * Invoked with the result of the invocation when it is successful.
      *
-     * @param context the current invocation context.
+     * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
      * @param result the return value from invocation, or null if {@link Void}.
      */
     void onSuccess(@Nullable InvocationContext context, @Nullable Object result);
@@ -66,7 +66,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * If the invocation throws an {@link java.lang.reflect.InvocationTargetException}, then the cause is passed to this
      * method. Any other thrown object is passed unaltered.
      *
-     * @param context the current invocation context.
+     * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
      * @param cause the throwable which caused the failure.
      */
     void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause);

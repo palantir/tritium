@@ -111,10 +111,11 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             if (handler != null) {
                 return handler.preInvocation(instance, method, args);
             }
+            return DisabledHandlerSentinel.INSTANCE;
         } catch (RuntimeException e) {
             preInvocationFailed(handler, instance, method, e);
+            return null;
         }
-        return DisabledHandlerSentinel.INSTANCE;
     }
 
     @Override
