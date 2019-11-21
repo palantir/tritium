@@ -54,6 +54,7 @@ final class ByteBuddyInstrumentationAdvice {
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
             @Advice.FieldValue("methods") Method[] methods,
             @Advice.FieldValue("log") Logger logger,
+            @Advice.FieldValue("DISABLED_HANDLER_SENTINEL") InvocationContext disabledHandlerSentinel,
             @MethodIndex int index) {
         Method method = methods[index];
         try {
@@ -68,7 +69,7 @@ final class ByteBuddyInstrumentationAdvice {
                         t);
             }
         }
-        return null;
+        return disabledHandlerSentinel;
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, backupArguments = false)
@@ -77,8 +78,9 @@ final class ByteBuddyInstrumentationAdvice {
             @Advice.Thrown Throwable thrown,
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
             @Advice.FieldValue("log") Logger logger,
+            @Advice.FieldValue("DISABLED_HANDLER_SENTINEL") InvocationContext disabledHandlerSentinel,
             @Advice.Enter InvocationContext context) {
-        if (context != null) {
+        if (context != disabledHandlerSentinel) {
             try {
                 if (thrown == null) {
                     eventHandler.onSuccess(context, result);

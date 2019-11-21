@@ -32,6 +32,36 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private static final Logger logger = LoggerFactory.getLogger(CompositeInvocationEventHandler.class);
 
+    // A sentinel value is used to differentiate null contexts returned by handlers from
+    // invocations on disabled handlers.
+    private static final InvocationContext DISABLED_HANDLER_SENTINEL = new InvocationContext() {
+
+        @Override
+        public long getStartTimeNanos() {
+            throw fail();
+        }
+
+        @Nullable
+        @Override
+        public Object getInstance() {
+            throw fail();
+        }
+
+        @Override
+        public Method getMethod() {
+            throw fail();
+        }
+
+        @Override
+        public Object[] getArgs() {
+            throw fail();
+        }
+
+        private RuntimeException fail() {
+            throw new UnsupportedOperationException("methods should not be invoked");
+        }
+    };
+
     private final InvocationEventHandler<InvocationContext>[] handlers;
 
     @SuppressWarnings("unchecked")
@@ -114,7 +144,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         } catch (RuntimeException e) {
             preInvocationFailed(handler, instance, method, e);
         }
-        return null;
+        return DISABLED_HANDLER_SENTINEL;
     }
 
     @Override
@@ -140,7 +170,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             @Nullable Object result) {
-        if (context != null) {
+        if (context != DISABLED_HANDLER_SENTINEL) {
             try {
                 handler.onSuccess(context, result);
             } catch (RuntimeException exception) {
@@ -153,7 +183,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             Throwable cause) {
-        if (context != null) {
+        if (context != DISABLED_HANDLER_SENTINEL) {
             try {
                 handler.onFailure(context, cause);
             } catch (RuntimeException exception) {

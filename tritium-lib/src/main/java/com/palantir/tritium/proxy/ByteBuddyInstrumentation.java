@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nullable;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.ClassFileVersion;
 import net.bytebuddy.TypeCache;
@@ -61,6 +62,37 @@ final class ByteBuddyInstrumentation {
             new TypeCache.WithInlineExpunction<>(TypeCache.Sort.WEAK);
     private static final Joiner UNDERSCORE_JOINER = Joiner.on('_');
     private static final String LOGGER_FIELD = "log";
+    private static final String METHODS_FIELD = "methods";
+    // A sentinel value is used to differentiate null contexts returned by handlers from
+    // invocations on disabled handlers.
+    private static final String DISABLED_HANDLER_SENTINEL_FIELD = "DISABLED_HANDLER_SENTINEL";
+    private static final InvocationContext DISABLED_HANDLER_SENTINEL = new InvocationContext() {
+
+        @Override
+        public long getStartTimeNanos() {
+            throw fail();
+        }
+
+        @Nullable
+        @Override
+        public Object getInstance() {
+            throw fail();
+        }
+
+        @Override
+        public Method getMethod() {
+            throw fail();
+        }
+
+        @Override
+        public Object[] getArgs() {
+            throw fail();
+        }
+
+        private RuntimeException fail() {
+            throw new UnsupportedOperationException("methods should not be invoked");
+        }
+    };
 
     private ByteBuddyInstrumentation() {
         throw new UnsupportedOperationException();
@@ -173,9 +205,13 @@ final class ByteBuddyInstrumentation {
                             Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
                     .defineField("instrumentationFilter", InstrumentationFilter.class,
                             Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
-                    .defineField("methods", Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+                    .defineField(METHODS_FIELD, Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
                     .defineField(LOGGER_FIELD, Logger.class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
-                    .initializer(new StaticFieldLoadedTypeInitializer("methods", allMethods.toArray(new Method[0])))
+                    .defineField(DISABLED_HANDLER_SENTINEL_FIELD, InvocationContext.class,
+                            Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+                    .initializer(new StaticFieldLoadedTypeInitializer(METHODS_FIELD, allMethods.toArray(new Method[0])))
+                    .initializer(new StaticFieldLoadedTypeInitializer(
+                            DISABLED_HANDLER_SENTINEL_FIELD, DISABLED_HANDLER_SENTINEL))
                     .initializer(LoggerInitializer.INSTANCE)
                     .make()
                     .load(classLoader)
