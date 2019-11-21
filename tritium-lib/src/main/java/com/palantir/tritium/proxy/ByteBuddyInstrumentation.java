@@ -60,6 +60,7 @@ final class ByteBuddyInstrumentation {
     private static final TypeCache<ImmutableList<Class<?>>> cache =
             new TypeCache.WithInlineExpunction<>(TypeCache.Sort.WEAK);
     private static final Joiner UNDERSCORE_JOINER = Joiner.on('_');
+    private static final String LOGGER_FIELD = "log";
 
     private ByteBuddyInstrumentation() {
         throw new UnsupportedOperationException();
@@ -173,7 +174,9 @@ final class ByteBuddyInstrumentation {
                     .defineField("instrumentationFilter", InstrumentationFilter.class,
                             Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
                     .defineField("methods", Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+                    .defineField(LOGGER_FIELD, Logger.class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
                     .initializer(new StaticFieldLoadedTypeInitializer("methods", allMethods.toArray(new Method[0])))
+                    .initializer(LoggerInitializer.INSTANCE)
                     .make()
                     .load(classLoader)
                     .getLoaded();
@@ -286,6 +289,24 @@ final class ByteBuddyInstrumentation {
                 type.getDeclaredField(fieldName).set(null, value);
             } catch (IllegalAccessException | NoSuchFieldException e) {
                 throw new SafeIllegalStateException("Failed to set static field", e, SafeArg.of("field", fieldName));
+            }
+        }
+
+        @Override
+        public boolean isAlive() {
+            return true;
+        }
+    }
+
+    private enum LoggerInitializer implements LoadedTypeInitializer {
+        INSTANCE;
+
+        @Override
+        public void onLoad(Class<?> type) {
+            try {
+                type.getDeclaredField(LOGGER_FIELD).set(null, LoggerFactory.getLogger(type));
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                throw new SafeIllegalStateException("Failed to set the logger field", e);
             }
         }
 

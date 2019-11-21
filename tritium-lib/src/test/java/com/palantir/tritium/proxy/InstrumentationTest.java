@@ -17,6 +17,7 @@
 package com.palantir.tritium.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,6 +35,7 @@ import com.codahale.metrics.Slf4jReporter.LoggingLevel;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.Runnables;
 import com.palantir.tritium.Tagged;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.DefaultInvocationContext;
@@ -68,6 +70,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
@@ -634,6 +637,18 @@ public abstract class InstrumentationTest {
                 .build();
         assertThat(instrumentedService.run()).isEqualTo(2);
         assertThat(instrumentedService.specificity()).isEqualTo("more specific");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testThrowingHandler() {
+        InvocationEventHandler<InvocationContext> handler = Mockito.mock(InvocationEventHandler.class);
+        when(handler.isEnabled()).thenReturn(true);
+        when(handler.preInvocation(any(), any(), any())).thenThrow(new RuntimeException());
+        Runnable wrapped = Instrumentation.builder(Runnable.class, Runnables.doNothing())
+                .withHandler(handler)
+                .build();
+        assertThatCode(wrapped::run).doesNotThrowAnyException();
     }
 
     public interface Parent extends LessSpecificReturn {

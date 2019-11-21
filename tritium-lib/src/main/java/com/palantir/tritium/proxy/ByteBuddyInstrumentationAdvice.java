@@ -31,11 +31,8 @@ import javax.annotation.Nullable;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class ByteBuddyInstrumentationAdvice {
-
-    private static final Logger logger = LoggerFactory.getLogger(ByteBuddyInstrumentationAdvice.class);
 
     private ByteBuddyInstrumentationAdvice() {}
 
@@ -56,6 +53,7 @@ final class ByteBuddyInstrumentationAdvice {
             @Advice.FieldValue("instrumentationFilter") InstrumentationFilter filter,
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
             @Advice.FieldValue("methods") Method[] methods,
+            @Advice.FieldValue("log") Logger logger,
             @MethodIndex int index) {
         Method method = methods[index];
         try {
@@ -78,6 +76,7 @@ final class ByteBuddyInstrumentationAdvice {
             @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object result,
             @Advice.Thrown Throwable thrown,
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
+            @Advice.FieldValue("log") Logger logger,
             @Advice.Enter InvocationContext context) {
         if (context != null) {
             try {
