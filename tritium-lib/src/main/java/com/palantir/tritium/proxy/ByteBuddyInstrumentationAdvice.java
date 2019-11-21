@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 final class ByteBuddyInstrumentationAdvice {
 
-    private static final Logger logger = LoggerFactory.getLogger(InvocationEventProxy.class);
+    private static final Logger logger = LoggerFactory.getLogger(ByteBuddyInstrumentationAdvice.class);
 
     private ByteBuddyInstrumentationAdvice() {}
 
