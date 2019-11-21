@@ -111,10 +111,11 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             if (handler != null) {
                 return handler.preInvocation(instance, method, args);
             }
+            return DisabledHandlerSentinel.INSTANCE;
         } catch (RuntimeException e) {
             preInvocationFailed(handler, instance, method, e);
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -140,7 +141,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             @Nullable Object result) {
-        if (context != null) {
+        if (context != DisabledHandlerSentinel.INSTANCE) {
             try {
                 handler.onSuccess(context, result);
             } catch (RuntimeException exception) {
@@ -153,7 +154,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
             Throwable cause) {
-        if (context != null) {
+        if (context != DisabledHandlerSentinel.INSTANCE) {
             try {
                 handler.onFailure(context, cause);
             } catch (RuntimeException exception) {
@@ -190,6 +191,37 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
         InvocationContext[] getContexts() {
             return contexts;
+        }
+    }
+
+    // A sentinel value is used to differentiate null contexts returned by handlers from
+    // invocations on disabled handlers.
+    private enum DisabledHandlerSentinel implements InvocationContext {
+        INSTANCE;
+
+        @Override
+        public long getStartTimeNanos() {
+            throw fail();
+        }
+
+        @Nullable
+        @Override
+        public Object getInstance() {
+            throw fail();
+        }
+
+        @Override
+        public Method getMethod() {
+            throw fail();
+        }
+
+        @Override
+        public Object[] getArgs() {
+            throw fail();
+        }
+
+        private static RuntimeException fail() {
+            throw new UnsupportedOperationException("methods should not be invoked");
         }
     }
 }
