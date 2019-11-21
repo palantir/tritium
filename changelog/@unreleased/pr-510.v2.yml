@@ -1,0 +1,9 @@
+type: fix
+fix:
+  description: Tritium instrumentation handles null InvocationContexts.
+    A behavior change was introduced in #379 which resulted in handlers
+    which return a null InvocationContext being considered disabled,
+    which prevented the onSuccess and onFailure methods from
+    being invoked at all.
+  links:
+  - https://github.com/palantir/tritium/pull/510
