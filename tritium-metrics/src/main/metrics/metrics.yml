@@ -41,7 +41,7 @@ namespaces:
         tags: [memoryPool]
         docs: Gauge of the number of bytes used after the last garbage collection by the corresponding pool. Note that this metrics is not supported by all implementations.
   tls:
-    docs: Transport layer security (previously knownn as SSL) metrics.
+    docs: Transport layer security metrics.
     metrics:
       handshake:
         type: meter
