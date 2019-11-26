@@ -1,0 +1,8 @@
+type: improvement
+improvement:
+  description: The `jvm.attribute.uptime` metric now has several additional tags corresponding
+    to the JVM system properties `java.specification.version`, `java.version`, `java.version.date`,
+    `java.runtime.version`, `java.vendor.version`, `java.vm.vendor`, allowing observability
+    of how long a particular JVM version has been up for.
+  links:
+  - https://github.com/palantir/tritium/pull/516
