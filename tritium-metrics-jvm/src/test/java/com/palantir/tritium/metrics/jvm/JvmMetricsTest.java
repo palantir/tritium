@@ -154,4 +154,20 @@ final class JvmMetricsTest {
                 .get(MetricName.builder().safeName("jvm.safepoint.time").build());
         assertThat(safepointTime).satisfies(gauge -> assertThat(gauge.getValue()).isNotNegative());
     }
+
+    @Test
+    void testUptimeHasExtraTags() {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        JvmMetrics.register(registry);
+        assertThat(registry.getMetrics().keySet()).anySatisfy(name -> {
+            assertThat(name.safeName()).isEqualTo("jvm.attribute.uptime");
+            assertThat(name.safeTags().keySet()).containsExactlyInAnyOrder(
+                    "javaRuntimeVersion",
+                    "javaSpecificationVersion",
+                    "javaVendorVersion",
+                    "javaVersion",
+                    "javaVersionDate",
+                    "javaVmVendor");
+        });
+    }
 }

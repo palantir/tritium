@@ -37,3 +37,10 @@ namespaces:
       attribute.uptime:
         type: gauge
         docs: Provides the Java virtual machine uptime value in milliseconds.
+        tags:
+        - javaSpecificationVersion # 11
+        - javaVersion # 11.0.3
+        - javaVersionDate # 11.0.3
+        - javaRuntimeVersion # 11.0.3+7-LTS
+        - javaVendorVersion # Zulu11.31+11-CA
+        - javaVmVendor # Azul Systems, Inc.
