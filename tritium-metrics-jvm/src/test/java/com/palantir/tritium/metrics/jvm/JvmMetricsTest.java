@@ -38,9 +38,7 @@ import org.junit.jupiter.api.io.TempDir;
 final class JvmMetricsTest {
 
     private static final ImmutableSet<String> EXPECTED_NAMES = ImmutableSet.of(
-            "jvm.attribute.name",
             "jvm.attribute.uptime",
-            "jvm.attribute.vendor",
             "jvm.buffers.direct.capacity",
             "jvm.buffers.direct.count",
             "jvm.buffers.direct.used",

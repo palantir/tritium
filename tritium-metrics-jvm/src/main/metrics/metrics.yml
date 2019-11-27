@@ -28,12 +28,6 @@ namespaces:
       filedescriptor:
         type: gauge
         docs: Ratio of open file descriptors to the maximum allowed open file descriptors. When this value reaches 1, attempts to open files (including sockets) will fail.
-      attribute.name:
-        type: gauge
-        docs: Provides the string value of the name of the current processes JVM.
-      attribute.vendor:
-        type: gauge
-        docs: Provides a string value representing the vendor and version of the current processes JVM.
       attribute.uptime:
         type: gauge
         docs: |
