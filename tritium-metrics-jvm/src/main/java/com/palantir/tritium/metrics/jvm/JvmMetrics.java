@@ -68,12 +68,12 @@ public final class JvmMetrics {
         metrics.attributeName(gauge(jvmAttributes, "name"));
         metrics.attributeVendor(gauge(jvmAttributes, "vendor"));
         metrics.attributeUptime()
-                .javaSpecificationVersion(System.getProperty("java.specification.version", "null"))
-                .javaVersion(System.getProperty("java.version", "null"))
-                .javaVersionDate(System.getProperty("java.version.date", "null"))
-                .javaRuntimeVersion(System.getProperty("java.runtime.version", "null"))
-                .javaVendorVersion(System.getProperty("java.vendor.version", "null"))
-                .javaVmVendor(System.getProperty("java.vm.vendor", "null"))
+                .javaSpecificationVersion(System.getProperty("java.specification.version", "unknown"))
+                .javaVersion(System.getProperty("java.version", "unknown"))
+                .javaVersionDate(System.getProperty("java.version.date", "unknown"))
+                .javaRuntimeVersion(System.getProperty("java.runtime.version", "unknown"))
+                .javaVendorVersion(System.getProperty("java.vendor.version", "unknown"))
+                .javaVmVendor(System.getProperty("java.vm.vendor", "unknown"))
                 .build(gauge(jvmAttributes, "uptime"));
     }
 
