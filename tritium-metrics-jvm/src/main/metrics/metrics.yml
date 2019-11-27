@@ -36,11 +36,14 @@ namespaces:
         docs: Provides a string value representing the vendor and version of the current processes JVM.
       attribute.uptime:
         type: gauge
-        docs: Provides the Java virtual machine uptime value in milliseconds.
+        docs: |
+          Provides the Java virtual machine uptime value in milliseconds. Example tags:
+          javaSpecificationVersion = 11, javaVersion = 11.0.3, javaVersionDate = 2019-04-16,
+          javaRuntimeVersion = 11.0.3+7-LTS, javaVendorVersion = Zulu11.31+11-CA, javaVmVendor = Azul Systems, Inc.
         tags:
-        - javaSpecificationVersion # 11
-        - javaVersion # 11.0.3
-        - javaVersionDate # 2019-04-16
-        - javaRuntimeVersion # 11.0.3+7-LTS
-        - javaVendorVersion # Zulu11.31+11-CA
-        - javaVmVendor # Azul Systems, Inc.
+        - javaSpecificationVersion
+        - javaVersion
+        - javaVersionDate
+        - javaRuntimeVersion
+        - javaVendorVersion
+        - javaVmVendor
