@@ -65,9 +65,14 @@ public final class JvmMetrics {
 
     private static void registerAttributes(InternalJvmMetrics metrics) {
         Map<String, Metric> jvmAttributes = new JvmAttributeGaugeSet().getMetrics();
-        metrics.attributeName(gauge(jvmAttributes, "name"));
-        metrics.attributeVendor(gauge(jvmAttributes, "vendor"));
-        metrics.attributeUptime(gauge(jvmAttributes, "uptime"));
+        metrics.attributeUptime()
+                .javaSpecificationVersion(System.getProperty("java.specification.version", "unknown"))
+                .javaVersion(System.getProperty("java.version", "unknown"))
+                .javaVersionDate(System.getProperty("java.version.date", "unknown"))
+                .javaRuntimeVersion(System.getProperty("java.runtime.version", "unknown"))
+                .javaVendorVersion(System.getProperty("java.vendor.version", "unknown"))
+                .javaVmVendor(System.getProperty("java.vm.vendor", "unknown"))
+                .build(gauge(jvmAttributes, "uptime"));
     }
 
     private static Gauge<?> gauge(Map<String, Metric> metrics, String name) {
