@@ -40,7 +40,7 @@ namespaces:
         tags:
         - javaSpecificationVersion # 11
         - javaVersion # 11.0.3
-        - javaVersionDate # 11.0.3
+        - javaVersionDate # 2019-04-16
         - javaRuntimeVersion # 11.0.3+7-LTS
         - javaVendorVersion # Zulu11.31+11-CA
         - javaVmVendor # Azul Systems, Inc.
