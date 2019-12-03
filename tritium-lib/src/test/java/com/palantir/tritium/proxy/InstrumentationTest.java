@@ -167,7 +167,7 @@ public abstract class InstrumentationTest {
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
 
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax() >= 0L).isTrue();
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax()).isGreaterThanOrEqualTo(0L);
 
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
     }
