@@ -25,7 +25,6 @@ import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
-import com.palantir.tritium.metrics.registry.SharedTaggedMetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHandler;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
@@ -123,7 +122,7 @@ public class ProxyBenchmark {
                 .build();
 
         instrumentedWithTaggedMetrics = Instrumentation.builder(serviceInterface, raw)
-                .withTaggedMetrics(SharedTaggedMetricRegistries.getSingleton(), serviceInterface.getName())
+                .withTaggedMetrics(new DefaultTaggedMetricRegistry(), serviceInterface.getName())
                 .build();
 
         instrumentedWithTracing = Instrumentation.builder(serviceInterface, raw)
