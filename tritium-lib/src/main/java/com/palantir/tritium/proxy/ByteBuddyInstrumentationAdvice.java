@@ -61,7 +61,7 @@ final class ByteBuddyInstrumentationAdvice {
                 return eventHandler.preInvocation(proxy, method, arguments);
             }
             return disabledHandlerSentinel;
-        } catch (Throwable t) {
+        } catch (RuntimeException | Error t) {
             if (logger.isWarnEnabled()) {
                 logger.warn(
                         "Failure occurred handling 'preInvocation' invocation on: {}",
@@ -87,7 +87,7 @@ final class ByteBuddyInstrumentationAdvice {
                 } else {
                     eventHandler.onFailure(context, thrown);
                 }
-            } catch (Throwable t) {
+            } catch (RuntimeException | Error t) {
                 if (logger.isWarnEnabled()) {
                     Object value = thrown == null ? result : thrown;
                     logger.warn(
