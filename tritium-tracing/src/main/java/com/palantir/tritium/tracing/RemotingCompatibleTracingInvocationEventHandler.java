@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("TryFailRefactoring") // work-around https://github.com/google/error-prone/issues/1447
 public final class RemotingCompatibleTracingInvocationEventHandler
         extends AbstractInvocationEventHandler<InvocationContext> {
 
