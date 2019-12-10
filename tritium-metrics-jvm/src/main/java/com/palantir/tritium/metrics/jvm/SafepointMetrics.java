@@ -52,7 +52,7 @@ final class SafepointMetrics {
         try {
             return method.invoke(object);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

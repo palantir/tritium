@@ -82,7 +82,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
         try {
             return eventHandler.isEnabled()
                     && filter.shouldInstrument(instance, method, args);
-        } catch (Throwable t) {
+        } catch (RuntimeException | Error t) {
             logInvocationWarning("isEnabled", instance, method, t);
             return false;
         }
@@ -103,7 +103,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
                 return handleOnSuccess(context, result);
             } catch (InvocationTargetException ite) {
                 throw handleOnFailure(context, ite.getCause());
-            } catch (Throwable t) {
+            } catch (RuntimeException | Error t) {
                 throw handleOnFailure(context, t);
             }
         } else {
