@@ -103,7 +103,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
                 return handleOnSuccess(context, result);
             } catch (InvocationTargetException ite) {
                 throw handleOnFailure(context, ite.getCause());
-            } catch (RuntimeException | Error t) {
+            } catch (IllegalAccessException | RuntimeException | Error t) {
                 throw handleOnFailure(context, t);
             }
         } else {
