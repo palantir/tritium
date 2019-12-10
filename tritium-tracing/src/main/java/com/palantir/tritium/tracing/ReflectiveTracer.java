@@ -90,7 +90,7 @@ final class ReflectiveTracer implements Tracer {
     private static RuntimeException throwUnchecked(ReflectiveOperationException reflectionException) {
         Throwable cause = reflectionException.getCause() != null ? reflectionException.getCause() : reflectionException;
         Throwables.throwIfUnchecked(cause);
-        throw new RuntimeException(cause);
+        throw new IllegalStateException(cause);
     }
 
 }

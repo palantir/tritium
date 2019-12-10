@@ -22,6 +22,9 @@ import javax.annotation.Nonnull;
 
 public enum InstrumentationFilters implements InstrumentationFilter {
 
+    /**
+     * Instrument all invocations.
+     */
     INSTRUMENT_ALL {
         @Override
         public boolean shouldInstrument(
@@ -32,6 +35,9 @@ public enum InstrumentationFilters implements InstrumentationFilter {
         }
     },
 
+    /**
+     * Instrument no invocations.
+     */
     INSTRUMENT_NONE {
         @Override
         public boolean shouldInstrument(
