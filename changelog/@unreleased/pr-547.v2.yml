@@ -1,0 +1,11 @@
+type: improvement
+improvement:
+  description: |-
+    Deduplicate interfaces for byte-buddy instrumentation
+
+    This leads to a sizable performance improvement creating
+    instrumented objects in scenarios where interfaces are declared
+    multiple times. This is particularly common when dynamic proxies
+    are instrumented, as many additional interfaces are discovered.
+  links:
+  - https://github.com/palantir/tritium/pull/547
