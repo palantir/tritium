@@ -89,6 +89,7 @@ final class TaggedMetricRegistryTest {
 
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    @SuppressWarnings("deprecation") // explicitly testing
     void testGauge(TaggedMetricRegistry registry) {
         Gauge<Integer> gauge1 = registry.gauge(METRIC_1, intGauge(1));
         Gauge<Integer> gauge2 = registry.gauge(METRIC_2, intGauge(2));
@@ -103,15 +104,16 @@ final class TaggedMetricRegistryTest {
 
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    @SuppressWarnings("deprecation") // explicitly testing
     void testReplaceGauge(TaggedMetricRegistry registry) {
         assertThat(registry.getMetrics().get(METRIC_1)).isNull();
         Gauge<Integer> gauge1 = intGauge(1);
-        registry.registerOrReplaceGauge(METRIC_1, gauge1);
+        registry.registerWithReplacement(METRIC_1, gauge1);
         assertThat(registry.getMetrics().get(METRIC_1))
                 .isSameAs(registry.gauge(METRIC_1).get())
                 .isSameAs(gauge1);
         Gauge<Integer> gauge2 = intGauge(2);
-        registry.registerOrReplaceGauge(METRIC_2, gauge2);
+        registry.registerWithReplacement(METRIC_2, gauge2);
         assertThat(registry.getMetrics().get(METRIC_2))
                 .isSameAs(registry.gauge(METRIC_2).get())
                 .isSameAs(gauge2);
@@ -127,7 +129,7 @@ final class TaggedMetricRegistryTest {
                 .isSameAs(registry.gauge(METRIC_1).get())
                 .isSameAs(gauge1);
         Gauge<Integer> gauge3 = intGauge(3);
-        registry.registerOrReplaceGauge(METRIC_1, gauge3);
+        registry.registerWithReplacement(METRIC_1, gauge3);
         assertThat(registry.getMetrics().get(METRIC_1))
                 .isSameAs(registry.gauge(METRIC_1).get())
                 .isSameAs(gauge3);
@@ -139,7 +141,7 @@ final class TaggedMetricRegistryTest {
                 .isSameAs(registry.gauge(METRIC_2).get())
                 .isSameAs(gauge2);
         Gauge<Integer> gauge4 = intGauge(4);
-        registry.registerOrReplaceGauge(METRIC_2, gauge4);
+        registry.registerWithReplacement(METRIC_2, gauge4);
         assertThat(registry.getMetrics().get(METRIC_2))
                 .isSameAs(registry.gauge(METRIC_2).get())
                 .isSameAs(gauge4);
@@ -154,7 +156,7 @@ final class TaggedMetricRegistryTest {
 
             @Override
             public String toString() {
-                return "{gauge value=" + String.valueOf(value) + ", " + super.toString() + '}';
+                return "{gauge value=" + value + ", " + super.toString() + '}';
             }
         };
     }
@@ -213,6 +215,7 @@ final class TaggedMetricRegistryTest {
 
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    @SuppressWarnings("deprecation") // explicitly testing
     void testRemoveMetric(TaggedMetricRegistry registry) {
         Gauge<Integer> gauge = intGauge(42);
         Gauge<Integer> registeredGauge = registry.gauge(METRIC_1, gauge);

@@ -65,10 +65,7 @@ public final class CaffeineCacheStats {
 
         CaffeineCacheTaggedMetrics.create(cache, name)
                 .getMetrics()
-                .forEach((metricName, gauge) -> {
-                    registry.remove(metricName);
-                    registry.gauge(metricName, gauge);
-                });
+                .forEach(registry::registerWithReplacement);
     }
 
     static <K> ImmutableMap<K, Gauge<?>> createCacheGauges(Cache<?, ?> cache, Function<String, K> metricNamer) {

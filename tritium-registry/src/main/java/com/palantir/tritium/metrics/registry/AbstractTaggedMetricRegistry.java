@@ -118,14 +118,14 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "deprecation"})
     public final <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge) {
         return getOrAdd(metricName, Gauge.class, () -> gauge);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public final <T> void registerOrReplaceGauge(MetricName metricName, Gauge<T> gauge) {
+    public final void registerWithReplacement(MetricName metricName, Gauge<?> gauge) {
         Metric existing = registry.put(metricName, gauge);
         if (existing != null && !(existing instanceof Gauge)) {
             registry.replace(metricName, existing);

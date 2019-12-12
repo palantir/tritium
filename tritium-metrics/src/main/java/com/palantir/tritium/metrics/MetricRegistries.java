@@ -265,10 +265,7 @@ public final class MetricRegistries {
 
         CacheTaggedMetrics.create(cache, name)
                 .getMetrics()
-                .forEach((metricName, gauge) -> {
-                    registry.remove(metricName);
-                    registry.gauge(metricName, gauge);
-                });
+                .forEach(registry::registerWithReplacement);
     }
 
     /**
@@ -467,7 +464,7 @@ public final class MetricRegistries {
             String safeName = MetricRegistry.name(prefix, name);
             MetricName metricName = MetricName.builder().safeName(safeName).build();
             if (metric instanceof Gauge) {
-                registry.gauge(metricName, (Gauge<?>) metric);
+                registry.registerWithReplacement(metricName, (Gauge<?>) metric);
             } else if (metric instanceof Counter) {
                 registry.counter(metricName, () -> (Counter) metric);
             } else if (metric instanceof Histogram) {
