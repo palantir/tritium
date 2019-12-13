@@ -202,6 +202,10 @@ final class ByteBuddyInstrumentation {
         checkState(interfaceClass.equals(discoveredInterfaces[0]), "Expected the provided interface first");
         for (int i = 1; i < discoveredInterfaces.length; i++) {
             Class<?> additionalInterface = discoveredInterfaces[i];
+            if (assignableFromAny(additionalInterface, discoveredInterfaces)) {
+                // No need to retain interfaces already provided by the requested interface class
+                continue;
+            }
             if (isAccessibleFrom(classLoader, additionalInterface)) {
                 additionalInterfaces.add(additionalInterface);
             } else {
@@ -211,6 +215,16 @@ final class ByteBuddyInstrumentation {
             }
         }
         return additionalInterfaces.build();
+    }
+
+    private static boolean assignableFromAny(Class<?> target, Class<?>[] allInterfaces) {
+        for (Class<?> toCheck : allInterfaces) {
+            // allInterfaces always contains target
+            if (toCheck != target && target.isAssignableFrom(toCheck)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ClassLoader getClassLoader(Class<?> clazz) {
