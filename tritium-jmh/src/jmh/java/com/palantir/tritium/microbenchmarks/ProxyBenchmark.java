@@ -18,6 +18,7 @@ package com.palantir.tritium.microbenchmarks;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tracing.Tracer;
 import com.palantir.tritium.Tritium;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -94,6 +95,7 @@ public class ProxyBenchmark {
     private Service instrumentedWithRemoting;
     private Service instrumentedDefaultUntagged;
     private Service instrumentedDefaultTagged;
+    private Runnable instrumentedFailing;
 
     @Setup
     public void before(Blackhole blackhole) {
@@ -156,6 +158,14 @@ public class ProxyBenchmark {
 
         instrumentedDefaultTagged = Tritium.instrument(
                 serviceInterface, raw, new DefaultTaggedMetricRegistry());
+
+        // pre-compute the exception to avoid measuring exception creation, only the difference from instrumentation.
+        UnsupportedOperationException failure = new UnsupportedOperationException();
+        instrumentedFailing = Instrumentation.builder(Runnable.class, () -> {
+            throw failure;
+        })
+                .withPerformanceTraceLogging()
+                .build();
 
         // Prevent DCE from tracing
         Tracer.subscribe("jmh", blackhole::consume);
@@ -229,6 +239,16 @@ public class ProxyBenchmark {
     @Benchmark
     public String instrumentedDefaultTagged() {
         return instrumentedDefaultTagged.echo("test");
+    }
+
+    @Benchmark
+    public Throwable instrumentedFailing() {
+        try {
+            instrumentedFailing.run();
+        } catch (RuntimeException e) {
+            return e;
+        }
+        throw new SafeIllegalStateException("Expected to return");
     }
 
     public interface Service {
