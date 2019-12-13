@@ -22,8 +22,10 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
+import com.palantir.logsafe.SafeArg;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.slf4j.LoggerFactory;
 
 /**
  * Similar to {@link com.codahale.metrics.MetricRegistry} but allows tagging of {@link Metric}s.
@@ -61,14 +63,56 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
     Histogram histogram(MetricName metricName, Supplier<Histogram> histogramSupplier);
 
     /**
+     * Returns existing gauge metric for the specified metric name or empty if none has been registered.
+     *
+     * @implNote Implementations should override this method with a more efficient mechanism.
+     *
+     * @param metricName metric name
+     * @return gauge metric or empty if none exists for this name
+     */
+    @SuppressWarnings("unchecked")
+    default <T> Optional<Gauge<T>> gauge(MetricName metricName) {
+        Metric metric = getMetrics().get(metricName);
+        if (metric instanceof Gauge) {
+            return Optional.of((Gauge<T>) metric);
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Returns existing or new gauge metric for the specified metric name.
      *
      * @param metricName metric name
      * @param gauge gauge
      * @return gauge metric
+     *
+     * In most cases, one typically wants {@link #registerWithReplacement(MetricName, Gauge)} as gauges may
+     * retain references to large backing data structures (e.g. queue or cache), and if a gauge is being registered
+     * with the same name, one is likely replacing that previous data structure and the registry should not retain
+     * references to the previous version. If lookup of an existing gauge is desired, one should use
+     * {@link #gauge(MetricName)}.
      */
     // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
+    // @Deprecated
     <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge);
+
+    /**
+     * Registers and returns the specified gauge, replacing any existing gauge with the specified metric name.
+     *
+     * @param metricName metric name
+     * @param gauge gauge
+     */
+    // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
+    @SuppressWarnings("deprecation") // explicitly using as desired
+    default void registerWithReplacement(MetricName metricName, Gauge<?> gauge) {
+        Gauge<?> existing = gauge(metricName, gauge);
+        if (existing == gauge) {
+            return;
+        }
+        remove(metricName).ifPresent(removed -> LoggerFactory.getLogger(getClass())
+                .debug("Removed previously registered gauge {}", SafeArg.of("metricName", metricName)));
+        gauge(metricName, gauge);
+    }
 
     /**
      * Returns existing or new counter metric for the specified metric name.

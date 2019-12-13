@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Register tagged gauge with replacement
+  links:
+  - https://github.com/palantir/tritium/pull/501
