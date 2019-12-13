@@ -36,9 +36,12 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegistry {
 
+    private static final Logger log = LoggerFactory.getLogger(AbstractTaggedMetricRegistry.class);
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
     private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
@@ -118,16 +121,18 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "deprecation"})
+    @SuppressWarnings("unchecked")
     public final <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge) {
         return getOrAdd(metricName, Gauge.class, () -> gauge);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public final void registerWithReplacement(MetricName metricName, Gauge<?> gauge) {
         Metric existing = registry.put(metricName, gauge);
-        if (existing != null && !(existing instanceof Gauge)) {
+        if (existing instanceof Gauge) {
+            log.debug("Removed previously registered gauge {}", SafeArg.of("metricName", metricName));
+        } else if (existing != null) {
+            // Existing should be a gauge
             registry.replace(metricName, existing);
             throw invalidMetric(metricName, gauge.getClass(), existing);
         }
