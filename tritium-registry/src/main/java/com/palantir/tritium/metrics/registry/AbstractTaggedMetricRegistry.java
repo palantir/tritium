@@ -25,6 +25,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Timer;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.SafeArg;
@@ -41,7 +42,10 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegistry {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractTaggedMetricRegistry.class);
+    // Logger must be initialized lazily, otherwise it's possible SharedTaggedMetricRegistries.getSingleton
+    // can cause logger initialization, and singleton registry accessors in the logging framework can fail.
+    private static final Supplier<Logger> log =
+            Suppliers.memoize(() -> LoggerFactory.getLogger(AbstractTaggedMetricRegistry.class));
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
     private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
@@ -130,7 +134,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     public final void registerWithReplacement(MetricName metricName, Gauge<?> gauge) {
         Metric existing = registry.put(metricName, gauge);
         if (existing instanceof Gauge) {
-            log.debug("Removed previously registered gauge {}", SafeArg.of("metricName", metricName));
+            log.get().debug("Removed previously registered gauge {}", SafeArg.of("metricName", metricName));
         } else if (existing != null) {
             // Existing should be a gauge
             registry.replace(metricName, existing);
