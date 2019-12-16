@@ -1,0 +1,7 @@
+type: fix
+fix:
+  description: |-
+    tritium no longer imposes error_prone_annotations 2.3.4 on consumers,
+    to avoid triggering a baseline bug (https://github.com/palantir/gradle-baseline/issues/1113)
+  links:
+  - https://github.com/palantir/tritium/pull/553
