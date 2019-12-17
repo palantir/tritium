@@ -36,11 +36,13 @@ public class MetricNameTest {
                 .putSafeTags("key", "value")
                 .putSafeTags("key1", "value1")
                 .build();
+        MetricName three = RealMetricName.create(two);
 
-        assertThat(one).isEqualTo(two);
-        assertThat(two).isEqualTo(one);
+        assertThat(one).isEqualTo(two).isEqualTo(three);
+        assertThat(two).isEqualTo(one).isEqualTo(three);
+        assertThat(three).isEqualTo(one).isEqualTo(two);
 
-        assertThat(one.toString()).isEqualTo(two.toString());
+        assertThat(one.toString()).isEqualTo(two.toString()).isEqualTo(three.toString());
     }
 
     @Test
