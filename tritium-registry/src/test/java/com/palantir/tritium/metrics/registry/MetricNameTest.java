@@ -37,12 +37,25 @@ public class MetricNameTest {
                 .putSafeTags("key1", "value1")
                 .build();
         MetricName three = RealMetricName.create(two);
+        MetricName four = RealMetricName.create(
+                MetricName.builder()
+                .safeName("test")
+                .putSafeTags("key2", "value2")
+                .putSafeTags("key", "value")
+                        .build(),
+                "key1",
+                "value1");
 
-        assertThat(one).isEqualTo(two).isEqualTo(three);
-        assertThat(two).isEqualTo(one).isEqualTo(three);
-        assertThat(three).isEqualTo(one).isEqualTo(two);
+        assertThat(one).isEqualTo(two).isEqualTo(three).isEqualTo(four);
+        assertThat(two).isEqualTo(one).isEqualTo(three).isEqualTo(four);
+        assertThat(three).isEqualTo(one).isEqualTo(two).isEqualTo(four);
+        assertThat(four).isEqualTo(one).isEqualTo(two).isEqualTo(three);
 
-        assertThat(one.toString()).isEqualTo(two.toString()).isEqualTo(three.toString());
+        assertThat(one.toString())
+                .isEqualTo(two.toString())
+                .isEqualTo(three.toString())
+                .isEqualTo(four.toString())
+                .isEqualTo("MetricName{safeName=test, safeTags={key=value, key1=value1, key2=value2}}");
     }
 
     @Test
