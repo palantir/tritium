@@ -36,11 +36,33 @@ public class MetricNameTest {
                 .putSafeTags("key", "value")
                 .putSafeTags("key1", "value1")
                 .build();
+        MetricName three = RealMetricName.create(two);
+        MetricName four = RealMetricName.create(
+                MetricName.builder()
+                        .safeName("test")
+                        .putSafeTags("key2", "value2")
+                        .putSafeTags("key", "value")
+                        .build(),
+                "key1",
+                "value1");
+        MetricName five = ImmutableMetricName.copyOf(four);
 
-        assertThat(one).isEqualTo(two);
-        assertThat(two).isEqualTo(one);
+        assertThat(one).isEqualTo(two).isEqualTo(three).isEqualTo(four).isEqualTo(five);
+        assertThat(two).isEqualTo(one).isEqualTo(three).isEqualTo(four).isEqualTo(five);
+        assertThat(three).isEqualTo(one).isEqualTo(two).isEqualTo(four).isEqualTo(five);
+        assertThat(four).isEqualTo(one).isEqualTo(two).isEqualTo(three).isEqualTo(five);
 
-        assertThat(one.toString()).isEqualTo(two.toString());
+        assertThat(one.toString())
+                .isEqualTo(two.toString())
+                .isEqualTo(three.toString())
+                .isEqualTo(four.toString())
+                .isEqualTo(five.toString())
+                .isEqualTo("MetricName{safeName=test, safeTags={key=value, key1=value1, key2=value2}}");
+        assertThat(one)
+                .hasSameHashCodeAs(two)
+                .hasSameHashCodeAs(three)
+                .hasSameHashCodeAs(four)
+                .hasSameHashCodeAs(five);
     }
 
     @Test

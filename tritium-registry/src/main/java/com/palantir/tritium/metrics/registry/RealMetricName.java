@@ -51,6 +51,11 @@ final class RealMetricName implements MetricName {
     }
 
     @Override
+    public String toString() {
+        return "MetricName{safeName=" + safeName + ", safeTags=" +  safeTags + '}';
+    }
+
+    @Override
     public int hashCode() {
         return hashCode;
     }
