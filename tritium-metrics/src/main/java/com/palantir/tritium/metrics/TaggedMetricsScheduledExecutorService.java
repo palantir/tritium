@@ -54,9 +54,9 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
         this.completed = metrics.completed(name);
         this.duration = metrics.duration(name);
 
-        this.scheduledOnce = registry.meter(createMetricName("scheduled.once", name));
-        this.scheduledRepetitively = registry.meter(createMetricName("scheduled.repetitively", name));
-        this.scheduledOverrun = registry.counter(createMetricName("scheduled.overrun", name));
+        this.scheduledOnce = metrics.scheduledOnce(name);
+        this.scheduledRepetitively = metrics.scheduledRepetitively(name);
+        this.scheduledOverrun = metrics.scheduledOverrun(name);
     }
 
     @Override
