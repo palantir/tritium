@@ -5,24 +5,22 @@ com.google.auto.service:auto-service = 1.0-rc4
 com.google.auto:auto-common = 0.10
 com.google.code.findbugs:jFormatString = 3.0.0
 com.google.code.findbugs:jsr305 = 3.0.2
-com.google.errorprone:error_prone_annotations = 2.3.3
-com.google.errorprone:error_prone_core = 2.3.3
 com.google.guava:guava = 23.6.1-jre
 com.google.guava:guava-testlib = 23.6.1-jre
 com.palantir.remoting3:* = 3.46.0
-com.palantir.safe-logging:* = 1.12.0
-com.palantir.tracing:* = 3.4.0
+com.palantir.safe-logging:* = 1.12.2
+com.palantir.tracing:* = 4.1.0
 com.squareup.okhttp3:okhttp = 4.0.0
-com.uber.nullaway:nullaway = 0.7.8
+com.uber.nullaway:nullaway = 0.7.9
 io.undertow:undertow-core = 2.0.20.Final
-net.bytebuddy:byte-buddy = 1.10.3
+net.bytebuddy:byte-buddy = 1.10.5
 org.assertj:assertj-core = 3.14.0
 org.awaitility:awaitility = 4.0.1
 org.checkerframework:checker-qual = 2.5.0
-org.hdrhistogram:* = 2.1.11
-org.immutables:* = 2.8.1
+org.hdrhistogram:* = 2.1.12
+org.immutables:* = 2.8.3
 org.junit.jupiter:* = 5.5.2
-org.mockito:* = 3.1.0
+org.mockito:* = 3.2.4
 org.mpierce.metrics.reservoir:* = 1.1.2
 org.openjdk.jmh:* = 1.22
 org.slf4j:* = 1.7.26
@@ -31,4 +29,9 @@ net.jqwik:jqwik = 1.2.0
 
 # dependency-upgrader:OFF
 io.dropwizard.metrics:* = 3.2.5
+
+# Don't want to impose 2.3.4 on downstream consumers as this triggers a baseline bug: https://github.com/palantir/gradle-baseline/issues/1113
+com.google.errorprone:error_prone_annotations = 2.3.3
+com.google.errorprone:error_prone_refaster = 2.3.3
+
 # dependency-upgrader:ON

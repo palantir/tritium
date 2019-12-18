@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.metrics.jvm;
 
-import com.palantir.tritium.metrics.registry.MetricName;
+import com.codahale.metrics.Gauge;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -41,8 +41,8 @@ final class SafepointMetrics {
             Object hotspotRuntimeMBean = getHotspotRuntimeMBean.invoke(null);
             Method getTotalSafepointTime = hotspotRuntimeMBean.getClass().getMethod("getTotalSafepointTime");
             getTotalSafepointTime.setAccessible(true);
-            registry.gauge(MetricName.builder().safeName("jvm.safepoint.time").build(),
-                    () -> (Long) invoke(getTotalSafepointTime, hotspotRuntimeMBean));
+            Gauge<Long> gauge = () -> (Long) invoke(getTotalSafepointTime, hotspotRuntimeMBean);
+            InternalJvmMetrics.of(registry).safepointTime(gauge);
         } catch (ReflectiveOperationException e) {
             log.info("Could not get the total safepoint time, these metrics will not be registered.", e);
         }
@@ -52,7 +52,7 @@ final class SafepointMetrics {
         try {
             return method.invoke(object);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

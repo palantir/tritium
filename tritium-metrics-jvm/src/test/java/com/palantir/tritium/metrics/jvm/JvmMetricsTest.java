@@ -38,9 +38,7 @@ import org.junit.jupiter.api.io.TempDir;
 final class JvmMetricsTest {
 
     private static final ImmutableSet<String> EXPECTED_NAMES = ImmutableSet.of(
-            "jvm.attribute.name",
             "jvm.attribute.uptime",
-            "jvm.attribute.vendor",
             "jvm.buffers.direct.capacity",
             "jvm.buffers.direct.count",
             "jvm.buffers.direct.used",
@@ -153,5 +151,21 @@ final class JvmMetricsTest {
         Gauge<Long> safepointTime = (Gauge<Long>) registry.getMetrics()
                 .get(MetricName.builder().safeName("jvm.safepoint.time").build());
         assertThat(safepointTime).satisfies(gauge -> assertThat(gauge.getValue()).isNotNegative());
+    }
+
+    @Test
+    void testUptimeHasExtraTags() {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        JvmMetrics.register(registry);
+        assertThat(registry.getMetrics().keySet()).anySatisfy(name -> {
+            assertThat(name.safeName()).isEqualTo("jvm.attribute.uptime");
+            assertThat(name.safeTags().keySet()).containsExactlyInAnyOrder(
+                    "javaRuntimeVersion",
+                    "javaSpecificationVersion",
+                    "javaVendorVersion",
+                    "javaVersion",
+                    "javaVersionDate",
+                    "javaVmVendor");
+        });
     }
 }

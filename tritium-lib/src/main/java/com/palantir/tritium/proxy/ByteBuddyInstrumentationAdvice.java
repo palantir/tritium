@@ -16,7 +16,6 @@
 
 package com.palantir.tritium.proxy;
 
-import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.tritium.api.event.InstrumentationFilter;
@@ -31,11 +30,8 @@ import javax.annotation.Nullable;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class ByteBuddyInstrumentationAdvice {
-
-    private static final Logger logger = LoggerFactory.getLogger(InvocationEventProxy.class);
 
     private ByteBuddyInstrumentationAdvice() {}
 
@@ -56,21 +52,24 @@ final class ByteBuddyInstrumentationAdvice {
             @Advice.FieldValue("instrumentationFilter") InstrumentationFilter filter,
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
             @Advice.FieldValue("methods") Method[] methods,
+            @Advice.FieldValue("log") Logger logger,
+            @Advice.FieldValue("DISABLED_HANDLER_SENTINEL") InvocationContext disabledHandlerSentinel,
             @MethodIndex int index) {
         Method method = methods[index];
         try {
             if (eventHandler.isEnabled() && filter.shouldInstrument(proxy, method, arguments)) {
                 return eventHandler.preInvocation(proxy, method, arguments);
             }
-        } catch (Throwable t) {
+            return disabledHandlerSentinel;
+        } catch (RuntimeException | Error t) {
             if (logger.isWarnEnabled()) {
                 logger.warn(
                         "Failure occurred handling 'preInvocation' invocation on: {}",
                         UnsafeArg.of("instance", Objects.toString(proxy)),
                         t);
             }
+            return null;
         }
-        return null;
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, backupArguments = false)
@@ -78,27 +77,26 @@ final class ByteBuddyInstrumentationAdvice {
             @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object result,
             @Advice.Thrown Throwable thrown,
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
+            @Advice.FieldValue("log") Logger logger,
+            @Advice.FieldValue("DISABLED_HANDLER_SENTINEL") InvocationContext disabledHandlerSentinel,
             @Advice.Enter InvocationContext context) {
-        if (context != null) {
+        if (context != disabledHandlerSentinel) {
             try {
                 if (thrown == null) {
                     eventHandler.onSuccess(context, result);
                 } else {
                     eventHandler.onFailure(context, thrown);
                 }
-            } catch (Throwable t) {
+            } catch (RuntimeException | Error t) {
                 if (logger.isWarnEnabled()) {
+                    Object value = thrown == null ? result : thrown;
                     logger.warn(
                             "Failure occurred handling post-invocation: {}, {}",
                             UnsafeArg.of("context", context),
-                            safeSimpleClassName("result", thrown == null ? result : thrown),
+                            SafeArg.of("result", value == null ? "null" : value.getClass().getSimpleName()),
                             t);
                 }
             }
         }
-    }
-
-    static SafeArg<String> safeSimpleClassName(@CompileTimeConstant String name, @Nullable Object object) {
-        return SafeArg.of(name, object == null ? "null" : object.getClass().getSimpleName());
     }
 }

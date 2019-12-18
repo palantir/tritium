@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: When `InvocationEventHandler.preInvocation` throws an exception, `onSuccess` or `onFailure` will be properly invoked with a null context as expected.
+  links:
+  - https://github.com/palantir/tritium/pull/510

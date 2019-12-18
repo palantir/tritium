@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: RealMetricName provides a toString implementation matching ImmutableMetricName.
+  links:
+  - https://github.com/palantir/tritium/pull/555

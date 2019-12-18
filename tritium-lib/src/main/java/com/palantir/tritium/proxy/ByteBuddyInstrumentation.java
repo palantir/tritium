@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nullable;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.ClassFileVersion;
 import net.bytebuddy.TypeCache;
@@ -60,6 +61,9 @@ final class ByteBuddyInstrumentation {
     private static final TypeCache<ImmutableList<Class<?>>> cache =
             new TypeCache.WithInlineExpunction<>(TypeCache.Sort.WEAK);
     private static final Joiner UNDERSCORE_JOINER = Joiner.on('_');
+    private static final String LOGGER_FIELD = "log";
+    private static final String METHODS_FIELD = "methods";
+    private static final String DISABLED_HANDLER_SENTINEL_FIELD = "DISABLED_HANDLER_SENTINEL";
 
     private ByteBuddyInstrumentation() {
         throw new UnsupportedOperationException();
@@ -172,8 +176,14 @@ final class ByteBuddyInstrumentation {
                             Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
                     .defineField("instrumentationFilter", InstrumentationFilter.class,
                             Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
-                    .defineField("methods", Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
-                    .initializer(new StaticFieldLoadedTypeInitializer("methods", allMethods.toArray(new Method[0])))
+                    .defineField(METHODS_FIELD, Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+                    .defineField(LOGGER_FIELD, Logger.class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+                    .defineField(DISABLED_HANDLER_SENTINEL_FIELD, InvocationContext.class,
+                            Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+                    .initializer(new StaticFieldLoadedTypeInitializer(METHODS_FIELD, allMethods.toArray(new Method[0])))
+                    .initializer(new StaticFieldLoadedTypeInitializer(
+                            DISABLED_HANDLER_SENTINEL_FIELD, DisabledHandlerSentinel.INSTANCE))
+                    .initializer(LoggerInitializer.INSTANCE)
                     .make()
                     .load(classLoader)
                     .getLoaded();
@@ -192,6 +202,10 @@ final class ByteBuddyInstrumentation {
         checkState(interfaceClass.equals(discoveredInterfaces[0]), "Expected the provided interface first");
         for (int i = 1; i < discoveredInterfaces.length; i++) {
             Class<?> additionalInterface = discoveredInterfaces[i];
+            if (assignableFromAny(additionalInterface, discoveredInterfaces)) {
+                // No need to retain interfaces already provided by the requested interface class
+                continue;
+            }
             if (isAccessibleFrom(classLoader, additionalInterface)) {
                 additionalInterfaces.add(additionalInterface);
             } else {
@@ -201,6 +215,16 @@ final class ByteBuddyInstrumentation {
             }
         }
         return additionalInterfaces.build();
+    }
+
+    private static boolean assignableFromAny(Class<?> target, Class<?>[] allInterfaces) {
+        for (Class<?> toCheck : allInterfaces) {
+            // allInterfaces always contains target
+            if (toCheck != target && target.isAssignableFrom(toCheck)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ClassLoader getClassLoader(Class<?> clazz) {
@@ -295,9 +319,58 @@ final class ByteBuddyInstrumentation {
         }
     }
 
+    private enum LoggerInitializer implements LoadedTypeInitializer {
+        INSTANCE;
+
+        @Override
+        public void onLoad(Class<?> type) {
+            try {
+                type.getDeclaredField(LOGGER_FIELD).set(null, LoggerFactory.getLogger(type));
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                throw new SafeIllegalStateException("Failed to set the logger field", e);
+            }
+        }
+
+        @Override
+        public boolean isAlive() {
+            return true;
+        }
+    }
+
     private static String className(List<Class<?>> interfaceClasses) {
         return "com.palantir.tritium.proxy.Instrumented"
                 + UNDERSCORE_JOINER.join(Lists.transform(interfaceClasses, Class::getSimpleName))
                 + '$' + offset.getAndIncrement();
+    }
+
+    // A sentinel value is used to differentiate null contexts returned by handlers from
+    // invocations on disabled handlers.
+    private enum DisabledHandlerSentinel implements InvocationContext {
+        INSTANCE;
+
+        @Override
+        public long getStartTimeNanos() {
+            throw fail();
+        }
+
+        @Nullable
+        @Override
+        public Object getInstance() {
+            throw fail();
+        }
+
+        @Override
+        public Method getMethod() {
+            throw fail();
+        }
+
+        @Override
+        public Object[] getArgs() {
+            throw fail();
+        }
+
+        private static RuntimeException fail() {
+            throw new UnsupportedOperationException("methods should not be invoked");
+        }
     }
 }

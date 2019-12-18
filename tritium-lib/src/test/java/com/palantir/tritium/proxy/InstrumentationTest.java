@@ -17,9 +17,11 @@
 package com.palantir.tritium.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -34,6 +36,8 @@ import com.codahale.metrics.Slf4jReporter.LoggingLevel;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.Runnables;
+import com.palantir.logsafe.exceptions.SafeRuntimeException;
 import com.palantir.tritium.Tagged;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.DefaultInvocationContext;
@@ -68,6 +72,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
@@ -162,7 +167,7 @@ public abstract class InstrumentationTest {
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
 
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
-        assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax() >= 0L).isTrue();
+        assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax()).isGreaterThanOrEqualTo(0L);
 
         Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
     }
@@ -634,6 +639,150 @@ public abstract class InstrumentationTest {
                 .build();
         assertThat(instrumentedService.run()).isEqualTo(2);
         assertThat(instrumentedService.specificity()).isEqualTo("more specific");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testThrowingHandler_success_single() {
+        InvocationEventHandler<InvocationContext> handler = Mockito.mock(InvocationEventHandler.class);
+        when(handler.isEnabled()).thenReturn(true);
+        when(handler.preInvocation(any(), any(), any())).thenThrow(new RuntimeException());
+        Runnable wrapped = Instrumentation.builder(Runnable.class, Runnables.doNothing())
+                .withHandler(handler)
+                .build();
+        assertThatCode(wrapped::run).doesNotThrowAnyException();
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onSuccess(isNull(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testThrowingHandler_success_composite() {
+        InvocationEventHandler<InvocationContext> handler = Mockito.mock(InvocationEventHandler.class);
+        when(handler.isEnabled()).thenReturn(true);
+        when(handler.preInvocation(any(), any(), any())).thenThrow(new RuntimeException());
+        Runnable wrapped = Instrumentation.builder(Runnable.class, Runnables.doNothing())
+                .withHandler(handler)
+                .withTaggedMetrics(new DefaultTaggedMetricRegistry())
+                .build();
+        assertThatCode(wrapped::run).doesNotThrowAnyException();
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onSuccess(isNull(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testThrowingHandler_failure_single() {
+        InvocationEventHandler<InvocationContext> handler = Mockito.mock(InvocationEventHandler.class);
+        when(handler.isEnabled()).thenReturn(true);
+        when(handler.preInvocation(any(), any(), any())).thenThrow(new RuntimeException());
+        Runnable wrapped = Instrumentation.builder(Runnable.class, () -> {
+            throw new SafeRuntimeException("expected");
+        })
+                .withHandler(handler)
+                .build();
+        assertThatCode(wrapped::run)
+                .isExactlyInstanceOf(SafeRuntimeException.class)
+                .hasMessage("expected");
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onFailure(isNull(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testThrowingHandler_failure_composite() {
+        InvocationEventHandler<InvocationContext> handler = Mockito.mock(InvocationEventHandler.class);
+        when(handler.isEnabled()).thenReturn(true);
+        when(handler.preInvocation(any(), any(), any())).thenThrow(new RuntimeException());
+        Runnable wrapped = Instrumentation.builder(Runnable.class, () -> {
+            throw new SafeRuntimeException("expected");
+        })
+                .withHandler(handler)
+                .withTaggedMetrics(new DefaultTaggedMetricRegistry())
+                .build();
+        assertThatCode(wrapped::run)
+                .isExactlyInstanceOf(SafeRuntimeException.class)
+                .hasMessage("expected");
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onFailure(isNull(), any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testReturnNull_success_singleHandler() {
+        InvocationEventHandler<InvocationContext> handler = Mockito.mock(InvocationEventHandler.class);
+        when(handler.isEnabled()).thenReturn(true);
+        when(handler.preInvocation(any(), any(), any())).thenReturn(null);
+        Runnable wrapped = Instrumentation.builder(Runnable.class, Runnables.doNothing())
+                .withHandler(handler)
+                .build();
+        assertThatCode(wrapped::run).doesNotThrowAnyException();
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onSuccess(isNull(), any());
+        verifyNoMoreInteractions(handler);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testReturnNull_failure_singleHandler() {
+        InvocationEventHandler<InvocationContext> handler = Mockito.mock(InvocationEventHandler.class);
+        when(handler.isEnabled()).thenReturn(true);
+        when(handler.preInvocation(any(), any(), any())).thenReturn(null);
+        Runnable wrapped = Instrumentation.builder(Runnable.class, () -> {
+            throw new SafeRuntimeException("expected");
+        })
+                .withHandler(handler)
+                .build();
+        assertThatCode(wrapped::run)
+                .isExactlyInstanceOf(SafeRuntimeException.class)
+                .hasMessage("expected");
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onFailure(isNull(), any());
+        verifyNoMoreInteractions(handler);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testReturnNull_success_compositeHandler() {
+        InvocationEventHandler<InvocationContext> handler = Mockito.mock(InvocationEventHandler.class);
+        when(handler.isEnabled()).thenReturn(true);
+        when(handler.preInvocation(any(), any(), any())).thenReturn(null);
+        Runnable wrapped = Instrumentation.builder(Runnable.class, Runnables.doNothing())
+                .withHandler(handler)
+                .withTaggedMetrics(new DefaultTaggedMetricRegistry())
+                .build();
+        assertThatCode(wrapped::run).doesNotThrowAnyException();
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onSuccess(isNull(), any());
+        verifyNoMoreInteractions(handler);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testReturnNull_failure_compositeHandler() {
+        InvocationEventHandler<InvocationContext> handler = Mockito.mock(InvocationEventHandler.class);
+        when(handler.isEnabled()).thenReturn(true);
+        when(handler.preInvocation(any(), any(), any())).thenReturn(null);
+        Runnable wrapped = Instrumentation.builder(Runnable.class, () -> {
+            throw new SafeRuntimeException("expected");
+        })
+                .withHandler(handler)
+                .withTaggedMetrics(new DefaultTaggedMetricRegistry())
+                .build();
+        assertThatCode(wrapped::run)
+                .isExactlyInstanceOf(SafeRuntimeException.class)
+                .hasMessage("expected");
+        verify(handler).isEnabled();
+        verify(handler).preInvocation(any(), any(), any());
+        verify(handler).onFailure(isNull(), any());
+        verifyNoMoreInteractions(handler);
     }
 
     public interface Parent extends LessSpecificReturn {

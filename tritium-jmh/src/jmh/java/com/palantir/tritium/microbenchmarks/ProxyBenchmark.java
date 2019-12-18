@@ -18,6 +18,7 @@ package com.palantir.tritium.microbenchmarks;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tracing.Tracer;
 import com.palantir.tritium.Tritium;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -25,7 +26,6 @@ import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
-import com.palantir.tritium.metrics.registry.SharedTaggedMetricRegistries;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHandler;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
@@ -95,6 +95,8 @@ public class ProxyBenchmark {
     private Service instrumentedWithRemoting;
     private Service instrumentedDefaultUntagged;
     private Service instrumentedDefaultTagged;
+    private Runnable instrumentedFailing;
+    private ManyArguments instrumentedManyArguments;
 
     @Setup
     public void before(Blackhole blackhole) {
@@ -123,7 +125,7 @@ public class ProxyBenchmark {
                 .build();
 
         instrumentedWithTaggedMetrics = Instrumentation.builder(serviceInterface, raw)
-                .withTaggedMetrics(SharedTaggedMetricRegistries.getSingleton(), serviceInterface.getName())
+                .withTaggedMetrics(new DefaultTaggedMetricRegistry(), serviceInterface.getName())
                 .build();
 
         instrumentedWithTracing = Instrumentation.builder(serviceInterface, raw)
@@ -157,6 +159,18 @@ public class ProxyBenchmark {
 
         instrumentedDefaultTagged = Tritium.instrument(
                 serviceInterface, raw, new DefaultTaggedMetricRegistry());
+
+        // pre-compute the exception to avoid measuring exception creation, only the difference from instrumentation.
+        UnsupportedOperationException failure = new UnsupportedOperationException();
+        instrumentedFailing = Instrumentation.builder(Runnable.class, () -> {
+            throw failure;
+        })
+                .withPerformanceTraceLogging()
+                .build();
+
+        instrumentedManyArguments = Instrumentation.builder(ManyArguments.class, ManyArguments.Implementation.INSTANCE)
+                .withPerformanceTraceLogging()
+                .build();
 
         // Prevent DCE from tracing
         Tracer.subscribe("jmh", blackhole::consume);
@@ -230,6 +244,121 @@ public class ProxyBenchmark {
     @Benchmark
     public String instrumentedDefaultTagged() {
         return instrumentedDefaultTagged.echo("test");
+    }
+
+    @Benchmark
+    public Throwable instrumentedFailing() {
+        try {
+            instrumentedFailing.run();
+        } catch (RuntimeException e) {
+            return e;
+        }
+        throw new SafeIllegalStateException("Expected to return");
+    }
+
+    @Benchmark
+    public void instrumentedManyArguments() {
+        instrumentedManyArguments.apply(
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                61,
+                62,
+                63,
+                64,
+                65,
+                66,
+                67,
+                68,
+                69,
+                70,
+                71,
+                72,
+                73,
+                74,
+                75,
+                76,
+                77,
+                78,
+                79,
+                80,
+                81,
+                82,
+                83,
+                84,
+                85,
+                86,
+                87,
+                88,
+                89,
+                90,
+                91,
+                92,
+                93,
+                94,
+                95,
+                96,
+                97,
+                98,
+                99);
     }
 
     public interface Service {

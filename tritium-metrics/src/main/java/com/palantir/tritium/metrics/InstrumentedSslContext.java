@@ -16,7 +16,6 @@
 
 package com.palantir.tritium.metrics;
 
-import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.security.KeyManagementException;
 import java.security.SecureRandom;
 import javax.net.ssl.KeyManager;
@@ -34,7 +33,7 @@ final class InstrumentedSslContext extends SSLContext {
     private final SSLContext context;
     private final String name;
 
-    InstrumentedSslContext(SSLContext context, TaggedMetricRegistry metrics, String name) {
+    InstrumentedSslContext(SSLContext context, TlsMetrics metrics, String name) {
         super(new InstrumentedSslContextSpi(context, metrics, name), context.getProvider(), context.getProtocol());
         this.context = context;
         this.name = name;
@@ -48,14 +47,14 @@ final class InstrumentedSslContext extends SSLContext {
     private static final class InstrumentedSslContextSpi extends SSLContextSpi {
 
         private final SSLContext context;
-        private final TaggedMetricRegistry metrics;
+        private final TlsMetrics metrics;
         private final String name;
 
         InstrumentedSslContextSpi(
                 // This must be the delegate context, passing an InstrumentedSSLContext
                 // will result in infinite recursion.
                 SSLContext context,
-                TaggedMetricRegistry metrics,
+                TlsMetrics metrics,
                 String name) {
             this.context = context;
             this.metrics = metrics;

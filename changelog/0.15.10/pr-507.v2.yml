@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Fix ByteBuddyInstrumentationAdvice logger class name
+  links:
+  - https://github.com/palantir/tritium/pull/507

@@ -18,10 +18,7 @@ package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
-import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.palantir.tritium.metrics.registry.MetricName;
-import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -48,14 +45,14 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
 
     TaggedMetricsScheduledExecutorService(
             ScheduledExecutorService delegate,
-            TaggedMetricRegistry registry,
+            ExecutorMetrics metrics,
             String name) {
         this.delegate = delegate;
 
-        this.submitted = registry.meter(createMetricName("submitted", name));
-        this.running = registry.counter(createMetricName("running", name));
-        this.completed = registry.meter(createMetricName("completed", name));
-        this.duration = registry.timer(createMetricName("duration", name));
+        this.submitted = metrics.submitted(name);
+        this.running = metrics.running(name);
+        this.completed = metrics.completed(name);
+        this.duration = metrics.duration(name);
 
         this.scheduledOnce = registry.meter(createMetricName("scheduled.once", name));
         this.scheduledRepetitively = registry.meter(createMetricName("scheduled.repetitively", name));
@@ -239,12 +236,5 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
                 completed.mark();
             }
         }
-    }
-
-    private static MetricName createMetricName(String metricName, String name) {
-        return MetricName.builder()
-                .safeName(MetricRegistry.name("executor", metricName))
-                .putSafeTags("executor", name)
-                .build();
     }
 }

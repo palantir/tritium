@@ -33,7 +33,12 @@ public final class SharedTaggedMetricRegistries {
      */
     private static final TaggedMetricRegistry DEFAULT = new SlidingWindowTaggedMetricRegistry(35, TimeUnit.SECONDS);
 
-    /** Single shared instance for use when it is infeasible to plumb through a user supplied instance. */
+    /**
+     * Single shared instance for use when it is infeasible to plumb through a user supplied instance.
+     *
+     * @deprecated avoid using the global singleton
+     */
+    @Deprecated
     public static TaggedMetricRegistry getSingleton() {
         return DEFAULT;
     }

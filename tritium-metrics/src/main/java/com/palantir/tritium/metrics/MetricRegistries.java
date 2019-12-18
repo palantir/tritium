@@ -265,10 +265,7 @@ public final class MetricRegistries {
 
         CacheTaggedMetrics.create(cache, name)
                 .getMetrics()
-                .forEach((metricName, gauge) -> {
-                    registry.remove(metricName);
-                    registry.gauge(metricName, gauge);
-                });
+                .forEach(registry::registerWithReplacement);
     }
 
     /**
@@ -318,7 +315,7 @@ public final class MetricRegistries {
             String name) {
         return new TaggedMetricsScheduledExecutorService(
                 checkNotNull(delegate, "delegate"),
-                checkNotNull(registry, "registry"),
+                ExecutorMetrics.of(registry),
                 checkNotNull(name, "name"));
     }
 
@@ -342,7 +339,7 @@ public final class MetricRegistries {
         }
         return new TaggedMetricsExecutorService(
                 checkNotNull(delegate, "delegate"),
-                checkNotNull(registry, "registry"),
+                ExecutorMetrics.of(registry),
                 checkNotNull(name, "name"));
     }
 
@@ -358,7 +355,7 @@ public final class MetricRegistries {
     public static SSLContext instrument(TaggedMetricRegistry registry, SSLContext context, String name) {
         return new InstrumentedSslContext(
                 checkNotNull(context, "context"),
-                checkNotNull(registry, "registry"),
+                TlsMetrics.of(registry),
                 checkNotNull(name, "name"));
     }
 
@@ -374,7 +371,7 @@ public final class MetricRegistries {
     public static SSLSocketFactory instrument(TaggedMetricRegistry registry, SSLSocketFactory factory, String name) {
         return new InstrumentedSslSocketFactory(
                 checkNotNull(factory, "factory"),
-                checkNotNull(registry, "registry"),
+                TlsMetrics.of(registry),
                 checkNotNull(name, "name"));
     }
 
@@ -467,7 +464,7 @@ public final class MetricRegistries {
             String safeName = MetricRegistry.name(prefix, name);
             MetricName metricName = MetricName.builder().safeName(safeName).build();
             if (metric instanceof Gauge) {
-                registry.gauge(metricName, (Gauge<?>) metric);
+                registry.registerWithReplacement(metricName, (Gauge<?>) metric);
             } else if (metric instanceof Counter) {
                 registry.counter(metricName, () -> (Counter) metric);
             } else if (metric instanceof Histogram) {

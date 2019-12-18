@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.test.MoreSpecificReturn;
 import com.palantir.tritium.test.TestImplementation;
@@ -39,12 +38,6 @@ final class ProxiesTest {
         TestInterface proxy = Proxies.newProxy(TestInterface.class, implementation,
                 (delegate, method, args) -> method.invoke(implementation, args) + ", world");
         assertThat(proxy.test()).isEqualTo("hello, world");
-    }
-
-    @Test
-    void testInterfacesAdditionalInterfaces() {
-        Class<?>[] interfaces = Proxies.interfaces(TestInterface.class, Runnable.class, ImmutableList.of(List.class));
-        assertThat(interfaces).containsExactly(TestInterface.class, List.class, Runnable.class);
     }
 
     @Test

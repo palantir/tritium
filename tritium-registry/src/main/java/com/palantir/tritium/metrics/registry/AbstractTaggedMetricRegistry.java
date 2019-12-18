@@ -25,6 +25,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Timer;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.SafeArg;
@@ -35,9 +36,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegistry {
 
+    // Logger must be initialized lazily, otherwise it's possible SharedTaggedMetricRegistries.getSingleton
+    // can cause logger initialization, and singleton registry accessors in the logging framework can fail.
+    private static final Supplier<Logger> log =
+            Suppliers.memoize(() -> LoggerFactory.getLogger(AbstractTaggedMetricRegistry.class));
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
     private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
@@ -112,8 +120,26 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     @SuppressWarnings("unchecked")
+    public final <T> Optional<Gauge<T>> gauge(MetricName metricName) {
+        return Optional.ofNullable(checkMetricType(metricName, Gauge.class, registry.get(metricName)));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public final <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge) {
         return getOrAdd(metricName, Gauge.class, () -> gauge);
+    }
+
+    @Override
+    public final void registerWithReplacement(MetricName metricName, Gauge<?> gauge) {
+        Metric existing = registry.put(metricName, gauge);
+        if (existing instanceof Gauge) {
+            log.get().debug("Removed previously registered gauge {}", SafeArg.of("metricName", metricName));
+        } else if (existing != null) {
+            // Existing should be a gauge
+            registry.replace(metricName, existing);
+            throw invalidMetric(metricName, gauge.getClass(), existing);
+        }
     }
 
     @Override
@@ -193,14 +219,26 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
             Class<T> metricClass,
             Supplier<T> metricSupplier) {
         Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
-        if (!metricClass.isInstance(metric)) {
-            throw new SafeIllegalArgumentException(
-                    "Metric name already used for different metric type",
-                    SafeArg.of("metricName", metricName.safeName()),
-                    SafeArg.of("existingMetricType", metric.getClass().getSimpleName()),
-                    SafeArg.of("newMetricType", metricClass.getSimpleName()),
-                    SafeArg.of("safeTags", metricName.safeTags()));
+        return checkNotNull(checkMetricType(metricName, metricClass, metric), "metric");
+    }
+
+    @Nullable
+    static <T extends Metric> T checkMetricType(MetricName metricName, Class<T> metricClass, @Nullable Metric metric) {
+        if (metric == null || metricClass.isInstance(metric)) {
+            return metricClass.cast(metric);
         }
-        return metricClass.cast(metric);
+        throw invalidMetric(metricName, metricClass, metric);
+    }
+
+    private static <T extends Metric> SafeIllegalArgumentException invalidMetric(
+            MetricName metricName,
+            Class<T> metricClass,
+            Metric metric) {
+        return new SafeIllegalArgumentException(
+                "Metric name already used for different metric type",
+                SafeArg.of("metricName", metricName.safeName()),
+                SafeArg.of("existingMetricType", metric.getClass().getSimpleName()),
+                SafeArg.of("newMetricType", metricClass.getSimpleName()),
+                SafeArg.of("safeTags", metricName.safeTags()));
     }
 }

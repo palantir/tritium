@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Upgrade gradle-baseline to 2.41.0 and error-prone compiler to 2.3.4
+  links:
+  - https://github.com/palantir/tritium/pull/538

@@ -18,7 +18,6 @@ package com.palantir.tritium.metrics.jvm;
 
 import com.codahale.metrics.RatioGauge;
 import com.palantir.logsafe.SafeArg;
-import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.sun.management.UnixOperatingSystemMXBean;
 import java.lang.management.ManagementFactory;
@@ -38,8 +37,9 @@ final class Jdk9CompatibleFileDescriptorRatioGauge {
     static void register(TaggedMetricRegistry registry) {
         OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();
         if (osMxBean instanceof UnixOperatingSystemMXBean) {
+            InternalJvmMetrics metrics = InternalJvmMetrics.of(registry);
             UnixOperatingSystemMXBean unix = (UnixOperatingSystemMXBean) osMxBean;
-            registry.gauge(MetricName.builder().safeName("jvm.filedescriptor").build(), new RatioGauge() {
+            metrics.filedescriptor(new RatioGauge() {
                 @Override
                 protected Ratio getRatio() {
                     return Ratio.of(unix.getOpenFileDescriptorCount(), unix.getMaxFileDescriptorCount());

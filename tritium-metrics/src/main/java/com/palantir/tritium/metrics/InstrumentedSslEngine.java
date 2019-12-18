@@ -17,8 +17,6 @@
 package com.palantir.tritium.metrics;
 
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
-import com.palantir.tritium.metrics.registry.MetricName;
-import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.security.AccessController;
@@ -42,10 +40,10 @@ class InstrumentedSslEngine extends SSLEngine {
     // n.b. This value is set using 'beginHandshake' for renegotiation. We instrument both because ciphers may change.
     private final AtomicBoolean handshaking = new AtomicBoolean(true);
     private final SSLEngine engine;
-    private final TaggedMetricRegistry metrics;
+    private final TlsMetrics metrics;
     private final String name;
 
-    static SSLEngine instrument(SSLEngine engine, TaggedMetricRegistry metrics, String name) {
+    static SSLEngine instrument(SSLEngine engine, TlsMetrics metrics, String name) {
         Method getApplicationProtocol = getMethodNullable(engine.getClass(), "getApplicationProtocol");
         // Avoid the other three lookups if methods aren't present
         if (getApplicationProtocol != null) {
@@ -99,7 +97,7 @@ class InstrumentedSslEngine extends SSLEngine {
         }
     }
 
-    private InstrumentedSslEngine(SSLEngine engine, TaggedMetricRegistry metrics, String name) {
+    private InstrumentedSslEngine(SSLEngine engine, TlsMetrics metrics, String name) {
         this.engine = engine;
         this.metrics = metrics;
         this.name = name;
@@ -282,12 +280,11 @@ class InstrumentedSslEngine extends SSLEngine {
             try {
                 SSLSession session = engine.getSession();
                 if (session != null) {
-                    metrics.meter(MetricName.builder()
-                            .safeName("tls.handshake")
-                            .putSafeTags("context", name)
-                            .putSafeTags("cipher", session.getCipherSuite())
-                            .putSafeTags("protocol", session.getProtocol())
-                            .build())
+                    metrics.handshake()
+                            .context(name)
+                            .cipher(session.getCipherSuite())
+                            .protocol(session.getProtocol())
+                            .build()
                             .mark();
                 }
             } catch (RuntimeException e) {
@@ -305,7 +302,7 @@ class InstrumentedSslEngine extends SSLEngine {
         private final Method setHandshakeApplicationProtocolSelector;
         private final Method getHandshakeApplicationProtocolSelector;
 
-        private InstrumentedSslEngineJava9(SSLEngine engine, TaggedMetricRegistry metrics, String name,
+        private InstrumentedSslEngineJava9(SSLEngine engine, TlsMetrics metrics, String name,
                 Method getApplicationProtocol, Method getHandshakeApplicationProtocol,
                 Method setHandshakeApplicationProtocolSelector, Method getHandshakeApplicationProtocolSelector) {
             super(engine, metrics, name);

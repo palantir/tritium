@@ -48,13 +48,16 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * interface method takes no arguments. Arguments of primitive types are
      * wrapped in instances of the appropriate primitive wrapper class, such as
      * {@code java.lang.Integer} or {@code java.lang.Boolean}.
+     *
+     * @return the current invocation context. Null values are not recommended but
+     * are supported.
      */
     C preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args);
 
     /**
      * Invoked with the result of the invocation when it is successful.
      *
-     * @param context the current invocation context.
+     * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
      * @param result the return value from invocation, or null if {@link Void}.
      */
     void onSuccess(@Nullable InvocationContext context, @Nullable Object result);
@@ -66,7 +69,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * If the invocation throws an {@link java.lang.reflect.InvocationTargetException}, then the cause is passed to this
      * method. Any other thrown object is passed unaltered.
      *
-     * @param context the current invocation context.
+     * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
      * @param cause the throwable which caused the failure.
      */
     void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause);

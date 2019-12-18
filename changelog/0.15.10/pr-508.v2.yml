@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Instrumentation wrapper classes have their own loggers
+  links:
+  - https://github.com/palantir/tritium/pull/508
