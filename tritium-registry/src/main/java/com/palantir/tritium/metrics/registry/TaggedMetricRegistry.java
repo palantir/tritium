@@ -103,7 +103,7 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * @param gauge gauge
      */
     // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
-    @SuppressWarnings("deprecation") // explicitly using as desired
+    @SuppressWarnings({"deprecation", "UnsafeGaugeRegistration"}) // explicitly using as desired
     default void registerWithReplacement(MetricName metricName, Gauge<?> gauge) {
         Gauge<?> existing = gauge(metricName, gauge);
         if (existing == gauge) {
