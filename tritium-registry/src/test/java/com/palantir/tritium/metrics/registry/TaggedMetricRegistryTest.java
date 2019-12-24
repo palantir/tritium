@@ -106,7 +106,7 @@ final class TaggedMetricRegistryTest {
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     @SuppressWarnings("deprecation") // explicitly testing
     void testReplaceGauge(TaggedMetricRegistry registry) {
-        assertThat(registry.getMetrics().get(METRIC_1)).isNull();
+        assertThat(registry.getMetrics()).doesNotContainKey(METRIC_1);
         Gauge<Integer> gauge1 = intGauge(1);
         registry.registerWithReplacement(METRIC_1, gauge1);
         assertThat(registry.getMetrics().get(METRIC_1))
