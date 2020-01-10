@@ -6,7 +6,6 @@ com.google.auto:auto-common = 0.10
 com.google.code.findbugs:jFormatString = 3.0.0
 com.google.code.findbugs:jsr305 = 3.0.2
 com.google.guava:guava = 23.6.1-jre
-com.google.guava:guava-testlib = 23.6.1-jre
 com.palantir.remoting3:* = 3.46.0
 com.palantir.safe-logging:* = 1.13.0
 com.palantir.tracing:* = 4.2.1
