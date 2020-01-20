@@ -1,4 +1,4 @@
-ch.qos.logback:logback-classic = 1.1.2
+ch.qos.logback:logback-classic = 1.2.3
 com.fasterxml.jackson.*:* = 2.10.2
 com.github.ben-manes.caffeine:caffeine = 2.8.1
 com.google.auto.service:auto-service = 1.0-rc4
@@ -18,11 +18,11 @@ org.awaitility:awaitility = 4.0.2
 org.checkerframework:checker-qual = 2.5.0
 org.hdrhistogram:* = 2.1.12
 org.immutables:* = 2.8.3
-org.junit.jupiter:* = 5.5.2
+org.junit.jupiter:* = 5.6.0
 org.mockito:* = 3.2.4
 org.mpierce.metrics.reservoir:* = 1.1.2
 org.openjdk.jmh:* = 1.22
-org.slf4j:* = 1.7.26
+org.slf4j:* = 1.7.30
 net.jqwik:jqwik = 1.2.0
 
 
