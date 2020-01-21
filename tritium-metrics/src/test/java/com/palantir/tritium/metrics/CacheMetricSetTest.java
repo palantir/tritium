@@ -30,8 +30,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings({"BanGuavaCaches", // this implementation is explicitly for Guava caches
-                   "NullAway"}) // IntelliJ warnings about injected fields
+@SuppressWarnings({
+    "BanGuavaCaches", // this implementation is explicitly for Guava caches
+    "NullAway"
+}) // IntelliJ warnings about injected fields
 final class CacheMetricSetTest {
 
     @Mock
@@ -66,7 +68,8 @@ final class CacheMetricSetTest {
 
     @Test
     void estimatedSize() {
-        assertThat(metrics.get("test.cache.estimated.size")).isInstanceOf(Gauge.class)
+        assertThat(metrics.get("test.cache.estimated.size"))
+                .isInstanceOf(Gauge.class)
                 .returns(0L, metric -> ((Gauge) metric).getValue());
     }
 

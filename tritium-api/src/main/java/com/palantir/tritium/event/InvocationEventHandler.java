@@ -39,18 +39,12 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * Invoked before invoking the method on the instance.
      *
      * @param instance the instance that the method was invoked on.
-     *
-     * @param method the {@code Method} corresponding to the interface method
-     * invoked on the instance.
-     *
-     * @param args an array of objects containing the values of the arguments
-     * passed in the method invocation on the instance, or empty array if
-     * interface method takes no arguments. Arguments of primitive types are
-     * wrapped in instances of the appropriate primitive wrapper class, such as
-     * {@code java.lang.Integer} or {@code java.lang.Boolean}.
-     *
-     * @return the current invocation context. Null values are not recommended but
-     * are supported.
+     * @param method the {@code Method} corresponding to the interface method invoked on the instance.
+     * @param args an array of objects containing the values of the arguments passed in the method invocation on the
+     *     instance, or empty array if interface method takes no arguments. Arguments of primitive types are wrapped in
+     *     instances of the appropriate primitive wrapper class, such as {@code java.lang.Integer} or
+     *     {@code java.lang.Boolean}.
+     * @return the current invocation context. Null values are not recommended but are supported.
      */
     C preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args);
 
@@ -65,13 +59,11 @@ public interface InvocationEventHandler<C extends InvocationContext> {
     /**
      * Invoked when an invocation fails.
      *
-     * <p>
-     * If the invocation throws an {@link java.lang.reflect.InvocationTargetException}, then the cause is passed to this
-     * method. Any other thrown object is passed unaltered.
+     * <p>If the invocation throws an {@link java.lang.reflect.InvocationTargetException}, then the cause is passed to
+     * this method. Any other thrown object is passed unaltered.
      *
      * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
      * @param cause the throwable which caused the failure.
      */
     void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause);
-
 }

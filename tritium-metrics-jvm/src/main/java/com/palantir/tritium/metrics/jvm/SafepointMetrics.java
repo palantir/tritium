@@ -24,10 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Report duration spent waiting at safepoints. This could indicate badness in terms of STW GCing,
- * or biased locking going badly. See https://stackoverflow.com/questions/29666057/analyzing-gc-logs/29673564#29673564
- * for details.
- * This essentially provides the information of '+PrintGCApplicationStoppedTime' programmatically.
+ * Report duration spent waiting at safepoints. This could indicate badness in terms of STW GCing, or biased locking
+ * going badly. See https://stackoverflow.com/questions/29666057/analyzing-gc-logs/29673564#29673564 for details. This
+ * essentially provides the information of '+PrintGCApplicationStoppedTime' programmatically.
  */
 final class SafepointMetrics {
     private static final Logger log = LoggerFactory.getLogger(SafepointMetrics.class);

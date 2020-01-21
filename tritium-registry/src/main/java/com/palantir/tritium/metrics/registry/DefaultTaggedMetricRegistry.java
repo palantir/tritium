@@ -28,6 +28,7 @@ public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegis
 
     /**
      * Get the global default {@link TaggedMetricRegistry}.
+     *
      * @deprecated use SharedTaggedMetricRegistries#getSingleton
      */
     @SuppressWarnings("unused") // public API
@@ -35,5 +36,4 @@ public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegis
     public static TaggedMetricRegistry getDefault() {
         return SharedTaggedMetricRegistries.getSingleton();
     }
-
 }

@@ -25,8 +25,10 @@ class InstrumentationProxy<T> extends InvocationEventProxy {
 
     private final T delegate;
 
-    InstrumentationProxy(InstrumentationFilter instrumentationFilter,
-            List<InvocationEventHandler<InvocationContext>> handlers, T delegate) {
+    InstrumentationProxy(
+            InstrumentationFilter instrumentationFilter,
+            List<InvocationEventHandler<InvocationContext>> handlers,
+            T delegate) {
         super(handlers, instrumentationFilter);
         this.delegate = delegate;
     }
@@ -35,5 +37,4 @@ class InstrumentationProxy<T> extends InvocationEventProxy {
     T getDelegate() {
         return delegate;
     }
-
 }

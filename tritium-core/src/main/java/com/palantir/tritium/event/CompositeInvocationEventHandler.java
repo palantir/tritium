@@ -138,9 +138,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     private static void handleSuccess(
-            InvocationEventHandler<?> handler,
-            @Nullable InvocationContext context,
-            @Nullable Object result) {
+            InvocationEventHandler<?> handler, @Nullable InvocationContext context, @Nullable Object result) {
         if (context != DisabledHandlerSentinel.INSTANCE) {
             try {
                 handler.onSuccess(context, result);
@@ -151,9 +149,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     private static void handleFailure(
-            InvocationEventHandler<?> handler,
-            @Nullable InvocationContext context,
-            Throwable cause) {
+            InvocationEventHandler<?> handler, @Nullable InvocationContext context, Throwable cause) {
         if (context != DisabledHandlerSentinel.INSTANCE) {
             try {
                 handler.onFailure(context, cause);
@@ -164,10 +160,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     private static void eventFailed(
-            String event,
-            @Nullable InvocationContext context,
-            @Nullable Object result,
-            RuntimeException exception) {
+            String event, @Nullable InvocationContext context, @Nullable Object result, RuntimeException exception) {
         logger.warn(
                 "Exception handling {}({}, {})",
                 SafeArg.of("event", event),
@@ -181,10 +174,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         private final InvocationContext[] contexts;
 
         CompositeInvocationContext(
-                Object instance,
-                Method method,
-                @Nullable Object[] args,
-                InvocationContext[] contexts) {
+                Object instance, Method method, @Nullable Object[] args, InvocationContext[] contexts) {
             super(System.nanoTime(), instance, method, args);
             this.contexts = checkNotNull(contexts);
         }

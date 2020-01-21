@@ -39,10 +39,7 @@ final class TaggedMetricsExecutorService implements ExecutorService {
     private final Timer duration;
     private final Timer queuedDuration;
 
-    TaggedMetricsExecutorService(
-            ExecutorService delegate,
-            ExecutorMetrics metrics,
-            String name) {
+    TaggedMetricsExecutorService(ExecutorService delegate, ExecutorMetrics metrics, String name) {
         this.delegate = delegate;
 
         this.submitted = metrics.submitted(name);
@@ -92,8 +89,7 @@ final class TaggedMetricsExecutorService implements ExecutorService {
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-            throws ExecutionException, InterruptedException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws ExecutionException, InterruptedException {
         submitted.mark(tasks.size());
         Collection<TaggedMetricsCallable<T>> instrumented = instrument(tasks);
         return delegate.invokeAny(instrumented);

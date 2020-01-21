@@ -54,68 +54,58 @@ public class AnnotationHelperTest {
     public void testParentInterfaceAnnotations() throws NoSuchMethodException {
         TestSuperInterface impl = mock(TestSuperInterface.class);
 
-        //discovery annotation on parent class
+        // discovery annotation on parent class
         MetricGroup cls = AnnotationHelper.getSuperTypeAnnotation(impl.getClass(), MetricGroup.class);
         assertThat(cls).isNotNull().extracting(MetricGroup::value).isEqualTo("DEFAULT");
 
-        //find annotation by class method
+        // find annotation by class method
         MetricGroup met = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class,
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("method")));
         assertThat(met).isNotNull().extracting(MetricGroup::value).isEqualTo("ONE");
 
-        //find annotation by string descriptor
+        // find annotation by string descriptor
         MetricGroup descriptor = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class,
-                impl.getClass(),
-                AnnotationHelper.MethodSignature.of("method"));
+                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("method"));
         assertThat(descriptor).isNotNull().extracting(MetricGroup::value).isEqualTo("ONE");
 
-        //validate overloaded methods
+        // validate overloaded methods
         MetricGroup overload = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class,
-                impl.getClass(),
-                AnnotationHelper.MethodSignature.of("method", String.class));
+                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("method", String.class));
         assertThat(overload).isNotNull().extracting(MetricGroup::value).isEqualTo("OVERLOAD");
 
-        //return null if annotation does not exist
+        // return null if annotation does not exist
         MetricGroup noAnnotation = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class,
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("otherMethod")));
         assertThat(noAnnotation).isNull();
 
-        //validate method matching with parameters
+        // validate method matching with parameters
         MetricGroup clsParams = AnnotationHelper.getMethodAnnotation(
                 MetricGroup.class,
                 impl.getClass(),
                 AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("hasParams", String.class)));
         assertThat(clsParams).isNotNull().extracting(MetricGroup::value).isEqualTo("TWO");
 
-        //validate signature matching with parameters
+        // validate signature matching with parameters
         MetricGroup sigParams = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class,
-                impl.getClass(),
-                AnnotationHelper.MethodSignature.of("hasParams", String.class));
+                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("hasParams", String.class));
         assertThat(sigParams).isNotNull().extracting(MetricGroup::value).isEqualTo("TWO");
 
-        //return null if method does not exist
+        // return null if method does not exist
         MetricGroup noMethod = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class,
-                impl.getClass(),
-                AnnotationHelper.MethodSignature.of("noMethod"));
+                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("noMethod"));
         assertThat(noMethod).isNull();
     }
 
     @Test
     public void testMethodSignatureEquality() throws NoSuchMethodException {
-        assertThat(AnnotationHelper.MethodSignature.of(
-                TestSuperInterface.class.getMethod("method")))
+        assertThat(AnnotationHelper.MethodSignature.of(TestSuperInterface.class.getMethod("method")))
                 .isEqualTo(AnnotationHelper.MethodSignature.of("method"));
 
-        assertThat(AnnotationHelper.MethodSignature.of(
-                TestSuperInterface.class.getMethod("hasParams", String.class)))
+        assertThat(AnnotationHelper.MethodSignature.of(TestSuperInterface.class.getMethod("hasParams", String.class)))
                 .isEqualTo(AnnotationHelper.MethodSignature.of("hasParams", String.class));
     }
 
@@ -124,27 +114,23 @@ public class AnnotationHelperTest {
         TestSuperInterface impl = mock(TestSuperInterface.class);
         AnnotationHelper.MethodSignature vargSig = AnnotationHelper.MethodSignature.of("vargMethod", String[].class);
 
-        //validate signature matching with vargs
-        MetricGroup vargParams = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class,
-                impl.getClass(),
-                vargSig);
+        // validate signature matching with vargs
+        MetricGroup vargParams = AnnotationHelper.getMethodAnnotation(MetricGroup.class, impl.getClass(), vargSig);
 
         assertThat(vargParams).isNotNull().extracting(MetricGroup::value).isEqualTo("VARGS");
 
-        assertThat(vargSig).isEqualTo(
-                AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("vargMethod", String[].class)));
+        assertThat(vargSig)
+                .isEqualTo(
+                        AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("vargMethod", String[].class)));
     }
 
     @Test
     public void testOverrideInterface() {
         TestOverrideInterface impl = mock(TestOverrideInterface.class);
 
-        //validate signature matching with vargs
+        // validate signature matching with vargs
         MetricGroup override = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class,
-                impl.getClass(),
-                AnnotationHelper.MethodSignature.of("method"));
+                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("method"));
 
         assertThat(override).isNotNull().extracting(MetricGroup::value).isEqualTo("OVERRIDE");
     }

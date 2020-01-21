@@ -80,7 +80,8 @@ final class ByteBuddyInstrumentation {
         checkNotNull(handlers, "handlers");
 
         if (!isAccessible(interfaceClass)) {
-            log.warn("Interface {} is not accessible. Delegate {} of type {} will not be instrumented",
+            log.warn(
+                    "Interface {} is not accessible. Delegate {} of type {} will not be instrumented",
                     SafeArg.of("interface", interfaceClass),
                     UnsafeArg.of("delegate", delegate),
                     SafeArg.of("delegateType", delegate.getClass()));
@@ -91,22 +92,25 @@ final class ByteBuddyInstrumentation {
         // to the same type.
         ClassLoader classLoader = getClassLoader(interfaceClass);
         if (!isClassLoadable(classLoader, InvocationEventHandler.class)) {
-            log.warn("Unable to find a classloader with access to both the service interface {} and Tritium. "
-                    + "Delegate {} of type {} will not be instrumented",
+            log.warn(
+                    "Unable to find a classloader with access to both the service interface {} and Tritium. "
+                            + "Delegate {} of type {} will not be instrumented",
                     SafeArg.of("interface", interfaceClass),
                     UnsafeArg.of("delegate", delegate),
                     SafeArg.of("delegateType", delegate.getClass()));
             return delegate;
         }
-        @SuppressWarnings("unchecked") ImmutableList<Class<?>> additionalInterfaces = getAdditionalInterfaces(
-                classLoader, interfaceClass, (Class<? extends U>) delegate.getClass());
+        @SuppressWarnings("unchecked")
+        ImmutableList<Class<?>> additionalInterfaces =
+                getAdditionalInterfaces(classLoader, interfaceClass, (Class<? extends U>) delegate.getClass());
 
         try {
             return newInstrumentationClass(classLoader, interfaceClass, additionalInterfaces)
                     .getConstructor(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
                     .newInstance(delegate, CompositeInvocationEventHandler.of(handlers), instrumentationFilter);
         } catch (ReflectiveOperationException | RuntimeException e) {
-            log.error("Failed to instrument interface {}. Delegate {} of type {} will not be instrumented",
+            log.error(
+                    "Failed to instrument interface {}. Delegate {} of type {} will not be instrumented",
                     SafeArg.of("interface", interfaceClass),
                     UnsafeArg.of("delegate", delegate),
                     SafeArg.of("delegateType", delegate.getClass()),
@@ -116,12 +120,13 @@ final class ByteBuddyInstrumentation {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Class<? extends T> newInstrumentationClass(ClassLoader classLoader,
-            Class<T> interfaceClass, ImmutableList<Class<?>> additionalInterfaces) {
+    private static <T> Class<? extends T> newInstrumentationClass(
+            ClassLoader classLoader, Class<T> interfaceClass, ImmutableList<Class<?>> additionalInterfaces) {
         checkNotNull(classLoader, "classLoader");
         checkNotNull(interfaceClass, "interfaceClass");
         checkNotNull(additionalInterfaces, "additionalInterfaces");
-        checkArgument(!additionalInterfaces.contains(interfaceClass),
+        checkArgument(
+                !additionalInterfaces.contains(interfaceClass),
                 "additionalInterfaces must not contain interfaceClass",
                 SafeArg.of("additionalInterfaces", additionalInterfaces),
                 SafeArg.of("interfaceClass", interfaceClass));
@@ -130,20 +135,22 @@ final class ByteBuddyInstrumentation {
                 .addAll(additionalInterfaces)
                 .build();
         return (Class<? extends T>) cache.findOrInsert(classLoader, interfaces, () -> {
-            DynamicType.Builder.MethodDefinition.ReceiverTypeDefinition<Object> builder =
-                    new ByteBuddy(ClassFileVersion.ofThisVm(ClassFileVersion.JAVA_V8))
-                            .subclass(Object.class)
-                            .modifiers(Modifier.FINAL | Modifier.PUBLIC)
-                            .name(className(interfaces))
-                            .defineConstructor(Visibility.PUBLIC)
-                            .withParameters(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
-                            .intercept(MethodCall.invoke(Object.class.getDeclaredConstructor())
-                                    .andThen(FieldAccessor.ofField("delegate").setsArgumentAt(0))
-                                    .andThen(FieldAccessor.ofField("invocationEventHandler").setsArgumentAt(1))
-                                    .andThen(FieldAccessor.ofField("instrumentationFilter").setsArgumentAt(2)))
-                            .implement(interfaces)
-                            .method(ElementMatchers.isToString())
-                            .intercept(MethodCall.invokeSelf().onField("delegate"));
+            DynamicType.Builder.MethodDefinition.ReceiverTypeDefinition<Object> builder = new ByteBuddy(
+                            ClassFileVersion.ofThisVm(ClassFileVersion.JAVA_V8))
+                    .subclass(Object.class)
+                    .modifiers(Modifier.FINAL | Modifier.PUBLIC)
+                    .name(className(interfaces))
+                    .defineConstructor(Visibility.PUBLIC)
+                    .withParameters(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
+                    .intercept(MethodCall.invoke(Object.class.getDeclaredConstructor())
+                            .andThen(FieldAccessor.ofField("delegate").setsArgumentAt(0))
+                            .andThen(FieldAccessor.ofField("invocationEventHandler")
+                                    .setsArgumentAt(1))
+                            .andThen(FieldAccessor.ofField("instrumentationFilter")
+                                    .setsArgumentAt(2)))
+                    .implement(interfaces)
+                    .method(ElementMatchers.isToString())
+                    .intercept(MethodCall.invokeSelf().onField("delegate"));
             List<Method> allMethods = new ArrayList<>();
             for (Class<?> iface : interfaces) {
                 boolean allowDirectAccess = iface.isAssignableFrom(interfaceClass);
@@ -152,33 +159,41 @@ final class ByteBuddyInstrumentation {
                     allMethods.add(method);
                     // Retain tritium proxy detail where hashcode, equals, and toString cannot be instrumented.
                     builder = builder.method(ElementMatchers.not(ElementMatchers.isHashCode()
-                            .or(ElementMatchers.isEquals())
-                            .or(ElementMatchers.isToString()))
-                            .and(ElementMatchers.is(method)))
+                                            .or(ElementMatchers.isEquals())
+                                            .or(ElementMatchers.isToString()))
+                                    .and(ElementMatchers.is(method)))
                             .intercept(Advice.withCustomMapping()
                                     .bind(ByteBuddyInstrumentationAdvice.MethodIndex.class, index)
                                     .to(ByteBuddyInstrumentationAdvice.class)
-                                    .wrap(allowDirectAccess
-                                            ? MethodCall.invokeSelf().onField("delegate").withAllArguments()
-                                            : MethodCall.invokeSelf()
-                                                    // Byte buddy doesn't seem to allow casting from fields, but
-                                                    // we can cast the result of a trivial call (in this case
-                                                    // Objects.requireNonNull) into the desired type.
-                                                    .onMethodCall(passThroughMethod().withField("delegate"))
-                                                    .withAllArguments()
-                                                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)));
+                                    .wrap(
+                                            allowDirectAccess
+                                                    ? MethodCall.invokeSelf()
+                                                            .onField("delegate")
+                                                            .withAllArguments()
+                                                    : MethodCall.invokeSelf()
+                                                            // Byte buddy doesn't seem to allow casting from fields, but
+                                                            // we can cast the result of a trivial call (in this case
+                                                            // Objects.requireNonNull) into the desired type.
+                                                            .onMethodCall(passThroughMethod()
+                                                                    .withField("delegate"))
+                                                            .withAllArguments()
+                                                            .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)));
                 }
             }
-            return builder
-                    .defineField("delegate", interfaceClass,
+            return builder.defineField("delegate", interfaceClass, Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
+                    .defineField(
+                            "invocationEventHandler",
+                            InvocationEventHandler.class,
                             Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
-                    .defineField("invocationEventHandler", InvocationEventHandler.class,
-                            Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
-                    .defineField("instrumentationFilter", InstrumentationFilter.class,
+                    .defineField(
+                            "instrumentationFilter",
+                            InstrumentationFilter.class,
                             Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
                     .defineField(METHODS_FIELD, Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
                     .defineField(LOGGER_FIELD, Logger.class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
-                    .defineField(DISABLED_HANDLER_SENTINEL_FIELD, InvocationContext.class,
+                    .defineField(
+                            DISABLED_HANDLER_SENTINEL_FIELD,
+                            InvocationContext.class,
                             Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
                     .initializer(new StaticFieldLoadedTypeInitializer(METHODS_FIELD, allMethods.toArray(new Method[0])))
                     .initializer(new StaticFieldLoadedTypeInitializer(
@@ -209,7 +224,8 @@ final class ByteBuddyInstrumentation {
             if (isAccessibleFrom(classLoader, additionalInterface)) {
                 additionalInterfaces.add(additionalInterface);
             } else {
-                log.debug("Instrumented service of type {} cannot implement {} because the interface is not accessible",
+                log.debug(
+                        "Instrumented service of type {} cannot implement {} because the interface is not accessible",
                         SafeArg.of("delegateType", delegateClass),
                         SafeArg.of("inaccessibleInterface", additionalInterface));
             }
@@ -257,8 +273,7 @@ final class ByteBuddyInstrumentation {
             if (contextClassLoader != null && isClassLoadable(contextClassLoader, clazz)) {
                 return contextClassLoader;
             }
-            throw new SafeIllegalStateException("Failed to find a classloader for class",
-                    SafeArg.of("class", clazz));
+            throw new SafeIllegalStateException("Failed to find a classloader for class", SafeArg.of("class", clazz));
         }
         return loader;
     }
@@ -340,7 +355,8 @@ final class ByteBuddyInstrumentation {
     private static String className(List<Class<?>> interfaceClasses) {
         return "com.palantir.tritium.proxy.Instrumented"
                 + UNDERSCORE_JOINER.join(Lists.transform(interfaceClasses, Class::getSimpleName))
-                + '$' + offset.getAndIncrement();
+                + '$'
+                + offset.getAndIncrement();
     }
 
     // A sentinel value is used to differentiate null contexts returned by handlers from

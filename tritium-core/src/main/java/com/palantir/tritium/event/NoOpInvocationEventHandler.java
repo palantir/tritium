@@ -20,11 +20,8 @@ import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/**
- * No-op implementation of {@link InvocationEventHandler}.
- */
+/** No-op implementation of {@link InvocationEventHandler}. */
 public enum NoOpInvocationEventHandler implements InvocationEventHandler<InvocationContext> {
-
     INSTANCE;
 
     @Override

@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A gauge to report the ratio of open file descriptors.
  *
- * Does the same thing as {@link com.codahale.metrics.jvm.FileDescriptorRatioGauge} but compatible with Java 9+
+ * <p>Does the same thing as {@link com.codahale.metrics.jvm.FileDescriptorRatioGauge} but compatible with Java 9+
  */
 final class Jdk9CompatibleFileDescriptorRatioGauge {
 
@@ -46,8 +46,10 @@ final class Jdk9CompatibleFileDescriptorRatioGauge {
                 }
             });
         } else {
-            log.debug("OperatingSystemMXBean is not a UnixOperatingSystemMXBean, file descriptors will not be "
-                    + "reported. Type is {}", SafeArg.of("osMxBeanType", osMxBean.getClass().getSimpleName()));
+            log.debug(
+                    "OperatingSystemMXBean is not a UnixOperatingSystemMXBean, file descriptors will not be "
+                            + "reported. Type is {}",
+                    SafeArg.of("osMxBeanType", osMxBean.getClass().getSimpleName()));
         }
     }
 

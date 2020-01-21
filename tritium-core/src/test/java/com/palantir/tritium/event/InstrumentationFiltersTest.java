@@ -33,12 +33,14 @@ final class InstrumentationFiltersTest {
 
     @Test
     void testInstrumentAll() {
-        assertThat(InstrumentationFilters.INSTRUMENT_ALL.shouldInstrument(instance, method, args)).isTrue();
+        assertThat(InstrumentationFilters.INSTRUMENT_ALL.shouldInstrument(instance, method, args))
+                .isTrue();
     }
 
     @Test
     void testInstrumentNone() {
-        assertThat(InstrumentationFilters.INSTRUMENT_NONE.shouldInstrument(instance, method, args)).isFalse();
+        assertThat(InstrumentationFilters.INSTRUMENT_NONE.shouldInstrument(instance, method, args))
+                .isFalse();
     }
 
     @Test

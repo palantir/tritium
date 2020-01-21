@@ -21,7 +21,6 @@ final class PackagePrivateClass {
     public interface PublicInterface {
 
         String getValue();
-
     }
 
     private PackagePrivateClass() {}

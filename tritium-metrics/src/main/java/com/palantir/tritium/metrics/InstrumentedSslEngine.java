@@ -47,16 +47,19 @@ class InstrumentedSslEngine extends SSLEngine {
         Method getApplicationProtocol = getMethodNullable(engine.getClass(), "getApplicationProtocol");
         // Avoid the other three lookups if methods aren't present
         if (getApplicationProtocol != null) {
-            Method getHandshakeApplicationProtocol = getMethodNullable(
-                    engine.getClass(), "getHandshakeApplicationProtocol");
-            Method setHandshakeApplicationProtocolSelector = getMethodNullable(
-                    engine.getClass(), "setHandshakeApplicationProtocolSelector", BiFunction.class);
-            Method getHandshakeApplicationProtocolSelector = getMethodNullable(
-                    engine.getClass(), "getHandshakeApplicationProtocolSelector");
+            Method getHandshakeApplicationProtocol =
+                    getMethodNullable(engine.getClass(), "getHandshakeApplicationProtocol");
+            Method setHandshakeApplicationProtocolSelector =
+                    getMethodNullable(engine.getClass(), "setHandshakeApplicationProtocolSelector", BiFunction.class);
+            Method getHandshakeApplicationProtocolSelector =
+                    getMethodNullable(engine.getClass(), "getHandshakeApplicationProtocolSelector");
             if (getHandshakeApplicationProtocol != null
                     && setHandshakeApplicationProtocolSelector != null
                     && getHandshakeApplicationProtocolSelector != null) {
-                return new InstrumentedSslEngineJava9(engine, metrics, name,
+                return new InstrumentedSslEngineJava9(
+                        engine,
+                        metrics,
+                        name,
                         getApplicationProtocol,
                         getHandshakeApplicationProtocol,
                         setHandshakeApplicationProtocolSelector,
@@ -302,9 +305,14 @@ class InstrumentedSslEngine extends SSLEngine {
         private final Method setHandshakeApplicationProtocolSelector;
         private final Method getHandshakeApplicationProtocolSelector;
 
-        private InstrumentedSslEngineJava9(SSLEngine engine, TlsMetrics metrics, String name,
-                Method getApplicationProtocol, Method getHandshakeApplicationProtocol,
-                Method setHandshakeApplicationProtocolSelector, Method getHandshakeApplicationProtocolSelector) {
+        private InstrumentedSslEngineJava9(
+                SSLEngine engine,
+                TlsMetrics metrics,
+                String name,
+                Method getApplicationProtocol,
+                Method getHandshakeApplicationProtocol,
+                Method setHandshakeApplicationProtocolSelector,
+                Method getHandshakeApplicationProtocolSelector) {
             super(engine, metrics, name);
             this.engine = engine;
             this.getApplicationProtocol = getApplicationProtocol;

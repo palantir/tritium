@@ -28,9 +28,7 @@ import javax.annotation.Nonnull;
 import org.HdrHistogram.Recorder;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
-/**
- * Static methods for supplying HdrHistogram based reservoirs.
- */
+/** Static methods for supplying HdrHistogram based reservoirs. */
 final class Reservoirs {
 
     private Reservoirs() {
@@ -39,14 +37,13 @@ final class Reservoirs {
 
     /**
      * Metric registry which produces timers and histograms backed by high dynamic range histograms.
-     * <p>
-     * See <a href="http://taint.org/2014/01/16/145944a.html">
-     * Don't use Timers with exponentially-decaying reservoirs in Graphite
-     * </a>
+     *
+     * <p>See <a href="http://taint.org/2014/01/16/145944a.html">Don't use Timers with exponentially-decaying reservoirs
+     * in Graphite </a>
      */
     @Nonnull
     static Reservoir hdrHistogramReservoir() {
-        return hdrHistogramReservoir(new Recorder(/* significant digits = */2));
+        return hdrHistogramReservoir(new Recorder(/* significant digits = */ 2));
     }
 
     @Nonnull
@@ -56,27 +53,20 @@ final class Reservoirs {
     }
 
     /**
-     * Supplies reservoirs backed by sliding time window array that store measurements for the specified sliding
-     * time window.
+     * Supplies reservoirs backed by sliding time window array that store measurements for the specified sliding time
+     * window.
      *
-     * <p>
-     * See also:
+     * <p>See also:
+     *
      * <ul>
-     * <li>
-     * <a href="https://github.com/dropwizard/metrics/issues/1138">
-     * Drop-in replacement of sliding time window reservoir
-     * </a>
-     * </li>
-     * <a href="https://github.com/dropwizard/metrics/pull/1139">
-     * Issue #1138 Replacement of sliding time window
-     * </a>
-     * <li>
-     * <a href="https://medium.com/hotels-com-technology/your-latency-metrics-could-be-misleading-you-how-hdrhistogram-can-help-9d545b598374">
-     * Your Dropwizard Latency Metrics Could Be Misleading You - How Rolling-Metrics and HdrHistogram Can Help
-     * </a>
-     * </li>
+     *   <li><a href="https://github.com/dropwizard/metrics/issues/1138">Drop-in replacement of sliding time window
+     *       reservoir </a> <a href="https://github.com/dropwizard/metrics/pull/1139">Issue #1138 Replacement of sliding
+     *       time window </a>
+     *   <li><a
+     *       href="https://medium.com/hotels-com-technology/your-latency-metrics-could-be-misleading-you-how-hdrhistogram-can-help-9d545b598374">
+     *       Your Dropwizard Latency Metrics Could Be Misleading You - How Rolling-Metrics and HdrHistogram Can Help
+     *       </a>
      * </ul>
-     * </p>
      *
      * @param window window of time
      * @param windowUnit unit for window
@@ -95,5 +85,4 @@ final class Reservoirs {
         checkNotNull(clock, "clock");
         return new SlidingTimeWindowArrayReservoir(window, windowUnit, clock);
     }
-
 }

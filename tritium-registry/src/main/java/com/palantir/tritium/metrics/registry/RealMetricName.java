@@ -52,7 +52,7 @@ final class RealMetricName implements MetricName {
 
     @Override
     public String toString() {
-        return "MetricName{safeName=" + safeName + ", safeTags=" +  safeTags + '}';
+        return "MetricName{safeName=" + safeName + ", safeTags=" + safeTags + '}';
     }
 
     @Override
@@ -82,8 +82,7 @@ final class RealMetricName implements MetricName {
 
     static MetricName create(MetricName other, String extraTagName, String extraTagValue) {
         return new RealMetricName(
-                other.safeName(),
-                new ExtraEntrySortedMap<>(prehash(other.safeTags()), extraTagName, extraTagValue));
+                other.safeName(), new ExtraEntrySortedMap<>(prehash(other.safeTags()), extraTagName, extraTagValue));
     }
 
     private static <K, V> SortedMap<K, V> prehash(SortedMap<K, V> map) {

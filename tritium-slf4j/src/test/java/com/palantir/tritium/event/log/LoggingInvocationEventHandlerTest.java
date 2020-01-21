@@ -59,38 +59,33 @@ public class LoggingInvocationEventHandlerTest {
 
     @Test
     public void testNullContextOnSuccess() {
-        LoggingInvocationEventHandler handler = new LoggingInvocationEventHandler(
-                getLogger(), LoggingLevel.INFO);
+        LoggingInvocationEventHandler handler = new LoggingInvocationEventHandler(getLogger(), LoggingLevel.INFO);
         handler.onSuccess(null, "result");
     }
 
     @Test
     public void testNullContextOnFailure() {
-        LoggingInvocationEventHandler handler = new LoggingInvocationEventHandler(
-                getLogger(), LoggingLevel.INFO);
+        LoggingInvocationEventHandler handler = new LoggingInvocationEventHandler(getLogger(), LoggingLevel.INFO);
         handler.onFailure(null, new RuntimeException("cause"));
     }
 
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testLoggingOnSuccess() throws Throwable {
-        LoggingInvocationEventHandler handler = new LoggingInvocationEventHandler(
-                getLogger(), LoggingLevel.INFO);
+        LoggingInvocationEventHandler handler = new LoggingInvocationEventHandler(getLogger(), LoggingLevel.INFO);
 
         InvocationContext context = DefaultInvocationContext.of(this, Object.class.getDeclaredMethod("toString"), null);
         handler.onSuccess(context, "result");
     }
 
     @Test
-    //CHECKSTYLE IGNORE IllegalThrows
+    // CHECKSTYLE IGNORE IllegalThrows
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testLoggingOnFailure() throws Throwable {
-        LoggingInvocationEventHandler handler = new LoggingInvocationEventHandler(
-                getLogger(), LoggingLevel.INFO);
+        LoggingInvocationEventHandler handler = new LoggingInvocationEventHandler(getLogger(), LoggingLevel.INFO);
 
         InvocationContext context = DefaultInvocationContext.of(this, Object.class.getDeclaredMethod("toString"), null);
         handler.onFailure(context, new RuntimeException("cause"));
-
     }
 
     private static Logger getLogger() {
@@ -100,15 +95,15 @@ public class LoggingInvocationEventHandlerTest {
     @Test
     @SuppressWarnings("NullAway") // explicitly testing null handling
     public void testNullIsEnabled() {
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-                LoggingInvocationEventHandler.isEnabled(getLogger(), null));
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> LoggingInvocationEventHandler.isEnabled(getLogger(), null));
     }
 
     @Test
     @SuppressWarnings("NullAway") // explicitly testing null handling
     public void testNullLevel() {
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() ->
-                new LoggingInvocationEventHandler(getLogger(), null));
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> new LoggingInvocationEventHandler(getLogger(), null));
     }
 
     @Test
@@ -122,8 +117,8 @@ public class LoggingInvocationEventHandlerTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testGenerateMessage() throws Throwable {
-        Method method = TestInterface.class.getDeclaredMethod("multiArgumentMethod",
-                String.class, int.class, Collection.class);
+        Method method =
+                TestInterface.class.getDeclaredMethod("multiArgumentMethod", String.class, int.class, Collection.class);
         long durationNanoseconds = 1234567L;
         LoggingLevel level = LoggingLevel.TRACE;
 
@@ -134,7 +129,8 @@ public class LoggingInvocationEventHandlerTest {
         args[2] = ImmutableList.of("a", "b", "c");
 
         Object[] logParams = LoggingInvocationEventHandler.getLogParams(method, args, durationNanoseconds, level);
-        String logMessage = MessageFormatter.arrayFormat(messagePattern, logParams).getMessage();
+        String logMessage =
+                MessageFormatter.arrayFormat(messagePattern, logParams).getMessage();
         assertThat(logMessage).startsWith("TestInterface.multiArgumentMethod(String, int, Collection[3]) took 1.235ms");
     }
 
@@ -149,14 +145,16 @@ public class LoggingInvocationEventHandlerTest {
         String messagePattern = LoggingInvocationEventHandler.getMessagePattern(args);
         args[0] = ImmutableSet.of("a", "b");
         Object[] logParams = LoggingInvocationEventHandler.getLogParams(method, args, durationNanoseconds, level);
-        String logMessage = MessageFormatter.arrayFormat(messagePattern, logParams).getMessage();
+        String logMessage =
+                MessageFormatter.arrayFormat(messagePattern, logParams).getMessage();
         assertThat(logMessage).startsWith("TestInterface.bulk(Set[2]) took 1.235ms");
     }
 
     @Test
     public void testGetMessagePattern() {
         for (int i = 0; i < 20; i++) {
-            assertThat(LoggingInvocationEventHandler.getMessagePattern(new Object[i])).contains("{}");
+            assertThat(LoggingInvocationEventHandler.getMessagePattern(new Object[i]))
+                    .contains("{}");
         }
     }
 
@@ -166,7 +164,7 @@ public class LoggingInvocationEventHandlerTest {
                 .isInstanceOf(com.palantir.tritium.api.functions.LongPredicate.class);
 
         java.util.function.LongPredicate legacyPredicate = input -> false;
-        assertThat(new LoggingInvocationEventHandler(getLogger(), LoggingLevel.TRACE, legacyPredicate)).isNotNull();
+        assertThat(new LoggingInvocationEventHandler(getLogger(), LoggingLevel.TRACE, legacyPredicate))
+                .isNotNull();
     }
-
 }

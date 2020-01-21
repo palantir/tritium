@@ -24,21 +24,26 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 
 /**
- * {@link MemoryPoolMetrics} provides the same data as codahale MemoryUsageGaugeSet 'pools' section, but uses
- * tags to describe each pool instead of different metric names. This allows for simpler dashboards which
- * do not need to be updated with new pools.
+ * {@link MemoryPoolMetrics} provides the same data as codahale MemoryUsageGaugeSet 'pools' section, but uses tags to
+ * describe each pool instead of different metric names. This allows for simpler dashboards which do not need to be
+ * updated with new pools.
  */
 final class MemoryPoolMetrics {
 
     /**
-     * Registers the following metrics, tagged with <pre>{memoryPool: NAME}</pre>.
+     * Registers the following metrics, tagged with
+     *
+     * <pre>{memoryPool: NAME}</pre>
+     *
+     * .
+     *
      * <ul>
-     *     <li>jvm.memory.pools.max</li>
-     *     <li>jvm.memory.pools.used</li>
-     *     <li>jvm.memory.pools.committed</li>
-     *     <li>jvm.memory.pools.init</li>
-     *     <li>jvm.memory.pools.usage</li>
-     *     <li>jvm.memory.pools.used-after-gc (Only for supported pools)</li>
+     *   <li>jvm.memory.pools.max
+     *   <li>jvm.memory.pools.used
+     *   <li>jvm.memory.pools.committed
+     *   <li>jvm.memory.pools.init
+     *   <li>jvm.memory.pools.usage
+     *   <li>jvm.memory.pools.used-after-gc (Only for supported pools)
      * </ul>
      */
     static void register(TaggedMetricRegistry registry) {
@@ -47,26 +52,27 @@ final class MemoryPoolMetrics {
             String poolName = canonicalName(memoryPool.getName());
 
             metrics.max().memoryPool(poolName).build(() -> memoryPool.getUsage().getMax());
-            metrics.used().memoryPool(poolName).build(() -> memoryPool.getUsage().getUsed());
-            metrics.committed().memoryPool(poolName).build(() -> memoryPool.getUsage().getCommitted());
-            metrics.init().memoryPool(poolName).build(() -> memoryPool.getUsage().getInit());
+            metrics.used().memoryPool(poolName).build(() ->
+                    memoryPool.getUsage().getUsed());
+            metrics.committed().memoryPool(poolName).build(() ->
+                    memoryPool.getUsage().getCommitted());
+            metrics.init().memoryPool(poolName).build(() ->
+                    memoryPool.getUsage().getInit());
 
             metrics.usage().memoryPool(poolName).build(new RatioGauge() {
                 @Override
                 protected Ratio getRatio() {
                     MemoryUsage memoryUsage = memoryPool.getUsage();
-                    long maximum = memoryUsage.getMax() == -1
-                            ? memoryUsage.getCommitted()
-                            : memoryUsage.getMax();
+                    long maximum = memoryUsage.getMax() == -1 ? memoryUsage.getCommitted() : memoryUsage.getMax();
                     return RatioGauge.Ratio.of(memoryUsage.getUsed(), maximum);
                 }
             });
 
             // MetricPool.getCollectionUsage is not supported by all implementations, returning null in some cases.
             if (memoryPool.getCollectionUsage() != null) {
-                metrics.usedAfterGc().memoryPool(poolName).build(() -> memoryPool.getCollectionUsage().getUsed());
+                metrics.usedAfterGc().memoryPool(poolName).build(() ->
+                        memoryPool.getCollectionUsage().getUsed());
             }
-
         }
     }
 

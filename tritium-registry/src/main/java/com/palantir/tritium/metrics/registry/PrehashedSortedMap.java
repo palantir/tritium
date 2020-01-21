@@ -20,8 +20,8 @@ import com.google.common.collect.ForwardingSortedMap;
 import com.google.common.collect.ImmutableSortedMap;
 
 /**
- * A sorted map implementation which prehashes for faster usage in hashmaps.
- * This is only safe for immutable underlying maps (both the map implementation and the entries must be immutable).
+ * A sorted map implementation which prehashes for faster usage in hashmaps. This is only safe for immutable underlying
+ * maps (both the map implementation and the entries must be immutable).
  */
 final class PrehashedSortedMap<K, V> extends ForwardingSortedMap<K, V> {
     private final ImmutableSortedMap<K, V> delegate;

@@ -38,7 +38,6 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
         public String doFoo() {
             return "bar";
         }
-
     }
 
     @ParameterizedTest
@@ -49,7 +48,7 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
         TaggedMetricsServiceInvocationEventHandler handler =
                 new TaggedMetricsServiceInvocationEventHandler(registry, "quux");
 
-        invokeMethod(handler, testInterface, "doFoo", "bar", /* success= */true);
+        invokeMethod(handler, testInterface, "doFoo", "bar", /* success= */ true);
 
         Map<MetricName, Metric> metrics = registry.getMetrics();
         MetricName expectedMetricName = MetricName.builder()
@@ -68,7 +67,7 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
         TaggedMetricsServiceInvocationEventHandler handler =
                 new TaggedMetricsServiceInvocationEventHandler(registry, "quux");
 
-        invokeMethod(handler, testInterface, "doFoo", "bar", /* success= */false);
+        invokeMethod(handler, testInterface, "doFoo", "bar", /* success= */ false);
 
         Map<MetricName, Metric> metrics = registry.getMetrics();
         MetricName expectedMetricName = MetricName.builder()
@@ -84,7 +83,8 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
     private static void invokeMethod(
             AbstractInvocationEventHandler handler, Object obj, String methodName, Object result, boolean success)
             throws Exception {
-        InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
+        InvocationContext context =
+                DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
         if (success) {
             handler.onSuccess(context, result);
         } else {

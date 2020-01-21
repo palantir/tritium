@@ -22,14 +22,26 @@ import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
 /**
- * {@link GarbageCollectorMetrics} provides the same data as codahale GarbageCollectorMetricSet, but uses
- * tags to describe each collector instead of different metric names. This allows for simpler dashboards which
- * do not need to be updated with new GC implementations.
+ * {@link GarbageCollectorMetrics} provides the same data as codahale GarbageCollectorMetricSet, but uses tags to
+ * describe each collector instead of different metric names. This allows for simpler dashboards which do not need to be
+ * updated with new GC implementations.
  */
 final class GarbageCollectorMetrics {
 
     /**
-     * Registers gauges <pre>jvm.gc.count</pre> and <pre>jvm.gc.time</pre> tagged with <pre>{collector: NAME}</pre>.
+     * Registers gauges
+     *
+     * <pre>jvm.gc.count</pre>
+     *
+     * and
+     *
+     * <pre>jvm.gc.time</pre>
+     *
+     * tagged with
+     *
+     * <pre>{collector: NAME}</pre>
+     *
+     * .
      */
     static void register(TaggedMetricRegistry metrics) {
         JvmGcMetrics gcMetrics = JvmGcMetrics.of(metrics);

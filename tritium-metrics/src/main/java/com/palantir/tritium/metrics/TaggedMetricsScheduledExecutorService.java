@@ -45,10 +45,7 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
     private final Counter scheduledOverrun;
     private final Histogram scheduledPercentOfPeriod;
 
-    TaggedMetricsScheduledExecutorService(
-            ScheduledExecutorService delegate,
-            ExecutorMetrics metrics,
-            String name) {
+    TaggedMetricsScheduledExecutorService(ScheduledExecutorService delegate, ExecutorMetrics metrics, String name) {
         this.delegate = delegate;
 
         this.submitted = metrics.submitted(name);

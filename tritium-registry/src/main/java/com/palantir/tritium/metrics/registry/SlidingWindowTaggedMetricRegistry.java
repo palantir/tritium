@@ -24,5 +24,4 @@ public final class SlidingWindowTaggedMetricRegistry extends AbstractTaggedMetri
     public SlidingWindowTaggedMetricRegistry(int window, TimeUnit windowUnit) {
         super(() -> new SlidingTimeWindowArrayReservoir(window, windowUnit));
     }
-
 }

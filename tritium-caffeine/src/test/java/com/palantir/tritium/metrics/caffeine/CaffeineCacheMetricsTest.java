@@ -34,7 +34,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @SuppressWarnings("NullAway") // mock injection
 final class CaffeineCacheMetricsTest {
 
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS) Cache<?, ?> cache;
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    Cache<?, ?> cache;
 
     private Map<String, Metric> metrics;
 
@@ -67,19 +68,22 @@ final class CaffeineCacheMetricsTest {
 
     @Test
     void estimatedSize() {
-        assertThat(metrics.get("test.cache.estimated.size")).isInstanceOf(Gauge.class)
+        assertThat(metrics.get("test.cache.estimated.size"))
+                .isInstanceOf(Gauge.class)
                 .returns(0L, metric -> ((Gauge) metric).getValue());
     }
 
     @Test
     void maximumSize() {
-        assertThat(metrics.get("test.cache.maximum.size")).isInstanceOf(Gauge.class)
+        assertThat(metrics.get("test.cache.maximum.size"))
+                .isInstanceOf(Gauge.class)
                 .returns(-1L, metric -> ((Gauge) metric).getValue());
     }
 
     @Test
     void weightedSize() {
-        assertThat(metrics.get("test.cache.weighted.size")).isInstanceOf(Gauge.class)
+        assertThat(metrics.get("test.cache.weighted.size"))
+                .isInstanceOf(Gauge.class)
                 .returns(0L, metric -> ((Gauge) metric).getValue());
     }
 }

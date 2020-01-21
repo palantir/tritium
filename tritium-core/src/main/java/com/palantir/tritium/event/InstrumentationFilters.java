@@ -22,40 +22,30 @@ import javax.annotation.Nonnull;
 
 public enum InstrumentationFilters implements InstrumentationFilter {
 
-    /**
-     * Instrument all invocations.
-     */
+    /** Instrument all invocations. */
     INSTRUMENT_ALL {
         @Override
-        public boolean shouldInstrument(
-                @Nonnull Object _instance,
-                @Nonnull Method _method,
-                @Nonnull Object[] _args) {
+        public boolean shouldInstrument(@Nonnull Object _instance, @Nonnull Method _method, @Nonnull Object[] _args) {
             return true;
         }
     },
 
-    /**
-     * Instrument no invocations.
-     */
+    /** Instrument no invocations. */
     INSTRUMENT_NONE {
         @Override
-        public boolean shouldInstrument(
-                @Nonnull Object _instance,
-                @Nonnull Method _method,
-                @Nonnull Object[] _args) {
+        public boolean shouldInstrument(@Nonnull Object _instance, @Nonnull Method _method, @Nonnull Object[] _args) {
             return false;
         }
     };
 
     @SuppressWarnings("FunctionalInterfaceClash")
     public static InstrumentationFilter from(java.util.function.BooleanSupplier isEnabledSupplier) {
-        return (instance, method, args) ->
-                isEnabledSupplier.getAsBoolean();
+        return (instance, method, args) -> isEnabledSupplier.getAsBoolean();
     }
 
     /**
      * Bridge for backward compatibility.
+     *
      * @deprecated use {@link #from(java.util.function.BooleanSupplier)}
      */
     @Deprecated
@@ -63,5 +53,4 @@ public enum InstrumentationFilters implements InstrumentationFilter {
     public static InstrumentationFilter from(com.palantir.tritium.api.functions.BooleanSupplier isEnabledSupplier) {
         return from((java.util.function.BooleanSupplier) isEnabledSupplier);
     }
-
 }

@@ -29,15 +29,15 @@ public interface MetricName {
 
     /**
      * General/abstract measure (e.g. server.response-time).
-     * <p>
-     * Names must be {@link Safe} to log.
+     *
+     * <p>Names must be {@link Safe} to log.
      */
     String safeName();
 
     /**
      * Metadata/coordinates for where a particular measure came from. Used for filtering & grouping.
-     * <p>
-     * All tags and keys must be {@link Safe} to log.
+     *
+     * <p>All tags and keys must be {@link Safe} to log.
      */
     @Value.NaturalOrder
     SortedMap<String, String> safeTags();

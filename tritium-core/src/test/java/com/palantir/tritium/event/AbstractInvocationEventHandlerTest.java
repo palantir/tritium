@@ -34,32 +34,32 @@ final class AbstractInvocationEventHandlerTest {
 
     @Test
     void testSystemPropertySupplierEnabledByDefault() {
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        BooleanSupplier supplier =
+                AbstractInvocationEventHandler.getSystemPropertySupplier(CompositeInvocationEventHandler.class);
         assertThat(supplier.getAsBoolean()).isTrue();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentFalse() {
         System.setProperty("instrument", "false");
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        BooleanSupplier supplier =
+                AbstractInvocationEventHandler.getSystemPropertySupplier(CompositeInvocationEventHandler.class);
         assertThat(supplier.getAsBoolean()).isFalse();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentTrue() {
         System.setProperty("instrument", "true");
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        BooleanSupplier supplier =
+                AbstractInvocationEventHandler.getSystemPropertySupplier(CompositeInvocationEventHandler.class);
         assertThat(supplier.getAsBoolean()).isTrue();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentClassFalse() {
         System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "false");
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        BooleanSupplier supplier =
+                AbstractInvocationEventHandler.getSystemPropertySupplier(CompositeInvocationEventHandler.class);
         assertThat(supplier.getAsBoolean()).isFalse();
     }
 
@@ -67,9 +67,8 @@ final class AbstractInvocationEventHandlerTest {
     void testSystemPropertySupplierInstrumentClassTrue() {
         System.clearProperty("instrument");
         System.setProperty("instrument." + CompositeInvocationEventHandler.class.getName(), "true");
-        BooleanSupplier supplier = AbstractInvocationEventHandler
-                .getSystemPropertySupplier(CompositeInvocationEventHandler.class);
+        BooleanSupplier supplier =
+                AbstractInvocationEventHandler.getSystemPropertySupplier(CompositeInvocationEventHandler.class);
         assertThat(supplier.getAsBoolean()).isTrue();
     }
-
 }

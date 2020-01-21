@@ -19,5 +19,4 @@ package com.palantir.tritium.proxy.subpackage;
 interface PackagePrivateInterface {
 
     String getValue();
-
 }

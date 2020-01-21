@@ -223,7 +223,6 @@ public interface ManyArguments {
                 int _arg96,
                 int _arg97,
                 int _arg98,
-                int _arg99) {
-        }
+                int _arg99) {}
     }
 }

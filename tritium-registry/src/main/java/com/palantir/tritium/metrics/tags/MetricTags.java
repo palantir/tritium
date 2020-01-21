@@ -16,9 +16,7 @@
 
 package com.palantir.tritium.metrics.tags;
 
-/**
- * The standard set of metric tags as well as constant tag values.
- */
+/** The standard set of metric tags as well as constant tag values. */
 public final class MetricTags {
 
     private MetricTags() {}
@@ -27,10 +25,9 @@ public final class MetricTags {
     public static final String ENDPOINT = "endpoint";
     public static final String USER_AGENT = "user-agent";
 
-    /**
-     * Tags for response code families.
-     */
+    /** Tags for response code families. */
     public static final String RESPONSE_FAMILY = "family";
+
     public static final String RESPONSE_1XX = "1xx";
     public static final String RESPONSE_2XX = "2xx";
     public static final String RESPONSE_3XX = "3xx";

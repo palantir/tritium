@@ -82,7 +82,8 @@ public class TritiumTest {
             System.setProperty(LOG_KEY, previousLogLevel);
         }
 
-        try (ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build()) {
+        try (ConsoleReporter reporter =
+                ConsoleReporter.forRegistry(metricRegistry).build()) {
             reporter.report();
             Tagged.report(reporter, taggedMetricRegistry);
         }
@@ -107,7 +108,10 @@ public class TritiumTest {
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
         assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax()).isGreaterThan(-1L);
 
-        Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(Slf4jReporter.LoggingLevel.INFO).build().report();
+        Slf4jReporter.forRegistry(metricRegistry)
+                .withLoggingLevel(Slf4jReporter.LoggingLevel.INFO)
+                .build()
+                .report();
     }
 
     @Test
@@ -122,7 +126,9 @@ public class TritiumTest {
 
         Map<MetricName, Metric> metrics = taggedMetricRegistry.getMetrics();
         assertThat(metrics.keySet())
-                .containsExactly(EXPECTED_TAGGED_METRIC_NAME, MetricName.builder().safeName("failures").build());
+                .containsExactly(
+                        EXPECTED_TAGGED_METRIC_NAME,
+                        MetricName.builder().safeName("failures").build());
         Metric actual = metrics.get(EXPECTED_TAGGED_METRIC_NAME);
         assertThat(actual).isInstanceOf(Timer.class);
         Timer timer = (Timer) actual;
@@ -145,29 +151,34 @@ public class TritiumTest {
     @Test
     public void rethrowOutOfMemoryErrorMetrics() {
         String methodMetricName = MetricRegistry.name(TestInterface.class, "throwsOutOfMemoryError");
-        assertThat(metricRegistry.meter(
-                MetricRegistry.name(methodMetricName, "failures"))
-                .getCount()).isZero();
-        assertThat(metricRegistry.meter(
-                MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
-                .getCount()).isZero();
+        assertThat(metricRegistry
+                        .meter(MetricRegistry.name(methodMetricName, "failures"))
+                        .getCount())
+                .isZero();
+        assertThat(metricRegistry
+                        .meter(MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
+                        .getCount())
+                .isZero();
 
         assertThatThrownBy(instrumentedService::throwsOutOfMemoryError)
                 .isInstanceOf(OutOfMemoryError.class)
                 .hasMessage("Testing OOM");
 
-        assertThat(metricRegistry.meter(
-                MetricRegistry.name(methodMetricName, "failures"))
-                .getCount()).isOne();
-        assertThat(metricRegistry.meter(
-                MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
-                .getCount()).isOne();
+        assertThat(metricRegistry
+                        .meter(MetricRegistry.name(methodMetricName, "failures"))
+                        .getCount())
+                .isOne();
+        assertThat(metricRegistry
+                        .meter(MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
+                        .getCount())
+                .isOne();
     }
 
     @Test
     public void testToString() {
         assertThat(instrumentedService.toString()).isEqualTo(TestImplementation.class.getName());
-        assertThat(Tritium.instrument(TestInterface.class, instrumentedService, metricRegistry).toString())
+        assertThat(Tritium.instrument(TestInterface.class, instrumentedService, metricRegistry)
+                        .toString())
                 .isEqualTo(TestImplementation.class.getName());
     }
 
@@ -180,5 +191,4 @@ public class TritiumTest {
                 .isInstanceOf(InvocationTargetException.class)
                 .hasRootCauseExactlyInstanceOf(UnsupportedOperationException.class);
     }
-
 }

@@ -177,9 +177,8 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     public final Map<MetricName, Metric> getMetrics() {
         ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.builder();
         result.putAll(registry);
-        taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
-                .forEach((metricName, metric) -> result.put(
-                        RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
+        taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics().forEach((metricName, metric) ->
+                result.put(RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
 
         return result.build();
     }
@@ -188,9 +187,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     public final void forEachMetric(BiConsumer<MetricName, Metric> consumer) {
         registry.forEach(consumer);
         taggedRegistries.forEach((tag, metrics) -> metrics.forEachMetric((metricName, metric) ->
-                consumer.accept(
-                        RealMetricName.create(metricName, tag.getKey(), tag.getValue()),
-                        metric)));
+                consumer.accept(RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
     }
 
     @Override
@@ -209,15 +206,12 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     }
 
     @Override
-    public final boolean removeMetrics(
-            String safeTagName, String safeTagValue, TaggedMetricSet metrics) {
+    public final boolean removeMetrics(String safeTagName, String safeTagValue, TaggedMetricSet metrics) {
         return taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue), metrics);
     }
 
     protected final <T extends Metric> T getOrAdd(
-            MetricName metricName,
-            Class<T> metricClass,
-            Supplier<T> metricSupplier) {
+            MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
         Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
         return checkNotNull(checkMetricType(metricName, metricClass, metric), "metric");
     }
@@ -231,9 +225,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     }
 
     private static <T extends Metric> SafeIllegalArgumentException invalidMetric(
-            MetricName metricName,
-            Class<T> metricClass,
-            Metric metric) {
+            MetricName metricName, Class<T> metricClass, Metric metric) {
         return new SafeIllegalArgumentException(
                 "Metric name already used for different metric type",
                 SafeArg.of("metricName", metricName.safeName()),

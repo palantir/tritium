@@ -23,20 +23,14 @@ import javax.annotation.Nonnull;
 public interface InstrumentationFilter {
 
     /**
-     * Invoked prior to a method invocation, allowing control whether the
-     * invocation will be instrumented.
+     * Invoked prior to a method invocation, allowing control whether the invocation will be instrumented.
      *
-     * @param method the {@code Method} corresponding to the interface method
-     * invoked on the instance.
-     *
-     * @param args an array of objects containing the values of the arguments
-     * passed in the method invocation on the instance, or empty array if
-     * interface method takes no arguments. Arguments of primitive types are
-     * wrapped in instances of the appropriate primitive wrapper class, such as
-     * {@code java.lang.Integer} or {@code java.lang.Boolean}.
-     *
+     * @param method the {@code Method} corresponding to the interface method invoked on the instance.
+     * @param args an array of objects containing the values of the arguments passed in the method invocation on the
+     *     instance, or empty array if interface method takes no arguments. Arguments of primitive types are wrapped in
+     *     instances of the appropriate primitive wrapper class, such as {@code java.lang.Integer} or
+     *     {@code java.lang.Boolean}.
      * @return true if invocation should be instrumented, false if invocation should not be instrumented
      */
     boolean shouldInstrument(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args);
-
 }

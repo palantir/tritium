@@ -36,8 +36,8 @@ public final class Proxies {
      * @param iface main interface to proxy
      * @param delegate delegate class whose interfaces to proxy
      * @param handler proxy invocation handler
-     * @return a new proxy instance that implements the specified interface as well as all the
-     *         interfaces from the delegate class
+     * @return a new proxy instance that implements the specified interface as well as all the interfaces from the
+     *     delegate class
      */
     public static <T, U extends T> T newProxy(Class<T> iface, U delegate, InvocationHandler handler) {
         Objects.requireNonNull(iface, "interface");
@@ -46,9 +46,7 @@ public final class Proxies {
         checkIsInterface(iface);
 
         return iface.cast(Proxy.newProxyInstance(
-                delegate.getClass().getClassLoader(),
-                Proxies.interfaces(iface, delegate.getClass()),
-                handler));
+                delegate.getClass().getClassLoader(), Proxies.interfaces(iface, delegate.getClass()), handler));
     }
 
     /**
@@ -59,8 +57,7 @@ public final class Proxies {
      * @return the set of interfaces for the specified classes
      * @throws IllegalArgumentException if the specified interface class is not an interface
      */
-    static Class<?>[] interfaces(Class<?> iface,
-                                 Class<?> delegateClass) {
+    static Class<?>[] interfaces(Class<?> iface, Class<?> delegateClass) {
         checkIsInterface(iface);
         Objects.requireNonNull(delegateClass, "delegateClass");
 
@@ -87,5 +84,4 @@ public final class Proxies {
             checkIsInterface(possibleInterface);
         }
     }
-
 }

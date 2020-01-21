@@ -153,7 +153,7 @@ public class TracingInvocationEventHandlerTest {
 
     @Test
     public void testSystemPropertySupplier_Handler_Enabled() {
-        assertThat(TracingInvocationEventHandler.getEnabledSupplier("test").asBoolean()).isTrue();
+        assertThat(TracingInvocationEventHandler.getEnabledSupplier("test").asBoolean())
+                .isTrue();
     }
-
 }

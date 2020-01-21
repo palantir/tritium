@@ -34,15 +34,12 @@ public final class TestTaggedMetricRegistries {
     private TestTaggedMetricRegistries() {}
 
     public static Stream<TaggedMetricRegistry> registries() {
-        return Stream.of(
-                new DefaultTaggedMetricRegistry(),
-                createSlidingWindowTaggedMetricRegistry());
+        return Stream.of(new DefaultTaggedMetricRegistry(), createSlidingWindowTaggedMetricRegistry());
     }
 
     public static Stream<Supplier<TaggedMetricRegistry>> registrySuppliers() {
         return Stream.of(
-                DefaultTaggedMetricRegistry::new,
-                TestTaggedMetricRegistries::createSlidingWindowTaggedMetricRegistry);
+                DefaultTaggedMetricRegistry::new, TestTaggedMetricRegistries::createSlidingWindowTaggedMetricRegistry);
     }
 
     private static SlidingWindowTaggedMetricRegistry createSlidingWindowTaggedMetricRegistry() {

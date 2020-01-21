@@ -24,5 +24,4 @@ interface MetricBuilder<T extends Metric> {
     T newMetric();
 
     boolean isInstance(@Nullable Metric metric);
-
 }

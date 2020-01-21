@@ -82,16 +82,15 @@ final class JvmMetricsTest {
             "jvm.threads.blocked.count",
             "os.load.1",
             "os.load.norm.1",
-            "process.cpu.utilization"
-    );
+            "process.cpu.utilization");
 
     @Test
     void testExpectedMetrics() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
         assertThat(registry.getMetrics().keySet().stream()
-                .map(MetricName::safeName)
-                .collect(ImmutableSet.toImmutableSet()))
+                        .map(MetricName::safeName)
+                        .collect(ImmutableSet.toImmutableSet()))
                 .containsAll(EXPECTED_NAMES);
     }
 
@@ -99,11 +98,11 @@ final class JvmMetricsTest {
     void testFileDescriptors(@TempDir File temporaryFolder) throws IOException {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
-        Metric fileDescriptorsMetric =
-                registry.getMetrics().get(MetricName.builder().safeName("jvm.filedescriptor").build());
+        Metric fileDescriptorsMetric = registry.getMetrics()
+                .get(MetricName.builder().safeName("jvm.filedescriptor").build());
         assertThat(fileDescriptorsMetric).isInstanceOf(RatioGauge.class);
-        RatioGauge fileDescriptorsRatio = Preconditions.checkNotNull(
-                (RatioGauge) fileDescriptorsMetric, "fileDescriptorsMetric");
+        RatioGauge fileDescriptorsRatio =
+                Preconditions.checkNotNull((RatioGauge) fileDescriptorsMetric, "fileDescriptorsMetric");
         double initialDescriptorsRatio = fileDescriptorsRatio.getValue();
         List<Closeable> handles = new ArrayList<>();
         try {
@@ -129,7 +128,8 @@ final class JvmMetricsTest {
         Gauge<Double> systemLoad = (Gauge<Double>) registry.getMetrics()
                 .get(MetricName.builder().safeName("os.load.1").build());
         assertThat(systemLoad).satisfies(gauge -> assertThat(gauge.getValue()).isPositive());
-        assertThat(systemLoadNormalized).satisfies(gauge -> assertThat(gauge.getValue()).isPositive());
+        assertThat(systemLoadNormalized)
+                .satisfies(gauge -> assertThat(gauge.getValue()).isPositive());
     }
 
     @Test
@@ -139,8 +139,8 @@ final class JvmMetricsTest {
         JvmMetrics.register(registry);
         Gauge<Double> processCpuLoad = (Gauge<Double>) registry.getMetrics()
                 .get(MetricName.builder().safeName("process.cpu.utilization").build());
-        assertThat(processCpuLoad).satisfies(gauge -> assertThat(gauge.getValue())
-                .isGreaterThanOrEqualTo(0D).isLessThanOrEqualTo(1D));
+        assertThat(processCpuLoad).satisfies(gauge ->
+                assertThat(gauge.getValue()).isGreaterThanOrEqualTo(0D).isLessThanOrEqualTo(1D));
     }
 
     @Test
@@ -150,7 +150,8 @@ final class JvmMetricsTest {
         JvmMetrics.register(registry);
         Gauge<Long> safepointTime = (Gauge<Long>) registry.getMetrics()
                 .get(MetricName.builder().safeName("jvm.safepoint.time").build());
-        assertThat(safepointTime).satisfies(gauge -> assertThat(gauge.getValue()).isNotNegative());
+        assertThat(safepointTime)
+                .satisfies(gauge -> assertThat(gauge.getValue()).isNotNegative());
     }
 
     @Test
@@ -159,13 +160,14 @@ final class JvmMetricsTest {
         JvmMetrics.register(registry);
         assertThat(registry.getMetrics().keySet()).anySatisfy(name -> {
             assertThat(name.safeName()).isEqualTo("jvm.attribute.uptime");
-            assertThat(name.safeTags().keySet()).containsExactlyInAnyOrder(
-                    "javaRuntimeVersion",
-                    "javaSpecificationVersion",
-                    "javaVendorVersion",
-                    "javaVersion",
-                    "javaVersionDate",
-                    "javaVmVendor");
+            assertThat(name.safeTags().keySet())
+                    .containsExactlyInAnyOrder(
+                            "javaRuntimeVersion",
+                            "javaSpecificationVersion",
+                            "javaVendorVersion",
+                            "javaVersion",
+                            "javaVersionDate",
+                            "javaVmVendor");
         });
     }
 }

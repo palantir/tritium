@@ -33,7 +33,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @SuppressWarnings("NullAway") // mock injection
 final class InternalCacheMetricsTest {
 
-    @Mock InternalCacheMetrics.Stats stats;
+    @Mock
+    InternalCacheMetrics.Stats stats;
 
     @Test
     void createMetrics() {
@@ -71,14 +72,16 @@ final class InternalCacheMetricsTest {
     @Test
     void taggedMetricName() {
         Function<String, MetricName> function = InternalCacheMetrics.taggedMetricName("test");
-        assertThat(function.apply("a")).isEqualTo(MetricName.builder()
-                .safeName("a")
-                .putSafeTags("cache", "test")
-                .build());
-        assertThat(function.apply("a.b")).isEqualTo(MetricName.builder()
-                .safeName("a.b")
-                .putSafeTags("cache", "test")
-                .build());
+        assertThat(function.apply("a"))
+                .isEqualTo(MetricName.builder()
+                        .safeName("a")
+                        .putSafeTags("cache", "test")
+                        .build());
+        assertThat(function.apply("a.b"))
+                .isEqualTo(MetricName.builder()
+                        .safeName("a.b")
+                        .putSafeTags("cache", "test")
+                        .build());
     }
 
     private static InternalCacheMetrics.Stats emptyStats() {

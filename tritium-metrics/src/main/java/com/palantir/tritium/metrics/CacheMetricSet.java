@@ -52,8 +52,7 @@ final class CacheMetricSet implements MetricSet {
     @SuppressWarnings("MutableMethodReturnType") // API
     public Map<String, Metric> getMetrics() {
         return ImmutableMap.copyOf(InternalCacheMetrics.createMetrics(
-                GuavaStats.create(cache, 1, TimeUnit.SECONDS),
-                metricName -> cacheName + '.' + metricName));
+                GuavaStats.create(cache, 1, TimeUnit.SECONDS), metricName -> cacheName + '.' + metricName));
     }
 
     static class GuavaStats implements InternalCacheMetrics.Stats {

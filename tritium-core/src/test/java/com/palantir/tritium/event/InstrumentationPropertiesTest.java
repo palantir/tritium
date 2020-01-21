@@ -64,24 +64,21 @@ final class InstrumentationPropertiesTest {
     @Test
     void testSystemPropertySupplierInstrumentFalse() {
         System.setProperty("instrument", "false");
-        BooleanSupplier supplier = InstrumentationProperties
-                .getSystemPropertySupplier("test");
+        BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isFalse();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentTrue() {
         System.setProperty("instrument", "true");
-        BooleanSupplier supplier = InstrumentationProperties
-                .getSystemPropertySupplier("test");
+        BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isTrue();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentClassFalse() {
         System.setProperty("instrument.test", "false");
-        BooleanSupplier supplier = InstrumentationProperties
-                .getSystemPropertySupplier("test");
+        BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isFalse();
     }
 
@@ -89,8 +86,7 @@ final class InstrumentationPropertiesTest {
     void testSystemPropertySupplierInstrumentClassTrue() {
         System.clearProperty("instrument");
         System.setProperty("instrument.test", "true");
-        BooleanSupplier supplier = InstrumentationProperties
-                .getSystemPropertySupplier("test");
+        BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isTrue();
     }
 
@@ -111,8 +107,9 @@ final class InstrumentationPropertiesTest {
         List<Callable<Object>> tasks = ImmutableList.of(
                 () -> {
                     barrier.await();
-                    return "getSystemPropertySupplier: " + InstrumentationProperties.getSystemPropertySupplier("test")
-                            .asBoolean();
+                    return "getSystemPropertySupplier: "
+                            + InstrumentationProperties.getSystemPropertySupplier("test")
+                                    .asBoolean();
                 },
                 () -> {
                     barrier.await();
@@ -137,7 +134,8 @@ final class InstrumentationPropertiesTest {
                 () -> {
                     barrier.await();
                     return "getSystemPropertySupplier: "
-                            + InstrumentationProperties.getSystemPropertySupplier("test").asBoolean();
+                            + InstrumentationProperties.getSystemPropertySupplier("test")
+                                    .asBoolean();
                 },
                 () -> {
                     barrier.await();
@@ -156,17 +154,20 @@ final class InstrumentationPropertiesTest {
         List<ListenableFuture<Object>> futures = (List) executorService.invokeAll(tasks);
 
         ListenableFuture<List<Object>> successfulAsList = Futures.successfulAsList(futures);
-        Futures.addCallback(successfulAsList, new FutureCallback<List<Object>>() {
-            @Override
-            public void onSuccess(@Nullable List<Object> result) {
-                assertThat(result).isNotNull().hasSize(expectedTaskCount);
-            }
+        Futures.addCallback(
+                successfulAsList,
+                new FutureCallback<List<Object>>() {
+                    @Override
+                    public void onSuccess(@Nullable List<Object> result) {
+                        assertThat(result).isNotNull().hasSize(expectedTaskCount);
+                    }
 
-            @Override
-            public void onFailure(Throwable throwable) {
-                assertThat(throwable).isNull();
-            }
-        }, MoreExecutors.directExecutor());
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        assertThat(throwable).isNull();
+                    }
+                },
+                MoreExecutors.directExecutor());
 
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
             assertThat(successfulAsList.get()).hasSize(expectedTaskCount);
@@ -186,7 +187,8 @@ final class InstrumentationPropertiesTest {
 
     @Test
     void testIsSpecificEnabled_notSet_defaultFalse() {
-        assertThat(InstrumentationProperties.isSpecificEnabled("not_set", false)).isFalse();
+        assertThat(InstrumentationProperties.isSpecificEnabled("not_set", false))
+                .isFalse();
     }
 
     @Test
@@ -207,7 +209,8 @@ final class InstrumentationPropertiesTest {
     void testIsSpecificEnabled_setGarbage_defaultFalse() {
         System.setProperty("instrument.garbage", "garbage");
         InstrumentationProperties.reload();
-        assertThat(InstrumentationProperties.isSpecificEnabled("garbage", false)).isFalse();
+        assertThat(InstrumentationProperties.isSpecificEnabled("garbage", false))
+                .isFalse();
     }
 
     @Test

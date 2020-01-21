@@ -24,20 +24,19 @@ final class DefaultInvocationContextTest {
 
     @Test
     void testFactory() throws Exception {
-        InvocationContext context =
-                DefaultInvocationContext.of(this, Object.class.getDeclaredMethod("equals", Object.class),
-                        new Object[] {"testArgument"});
+        InvocationContext context = DefaultInvocationContext.of(
+                this, Object.class.getDeclaredMethod("equals", Object.class), new Object[] {"testArgument"});
 
         assertThat(context.getInstance()).isEqualTo(this);
-        assertThat(context.getArgs()).isEqualTo(new Object[]{"testArgument"});
+        assertThat(context.getArgs()).isEqualTo(new Object[] {"testArgument"});
         assertThat(context.getMethod()).isEqualTo(Object.class.getDeclaredMethod("equals", Object.class));
 
-        assertThat(context).asString()
+        assertThat(context)
+                .asString()
                 .contains("startTimeNanos")
                 .contains("instance")
                 .contains("method")
                 .doesNotContain("args")
                 .doesNotContain("testArgument");
     }
-
 }

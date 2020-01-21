@@ -52,19 +52,21 @@ public class InvocationEventProxyTest {
 
     @Mock
     private InstrumentationFilter mockFilter;
+
     @Mock
     private InvocationEventHandler<InvocationContext> mockHandler;
 
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testDisabled() throws Throwable {
-        InvocationEventProxy proxy = new InvocationEventProxy(
-                Collections.emptyList(), InstrumentationFilters.from((BooleanSupplier) () -> false)) {
-            @Override
-            Object getDelegate() {
-                return "disabled";
-            }
-        };
+        InvocationEventProxy proxy =
+                new InvocationEventProxy(
+                        Collections.emptyList(), InstrumentationFilters.from((BooleanSupplier) () -> false)) {
+                    @Override
+                    Object getDelegate() {
+                        return "disabled";
+                    }
+                };
         assertThat(proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("disabled".length());
     }
 
@@ -74,15 +76,17 @@ public class InvocationEventProxyTest {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler();
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
-        assertThat(proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS))
-                .isEqualTo("test".length());
+        assertThat(proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
 
         Object result2 = proxy.handlePreInvocation(this, getStringLengthMethod(), EMPTY_ARGS);
-        assertThat(result2).isInstanceOf(DefaultInvocationContext.class)
-                .asString().contains(InvocationEventProxyTest.class.getName());
+        assertThat(result2)
+                .isInstanceOf(DefaultInvocationContext.class)
+                .asString()
+                .contains(InvocationEventProxyTest.class.getName());
 
         InvocationContext context = proxy.handlePreInvocation(this, getStringLengthMethod(), EMPTY_ARGS);
-        assertThat(context).asString()
+        assertThat(context)
+                .asString()
                 .contains("startTimeNanos")
                 .contains("instance")
                 .contains("method");
@@ -94,9 +98,7 @@ public class InvocationEventProxyTest {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler() {
             @Override
             public InvocationContext preInvocation(
-                    @Nonnull Object _instance,
-                    @Nonnull Method _method,
-                    @Nonnull Object[] _args) {
+                    @Nonnull Object _instance, @Nonnull Method _method, @Nonnull Object[] _args) {
                 throw new IllegalStateException("expected");
             }
         };
@@ -242,9 +244,7 @@ public class InvocationEventProxyTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testThrowingFilterAndHandler() throws Throwable {
-        doThrow(new IllegalStateException("test isEnabled"))
-                .when(mockHandler)
-                .isEnabled();
+        doThrow(new IllegalStateException("test isEnabled")).when(mockHandler).isEnabled();
 
         InvocationEventProxy proxy = createTestProxy(mockHandler, mockFilter);
         assertThat(proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
@@ -271,12 +271,11 @@ public class InvocationEventProxyTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testThrowingHandler() throws Throwable {
-        doThrow(new IllegalStateException("test isEnabled"))
-                .when(mockHandler)
-                .isEnabled();
+        doThrow(new IllegalStateException("test isEnabled")).when(mockHandler).isEnabled();
 
         InvocationEventProxy proxy = createTestProxy(mockHandler);
-        assertThat(proxy.invoke(mockHandler, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
+        assertThat(proxy.invoke(mockHandler, getStringLengthMethod(), EMPTY_ARGS))
+                .isEqualTo("test".length());
 
         verify(mockHandler).isEnabled();
         verifyNoInteractions(mockFilter);
@@ -284,14 +283,11 @@ public class InvocationEventProxyTest {
 
     private static InvocationEventProxy createSimpleTestProxy() {
         return new TestProxy(
-                new TestImplementation(),
-                ImmutableList.of(new SimpleHandler()),
-                InstrumentationFilters.INSTRUMENT_ALL);
+                new TestImplementation(), ImmutableList.of(new SimpleHandler()), InstrumentationFilters.INSTRUMENT_ALL);
     }
 
     private static InvocationEventProxy createTestProxy(
-            InvocationEventHandler<InvocationContext> handler,
-            InstrumentationFilter filter) {
+            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
         return new TestProxy("test", ImmutableList.of(handler), filter);
     }
 
@@ -324,9 +320,7 @@ public class InvocationEventProxyTest {
 
         @Override
         public InvocationContext preInvocation(
-                @Nonnull Object instance,
-                @Nonnull Method method,
-                @Nonnull Object[] args) {
+                @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
             return DefaultInvocationContext.of(instance, method, args);
         }
 

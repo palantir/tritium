@@ -44,8 +44,7 @@ final class TaggedMetricsExecutorServiceTest {
     void testMetrics(TaggedMetricRegistry registry) throws Exception {
         ExecutorService executorService =
                 MetricRegistries.instrument(registry, Executors.newSingleThreadExecutor(), NAME);
-        assertThat(registry.getMetrics())
-                .containsKeys(SUBMITTED, RUNNING, COMPLETED, DURATION, QUEUED_DURATION);
+        assertThat(registry.getMetrics()).containsKeys(SUBMITTED, RUNNING, COMPLETED, DURATION, QUEUED_DURATION);
 
         assertThat(registry.meter(SUBMITTED).getCount()).isZero();
         assertThat(registry.counter(RUNNING).getCount()).isZero();

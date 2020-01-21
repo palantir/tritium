@@ -130,10 +130,11 @@ public final class RemotingCompatibleTracingInvocationEventHandler
      * Reflection based check to determine what implementation of tracing to use to avoid duplicate traces as
      * remoting3's tracing classes delegate functionality to tracing-java in remoting 3.43.0+ and
      * remoting3.tracing.Tracers.wrap now returns a "com.palantir.tracing.Tracers" implementation.
+     *
      * <ol>
-     * <li> a) remoting3 prior to 3.43.0+ -> use reflection based remoting3 tracer </li>
-     * <li> b) remoting3 3.43.0+ -> use tracing-java </li>
-     * <li> c) no remoting3 -> use tracing-java </li>
+     *   <li>a) remoting3 prior to 3.43.0+ -> use reflection based remoting3 tracer
+     *   <li>b) remoting3 3.43.0+ -> use tracing-java
+     *   <li>c) no remoting3 -> use tracing-java
      * </ol>
      *
      * @return true if we detect that remoting3's tracing does not delegate to tracing-java
@@ -147,13 +148,15 @@ public final class RemotingCompatibleTracingInvocationEventHandler
         if (tracersClass != null) {
             Method wrapMethod = tracersClass.getMethod("wrap", Runnable.class);
             if (wrapMethod != null) {
-                Object wrappedTrace = wrapMethod.invoke(null, (Runnable) () -> {
-                });
-                String expectedTracingPackage = com.palantir.tracing.Tracers.class.getPackage().getName();
-                String actualTracingPackage = wrappedTrace.getClass().getPackage().getName();
+                Object wrappedTrace = wrapMethod.invoke(null, (Runnable) () -> {});
+                String expectedTracingPackage =
+                        com.palantir.tracing.Tracers.class.getPackage().getName();
+                String actualTracingPackage =
+                        wrappedTrace.getClass().getPackage().getName();
                 if (!Objects.equals(expectedTracingPackage, actualTracingPackage)) {
                     if (shouldLogFallbackError.compareAndSet(false, true)) {
-                        logger.error("Multiple tracing implementations detected, expected '{}' but found '{}',"
+                        logger.error(
+                                "Multiple tracing implementations detected, expected '{}' but found '{}',"
                                         + " using legacy remoting3 tracing for backward compatibility",
                                 SafeArg.of("expectedPackage", expectedTracingPackage),
                                 SafeArg.of("actualPackage", actualTracingPackage),

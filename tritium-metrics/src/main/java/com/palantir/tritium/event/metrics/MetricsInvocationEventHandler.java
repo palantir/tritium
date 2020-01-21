@@ -33,9 +33,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/**
- * {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics.
- */
+/** {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics. */
 public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final String FAILURES = "failures";
@@ -43,9 +41,11 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private final MetricRegistry metricRegistry;
     private final String serviceName;
 
-    //consider creating annotation handlers as separate objects
+    // consider creating annotation handlers as separate objects
     private final ImmutableMap<AnnotationHelper.MethodSignature, String> metricGroups;
-    @Nullable private final String globalGroupPrefix;
+
+    @Nullable
+    private final String globalGroupPrefix;
 
     @SuppressWarnings("WeakerAccess") // public API
     public MetricsInvocationEventHandler(MetricRegistry metricRegistry, String serviceName) {
@@ -118,7 +118,9 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         if (context != null) {
             String failuresMetricName = getBaseMetricName(context) + '.' + FAILURES;
             metricRegistry.meter(failuresMetricName).mark();
-            metricRegistry.meter(failuresMetricName + '.' + cause.getClass().getName()).mark();
+            metricRegistry
+                    .meter(failuresMetricName + '.' + cause.getClass().getName())
+                    .mark();
             long nanos = updateTimer(context);
             handleFailureAnnotations(context, nanos);
         }
@@ -126,8 +128,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     private long updateTimer(InvocationContext context) {
         long nanos = System.nanoTime() - context.getStartTimeNanos();
-        metricRegistry.timer(getBaseMetricName(context))
-                .update(nanos, TimeUnit.NANOSECONDS);
+        metricRegistry.timer(getBaseMetricName(context)).update(nanos, TimeUnit.NANOSECONDS);
         return nanos;
     }
 
@@ -142,12 +143,10 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private void handleSuccessAnnotations(InvocationContext context, long nanos) {
         String metricName = getAnnotatedMetricName(context);
         if (metricName != null) {
-            metricRegistry.timer(serviceName + '.' + metricName)
-                    .update(nanos, TimeUnit.NANOSECONDS);
+            metricRegistry.timer(serviceName + '.' + metricName).update(nanos, TimeUnit.NANOSECONDS);
 
             if (globalGroupPrefix != null) {
-                metricRegistry.timer(globalGroupPrefix + '.' + metricName)
-                        .update(nanos, TimeUnit.NANOSECONDS);
+                metricRegistry.timer(globalGroupPrefix + '.' + metricName).update(nanos, TimeUnit.NANOSECONDS);
             }
         }
     }
@@ -155,11 +154,13 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private void handleFailureAnnotations(InvocationContext context, long nanos) {
         String metricName = getAnnotatedMetricName(context);
         if (metricName != null) {
-            metricRegistry.timer(serviceName + '.' + metricName + '.' + FAILURES)
+            metricRegistry
+                    .timer(serviceName + '.' + metricName + '.' + FAILURES)
                     .update(nanos, TimeUnit.NANOSECONDS);
 
             if (globalGroupPrefix != null) {
-                metricRegistry.timer(globalGroupPrefix + '.' + metricName + '.' + FAILURES)
+                metricRegistry
+                        .timer(globalGroupPrefix + '.' + metricName + '.' + FAILURES)
                         .update(nanos, TimeUnit.NANOSECONDS);
             }
         }
