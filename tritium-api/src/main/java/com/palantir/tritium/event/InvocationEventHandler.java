@@ -44,7 +44,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      *     instance, or empty array if interface method takes no arguments. Arguments of primitive types are wrapped in
      *     instances of the appropriate primitive wrapper class, such as {@code java.lang.Integer} or
      *     {@code java.lang.Boolean}.
-     * @return the current invocation context. Null values are not recommended but are supported.
+     * @return the current invocation context. Null values are not recommended but are supported
      */
     C preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args);
 
