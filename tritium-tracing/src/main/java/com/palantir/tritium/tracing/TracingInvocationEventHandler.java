@@ -36,6 +36,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
 
     /**
      * Constructs new tracing event handler.
+     *
      * @param component component name
      * @deprecated use {@link #create(String)}
      */
@@ -48,6 +49,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
 
     /**
      * Constructs new tracing event handler.
+     *
      * @param component component name
      * @return tracing event handler
      */
@@ -95,8 +97,8 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     /**
-     * In an unsampled trace, there's no reason to record additional spans. Note that this will create new root spans
-     * if not present in order to create a new traceId regardless of sampling state to preserve behavior.
+     * In an unsampled trace, there's no reason to record additional spans. Note that this will create new root spans if
+     * not present in order to create a new traceId regardless of sampling state to preserve behavior.
      */
     static boolean inUnsampledTrace() {
         return Tracer.hasTraceId() && !Tracer.isTraceObservable();

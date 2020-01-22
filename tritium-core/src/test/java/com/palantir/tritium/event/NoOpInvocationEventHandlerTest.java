@@ -26,5 +26,4 @@ final class NoOpInvocationEventHandlerTest {
     void testIsEnabled() {
         assertThat(NoOpInvocationEventHandler.INSTANCE.isEnabled()).isFalse();
     }
-
 }

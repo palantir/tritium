@@ -30,10 +30,9 @@ import java.util.function.Function;
 
 /**
  * Not intended for direct external usage, intended solely for sharing between tritium-metrics and tritium-caffeine.
- * <p>
- * See
- * * {@link MetricRegistries#registerCache(MetricRegistry, Cache, String)},
- * * {@link MetricRegistries#registerCache(TaggedMetricRegistry, Cache, String)} for intended use.
+ *
+ * <p>See * {@link MetricRegistries#registerCache(MetricRegistry, Cache, String)}, *
+ * {@link MetricRegistries#registerCache(TaggedMetricRegistry, Cache, String)} for intended use.
  */
 @Beta
 public final class InternalCacheMetrics {
@@ -72,14 +71,23 @@ public final class InternalCacheMetrics {
         }
 
         Gauge<Long> estimatedSize();
+
         Optional<Gauge<Long>> weightedSize();
+
         Optional<Gauge<Long>> maximumSize();
+
         Gauge<Long> requestCount();
+
         Gauge<Long> hitCount();
+
         Gauge<Long> missCount();
+
         Gauge<Long> evictionCount();
+
         Gauge<Long> loadSuccessCount();
+
         Gauge<Long> loadFailureCount();
+
         Gauge<Double> loadAverageMillis();
 
         default Gauge<Double> hitRatio() {

@@ -58,9 +58,7 @@ import javax.net.ssl.SSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Utilities for working with {@link MetricRegistry} instances.
- */
+/** Utilities for working with {@link MetricRegistry} instances. */
 public final class MetricRegistries {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricRegistries.class);
@@ -72,8 +70,8 @@ public final class MetricRegistries {
     }
 
     /**
-     * Create metric registry which produces timers and histograms backed by
-     * high dynamic range histograms and timers, that accumulates internal state forever.
+     * Create metric registry which produces timers and histograms backed by high dynamic range histograms and timers,
+     * that accumulates internal state forever.
      *
      * @return metric registry
      */
@@ -84,23 +82,17 @@ public final class MetricRegistries {
     }
 
     /**
-     * Creates a {@link MetricRegistry} which produces timers and histograms backed by
-     * sliding time window array that store measurements for the specified sliding
-     * time window.
+     * Creates a {@link MetricRegistry} which produces timers and histograms backed by sliding time window array that
+     * store measurements for the specified sliding time window.
      *
-     * <p>
-     * See also:
+     * <p>See also:
+     *
      * <ul>
-     * <li>
-     * <a href="http://taint.org/2014/01/16/145944a.html">
-     * Discussion why this reservoir may make more sense than the HdrHistogram
-     * </a>
-     * </li>
-     * <a href="https://metrics.dropwizard.io/4.0.0/manual/core.html#sliding-time-window-reservoirs">
-     * Improvements over the old dropwizard metrics SlidingTimeWindowReservoir implementation
-     * </a>
+     *   <li><a href="http://taint.org/2014/01/16/145944a.html">Discussion why this reservoir may make more sense than
+     *       the HdrHistogram </a> <a
+     *       href="https://metrics.dropwizard.io/4.0.0/manual/core.html#sliding-time-window-reservoirs">Improvements
+     *       over the old dropwizard metrics SlidingTimeWindowReservoir implementation </a>
      * </ul>
-     * </p>
      *
      * @param window window of time
      * @param windowUnit unit for window
@@ -120,15 +112,20 @@ public final class MetricRegistries {
     }
 
     private static void registerDefaultMetrics(MetricRegistry metrics) {
-        registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "begin"),
+        registerSafe(
+                metrics,
+                MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "begin"),
                 new Gauge<String>() {
                     private final String start = nowIsoTimestamp();
+
                     @Override
                     public String getValue() {
                         return start;
                     }
                 });
-        registerSafe(metrics, MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "now"),
+        registerSafe(
+                metrics,
+                MetricRegistry.name(MetricRegistries.class.getPackage().getName(), "snapshot", "now"),
                 (Gauge<String>) MetricRegistries::nowIsoTimestamp);
     }
 
@@ -150,10 +147,7 @@ public final class MetricRegistries {
         return checkNotNull(metrics, "metrics").getMetrics().get(checkNotNull(name));
     }
 
-    private static <T extends Metric> T addMetric(
-            MetricRegistry metrics,
-            String name,
-            MetricBuilder<T> builder) {
+    private static <T extends Metric> T addMetric(MetricRegistry metrics, String name, MetricBuilder<T> builder) {
         checkNotNull(builder);
         T newMetric = builder.newMetric();
         try {
@@ -167,9 +161,7 @@ public final class MetricRegistries {
 
     @SuppressWarnings("unchecked")
     private static <T extends Metric> T getAndCheckExistingMetric(
-            String name,
-            MetricBuilder<T> builder,
-            @Nullable Metric existingMetric) {
+            String name, MetricBuilder<T> builder, @Nullable Metric existingMetric) {
         if (existingMetric != null && builder.isInstance(existingMetric)) {
             return (T) existingMetric;
         }
@@ -177,9 +169,7 @@ public final class MetricRegistries {
     }
 
     private static SafeIllegalArgumentException invalidMetric(
-            String name,
-            @Nullable Metric existingMetric,
-            Metric newMetric) {
+            String name, @Nullable Metric existingMetric, Metric newMetric) {
         throw new SafeIllegalArgumentException(
                 "Metric name already used for different metric type",
                 SafeArg.of("metricName", name),
@@ -226,7 +216,6 @@ public final class MetricRegistries {
      * @param registry metric registry
      * @param cache cache to instrument
      * @param name cache name
-     *
      * @throws IllegalArgumentException if name is blank
      */
     @SuppressWarnings({"BanGuavaCaches", "WeakerAccess"}) // this implementation is explicitly for Guava caches, API
@@ -243,9 +232,8 @@ public final class MetricRegistries {
         checkNotNull(clock, "clock");
         checkArgument(!name.trim().isEmpty(), "Cache name cannot be blank or empty");
 
-        CacheMetricSet.create(cache, name)
-                .getMetrics()
-                .forEach((key, value) -> registerWithReplacement(registry, key, value));
+        CacheMetricSet.create(cache, name).getMetrics().forEach((key, value) ->
+                registerWithReplacement(registry, key, value));
     }
 
     /**
@@ -263,15 +251,25 @@ public final class MetricRegistries {
         checkNotNull(name, "name");
         checkArgument(!name.trim().isEmpty(), "Cache name cannot be blank or empty");
 
-        CacheTaggedMetrics.create(cache, name)
-                .getMetrics()
-                .forEach(registry::registerWithReplacement);
+        CacheTaggedMetrics.create(cache, name).getMetrics().forEach(registry::registerWithReplacement);
     }
 
     /**
      * Adds Garbage Collection metrics to the given metric registry.
      *
-     * Registers gauges <pre>jvm.gc.count</pre> and <pre>jvm.gc.time</pre> tagged with <pre>{collector: NAME}</pre>.
+     * <p>Registers gauges
+     *
+     * <pre>jvm.gc.count</pre>
+     *
+     * and
+     *
+     * <pre>jvm.gc.time</pre>
+     *
+     * tagged with
+     *
+     * <pre>{collector: NAME}</pre>
+     *
+     * .
      *
      * @param registry metric registry
      */
@@ -282,14 +280,19 @@ public final class MetricRegistries {
     /**
      * Adds memory pool metrics to the given metric registry.
      *
-     * Registers the following metrics, tagged with <pre>{memoryPool: NAME}</pre>.
+     * <p>Registers the following metrics, tagged with
+     *
+     * <pre>{memoryPool: NAME}</pre>
+     *
+     * .
+     *
      * <ul>
-     *     <li>jvm.memory.pools.max</li>
-     *     <li>jvm.memory.pools.used</li>
-     *     <li>jvm.memory.pools.committed</li>
-     *     <li>jvm.memory.pools.init</li>
-     *     <li>jvm.memory.pools.usage</li>
-     *     <li>jvm.memory.pools.used-after-gc (Only for supported pools)</li>
+     *   <li>jvm.memory.pools.max
+     *   <li>jvm.memory.pools.used
+     *   <li>jvm.memory.pools.committed
+     *   <li>jvm.memory.pools.init
+     *   <li>jvm.memory.pools.usage
+     *   <li>jvm.memory.pools.used-after-gc (Only for supported pools)
      * </ul>
      *
      * @param registry metric registry
@@ -301,8 +304,8 @@ public final class MetricRegistries {
     /**
      * Returns an instrumented {@link ScheduledExecutorService} that monitors the number of tasks submitted, running,
      * completed and also keeps a {@link com.codahale.metrics.Timer} for the task duration. Similar to
-     * {@link com.codahale.metrics.InstrumentedScheduledExecutorService}, but produces tagged metrics to the
-     * specified {@link TaggedMetricRegistry}.
+     * {@link com.codahale.metrics.InstrumentedScheduledExecutorService}, but produces tagged metrics to the specified
+     * {@link TaggedMetricRegistry}.
      *
      * @param registry tagged metric registry
      * @param delegate executor service to instrument
@@ -310,18 +313,14 @@ public final class MetricRegistries {
      * @return instrumented executor service
      */
     public static ScheduledExecutorService instrument(
-            TaggedMetricRegistry registry,
-            ScheduledExecutorService delegate,
-            String name) {
+            TaggedMetricRegistry registry, ScheduledExecutorService delegate, String name) {
         return new TaggedMetricsScheduledExecutorService(
-                checkNotNull(delegate, "delegate"),
-                ExecutorMetrics.of(registry),
-                checkNotNull(name, "name"));
+                checkNotNull(delegate, "delegate"), ExecutorMetrics.of(registry), checkNotNull(name, "name"));
     }
 
     /**
-     * Returns an instrumented {@link ExecutorService} that monitors the number of tasks submitted, running,
-     * completed and also keeps a {@link com.codahale.metrics.Timer} for the task duration. Similar to
+     * Returns an instrumented {@link ExecutorService} that monitors the number of tasks submitted, running, completed
+     * and also keeps a {@link com.codahale.metrics.Timer} for the task duration. Similar to
      * {@link com.codahale.metrics.InstrumentedExecutorService}, but produces tagged metrics to the specified
      * {@link TaggedMetricRegistry}.
      *
@@ -330,22 +329,17 @@ public final class MetricRegistries {
      * @param name executor service name
      * @return instrumented executor service
      */
-    public static ExecutorService instrument(
-            TaggedMetricRegistry registry,
-            ExecutorService delegate,
-            String name) {
+    public static ExecutorService instrument(TaggedMetricRegistry registry, ExecutorService delegate, String name) {
         if (delegate instanceof ScheduledExecutorService) {
             return instrument(registry, (ScheduledExecutorService) delegate, name);
         }
         return new TaggedMetricsExecutorService(
-                checkNotNull(delegate, "delegate"),
-                ExecutorMetrics.of(registry),
-                checkNotNull(name, "name"));
+                checkNotNull(delegate, "delegate"), ExecutorMetrics.of(registry), checkNotNull(name, "name"));
     }
 
     /**
-     * Returns an instrumented {@link SSLContext} that monitors handshakes and ciphers.
-     * A name may be reused across many contexts.
+     * Returns an instrumented {@link SSLContext} that monitors handshakes and ciphers. A name may be reused across many
+     * contexts.
      *
      * @param registry tagged metric registry
      * @param context ssl context to instrument
@@ -354,14 +348,12 @@ public final class MetricRegistries {
      */
     public static SSLContext instrument(TaggedMetricRegistry registry, SSLContext context, String name) {
         return new InstrumentedSslContext(
-                checkNotNull(context, "context"),
-                TlsMetrics.of(registry),
-                checkNotNull(name, "name"));
+                checkNotNull(context, "context"), TlsMetrics.of(registry), checkNotNull(name, "name"));
     }
 
     /**
-     * Returns an instrumented {@link SSLSocketFactory} that monitors handshakes and ciphers.
-     * A name may be reused across many factories.
+     * Returns an instrumented {@link SSLSocketFactory} that monitors handshakes and ciphers. A name may be reused
+     * across many factories.
      *
      * @param registry tagged metric registry
      * @param factory socket factory to instrument
@@ -370,14 +362,12 @@ public final class MetricRegistries {
      */
     public static SSLSocketFactory instrument(TaggedMetricRegistry registry, SSLSocketFactory factory, String name) {
         return new InstrumentedSslSocketFactory(
-                checkNotNull(factory, "factory"),
-                TlsMetrics.of(registry),
-                checkNotNull(name, "name"));
+                checkNotNull(factory, "factory"), TlsMetrics.of(registry), checkNotNull(name, "name"));
     }
 
     /**
-     * Extracts the wrapped delegate if the input {@link SSLEngine} is instrumented, otherwise returns the input.
-     * Some libraries (Conscrypt, for example) use <code>instanceof</code> checks and casts to configure specific
+     * Extracts the wrapped delegate if the input {@link SSLEngine} is instrumented, otherwise returns the input. Some
+     * libraries (Conscrypt, for example) use <code>instanceof</code> checks and casts to configure specific
      * {@link SSLEngine} implementations. In such cases, it may be necessary to unwrap the instrumented instance.
      *
      * @param engine Engine to unwrap
@@ -391,35 +381,37 @@ public final class MetricRegistries {
      * Ensures a {@link Metric} is registered to a {@link MetricRegistry} with the supplied {@code name}. If there is an
      * existing {@link Metric} registered to {@code name} with the same implemented set of interfaces as {@code metric}
      * then it's returned. Otherwise {@code metric} is registered and returned.
-     * <p>
-     * This is intended to imitate the semantics of {@link MetricRegistry#counter(String)} and should only be used for
-     * {@link Metric} implementations that can't be registered/created in that manner (because it does not actually
+     *
+     * <p>This is intended to imitate the semantics of {@link MetricRegistry#counter(String)} and should only be used
+     * for {@link Metric} implementations that can't be registered/created in that manner (because it does not actually
      * guarantee that the registered {@link Metric} matches the input {@code metric}).
-     * <p>
-     * For example, this may be useful for registering {@link Gauge}s which might cause issues from being added multiple
-     * times to a static {@link MetricRegistry} in a unit test
+     *
+     * <p>For example, this may be useful for registering {@link Gauge}s which might cause issues from being added
+     * multiple times to a static {@link MetricRegistry} in a unit test
      *
      * @throws IllegalArgumentException if there is already a {@link Metric} registered that doesn't implement the same
-     *         interfaces as {@code metric}
+     *     interfaces as {@code metric}
      */
     public static <T extends Metric> T registerSafe(MetricRegistry registry, String name, T metric) {
-        return registerOrReplace(registry, name, metric, /* replace= */false);
+        return registerOrReplace(registry, name, metric, /* replace= */ false);
     }
 
     public static <T extends Metric> T registerWithReplacement(MetricRegistry registry, String name, T metric) {
-        return registerOrReplace(registry, name, metric, /* replace= */true);
+        return registerOrReplace(registry, name, metric, /* replace= */ true);
     }
 
-    private static <T extends Metric> T registerOrReplace(MetricRegistry registry, String name, T metric,
-            boolean replace) {
+    private static <T extends Metric> T registerOrReplace(
+            MetricRegistry registry, String name, T metric, boolean replace) {
         synchronized (registry) {
             Map<String, Metric> metrics = registry.getMetrics();
             Metric existingMetric = metrics.get(name);
             if (existingMetric == null) {
                 return registry.register(name, metric);
             } else {
-                Set<Class<?>> existingMetricInterfaces = ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
-                Set<Class<?>> newMetricInterfaces = ImmutableSet.copyOf(metric.getClass().getInterfaces());
+                Set<Class<?>> existingMetricInterfaces =
+                        ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
+                Set<Class<?>> newMetricInterfaces =
+                        ImmutableSet.copyOf(metric.getClass().getInterfaces());
                 if (!existingMetricInterfaces.equals(newMetricInterfaces)) {
                     throw new SafeIllegalArgumentException(
                             "Metric already registered at this name that implements a different set of interfaces",
@@ -428,14 +420,16 @@ public final class MetricRegistries {
                 }
 
                 if (replace && registry.remove(name)) {
-                    logger.info("Removed existing registered metric with name {}: {}",
+                    logger.info(
+                            "Removed existing registered metric with name {}: {}",
                             SafeArg.of("name", name),
                             // #256: Metric implementations are necessarily json serializable
                             SafeArg.of("existingMetric", String.valueOf(existingMetric)));
                     registry.register(name, metric);
                     return metric;
                 } else {
-                    logger.warn("Metric already registered at this name. Name: {}, existing metric: {}",
+                    logger.warn(
+                            "Metric already registered at this name. Name: {}, existing metric: {}",
                             SafeArg.of("name", name),
                             // #256: Metric implementations are necessarily json serializable
                             SafeArg.of("existingMetric", String.valueOf(existingMetric)));
@@ -448,8 +442,8 @@ public final class MetricRegistries {
     }
 
     /**
-     * Registers a Dropwizard {@link MetricSet} with a Tritium {@link TaggedMetricRegistry}.
-     * Semantics match calling {@link MetricRegistry#register(String, Metric)} with a {@link MetricSet}.
+     * Registers a Dropwizard {@link MetricSet} with a Tritium {@link TaggedMetricRegistry}. Semantics match calling
+     * {@link MetricRegistry#register(String, Metric)} with a {@link MetricSet}.
      *
      * @param registry Target Tritium registry
      * @param prefix Metric name prefix
@@ -476,8 +470,7 @@ public final class MetricRegistries {
             } else if (metric instanceof MetricSet) {
                 registerAll(registry, safeName, (MetricSet) metric);
             } else {
-                throw new SafeIllegalArgumentException("Unknown Metric Type",
-                        SafeArg.of("type", metric.getClass()));
+                throw new SafeIllegalArgumentException("Unknown Metric Type", SafeArg.of("type", metric.getClass()));
             }
         });
     }

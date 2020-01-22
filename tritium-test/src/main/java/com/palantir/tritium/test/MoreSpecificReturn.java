@@ -19,5 +19,4 @@ package com.palantir.tritium.test;
 public interface MoreSpecificReturn {
 
     String specificity();
-
 }

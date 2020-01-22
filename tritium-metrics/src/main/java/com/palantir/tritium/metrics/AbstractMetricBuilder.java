@@ -34,5 +34,4 @@ abstract class AbstractMetricBuilder<T extends Metric> implements MetricBuilder<
         //noinspection PointlessNullCheck
         return metric != null && metricType.isInstance(metric);
     }
-
 }

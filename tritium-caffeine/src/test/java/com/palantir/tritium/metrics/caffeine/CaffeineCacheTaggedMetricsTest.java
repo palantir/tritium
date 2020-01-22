@@ -32,8 +32,7 @@ final class CaffeineCacheTaggedMetricsTest {
 
     @Test
     void createMetrics(@Mock Cache<?, ?> cache) {
-        CaffeineCacheTaggedMetrics cacheTaggedMetrics =
-                CaffeineCacheTaggedMetrics.create(cache, "test");
+        CaffeineCacheTaggedMetrics cacheTaggedMetrics = CaffeineCacheTaggedMetrics.create(cache, "test");
         assertThat(cacheTaggedMetrics).isNotNull();
         Map<MetricName, Gauge<?>> metrics = cacheTaggedMetrics.getMetrics();
         assertThat(metrics).hasSize(12);

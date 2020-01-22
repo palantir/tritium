@@ -33,5 +33,4 @@ public interface TestInterface extends LessSpecificReturn {
     int throwsThrowable() throws Throwable;
 
     void throwsOutOfMemoryError();
-
 }

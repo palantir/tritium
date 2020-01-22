@@ -92,5 +92,4 @@ public class TestImplementation implements TestInterface, Runnable, MoreSpecific
             super(TestThrowable.class.getSimpleName());
         }
     }
-
 }

@@ -31,7 +31,6 @@ public final class TestTaggedMetricRegistries {
 
     public static Stream<TaggedMetricRegistry> registries() {
         return Stream.of(
-                new DefaultTaggedMetricRegistry(),
-                new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS));
+                new DefaultTaggedMetricRegistry(), new SlidingWindowTaggedMetricRegistry(30, TimeUnit.SECONDS));
     }
 }

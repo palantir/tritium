@@ -69,5 +69,4 @@ final class MetricRegistryWithReservoirsTest {
         verify(mockSupplier, times(1)).get();
         verifyNoMoreInteractions(mockReservoir, mockSupplier);
     }
-
 }

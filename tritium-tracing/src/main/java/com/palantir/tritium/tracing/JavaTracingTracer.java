@@ -28,5 +28,4 @@ enum JavaTracingTracer implements com.palantir.tritium.tracing.Tracer {
     public void completeSpan() {
         com.palantir.tracing.Tracer.fastCompleteSpan();
     }
-
 }

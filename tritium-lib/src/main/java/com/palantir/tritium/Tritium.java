@@ -21,9 +21,7 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 
-/**
- * Provides static methods for Tritium instrumentation.
- */
+/** Provides static methods for Tritium instrumentation. */
 public final class Tritium {
 
     private Tritium() {
@@ -48,21 +46,16 @@ public final class Tritium {
     }
 
     /**
-     * Return an instrumented proxy of the specified service interface, and delegate that records aggregated
-     * invocation metrics, Zipkin style traces and performance trace logging.
+     * Return an instrumented proxy of the specified service interface, and delegate that records aggregated invocation
+     * metrics, Zipkin style traces and performance trace logging.
      *
-     * @param serviceInterface
-     *        The service class to instrument
-     * @param delegate
-     *        Delegate to instrument
-     * @param metricRegistry
-     *        A {@link TaggedMetricRegistry} for registering metrics
+     * @param serviceInterface The service class to instrument
+     * @param delegate Delegate to instrument
+     * @param metricRegistry A {@link TaggedMetricRegistry} for registering metrics
      * @return instrumented proxy implementing specified service interface
      */
     public static <T, U extends T> T instrument(
-            Class<T> serviceInterface,
-            U delegate,
-            TaggedMetricRegistry metricRegistry) {
+            Class<T> serviceInterface, U delegate, TaggedMetricRegistry metricRegistry) {
         return Instrumentation.builder(serviceInterface, delegate)
                 .withTaggedMetrics(metricRegistry)
                 .withPerformanceTraceLogging()

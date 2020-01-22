@@ -55,7 +55,7 @@ public final class AnnotationHelper {
     }
 
     /**
-     * Depth first search up the Type hierarchy to find a matching annotation,  Types which do not implement the
+     * Depth first search up the Type hierarchy to find a matching annotation, Types which do not implement the
      * specified method signature are ignored.
      *
      * @param annotation - Annotation type to scan for
@@ -108,8 +108,8 @@ public final class AnnotationHelper {
 
         private MethodSignature(String methodName, Class<?>... parameterTypes) {
             this.methodName = checkNotNull(methodName);
-            this.parameterTypes = (parameterTypes == null || parameterTypes.length == 0)
-                    ? NO_ARGS : parameterTypes.clone();
+            this.parameterTypes =
+                    (parameterTypes == null || parameterTypes.length == 0) ? NO_ARGS : parameterTypes.clone();
         }
 
         public String getMethodName() {
@@ -123,8 +123,11 @@ public final class AnnotationHelper {
         @Override
         public String toString() {
             return "MethodSignature{"
-                    + "methodName='" + methodName + '\''
-                    + ", parameterTypes=" + Arrays.toString(parameterTypes)
+                    + "methodName='"
+                    + methodName
+                    + '\''
+                    + ", parameterTypes="
+                    + Arrays.toString(parameterTypes)
                     + '}';
         }
 
@@ -139,7 +142,8 @@ public final class AnnotationHelper {
 
             MethodSignature that = (MethodSignature) other;
 
-            if (getMethodName() != null ? !getMethodName().equals(that.getMethodName())
+            if (getMethodName() != null
+                    ? !getMethodName().equals(that.getMethodName())
                     : that.getMethodName() != null) {
                 return false;
             }

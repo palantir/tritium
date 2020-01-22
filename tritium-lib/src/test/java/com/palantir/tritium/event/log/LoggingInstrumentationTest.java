@@ -93,15 +93,10 @@ public class LoggingInstrumentationTest {
         assertThat(delegate.invocationCount()).isOne();
     }
 
-
     private static void testLoggingAtLevel(LoggingLevel level) {
         TestImplementation delegate = new TestImplementation();
-        assertThat(level).isIn(
-                LoggingLevel.ERROR,
-                LoggingLevel.WARN,
-                LoggingLevel.INFO,
-                LoggingLevel.DEBUG,
-                LoggingLevel.TRACE);
+        assertThat(level)
+                .isIn(LoggingLevel.ERROR, LoggingLevel.WARN, LoggingLevel.INFO, LoggingLevel.DEBUG, LoggingLevel.TRACE);
         enableLoggingForLevel(level);
         Logger logger = getLogger();
 
@@ -136,14 +131,11 @@ public class LoggingInstrumentationTest {
         assertThat(delegate.invocationCount()).isOne();
     }
 
-
     private static Logger getLogger() {
         return LoggerFactory.getLogger(LoggingInstrumentationTest.class);
     }
 
     private static void enableLoggingForLevel(LoggingLevel level) {
-        System.setProperty(SimpleLogger.LOG_KEY_PREFIX
-                + LoggingInstrumentationTest.class.getName(), level.name());
+        System.setProperty(SimpleLogger.LOG_KEY_PREFIX + LoggingInstrumentationTest.class.getName(), level.name());
     }
-
 }

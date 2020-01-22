@@ -72,20 +72,25 @@ public class InstrumentationCreationBenchmark {
     public void before() {
         mode.initialize();
         this.registry = new DefaultTaggedMetricRegistry();
-        this.largeStub = (Stubs.Iface99) Proxy.newProxyInstance(getClass().getClassLoader(),
+        this.largeStub = (Stubs.Iface99) Proxy.newProxyInstance(
+                getClass().getClassLoader(),
                 // Apply runnable to avoid benchmarks reusing the proxy class
                 new Class<?>[] {Runnable.class, Stubs.Iface99.class},
                 (proxy, method, args) -> null);
-        this.duplicateStub = (Stubs.Iface99) Proxy.newProxyInstance(getClass().getClassLoader(),
+        this.duplicateStub = (Stubs.Iface99) Proxy.newProxyInstance(
+                getClass().getClassLoader(),
                 // Apply runnable to avoid benchmarks reusing the proxy class
-                Streams.concat(Stream.<Class<?>>of(Runnable.class), IntStream.range(0, 100)
-                        .<Class<?>>mapToObj(value -> {
-                            try {
-                                return Class.forName(Stubs.Iface99.class.getName().replace("99", "" + value));
-                            } catch (ClassNotFoundException e) {
-                                throw new IllegalStateException(e);
-                            }
-                        })).toArray(Class<?>[]::new),
+                Streams.concat(
+                                Stream.<Class<?>>of(Runnable.class),
+                                IntStream.range(0, 100).<Class<?>>mapToObj(value -> {
+                                    try {
+                                        return Class.forName(
+                                                Stubs.Iface99.class.getName().replace("99", "" + value));
+                                    } catch (ClassNotFoundException e) {
+                                        throw new IllegalStateException(e);
+                                    }
+                                }))
+                        .toArray(Class<?>[]::new),
                 (proxy, method, args) -> null);
     }
 

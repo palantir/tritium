@@ -55,8 +55,7 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
     }
 
     @Override
-    public Socket createSocket(String host, int port, InetAddress inetAddress, int clientPort)
-            throws IOException {
+    public Socket createSocket(String host, int port, InetAddress inetAddress, int clientPort) throws IOException {
         return wrap(delegate.createSocket(host, port, inetAddress, clientPort));
     }
 

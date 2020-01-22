@@ -36,9 +36,8 @@ final class ByteBuddyInstrumentationAdvice {
     private ByteBuddyInstrumentationAdvice() {}
 
     /**
-     * Work around slow <code>@Advice.Origin Method</code> parameters by providing an array of known methods
-     * to each method, with the index of the current method bound individually.
-     * https://github.com/raphw/byte-buddy/issues/714
+     * Work around slow <code>@Advice.Origin Method</code> parameters by providing an array of known methods to each
+     * method, with the index of the current method bound individually. https://github.com/raphw/byte-buddy/issues/714
      */
     @Retention(RetentionPolicy.RUNTIME)
     @java.lang.annotation.Target(ElementType.PARAMETER)
@@ -93,7 +92,9 @@ final class ByteBuddyInstrumentationAdvice {
                     logger.warn(
                             "Failure occurred handling post-invocation: {}, {}",
                             UnsafeArg.of("context", context),
-                            SafeArg.of("result", value == null ? "null" : value.getClass().getSimpleName()),
+                            SafeArg.of(
+                                    "result",
+                                    value == null ? "null" : value.getClass().getSimpleName()),
                             t);
                 }
             }

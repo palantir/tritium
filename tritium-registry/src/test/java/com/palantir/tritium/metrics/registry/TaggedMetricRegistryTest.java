@@ -38,8 +38,10 @@ import org.mockito.Mockito;
 
 final class TaggedMetricRegistryTest {
 
-    private static final MetricName METRIC_1 = MetricName.builder().safeName("name").build();
-    private static final MetricName METRIC_2 = MetricName.builder().safeName("name").putSafeTags("key", "val").build();
+    private static final MetricName METRIC_1 =
+            MetricName.builder().safeName("name").build();
+    private static final MetricName METRIC_2 =
+            MetricName.builder().safeName("name").putSafeTags("key", "val").build();
 
     interface SuppliedMetricMethod<T extends Metric> {
         T metric(MetricName metricName, Supplier<T> supplier);
@@ -170,9 +172,8 @@ final class TaggedMetricRegistryTest {
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testSuppliedHistogram(TaggedMetricRegistry registry) {
-        testSuppliedCall(registry::histogram,
-                new Histogram(new ExponentiallyDecayingReservoir()),
-                new Histogram(new ExponentiallyDecayingReservoir()));
+        testSuppliedCall(registry::histogram, new Histogram(new ExponentiallyDecayingReservoir()), new Histogram(
+                new ExponentiallyDecayingReservoir()));
     }
 
     @ParameterizedTest
@@ -256,7 +257,8 @@ final class TaggedMetricRegistryTest {
         assertMetric(registry, name, tagKey, tagValue, firstMeter);
 
         TaggedMetricRegistry secondChild = registrySupplier.get();
-        Meter secondMeter = secondChild.meter(MetricName.builder().safeName(name).build());
+        Meter secondMeter =
+                secondChild.meter(MetricName.builder().safeName(name).build());
 
         registry.addMetrics(tagKey, tagValue, secondChild);
         assertMetric(registry, name, tagKey, tagValue, secondMeter);
@@ -283,27 +285,28 @@ final class TaggedMetricRegistryTest {
         assertThat(metric)
                 .isInstanceOf(Counter.class)
                 .isSameAs(counter)
-                .isSameAs(registry.counter(
-                        MetricName.builder()
-                                .safeName("counter1")
-                                .putSafeTags("tagB", "2")
-                                .putSafeTags("tagA", Long.toString(1))
-                                .build()))
-                .isSameAs(registry.getMetrics().get(MetricName.builder()
+                .isSameAs(registry.counter(MetricName.builder()
                         .safeName("counter1")
+                        .putSafeTags("tagB", "2")
                         .putSafeTags("tagA", Long.toString(1))
-                        .putSafeTags("tagB", Integer.toString(2))
-                        .build()));
+                        .build()))
+                .isSameAs(registry.getMetrics()
+                        .get(MetricName.builder()
+                                .safeName("counter1")
+                                .putSafeTags("tagA", Long.toString(1))
+                                .putSafeTags("tagB", Integer.toString(2))
+                                .build()));
         assertThat(counter.getCount()).isOne();
     }
 
     private static void assertMetric(
-            TaggedMetricRegistry registry,
-            String name,
-            String tagKey,
-            String tagValue,
-            Meter meter) {
+            TaggedMetricRegistry registry, String name, String tagKey, String tagValue, Meter meter) {
         assertThat(registry.getMetrics())
-                .containsEntry(MetricName.builder().safeName(name).putSafeTags(tagKey, tagValue).build(), meter);
+                .containsEntry(
+                        MetricName.builder()
+                                .safeName(name)
+                                .putSafeTags(tagKey, tagValue)
+                                .build(),
+                        meter);
     }
 }

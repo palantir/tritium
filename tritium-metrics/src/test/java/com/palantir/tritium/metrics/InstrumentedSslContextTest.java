@@ -80,8 +80,8 @@ final class InstrumentedSslContextTest {
     @Test
     void testClientInstrumentationOkHttp() throws Exception {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
-        SSLSocketFactory socketFactory = MetricRegistries.instrument(
-                metrics, newClientContext().getSocketFactory(), "okhttp-client");
+        SSLSocketFactory socketFactory =
+                MetricRegistries.instrument(metrics, newClientContext().getSocketFactory(), "okhttp-client");
         OkHttpClient client = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(false)
                 .sslSocketFactory(socketFactory, newTrustManager())
@@ -89,7 +89,10 @@ final class InstrumentedSslContextTest {
                 .build();
         try (Closeable ignored = server(newServerContext());
                 Response response = client.newCall(new Request.Builder()
-                        .url("https://localhost:" + PORT).get().build()).execute()) {
+                                .url("https://localhost:" + PORT)
+                                .get()
+                                .build())
+                        .execute()) {
             assertThat(response.code()).isEqualTo(200);
             assertThat(response.protocol()).isEqualTo(Protocol.HTTP_1_1);
         }
@@ -106,17 +109,22 @@ final class InstrumentedSslContextTest {
 
     @Test
     void testClientInstrumentationOkHttpHttp2() throws Exception {
-        assumeThat(IS_JAVA_8).describedAs("Java 8 does not support ALPN without additional help").isFalse();
+        assumeThat(IS_JAVA_8)
+                .describedAs("Java 8 does not support ALPN without additional help")
+                .isFalse();
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
-        SSLSocketFactory socketFactory = MetricRegistries.instrument(
-                metrics, newClientContext().getSocketFactory(), "okhttp-client");
+        SSLSocketFactory socketFactory =
+                MetricRegistries.instrument(metrics, newClientContext().getSocketFactory(), "okhttp-client");
         OkHttpClient client = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(false)
                 .sslSocketFactory(socketFactory, newTrustManager())
                 .build();
         try (Closeable ignored = server(newServerContext());
                 Response response = client.newCall(new Request.Builder()
-                        .url("https://localhost:" + PORT).get().build()).execute()) {
+                                .url("https://localhost:" + PORT)
+                                .get()
+                                .build())
+                        .execute()) {
             assertThat(response.code()).isEqualTo(200);
             // If http/2 does not work on java 9+ we have not properly implemented java 9 ALPN components properly
             assertThat(response.protocol()).isEqualTo(Protocol.HTTP_2);
@@ -134,7 +142,9 @@ final class InstrumentedSslContextTest {
 
     @Test
     void testServerInstrumentationHttp2() throws Exception {
-        assumeThat(IS_JAVA_8).describedAs("Java 8 does not support ALPN without additional help").isFalse();
+        assumeThat(IS_JAVA_8)
+                .describedAs("Java 8 does not support ALPN without additional help")
+                .isFalse();
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         OkHttpClient client = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(false)
@@ -142,7 +152,10 @@ final class InstrumentedSslContextTest {
                 .build();
         try (Closeable ignored = server(MetricRegistries.instrument(metrics, newServerContext(), "h2-server"));
                 Response response = client.newCall(new Request.Builder()
-                        .url("https://localhost:" + PORT).get().build()).execute()) {
+                                .url("https://localhost:" + PORT)
+                                .get()
+                                .build())
+                        .execute()) {
             assertThat(response.code()).isEqualTo(200);
             // If http/2 does not work on java 9+ we have not properly implemented java 9 ALPN components properly
             assertThat(response.protocol()).isEqualTo(Protocol.HTTP_2);
@@ -187,8 +200,8 @@ final class InstrumentedSslContextTest {
     void testSslEngineUnwrapInstrumentedTwice() throws IOException, GeneralSecurityException {
         SSLContext context = newServerContext();
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
-        SSLContext wrapped = MetricRegistries.instrument(
-                metrics, MetricRegistries.instrument(metrics, context, "first"), "second");
+        SSLContext wrapped =
+                MetricRegistries.instrument(metrics, MetricRegistries.instrument(metrics, context, "first"), "second");
         SSLEngine engine = wrapped.createSSLEngine();
         assertThat(engine).isInstanceOf(InstrumentedSslEngine.class);
         assertThat(MetricRegistries.unwrap(engine)).isNotNull().isNotInstanceOf(InstrumentedSslEngine.class);
@@ -217,7 +230,7 @@ final class InstrumentedSslContextTest {
         return newSslContext("server_keystore.jks", "serverStore");
     }
 
-    private static SSLContext newSslContext(String name, String pass) throws IOException, GeneralSecurityException  {
+    private static SSLContext newSslContext(String name, String pass) throws IOException, GeneralSecurityException {
         KeyStore keystore = loadKeystore(name, pass);
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(keystore, pass.toCharArray());
@@ -240,8 +253,10 @@ final class InstrumentedSslContextTest {
 
     private static KeyStore loadKeystore(String name, String password) throws IOException, GeneralSecurityException {
         KeyStore keyStore = KeyStore.getInstance("JKS");
-        try (InputStream stream = InstrumentedSslContextTest.class.getClassLoader()
-                .getResource(name).openStream()) {
+        try (InputStream stream = InstrumentedSslContextTest.class
+                .getClassLoader()
+                .getResource(name)
+                .openStream()) {
             keyStore.load(stream, password.toCharArray());
         }
         return keyStore;

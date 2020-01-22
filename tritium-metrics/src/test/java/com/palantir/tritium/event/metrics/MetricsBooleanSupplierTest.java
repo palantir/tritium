@@ -45,8 +45,7 @@ final class MetricsBooleanSupplierTest {
                 arguments(false, true, true, false),
                 // enabled
                 arguments(true, true, false, true),
-                arguments(true, true, true, true)
-        );
+                arguments(true, true, true, true));
     }
 
     @BeforeEach

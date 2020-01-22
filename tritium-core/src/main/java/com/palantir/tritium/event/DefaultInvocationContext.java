@@ -43,10 +43,7 @@ public class DefaultInvocationContext implements InvocationContext {
 
     public static InvocationContext of(Object instance, Method method, @Nullable Object[] args) {
         return new DefaultInvocationContext(
-                System.nanoTime(),
-                checkNotNull(instance, "instance"),
-                checkNotNull(method, "method"),
-                args);
+                System.nanoTime(), checkNotNull(instance, "instance"), checkNotNull(method, "method"), args);
     }
 
     @Override
@@ -72,9 +69,12 @@ public class DefaultInvocationContext implements InvocationContext {
     @Override
     @SuppressWarnings("DesignForExtension")
     public String toString() {
-        return "DefaultInvocationContext [startTimeNanos=" + startTimeNanos
-                + ", instance=" + instance
-                + ", method=" + method + ']';
+        return "DefaultInvocationContext [startTimeNanos="
+                + startTimeNanos
+                + ", instance="
+                + instance
+                + ", method="
+                + method
+                + ']';
     }
-
 }

@@ -43,7 +43,6 @@ final class CaffeineCacheMetrics implements MetricSet {
     @Override
     @SuppressWarnings("MutableMethodReturnType") // API
     public Map<String, Metric> getMetrics() {
-        return ImmutableMap.copyOf(
-                CaffeineCacheStats.createCacheGauges(cache, name -> cacheName + '.' + name));
+        return ImmutableMap.copyOf(CaffeineCacheStats.createCacheGauges(cache, name -> cacheName + '.' + name));
     }
 }

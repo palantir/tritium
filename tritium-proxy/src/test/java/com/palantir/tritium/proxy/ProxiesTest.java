@@ -35,8 +35,8 @@ final class ProxiesTest {
     @Test
     void testNewProxy() {
         TestInterface implementation = new TestImplementation();
-        TestInterface proxy = Proxies.newProxy(TestInterface.class, implementation,
-                (delegate, method, args) -> method.invoke(implementation, args) + ", world");
+        TestInterface proxy = Proxies.newProxy(TestInterface.class, implementation, (delegate, method, args) ->
+                method.invoke(implementation, args) + ", world");
         assertThat(proxy.test()).isEqualTo("hello, world");
     }
 
@@ -53,27 +53,21 @@ final class ProxiesTest {
 
     @Test
     void testCheckIsInterfaceOnClass() {
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
-                Proxies.checkIsInterface(String.class));
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> Proxies.checkIsInterface(String.class));
     }
 
     @Test
     void testCheckAreAllInterfaces() {
-        Proxies.checkAreAllInterfaces(ImmutableSet.of(TestInterface.class,
-                Runnable.class,
-                Callable.class,
-                List.class));
+        Proxies.checkAreAllInterfaces(ImmutableSet.of(TestInterface.class, Runnable.class, Callable.class, List.class));
     }
 
     @Test
     void testCheckAreAllInterfacesWithClass() {
-        ImmutableSet<Class<?>> interfaces = ImmutableSet.of(TestInterface.class,
-                String.class,
-                Runnable.class,
-                Callable.class,
-                List.class);
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
-                Proxies.checkAreAllInterfaces(interfaces));
+        ImmutableSet<Class<?>> interfaces =
+                ImmutableSet.of(TestInterface.class, String.class, Runnable.class, Callable.class, List.class);
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> Proxies.checkAreAllInterfaces(interfaces));
     }
 
     @Test
@@ -85,5 +79,4 @@ final class ProxiesTest {
                 .isInstanceOf(InvocationTargetException.class)
                 .hasRootCauseExactlyInstanceOf(UnsupportedOperationException.class);
     }
-
 }

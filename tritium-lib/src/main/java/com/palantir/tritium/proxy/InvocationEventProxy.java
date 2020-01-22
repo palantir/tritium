@@ -53,8 +53,8 @@ abstract class InvocationEventProxy implements InvocationHandler {
         this(handlers, InstrumentationFilters.INSTRUMENT_ALL);
     }
 
-    protected InvocationEventProxy(List<InvocationEventHandler<InvocationContext>> handlers,
-                                   InstrumentationFilter filter) {
+    protected InvocationEventProxy(
+            List<InvocationEventHandler<InvocationContext>> handlers, InstrumentationFilter filter) {
         checkNotNull(filter, "filter");
         checkNotNull(handlers, "handlers");
         this.eventHandler = CompositeInvocationEventHandler.of(handlers);
@@ -80,8 +80,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
      */
     private boolean isEnabled(Object instance, Method method, Object[] args) {
         try {
-            return eventHandler.isEnabled()
-                    && filter.shouldInstrument(instance, method, args);
+            return eventHandler.isEnabled() && filter.shouldInstrument(instance, method, args);
         } catch (RuntimeException | Error t) {
             logInvocationWarning("isEnabled", instance, method, t);
             return false;
@@ -130,8 +129,8 @@ abstract class InvocationEventProxy implements InvocationHandler {
         if (isToString(method, arguments)) {
             return toString();
         }
-        throw new SafeIllegalStateException("Method does not require special handling",
-                SafeArg.of("method", method.toString()));
+        throw new SafeIllegalStateException(
+                "Method does not require special handling", SafeArg.of("method", method.toString()));
     }
 
     private static boolean isEquals(Method method, Object[] arguments) {
@@ -180,16 +179,12 @@ abstract class InvocationEventProxy implements InvocationHandler {
     }
 
     private static void logInvocationWarningOnSuccess(
-            @Nullable InvocationContext context,
-            @Nullable Object result,
-            Exception cause) {
+            @Nullable InvocationContext context, @Nullable Object result, Exception cause) {
         logInvocationWarning("onSuccess", context, result, cause);
     }
 
     private static void logInvocationWarningOnFailure(
-            @Nullable InvocationContext context,
-            @Nullable Throwable result,
-            Exception cause) {
+            @Nullable InvocationContext context, @Nullable Throwable result, Exception cause) {
         logInvocationWarning("onFailure", context, result, cause);
     }
 
@@ -198,12 +193,10 @@ abstract class InvocationEventProxy implements InvocationHandler {
     }
 
     static void logInvocationWarning(
-            String event,
-            @Nullable InvocationContext context,
-            @Nullable Object result,
-            Throwable cause) {
+            String event, @Nullable InvocationContext context, @Nullable Object result, Throwable cause) {
         if (logger.isWarnEnabled()) {
-            logger.warn("{} occurred handling '{}' ({}, {}): {}",
+            logger.warn(
+                    "{} occurred handling '{}' ({}, {}): {}",
                     safeSimpleClassName("cause", cause),
                     SafeArg.of("event", event),
                     UnsafeArg.of("context", context),
@@ -212,13 +205,10 @@ abstract class InvocationEventProxy implements InvocationHandler {
         }
     }
 
-    static void logInvocationWarning(
-            String event,
-            Object instance,
-            Method method,
-            Throwable cause) {
+    static void logInvocationWarning(String event, Object instance, Method method, Throwable cause) {
         if (logger.isWarnEnabled()) {
-            logger.warn("{} occurred handling '{}' invocation of {} {} on {} instance: {}",
+            logger.warn(
+                    "{} occurred handling '{}' invocation of {} {} on {} instance: {}",
                     safeSimpleClassName("cause", cause),
                     SafeArg.of("event", event),
                     SafeArg.of("class", method.getDeclaringClass().getName()),
@@ -228,5 +218,4 @@ abstract class InvocationEventProxy implements InvocationHandler {
                     cause);
         }
     }
-
 }

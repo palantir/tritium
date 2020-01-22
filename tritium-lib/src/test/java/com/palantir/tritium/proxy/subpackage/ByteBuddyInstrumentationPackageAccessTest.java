@@ -35,8 +35,8 @@ class ByteBuddyInstrumentationPackageAccessTest {
     void testPackagePrivateInterface() {
         PackagePrivateInterface raw = () -> "value";
         assertThat(Instrumentation.builder(PackagePrivateInterface.class, raw)
-                .withPerformanceTraceLogging()
-                .build())
+                        .withPerformanceTraceLogging()
+                        .build())
                 .describedAs("inaccessible interfaces cannot be implemented, the original should be returned")
                 .isSameAs(raw);
     }
@@ -45,8 +45,8 @@ class ByteBuddyInstrumentationPackageAccessTest {
     void testPublicInterfaceEnclosedInPackagePrivateClass() {
         PackagePrivateClass.PublicInterface raw = () -> "value";
         assertThat(Instrumentation.builder(PackagePrivateClass.PublicInterface.class, raw)
-                .withPerformanceTraceLogging()
-                .build())
+                        .withPerformanceTraceLogging()
+                        .build())
                 .describedAs("inaccessible interfaces cannot be implemented, the original should be returned")
                 .isSameAs(raw);
     }

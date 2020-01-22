@@ -63,10 +63,8 @@ final class CaffeineStats implements InternalCacheMetrics.Stats {
 
     @Override
     public Optional<Gauge<Long>> maximumSize() {
-        return Optional.of(() -> cache.policy()
-                .eviction()
-                .map(Policy.Eviction::getMaximum)
-                .orElse(-1L));
+        return Optional.of(
+                () -> cache.policy().eviction().map(Policy.Eviction::getMaximum).orElse(-1L));
     }
 
     @Override

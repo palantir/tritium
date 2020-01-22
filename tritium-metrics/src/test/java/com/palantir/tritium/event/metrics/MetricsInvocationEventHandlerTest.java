@@ -41,7 +41,7 @@ final class MetricsInvocationEventHandlerTest {
         @MetricGroup("TWO")
         void methodC();
 
-        //Should match the default
+        // Should match the default
         void methodD();
     }
 
@@ -90,7 +90,8 @@ final class MetricsInvocationEventHandlerTest {
 
     @Test
     void testSystemPropertySupplier_Handler_Enabled() {
-        assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").getAsBoolean()).isTrue();
+        assertThat(MetricsInvocationEventHandler.getEnabledSupplier("test").getAsBoolean())
+                .isTrue();
     }
 
     @Test
@@ -109,35 +110,42 @@ final class MetricsInvocationEventHandlerTest {
         MetricsInvocationEventHandler otherHandler =
                 new MetricsInvocationEventHandler(metricRegistry, other.getClass(), globalPrefix);
 
-        //AnnotatedTestInterface
-        callVoidMethod(handler, obj, "methodA", /* success= */true);
-        callVoidMethod(handler, obj, "methodB", /* success= */true);
-        callVoidMethod(handler, obj, "methodC", /* success= */true);
-        callVoidMethod(handler, obj, "methodD", /* success= */true);
-        callVoidMethod(handler, obj, "methodA", /* success= */false);
+        // AnnotatedTestInterface
+        callVoidMethod(handler, obj, "methodA", /* success= */ true);
+        callVoidMethod(handler, obj, "methodB", /* success= */ true);
+        callVoidMethod(handler, obj, "methodC", /* success= */ true);
+        callVoidMethod(handler, obj, "methodD", /* success= */ true);
+        callVoidMethod(handler, obj, "methodA", /* success= */ false);
 
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE").getCount()).isEqualTo(2L);
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".TWO").getCount()).isOne();
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".DEFAULT").getCount()).isOne();
-        assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE.failures").getCount()).isOne();
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".ONE").getCount())
+                .isEqualTo(2L);
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".TWO").getCount())
+                .isOne();
+        assertThat(metricRegistry.timer(obj.getClass().getName() + ".DEFAULT").getCount())
+                .isOne();
+        assertThat(metricRegistry
+                        .timer(obj.getClass().getName() + ".ONE.failures")
+                        .getCount())
+                .isOne();
 
-        //AnnotatedOtherInterface
-        callVoidMethod(otherHandler, other, "methodE", /* success= */true);
-        assertThat(metricRegistry.timer(other.getClass().getName() + ".DEFAULT").getCount()).isOne();
+        // AnnotatedOtherInterface
+        callVoidMethod(otherHandler, other, "methodE", /* success= */ true);
+        assertThat(metricRegistry.timer(other.getClass().getName() + ".DEFAULT").getCount())
+                .isOne();
 
-        //GlobalPrefix Tests
+        // GlobalPrefix Tests
         assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isEqualTo(2L);
         assertThat(metricRegistry.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
     }
 
     private static void callVoidMethod(
             MetricsInvocationEventHandler handler, Object obj, String methodName, boolean success) throws Exception {
-        InvocationContext context = DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
+        InvocationContext context =
+                DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
         if (success) {
             handler.onSuccess(context, null);
         } else {
             handler.onFailure(context, new RuntimeException("test failure"));
         }
     }
-
 }

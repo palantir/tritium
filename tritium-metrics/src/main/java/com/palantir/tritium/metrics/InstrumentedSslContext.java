@@ -53,19 +53,15 @@ final class InstrumentedSslContext extends SSLContext {
         InstrumentedSslContextSpi(
                 // This must be the delegate context, passing an InstrumentedSSLContext
                 // will result in infinite recursion.
-                SSLContext context,
-                TlsMetrics metrics,
-                String name) {
+                SSLContext context, TlsMetrics metrics, String name) {
             this.context = context;
             this.metrics = metrics;
             this.name = name;
         }
 
         @Override
-        protected void engineInit(
-                KeyManager[] keyManagers,
-                TrustManager[] trustManagers,
-                SecureRandom secureRandom) throws KeyManagementException {
+        protected void engineInit(KeyManager[] keyManagers, TrustManager[] trustManagers, SecureRandom secureRandom)
+                throws KeyManagementException {
             context.init(keyManagers, trustManagers, secureRandom);
         }
 

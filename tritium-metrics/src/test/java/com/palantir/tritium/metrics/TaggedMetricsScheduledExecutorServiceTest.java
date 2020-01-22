@@ -48,10 +48,9 @@ final class TaggedMetricsScheduledExecutorServiceTest {
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testMetrics(TaggedMetricRegistry registry) throws Exception {
-        ScheduledExecutorService executorService = MetricRegistries.instrument(
-                registry, Executors.newSingleThreadScheduledExecutor(), NAME);
-        assertThat(registry.getMetrics())
-                .containsKeys(SUBMITTED, RUNNING, COMPLETED, DURATION);
+        ScheduledExecutorService executorService =
+                MetricRegistries.instrument(registry, Executors.newSingleThreadScheduledExecutor(), NAME);
+        assertThat(registry.getMetrics()).containsKeys(SUBMITTED, RUNNING, COMPLETED, DURATION);
 
         assertThat(registry.meter(SUBMITTED).getCount()).isZero();
         assertThat(registry.counter(RUNNING).getCount()).isZero();
@@ -86,25 +85,27 @@ final class TaggedMetricsScheduledExecutorServiceTest {
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testScheduledMetrics(TaggedMetricRegistry registry) {
-        ScheduledExecutorService executorService = MetricRegistries.instrument(
-                registry, Executors.newSingleThreadScheduledExecutor(), NAME);
-        assertThat(registry.getMetrics())
-                .containsKeys(SCHEDULED_ONCE, SCHEDULED_REPETITIVELY);
+        ScheduledExecutorService executorService =
+                MetricRegistries.instrument(registry, Executors.newSingleThreadScheduledExecutor(), NAME);
+        assertThat(registry.getMetrics()).containsKeys(SCHEDULED_ONCE, SCHEDULED_REPETITIVELY);
 
         assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isZero();
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isZero();
 
-        assertThat((Future<?>) executorService.schedule(() -> { }, 1L, TimeUnit.DAYS)).isNotNull();
+        assertThat((Future<?>) executorService.schedule(() -> {}, 1L, TimeUnit.DAYS))
+                .isNotNull();
 
         assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isOne();
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isZero();
 
-        assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> { }, 1L, 1L, TimeUnit.DAYS)).isNotNull();
+        assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> {}, 1L, 1L, TimeUnit.DAYS))
+                .isNotNull();
 
         assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isOne();
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isOne();
 
-        assertThat((Future<?>) executorService.scheduleWithFixedDelay(() -> { }, 1L, 1L, TimeUnit.DAYS)).isNotNull();
+        assertThat((Future<?>) executorService.scheduleWithFixedDelay(() -> {}, 1L, 1L, TimeUnit.DAYS))
+                .isNotNull();
 
         assertThat(registry.meter(SCHEDULED_ONCE).getCount()).isOne();
         assertThat(registry.meter(SCHEDULED_REPETITIVELY).getCount()).isEqualTo(2);
@@ -113,10 +114,9 @@ final class TaggedMetricsScheduledExecutorServiceTest {
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testScheduledDurationMetrics(TaggedMetricRegistry registry) throws Exception {
-        ScheduledExecutorService executorService = MetricRegistries.instrument(
-                registry, Executors.newSingleThreadScheduledExecutor(), NAME);
-        assertThat(registry.getMetrics())
-                .containsKeys(SCHEDULED_OVERRAN, SCHEDULED_PERCENT_OF_PERIOD);
+        ScheduledExecutorService executorService =
+                MetricRegistries.instrument(registry, Executors.newSingleThreadScheduledExecutor(), NAME);
+        assertThat(registry.getMetrics()).containsKeys(SCHEDULED_OVERRAN, SCHEDULED_PERCENT_OF_PERIOD);
 
         assertThat(registry.counter(SCHEDULED_OVERRAN).getCount()).isZero();
         assertThat(registry.histogram(SCHEDULED_PERCENT_OF_PERIOD).getCount()).isZero();
@@ -124,10 +124,15 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         Semaphore startSemaphore = new Semaphore(0);
         Semaphore finishSemaphore = new Semaphore(1);
 
-        assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> {
-            startSemaphore.release();
-            finishSemaphore.acquireUninterruptibly();
-        }, 0L, 1L, TimeUnit.MILLISECONDS)).isNotDone();
+        assertThat((Future<?>) executorService.scheduleAtFixedRate(
+                        () -> {
+                            startSemaphore.release();
+                            finishSemaphore.acquireUninterruptibly();
+                        },
+                        0L,
+                        1L,
+                        TimeUnit.MILLISECONDS))
+                .isNotDone();
 
         startSemaphore.acquire(2);
 

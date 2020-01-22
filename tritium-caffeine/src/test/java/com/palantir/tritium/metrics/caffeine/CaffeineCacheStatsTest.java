@@ -44,7 +44,8 @@ final class CaffeineCacheStatsTest {
     @AfterEach
     void after() {
         System.out.println("Metrics");
-        try (ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build()) {
+        try (ConsoleReporter reporter =
+                ConsoleReporter.forRegistry(metricRegistry).build()) {
             reporter.report();
         }
 
@@ -64,10 +65,8 @@ final class CaffeineCacheStatsTest {
 
     @Test
     void registerCacheMetrics() {
-        Cache<Integer, String> cache = Caffeine.newBuilder()
-                .recordStats()
-                .maximumSize(2)
-                .build();
+        Cache<Integer, String> cache =
+                Caffeine.newBuilder().recordStats().maximumSize(2).build();
         CaffeineCacheStats.registerCache(metricRegistry, cache, "test");
         assertThat(metricRegistry.getGauges().keySet())
                 .contains(
@@ -84,32 +83,40 @@ final class CaffeineCacheStatsTest {
                         "test.cache.request.count",
                         "test.cache.weighted.size");
 
-        assertThat(metricRegistry.getGauges().get("test.cache.hit.count")).isNotNull()
-                .extracting(Gauge::getValue).isEqualTo(0L);
-        assertThat(metricRegistry.getGauges().get("test.cache.miss.count")).isNotNull()
-                .extracting(Gauge::getValue).isEqualTo(0L);
+        assertThat(metricRegistry.getGauges().get("test.cache.hit.count"))
+                .isNotNull()
+                .extracting(Gauge::getValue)
+                .isEqualTo(0L);
+        assertThat(metricRegistry.getGauges().get("test.cache.miss.count"))
+                .isNotNull()
+                .extracting(Gauge::getValue)
+                .isEqualTo(0L);
 
         assertThat(cache.get(0, mapping)).isEqualTo("0");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
-                assertThat(metricRegistry.getGauges().get("test.cache.request.count")).isNotNull()
-                        .extracting(Gauge::getValue).isEqualTo(4L));
+        await().atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> assertThat(metricRegistry.getGauges().get("test.cache.request.count"))
+                        .isNotNull()
+                        .extracting(Gauge::getValue)
+                        .isEqualTo(4L));
 
-        assertThat(metricRegistry.getGauges().get("test.cache.hit.count")).isNotNull()
-                .extracting(Gauge::getValue).isEqualTo(1L);
-        assertThat(metricRegistry.getGauges().get("test.cache.miss.count")).isNotNull()
-                .extracting(Gauge::getValue).isEqualTo(3L);
+        assertThat(metricRegistry.getGauges().get("test.cache.hit.count"))
+                .isNotNull()
+                .extracting(Gauge::getValue)
+                .isEqualTo(1L);
+        assertThat(metricRegistry.getGauges().get("test.cache.miss.count"))
+                .isNotNull()
+                .extracting(Gauge::getValue)
+                .isEqualTo(3L);
     }
 
     @Test
     void registerCacheTaggedMetrics() {
-        Cache<Integer, String> cache = Caffeine.newBuilder()
-                .recordStats()
-                .maximumSize(2)
-                .build();
+        Cache<Integer, String> cache =
+                Caffeine.newBuilder().recordStats().maximumSize(2).build();
         CaffeineCacheStats.registerCache(taggedMetricRegistry, cache, "test");
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
@@ -132,19 +139,24 @@ final class CaffeineCacheStatsTest {
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
-                assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
-                        .getValue()).isEqualTo(4L));
+        await().atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
+                                .getValue())
+                        .isEqualTo(4L));
 
-        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.count").getValue()).isEqualTo(1L);
-        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.miss.count").getValue()).isEqualTo(3L);
-        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.ratio").getValue()).isEqualTo(0.25);
+        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.count")
+                        .getValue())
+                .isEqualTo(1L);
+        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.miss.count")
+                        .getValue())
+                .isEqualTo(3L);
+        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.ratio")
+                        .getValue())
+                .isEqualTo(0.25);
     }
 
     private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {
-        return clazz.cast(metrics.getMetrics()
-                .entrySet()
-                .stream()
+        return clazz.cast(metrics.getMetrics().entrySet().stream()
                 .filter(e -> name.equals(e.getKey().safeName()))
                 .filter(e -> clazz.isInstance(e.getValue()))
                 .findFirst()

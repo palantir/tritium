@@ -28,8 +28,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <C> invocation context
  */
-public abstract class AbstractInvocationEventHandler<C extends InvocationContext>
-        implements InvocationEventHandler<C> {
+public abstract class AbstractInvocationEventHandler<C extends InvocationContext> implements InvocationEventHandler<C> {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationEventHandler.class);
 
@@ -37,15 +36,14 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
 
     private final java.util.function.BooleanSupplier isEnabledSupplier;
 
-    /**
-     * Always enabled instrumentation handler.
-     */
+    /** Always enabled instrumentation handler. */
     protected AbstractInvocationEventHandler() {
         this((java.util.function.BooleanSupplier) () -> true);
     }
 
     /**
      * Bridge for backward compatibility.
+     *
      * @deprecated Use {@link #AbstractInvocationEventHandler(java.util.function.BooleanSupplier)}
      */
     @Deprecated
@@ -56,6 +54,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
 
     /**
      * Constructs {@link AbstractInvocationEventHandler} with specified enabled supplier.
+     *
      * @param isEnabledSupplier enabled supplier
      */
     @SuppressWarnings("FunctionalInterfaceClash")
@@ -93,8 +92,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
     /**
      * Returns system property based boolean supplier for the specified class.
      *
-     * @param clazz
-     *        instrumentation handler class
+     * @param clazz instrumentation handler class
      * @return false if "instrument.fully.qualified.class.Name" is set to "false", otherwise true
      */
     protected static com.palantir.tritium.api.functions.BooleanSupplier getSystemPropertySupplier(
@@ -107,5 +105,4 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
     public static Object[] nullToEmpty(@Nullable Object[] args) {
         return (args == null) ? NO_ARGS : args;
     }
-
 }

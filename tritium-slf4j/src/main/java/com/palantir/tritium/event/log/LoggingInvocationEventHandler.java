@@ -33,10 +33,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 
-/**
- * {@link InvocationEventHandler} that times every method invocation and logs to specified
- * logger.
- */
+/** {@link InvocationEventHandler} that times every method invocation and logs to specified logger. */
 public class LoggingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final ImmutableList<String> MESSAGE_PATTERNS = generateMessagePatterns(20);
@@ -63,18 +60,19 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     /**
      * Bridge for backward compatibility.
+     *
      * @deprecated uSe {@link #LoggingInvocationEventHandler(Logger, LoggingLevel, java.util.function.LongPredicate)}
      */
     @Deprecated
     @SuppressWarnings("FunctionalInterfaceClash") // back compat
-    public LoggingInvocationEventHandler(Logger logger, LoggingLevel level,
-            com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
+    public LoggingInvocationEventHandler(
+            Logger logger, LoggingLevel level, com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
         this(logger, level, (java.util.function.LongPredicate) durationPredicate);
     }
 
     @SuppressWarnings("FunctionalInterfaceClash") // back compat
-    public LoggingInvocationEventHandler(Logger logger, LoggingLevel level,
-            java.util.function.LongPredicate durationPredicate) {
+    public LoggingInvocationEventHandler(
+            Logger logger, LoggingLevel level, java.util.function.LongPredicate durationPredicate) {
         super((java.util.function.BooleanSupplier) createEnabledSupplier(logger, level));
         this.logger = checkNotNull(logger, "logger");
         this.level = checkNotNull(level, "level");
@@ -83,9 +81,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     @Override
     public final InvocationContext preInvocation(
-            @Nonnull Object instance,
-            @Nonnull Method method,
-            @Nonnull Object[] args) {
+            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 
@@ -232,5 +228,4 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
         return logParams;
     }
-
 }

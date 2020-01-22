@@ -37,19 +37,18 @@ import java.util.function.LongPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Instrument arbitrary service interfaces with optional metrics and invocation logging.
- */
+/** Instrument arbitrary service interfaces with optional metrics and invocation logging. */
 public final class Instrumentation {
 
     private Instrumentation() {
         throw new UnsupportedOperationException();
     }
 
-    static <T, U extends T> T wrap(Class<T> interfaceClass,
-                                   U delegate,
-                                   List<InvocationEventHandler<InvocationContext>> handlers,
-                                   InstrumentationFilter instrumentationFilter) {
+    static <T, U extends T> T wrap(
+            Class<T> interfaceClass,
+            U delegate,
+            List<InvocationEventHandler<InvocationContext>> handlers,
+            InstrumentationFilter instrumentationFilter) {
         checkNotNull(interfaceClass, "interfaceClass");
         checkNotNull(delegate, "delegate");
         checkNotNull(instrumentationFilter, "instrumentationFilter");
@@ -60,8 +59,8 @@ public final class Instrumentation {
         }
 
         if (InstrumentationProperties.isSpecificEnabled("dynamic-proxy", false)) {
-            return Proxies.newProxy(interfaceClass, delegate,
-                    new InstrumentationProxy<>(instrumentationFilter, handlers, delegate));
+            return Proxies.newProxy(
+                    interfaceClass, delegate, new InstrumentationProxy<>(instrumentationFilter, handlers, delegate));
         } else {
             return ByteBuddyInstrumentation.instrument(interfaceClass, delegate, handlers, instrumentationFilter);
         }
@@ -73,9 +72,8 @@ public final class Instrumentation {
      * @deprecated Use {@link #wrap(Class, Object, List, InstrumentationFilter)}
      */
     @Deprecated
-    static <T, U extends T> T wrap(Class<T> interfaceClass,
-                                   U delegate,
-                                   List<InvocationEventHandler<InvocationContext>> handlers) {
+    static <T, U extends T> T wrap(
+            Class<T> interfaceClass, U delegate, List<InvocationEventHandler<InvocationContext>> handlers) {
         return wrap(interfaceClass, delegate, handlers, InstrumentationFilters.INSTRUMENT_ALL);
     }
 
@@ -111,8 +109,8 @@ public final class Instrumentation {
 
         private final Class<T> interfaceClass;
         private final U delegate;
-        private final ImmutableList.Builder<InvocationEventHandler<InvocationContext>> handlers = ImmutableList
-                .builder();
+        private final ImmutableList.Builder<InvocationEventHandler<InvocationContext>> handlers =
+                ImmutableList.builder();
         private InstrumentationFilter filter = InstrumentationFilters.INSTRUMENT_ALL;
 
         private Builder(Class<T> interfaceClass, U delegate) {
@@ -130,10 +128,7 @@ public final class Instrumentation {
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry, String globalPrefix) {
             checkNotNull(metricRegistry, "metricRegistry");
             this.handlers.add(new MetricsInvocationEventHandler(
-                    metricRegistry,
-                    delegate.getClass(),
-                    interfaceClass.getName(),
-                    globalPrefix));
+                    metricRegistry, delegate.getClass(), interfaceClass.getName(), globalPrefix));
             return this;
         }
 
@@ -144,8 +139,8 @@ public final class Instrumentation {
         /**
          * Supplies a TaggedMetricRegistry and a name prefix to be used across service invocations.
          *
-         * Uses a {@link TaggedMetricsServiceInvocationEventHandler} object for handling invocations, so
-         * metric names are chosen based off of the interface name and invoked method.
+         * <p>Uses a {@link TaggedMetricsServiceInvocationEventHandler} object for handling invocations, so metric names
+         * are chosen based off of the interface name and invoked method.
          *
          * @param metricRegistry - TaggedMetricsRegistry used for this application.
          * @param prefix - Metrics name prefix to be used
@@ -163,26 +158,27 @@ public final class Instrumentation {
         }
 
         public Builder<T, U> withPerformanceTraceLogging() {
-            return withLogging(
-                    getPerformanceLoggerForInterface(interfaceClass),
-                    LoggingLevel.TRACE,
-                    (LongPredicate) LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND);
+            return withLogging(getPerformanceLoggerForInterface(interfaceClass), LoggingLevel.TRACE, (LongPredicate)
+                    LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND);
         }
 
         /**
          * Bridge for backward compatibility.
+         *
          * @deprecated use {@link #withLogging(Logger, LoggingLevel, java.util.function.LongPredicate)}
          */
         @Deprecated
         @SuppressWarnings("FunctionalInterfaceClash") // back compat
-        public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel,
+        public Builder<T, U> withLogging(
+                Logger logger,
+                LoggingLevel loggingLevel,
                 com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
             return withLogging(logger, loggingLevel, (java.util.function.LongPredicate) durationPredicate);
         }
 
         @SuppressWarnings("FunctionalInterfaceClash")
-        public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel,
-                java.util.function.LongPredicate durationPredicate) {
+        public Builder<T, U> withLogging(
+                Logger logger, LoggingLevel loggingLevel, java.util.function.LongPredicate durationPredicate) {
             this.handlers.add(new LoggingInvocationEventHandler(logger, loggingLevel, durationPredicate));
             return this;
         }
@@ -207,5 +203,4 @@ public final class Instrumentation {
             return wrap(interfaceClass, delegate, handlers.build(), filter);
         }
     }
-
 }

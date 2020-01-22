@@ -34,5 +34,4 @@ abstract class AbstractReservoirMetricBuilder<T extends Metric> extends Abstract
     Reservoir createReservoir() {
         return reservoirSupplier.get();
     }
-
 }

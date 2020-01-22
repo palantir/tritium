@@ -63,8 +63,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings({"BanGuavaCaches", // this implementation is explicitly for Guava caches
-                   "NullAway"}) // IntelliJ warnings about injected fields
+@SuppressWarnings({
+    "BanGuavaCaches", // this implementation is explicitly for Guava caches
+    "NullAway"
+}) // IntelliJ warnings about injected fields
 final class MetricRegistriesTest {
 
     private MetricRegistry metrics = new MetricRegistry();
@@ -84,12 +86,15 @@ final class MetricRegistriesTest {
         metrics = MetricRegistries.createWithHdrHistogramReservoirs();
         assertThat(metrics.getGauges()).hasSize(3);
         assertThat(metrics.getGauges()).containsKey(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME);
-        assertThat(metrics.getGauges().get(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME).getValue())
+        assertThat(metrics.getGauges()
+                        .get(MetricRegistries.RESERVOIR_TYPE_METRIC_NAME)
+                        .getValue())
                 .isEqualTo(HdrHistogramReservoir.class.getName());
-        assertThat(metrics.getGauges().keySet()).containsExactly(
-                MetricRegistries.RESERVOIR_TYPE_METRIC_NAME,
-                "com.palantir.tritium.metrics.snapshot.begin",
-                "com.palantir.tritium.metrics.snapshot.now");
+        assertThat(metrics.getGauges().keySet())
+                .containsExactly(
+                        MetricRegistries.RESERVOIR_TYPE_METRIC_NAME,
+                        "com.palantir.tritium.metrics.snapshot.begin",
+                        "com.palantir.tritium.metrics.snapshot.now");
         report(metrics);
     }
 
@@ -133,8 +138,8 @@ final class MetricRegistriesTest {
         final TimeUnit windowUnit = TimeUnit.SECONDS;
 
         Reservoirs.slidingTimeWindowArrayReservoir(window, windowUnit, clock);
-        metrics = MetricRegistries.createWithReservoirType(() ->
-                Reservoirs.slidingTimeWindowArrayReservoir(window, windowUnit, clock));
+        metrics = MetricRegistries.createWithReservoirType(
+                () -> Reservoirs.slidingTimeWindowArrayReservoir(window, windowUnit, clock));
         assertThat(metrics).isNotNull();
 
         Histogram histogram = metrics.histogram("histogram");
@@ -190,17 +195,18 @@ final class MetricRegistriesTest {
     @Test
     void testRegisterCache() {
         MetricRegistries.registerCache(metrics, cache, "test", clock);
-        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactlyInAnyOrder(
-                "test.cache.estimated.size",
-                "test.cache.eviction.count",
-                "test.cache.hit.count",
-                "test.cache.hit.ratio",
-                "test.cache.load.average.millis",
-                "test.cache.load.failure.count",
-                "test.cache.load.success.count",
-                "test.cache.miss.count",
-                "test.cache.miss.ratio",
-                "test.cache.request.count");
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet())
+                .containsExactlyInAnyOrder(
+                        "test.cache.estimated.size",
+                        "test.cache.eviction.count",
+                        "test.cache.hit.count",
+                        "test.cache.hit.ratio",
+                        "test.cache.load.average.millis",
+                        "test.cache.load.failure.count",
+                        "test.cache.load.success.count",
+                        "test.cache.miss.count",
+                        "test.cache.miss.ratio",
+                        "test.cache.request.count");
 
         when(cache.stats()).thenReturn(new CacheStats(1, 2, 3, 4, 5, 6));
         when(cache.size()).thenReturn(42L);
@@ -232,41 +238,44 @@ final class MetricRegistriesTest {
     void testNoStats() {
         MetricRegistries.registerCache(metrics, cache, "test");
 
-        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet()).containsExactlyInAnyOrder(
-                "test.cache.estimated.size",
-                "test.cache.eviction.count",
-                "test.cache.hit.count",
-                "test.cache.hit.ratio",
-                "test.cache.load.average.millis",
-                "test.cache.load.failure.count",
-                "test.cache.load.success.count",
-                "test.cache.miss.count",
-                "test.cache.miss.ratio",
-                "test.cache.request.count");
+        assertThat(metrics.getGauges(MetricRegistries.metricsPrefixedBy("test")).keySet())
+                .containsExactlyInAnyOrder(
+                        "test.cache.estimated.size",
+                        "test.cache.eviction.count",
+                        "test.cache.hit.count",
+                        "test.cache.hit.ratio",
+                        "test.cache.load.average.millis",
+                        "test.cache.load.failure.count",
+                        "test.cache.load.success.count",
+                        "test.cache.miss.count",
+                        "test.cache.miss.ratio",
+                        "test.cache.request.count");
 
         when(cache.stats()).thenReturn(new CacheStats(0L, 0L, 0L, 0L, 0L, 0L));
-        assertThat(metrics.getGauges().get("test.cache.request.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.request.count").getValue())
+                .isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.hit.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.hit.ratio").getValue()).isEqualTo(Double.NaN);
         assertThat(metrics.getGauges().get("test.cache.miss.count").getValue()).isEqualTo(0L);
         assertThat(metrics.getGauges().get("test.cache.miss.ratio").getValue()).isEqualTo(Double.NaN);
-        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue()).isEqualTo(0.0d);
-        assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue()).isEqualTo(0L);
-        assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue()).isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.eviction.count").getValue())
+                .isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.average.millis").getValue())
+                .isEqualTo(0.0d);
+        assertThat(metrics.getGauges().get("test.cache.load.failure.count").getValue())
+                .isEqualTo(0L);
+        assertThat(metrics.getGauges().get("test.cache.load.success.count").getValue())
+                .isEqualTo(0L);
     }
 
     @Test
     void registerCacheTaggedMetrics() throws ExecutionException {
-        cache = CacheBuilder.newBuilder()
-                .maximumSize(2)
-                .recordStats()
-                .build(new CacheLoader<Integer, String>() {
-                    @Override
-                    public String load(Integer key) {
-                        return String.valueOf(key);
-                    }
-                });
+        cache = CacheBuilder.newBuilder().maximumSize(2).recordStats().build(new CacheLoader<Integer, String>() {
+            @Override
+            public String load(Integer key) {
+                return String.valueOf(key);
+            }
+        });
         MetricRegistries.registerCache(taggedMetricRegistry, cache, "test");
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
@@ -288,13 +297,20 @@ final class MetricRegistriesTest {
         assertThat(cache.get(2)).isEqualTo("2");
         assertThat(cache.get(1)).isEqualTo("1");
 
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
-                assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
-                        .getValue()).isEqualTo(4L));
+        await().atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
+                                .getValue())
+                        .isEqualTo(4L));
 
-        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.count").getValue()).isEqualTo(1L);
-        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.miss.count").getValue()).isEqualTo(3L);
-        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.ratio").getValue()).isEqualTo(0.25);
+        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.count")
+                        .getValue())
+                .isEqualTo(1L);
+        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.miss.count")
+                        .getValue())
+                .isEqualTo(3L);
+        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.ratio")
+                        .getValue())
+                .isEqualTo(0.25);
     }
 
     @Test
@@ -318,13 +334,11 @@ final class MetricRegistriesTest {
 
     @Test
     void testInvalidGetOrAdd() {
-        HistogramMetricBuilder histogramMetricBuilder =
-                new HistogramMetricBuilder(Reservoirs::hdrHistogramReservoir);
+        HistogramMetricBuilder histogramMetricBuilder = new HistogramMetricBuilder(Reservoirs::hdrHistogramReservoir);
         MetricRegistries.getOrAdd(metrics, "histogram", histogramMetricBuilder);
 
         TimerMetricBuilder timerMetricBuilder = new TimerMetricBuilder(Reservoirs::hdrHistogramReservoir);
-        assertThatThrownBy(() ->
-                MetricRegistries.getOrAdd(metrics, "histogram", timerMetricBuilder))
+        assertThatThrownBy(() -> MetricRegistries.getOrAdd(metrics, "histogram", timerMetricBuilder))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith("Metric name already used for different metric type")
                 .hasMessageContaining("metricName=histogram")
@@ -346,11 +360,13 @@ final class MetricRegistriesTest {
     @Test
     void testRegisterWithReplacement() {
         Metric mockMetric1 = mock(Metric.class, "metric1");
-        assertThat(MetricRegistries.registerWithReplacement(metrics, "test", mockMetric1)).isEqualTo(mockMetric1);
+        assertThat(MetricRegistries.registerWithReplacement(metrics, "test", mockMetric1))
+                .isEqualTo(mockMetric1);
         assertThat(metrics.getMetrics()).containsEntry("test", mockMetric1);
 
         Metric mockMetric2 = mock(Metric.class, "metric2");
-        assertThat(MetricRegistries.registerWithReplacement(metrics, "test", mockMetric2)).isEqualTo(mockMetric2);
+        assertThat(MetricRegistries.registerWithReplacement(metrics, "test", mockMetric2))
+                .isEqualTo(mockMetric2);
         assertThat(metrics.getMetrics()).containsEntry("test", mockMetric2);
     }
 
@@ -358,8 +374,7 @@ final class MetricRegistriesTest {
     void testInvalidReregistration() {
         Metric metric = metrics.counter("counter");
         assertThat(MetricRegistries.registerSafe(metrics, "test", metric)).isSameAs(metric);
-        assertThatThrownBy(() ->
-                MetricRegistries.registerSafe(metrics, "test", metrics.histogram("histogram")))
+        assertThatThrownBy(() -> MetricRegistries.registerSafe(metrics, "test", metrics.histogram("histogram")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageStartingWith(
                         "Metric already registered at this name that implements a different set of interfaces: "
@@ -392,9 +407,7 @@ final class MetricRegistriesTest {
     @Test
     void testNullPrefixMetricsPrefixedBy() {
         //noinspection ResultOfMethodCallIgnored
-        assertThatThrownBy(() ->
-                MetricRegistries.metricsPrefixedBy(null))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> MetricRegistries.metricsPrefixedBy(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -407,10 +420,8 @@ final class MetricRegistriesTest {
 
         SortedMap<String, Metric> metricsMatching = MetricRegistries.metricsMatching(metrics, palantirFilter);
         assertThat(metricsMatching).hasSize(2);
-        assertThat(metricsMatching.keySet())
-                .containsExactly("test.a", "test.b");
-        assertThat(metricsMatching.values())
-                .containsExactly(metrics.counter("test.a"), metrics.timer("test.b"));
+        assertThat(metricsMatching.keySet()).containsExactly("test.a", "test.b");
+        assertThat(metricsMatching.values()).containsExactly(metrics.counter("test.a"), metrics.timer("test.b"));
     }
 
     @Test
@@ -433,29 +444,29 @@ final class MetricRegistriesTest {
     void testGarbageCollectionMetrics() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         MetricRegistries.registerGarbageCollection(registry);
-        assertThat(registry.getMetrics().keySet())
-                .allSatisfy(metricName -> {
-                    assertThat(metricName.safeName()).matches("jvm\\.gc\\.(time|count)");
-                    assertThat(metricName.safeTags()).containsOnlyKeys("collector");
-                });
+        assertThat(registry.getMetrics().keySet()).allSatisfy(metricName -> {
+            assertThat(metricName.safeName()).matches("jvm\\.gc\\.(time|count)");
+            assertThat(metricName.safeTags()).containsOnlyKeys("collector");
+        });
     }
 
     @Test
     void testMemoryPoolMetrics() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         MetricRegistries.registerMemoryPools(registry);
-        assertThat(registry.getMetrics().keySet())
-                .allSatisfy(metricName -> {
-                    assertThat(metricName.safeName()).matches("jvm\\.memory\\.pools\\..+");
-                    assertThat(metricName.safeTags()).containsOnlyKeys("memoryPool");
-                });
+        assertThat(registry.getMetrics().keySet()).allSatisfy(metricName -> {
+            assertThat(metricName.safeName()).matches("jvm\\.memory\\.pools\\..+");
+            assertThat(metricName.safeTags()).containsOnlyKeys("memoryPool");
+        });
         // n.b. Test does not check for 'used-after-gc' because it depends on the runtime
-        assertThat(registry.getMetrics().keySet()).extracting(MetricName::safeName).contains(
-                "jvm.memory.pools.max",
-                "jvm.memory.pools.used",
-                "jvm.memory.pools.committed",
-                "jvm.memory.pools.init",
-                "jvm.memory.pools.usage");
+        assertThat(registry.getMetrics().keySet())
+                .extracting(MetricName::safeName)
+                .contains(
+                        "jvm.memory.pools.max",
+                        "jvm.memory.pools.used",
+                        "jvm.memory.pools.committed",
+                        "jvm.memory.pools.init",
+                        "jvm.memory.pools.usage");
     }
 
     @Test
@@ -475,14 +486,15 @@ final class MetricRegistriesTest {
                 .put("set", (MetricSet) () -> ImmutableMap.of("gauge", gauge))
                 .build();
         MetricRegistries.registerAll(registry, "tritium", metricSet);
-        assertThat(registry.getMetrics()).isEqualTo(ImmutableMap.<MetricName, Metric>builder()
-                .put(simpleName("tritium.gauge"), gauge)
-                .put(simpleName("tritium.meter"), meter)
-                .put(simpleName("tritium.histogram"), histogram)
-                .put(simpleName("tritium.counter"), counter)
-                .put(simpleName("tritium.timer"), timer)
-                .put(simpleName("tritium.set.gauge"), gauge)
-                .build());
+        assertThat(registry.getMetrics())
+                .isEqualTo(ImmutableMap.<MetricName, Metric>builder()
+                        .put(simpleName("tritium.gauge"), gauge)
+                        .put(simpleName("tritium.meter"), meter)
+                        .put(simpleName("tritium.histogram"), histogram)
+                        .put(simpleName("tritium.counter"), counter)
+                        .put(simpleName("tritium.timer"), timer)
+                        .put(simpleName("tritium.set.gauge"), gauge)
+                        .build());
     }
 
     @Test
@@ -499,9 +511,7 @@ final class MetricRegistriesTest {
 
     @SuppressWarnings("SameParameterValue")
     private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {
-        return clazz.cast(metrics.getMetrics()
-                .entrySet()
-                .stream()
+        return clazz.cast(metrics.getMetrics().entrySet().stream()
                 .filter(e -> name.equals(e.getKey().safeName()))
                 .filter(e -> clazz.isInstance(e.getValue()))
                 .findFirst()
@@ -515,8 +525,7 @@ final class MetricRegistriesTest {
     }
 
     private static void report(MetricRegistry metrics) {
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics)
-                .build();
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(metrics).build();
         reporter.report();
         reporter.stop();
     }

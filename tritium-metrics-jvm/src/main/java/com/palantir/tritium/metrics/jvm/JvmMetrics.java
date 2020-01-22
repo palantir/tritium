@@ -32,15 +32,13 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
 
-/**
- * {@link JvmMetrics} provides a standard set of metrics for debugging java services.
- */
+/** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
 
     /**
      * Registers a default set of metrics.
      *
-     * This includes {@link MetricRegistries#registerGarbageCollection(TaggedMetricRegistry)} and
+     * <p>This includes {@link MetricRegistries#registerGarbageCollection(TaggedMetricRegistry)} and
      * {@link MetricRegistries#registerMemoryPools(TaggedMetricRegistry)}.
      *
      * @param registry metric registry
@@ -54,8 +52,8 @@ public final class JvmMetrics {
         SafepointMetrics.register(registry);
         InternalJvmMetrics metrics = InternalJvmMetrics.of(registry);
         registerAttributes(metrics);
-        MetricRegistries.registerAll(registry, "jvm.buffers",
-                new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
+        MetricRegistries.registerAll(
+                registry, "jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
         MetricRegistries.registerAll(registry, "jvm.classloader", new ClassLoadingGaugeSet());
         MetricRegistries.registerAll(registry, "jvm.memory", () -> Maps.filterKeys(
                 // Memory pool metrics are already provided by MetricRegistries.registerMemoryPools
@@ -76,8 +74,8 @@ public final class JvmMetrics {
     }
 
     private static Gauge<?> gauge(Map<String, Metric> metrics, String name) {
-        Metric metric = Preconditions.checkNotNull(metrics.get(name),
-                "Failed to find metric", SafeArg.of("name", name));
+        Metric metric =
+                Preconditions.checkNotNull(metrics.get(name), "Failed to find metric", SafeArg.of("name", name));
         if (metric instanceof Gauge) {
             return (Gauge<?>) metric;
         }

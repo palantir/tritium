@@ -125,8 +125,8 @@ public abstract class InstrumentationTest {
     @Test
     void testEmptyHandlers() {
         TestInterface delegate = new TestImplementation();
-        TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate,
-                Collections.emptyList(), InstrumentationFilters.INSTRUMENT_NONE);
+        TestInterface instrumented = Instrumentation.wrap(
+                TestInterface.class, delegate, Collections.emptyList(), InstrumentationFilters.INSTRUMENT_NONE);
         assertThat(instrumented).isEqualTo(delegate);
         assertThat(Proxy.isProxyClass(instrumented.getClass())).isFalse();
     }
@@ -164,12 +164,18 @@ public abstract class InstrumentationTest {
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isOne();
 
         executeManyTimes(instrumentedService, INVOCATION_ITERATIONS);
-        Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
+        Slf4jReporter.forRegistry(metricRegistry)
+                .withLoggingLevel(LoggingLevel.INFO)
+                .build()
+                .report();
 
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isEqualTo(delegate.invocationCount());
         assertThat(timers.get(EXPECTED_METRIC_NAME).getSnapshot().getMax()).isGreaterThanOrEqualTo(0L);
 
-        Slf4jReporter.forRegistry(metricRegistry).withLoggingLevel(LoggingLevel.INFO).build().report();
+        Slf4jReporter.forRegistry(metricRegistry)
+                .withLoggingLevel(LoggingLevel.INFO)
+                .build()
+                .report();
     }
 
     @Test
@@ -183,16 +189,25 @@ public abstract class InstrumentationTest {
                 .withMetrics(metricRegistry, globalPrefix)
                 .withPerformanceTraceLogging()
                 .build();
-        //call
+        // call
         instrumentedService.method();
         instrumentedService.otherMethod();
         instrumentedService.defaultMethod();
 
-        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".ONE").getCount()).isEqualTo(2L);
+        assertThat(metricRegistry
+                        .timer(AnnotatedInterface.class.getName() + ".ONE")
+                        .getCount())
+                .isEqualTo(2L);
         assertThat(metricRegistry.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
-        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".DEFAULT").getCount()).isOne();
+        assertThat(metricRegistry
+                        .timer(AnnotatedInterface.class.getName() + ".DEFAULT")
+                        .getCount())
+                .isOne();
         assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isOne();
-        assertThat(metricRegistry.timer(AnnotatedInterface.class.getName() + ".method").getCount()).isOne();
+        assertThat(metricRegistry
+                        .timer(AnnotatedInterface.class.getName() + ".method")
+                        .getCount())
+                .isOne();
     }
 
     private void executeManyTimes(TestInterface instrumentedService, int invocations) {
@@ -286,14 +301,15 @@ public abstract class InstrumentationTest {
 
         InvocationContext mockContext = mock(InvocationContext.class);
         when(mockHandler.isEnabled()).thenReturn(true);
-        when(mockHandler.preInvocation(any(), any(Method.class), any(Object[].class))).thenReturn(mockContext);
+        when(mockHandler.preInvocation(any(), any(Method.class), any(Object[].class)))
+                .thenReturn(mockContext);
 
         ImmutableSet<String> testSet = ImmutableSet.of("test");
         instrumented.bulk(testSet);
         verify(mockHandler).isEnabled();
-        verify(mockHandler).preInvocation(instrumented,
-                TestInterface.class.getDeclaredMethod("bulk", Set.class),
-                new Object[] {testSet});
+        verify(mockHandler)
+                .preInvocation(
+                        instrumented, TestInterface.class.getDeclaredMethod("bulk", Set.class), new Object[] {testSet});
         verify(mockHandler).onSuccess(mockContext, null);
         verifyNoMoreInteractions(mockHandler);
     }
@@ -314,8 +330,8 @@ public abstract class InstrumentationTest {
 
     @Test
     void testNullMetricRegistry() {
-        Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(Runnable.class,
-                new TestImplementation());
+        Instrumentation.Builder<Runnable, TestImplementation> builder =
+                Instrumentation.builder(Runnable.class, new TestImplementation());
         assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> builder.withMetrics(null))
                 .withMessage("metricRegistry");
@@ -324,8 +340,8 @@ public abstract class InstrumentationTest {
     @Test
     @SuppressWarnings("deprecation") // explicitly testing
     void testNullLogger() {
-        Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(
-                Runnable.class, new TestImplementation());
+        Instrumentation.Builder<Runnable, TestImplementation> builder =
+                Instrumentation.builder(Runnable.class, new TestImplementation());
         assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> builder.withLogging(
                         null,
@@ -337,21 +353,18 @@ public abstract class InstrumentationTest {
     @Test
     @SuppressWarnings("deprecation") // explicitly testing
     void testNullLogLevel() {
-        Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(
-                Runnable.class, new TestImplementation());
+        Instrumentation.Builder<Runnable, TestImplementation> builder =
+                Instrumentation.builder(Runnable.class, new TestImplementation());
         Logger logger = LoggerFactory.getLogger(InstrumentationTest.class);
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> builder.withLogging(
-                        logger,
-                        null,
-                        LoggingInvocationEventHandler.NEVER_LOG))
+                .isThrownBy(() -> builder.withLogging(logger, null, LoggingInvocationEventHandler.NEVER_LOG))
                 .withMessage("level");
     }
 
     @Test
     void testNullFilter() {
-        Instrumentation.Builder<Runnable, TestImplementation> builder = Instrumentation.builder(Runnable.class,
-                new TestImplementation());
+        Instrumentation.Builder<Runnable, TestImplementation> builder =
+                Instrumentation.builder(Runnable.class, new TestImplementation());
         assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> builder.withFilter(null))
                 .withMessage("instrumentationFilter");
@@ -360,29 +373,29 @@ public abstract class InstrumentationTest {
     @Test
     void testTaggedMetrics() {
         TestImplementation delegate = new TestImplementation();
-        TestInterface runnable =
-                Instrumentation.builder(TestInterface.class, delegate)
-                        .withTaggedMetrics(taggedMetricRegistry, "testPrefix")
-                        .withMetrics(metrics)
-                        .build();
+        TestInterface runnable = Instrumentation.builder(TestInterface.class, delegate)
+                .withTaggedMetrics(taggedMetricRegistry, "testPrefix")
+                .withMetrics(metrics)
+                .build();
         assertThat(delegate.invocationCount()).isZero();
         runnable.test();
         assertThat(delegate.invocationCount()).isOne();
         Map<MetricName, Metric> taggedMetrics = taggedMetricRegistry.getMetrics();
-        assertThat(taggedMetrics.keySet()).containsExactly(
-                MetricName.builder()
-                        .safeName("testPrefix")
-                        .putSafeTags("service-name", "TestInterface")
-                        .putSafeTags("endpoint", "test")
-                        .build(),
-                // The failures metric is created eagerly
-                MetricName.builder()
-                        .safeName("failures")
-                        .build());
+        assertThat(taggedMetrics.keySet())
+                .containsExactly(
+                        MetricName.builder()
+                                .safeName("testPrefix")
+                                .putSafeTags("service-name", "TestInterface")
+                                .putSafeTags("endpoint", "test")
+                                .build(),
+                        // The failures metric is created eagerly
+                        MetricName.builder().safeName("failures").build());
 
         assertThat(taggedMetrics.values())
-                .first().isInstanceOf(Timer.class)
-                .extracting(m -> ((Timer) m).getCount()).isEqualTo(1L);
+                .first()
+                .isInstanceOf(Timer.class)
+                .extracting(m -> ((Timer) m).getCount())
+                .isEqualTo(1L);
     }
 
     @Test
@@ -399,8 +412,12 @@ public abstract class InstrumentationTest {
     void testEquals_separateInstanceWithSameArgs() {
         TestImplementation delegate = new TestImplementation();
         InvocationEventHandler<InvocationContext> handler = TracingInvocationEventHandler.create("test");
-        TestInterface proxy0 = Instrumentation.builder(TestInterface.class, delegate).withHandler(handler).build();
-        TestInterface proxy1 = Instrumentation.builder(TestInterface.class, delegate).withHandler(handler).build();
+        TestInterface proxy0 = Instrumentation.builder(TestInterface.class, delegate)
+                .withHandler(handler)
+                .build();
+        TestInterface proxy1 = Instrumentation.builder(TestInterface.class, delegate)
+                .withHandler(handler)
+                .build();
         assertThat(proxy0).isNotEqualTo(proxy1);
     }
 
@@ -486,9 +503,8 @@ public abstract class InstrumentationTest {
     void testInstrumentMultipleInterfacesProvideSameMethod(
             @Mock InvocationEventHandler<InvocationContext> mockHandler) {
         when(mockHandler.isEnabled()).thenReturn(true);
-        when(mockHandler.preInvocation(any(), any(), any()))
-                .thenAnswer((Answer<InvocationContext>) invocation -> DefaultInvocationContext.of(
-                        invocation.getMock(), invocation.getMethod(), invocation.getArguments()));
+        when(mockHandler.preInvocation(any(), any(), any())).thenAnswer((Answer<InvocationContext>) invocation ->
+                DefaultInvocationContext.of(invocation.getMock(), invocation.getMethod(), invocation.getArguments()));
         ParentInterface result = Instrumentation.builder(ParentInterface.class, new DefaultParent())
                 .withHandler(mockHandler)
                 .build();
@@ -507,9 +523,8 @@ public abstract class InstrumentationTest {
     @Test
     void testAdditionalInterfaces(@Mock InvocationEventHandler<InvocationContext> mockHandler) {
         when(mockHandler.isEnabled()).thenReturn(true);
-        when(mockHandler.preInvocation(any(), any(), any()))
-                .thenAnswer((Answer<InvocationContext>) invocation -> DefaultInvocationContext.of(
-                        invocation.getMock(), invocation.getMethod(), invocation.getArguments()));
+        when(mockHandler.preInvocation(any(), any(), any())).thenAnswer((Answer<InvocationContext>) invocation ->
+                DefaultInvocationContext.of(invocation.getMock(), invocation.getMethod(), invocation.getArguments()));
         FirstInterface result = Instrumentation.builder(FirstInterface.class, new DefaultParent())
                 .withHandler(mockHandler)
                 .build();
@@ -519,8 +534,8 @@ public abstract class InstrumentationTest {
                 .isInstanceOf(ParentInterface.class);
 
         assertThat(result.getValue()).isEqualTo(3);
-        assertThat(result).isInstanceOfSatisfying(ParentInterface.class,
-                parentInterface -> assertThat(parentInterface.getString()).isEqualTo("string"));
+        assertThat(result).isInstanceOfSatisfying(ParentInterface.class, parentInterface ->
+                assertThat(parentInterface.getString()).isEqualTo("string"));
         verify(mockHandler, times(2)).isEnabled();
         verify(mockHandler, times(2)).preInvocation(any(), any(), any());
         verify(mockHandler, times(2)).onSuccess(any(), any());
@@ -530,13 +545,11 @@ public abstract class InstrumentationTest {
     public interface FirstInterface {
 
         int getValue();
-
     }
 
     public interface SecondInterface {
 
         int getValue();
-
     }
 
     public interface ParentInterface extends FirstInterface, SecondInterface {
@@ -560,10 +573,10 @@ public abstract class InstrumentationTest {
     @Test
     void testStackDepth() {
         StackTraceSupplier stackTraceSupplier = () -> cleanStackTrace(new Exception().getStackTrace());
-        StackTraceSupplier instrumentedStackSupplier =
-                Instrumentation.builder(StackTraceSupplier.class, stackTraceSupplier)
-                        .withPerformanceTraceLogging()
-                        .build();
+        StackTraceSupplier instrumentedStackSupplier = Instrumentation.builder(
+                        StackTraceSupplier.class, stackTraceSupplier)
+                .withPerformanceTraceLogging()
+                .build();
         StackTraceElement[] rawStack = stackTraceSupplier.get();
         StackTraceElement[] instrumentedStack = instrumentedStackSupplier.get();
         // The value isn't particularly important, this test exists to force us to acknowledge changes in
@@ -576,18 +589,16 @@ public abstract class InstrumentationTest {
     @Test
     void testStackDepth_notFunctionOfHandlers() {
         StackTraceSupplier stackTraceSupplier = () -> cleanStackTrace(new Exception().getStackTrace());
-        StackTraceSupplier singleHandlerInstrumentedStackSupplier =
-                Instrumentation.builder(StackTraceSupplier.class, stackTraceSupplier)
-                        // Use enabled event handlers to avoid bugs from optimizations on disabled handlers
-                        .withHandler(new TaggedMetricsServiceInvocationEventHandler(
-                                new DefaultTaggedMetricRegistry(), "test0"))
-                        .build();
-        StackTraceSupplier multipleHandlerInstrumentedStackSupplier =
-                Instrumentation.builder(StackTraceSupplier.class, stackTraceSupplier)
-                        .withHandler(new TaggedMetricsServiceInvocationEventHandler(
-                                new DefaultTaggedMetricRegistry(), "test1"))
-                        .withHandler(new MetricsInvocationEventHandler(new MetricRegistry(), "test2"))
-                        .build();
+        StackTraceSupplier singleHandlerInstrumentedStackSupplier = Instrumentation.builder(
+                        StackTraceSupplier.class, stackTraceSupplier)
+                // Use enabled event handlers to avoid bugs from optimizations on disabled handlers
+                .withHandler(new TaggedMetricsServiceInvocationEventHandler(new DefaultTaggedMetricRegistry(), "test0"))
+                .build();
+        StackTraceSupplier multipleHandlerInstrumentedStackSupplier = Instrumentation.builder(
+                        StackTraceSupplier.class, stackTraceSupplier)
+                .withHandler(new TaggedMetricsServiceInvocationEventHandler(new DefaultTaggedMetricRegistry(), "test1"))
+                .withHandler(new MetricsInvocationEventHandler(new MetricRegistry(), "test2"))
+                .build();
         StackTraceElement[] singleHandlerInstrumentedStackTrace = singleHandlerInstrumentedStackSupplier.get();
         StackTraceElement[] multipleHandlerInstrumentedStack = multipleHandlerInstrumentedStackSupplier.get();
         // Tritium frames should not scale with the number of registered InvocationEventHandler instances.
@@ -679,8 +690,8 @@ public abstract class InstrumentationTest {
         when(handler.isEnabled()).thenReturn(true);
         when(handler.preInvocation(any(), any(), any())).thenThrow(new RuntimeException());
         Runnable wrapped = Instrumentation.builder(Runnable.class, () -> {
-            throw new SafeRuntimeException("expected");
-        })
+                    throw new SafeRuntimeException("expected");
+                })
                 .withHandler(handler)
                 .build();
         assertThatCode(wrapped::run)
@@ -698,8 +709,8 @@ public abstract class InstrumentationTest {
         when(handler.isEnabled()).thenReturn(true);
         when(handler.preInvocation(any(), any(), any())).thenThrow(new RuntimeException());
         Runnable wrapped = Instrumentation.builder(Runnable.class, () -> {
-            throw new SafeRuntimeException("expected");
-        })
+                    throw new SafeRuntimeException("expected");
+                })
                 .withHandler(handler)
                 .withTaggedMetrics(new DefaultTaggedMetricRegistry())
                 .build();
@@ -734,8 +745,8 @@ public abstract class InstrumentationTest {
         when(handler.isEnabled()).thenReturn(true);
         when(handler.preInvocation(any(), any(), any())).thenReturn(null);
         Runnable wrapped = Instrumentation.builder(Runnable.class, () -> {
-            throw new SafeRuntimeException("expected");
-        })
+                    throw new SafeRuntimeException("expected");
+                })
                 .withHandler(handler)
                 .build();
         assertThatCode(wrapped::run)
@@ -771,8 +782,8 @@ public abstract class InstrumentationTest {
         when(handler.isEnabled()).thenReturn(true);
         when(handler.preInvocation(any(), any(), any())).thenReturn(null);
         Runnable wrapped = Instrumentation.builder(Runnable.class, () -> {
-            throw new SafeRuntimeException("expected");
-        })
+                    throw new SafeRuntimeException("expected");
+                })
                 .withHandler(handler)
                 .withTaggedMetrics(new DefaultTaggedMetricRegistry())
                 .build();

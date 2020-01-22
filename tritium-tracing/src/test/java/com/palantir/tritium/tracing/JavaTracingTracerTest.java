@@ -36,11 +36,6 @@ public class JavaTracingTracerTest {
         tracer.startSpan("test");
         assertThat(observedSpans).isEmpty();
         tracer.completeSpan();
-        assertThat(observedSpans)
-                .hasSize(1)
-                .first()
-                .extracting("operation")
-                .isEqualTo("test");
+        assertThat(observedSpans).hasSize(1).first().extracting("operation").isEqualTo("test");
     }
-
 }

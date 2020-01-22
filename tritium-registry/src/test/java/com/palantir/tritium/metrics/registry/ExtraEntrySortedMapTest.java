@@ -65,28 +65,26 @@ class ExtraEntrySortedMapTest {
 
         Map<String, Function<SortedMap<Short, Byte>, Object>> methodCalls =
                 ImmutableMap.<String, Function<SortedMap<Short, Byte>, Object>>builder()
-                .put("subMap", sortedMap -> sortedMap.subMap(paramKey1, paramKey2))
-                .put("headMap", sortedMap -> sortedMap.headMap(paramKey1))
-                .put("tailMap", sortedMap -> sortedMap.tailMap(paramKey1))
-                .put("containsKey", sortedMap -> sortedMap.containsKey(paramKey1))
-                .put("containsValue", sortedMap -> sortedMap.containsValue(paramValue1))
-                .put("get", sortedMap -> sortedMap.get(paramKey1))
-                .put("firstKey", SortedMap::firstKey)
-                .put("lastKey", SortedMap::lastKey)
-                .put("size", SortedMap::size)
-                .put("isEmpty", SortedMap::isEmpty)
-                .put("keySet", SortedMap::keySet)
-                .put("entrySet", SortedMap::entrySet)
-                .put("values", shortByteSortedMap -> ImmutableList.copyOf(shortByteSortedMap.values()))
-                .build();
+                        .put("subMap", sortedMap -> sortedMap.subMap(paramKey1, paramKey2))
+                        .put("headMap", sortedMap -> sortedMap.headMap(paramKey1))
+                        .put("tailMap", sortedMap -> sortedMap.tailMap(paramKey1))
+                        .put("containsKey", sortedMap -> sortedMap.containsKey(paramKey1))
+                        .put("containsValue", sortedMap -> sortedMap.containsValue(paramValue1))
+                        .put("get", sortedMap -> sortedMap.get(paramKey1))
+                        .put("firstKey", SortedMap::firstKey)
+                        .put("lastKey", SortedMap::lastKey)
+                        .put("size", SortedMap::size)
+                        .put("isEmpty", SortedMap::isEmpty)
+                        .put("keySet", SortedMap::keySet)
+                        .put("entrySet", SortedMap::entrySet)
+                        .put("values", shortByteSortedMap -> ImmutableList.copyOf(shortByteSortedMap.values()))
+                        .build();
 
         methodCalls.forEach((methodCallName, methodCall) -> {
             assertThat(methodCall.apply(extraMap))
                     .describedAs(
                             "%s() applied to both extra map %s and guava map %s",
-                            methodCallName,
-                            extraMap,
-                            guavaWithExtra)
+                            methodCallName, extraMap, guavaWithExtra)
                     .isEqualTo(methodCall.apply(guavaWithExtra));
         });
     }

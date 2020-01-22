@@ -74,5 +74,4 @@ public class ReflectiveTracerTest {
 
         public static void badStop(String _value) {}
     }
-
 }

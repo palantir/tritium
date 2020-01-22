@@ -38,16 +38,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @SuppressWarnings("NullAway") // mock injection
 final class CaffeineStatsTest {
 
-    @Mock Cache<?, ?> cache;
-    @Mock Policy<?, ?> policy;
-    @Mock Policy.Eviction<?, ?> eviction;
+    @Mock
+    Cache<?, ?> cache;
+
+    @Mock
+    Policy<?, ?> policy;
+
+    @Mock
+    Policy.Eviction<?, ?> eviction;
 
     private CaffeineStats stats;
 
     @BeforeEach
     void before() {
-        stats = new CaffeineStats(cache, () ->
-                new CacheStats(1, 2, 3, 4, 5, 6, 7));
+        stats = new CaffeineStats(cache, () -> new CacheStats(1, 2, 3, 4, 5, 6, 7));
         lenient().when(cache.policy()).thenAnswer(ignored -> policy);
         lenient().when(policy.eviction()).thenAnswer(ignored -> Optional.of(eviction));
     }
@@ -99,7 +103,11 @@ final class CaffeineStatsTest {
     @Test
     void maximumSize() {
         when(eviction.getMaximum()).thenReturn(42L);
-        assertThat(stats.maximumSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(42L);
+        assertThat(stats.maximumSize())
+                .isPresent()
+                .get()
+                .extracting(Gauge::getValue)
+                .isEqualTo(42L);
         verify(cache).policy();
         verify(policy).eviction();
         verify(eviction).getMaximum();
@@ -109,7 +117,11 @@ final class CaffeineStatsTest {
     @Test
     void maximumSizeUnset() {
         when(policy.eviction()).thenReturn(Optional.empty());
-        assertThat(stats.maximumSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(-1L);
+        assertThat(stats.maximumSize())
+                .isPresent()
+                .get()
+                .extracting(Gauge::getValue)
+                .isEqualTo(-1L);
         verify(cache).policy();
         verify(policy).eviction();
         verifyNoMoreInteractions(cache, policy, eviction);
@@ -130,7 +142,11 @@ final class CaffeineStatsTest {
     @Test
     void weightedSize() {
         when(eviction.weightedSize()).thenReturn(OptionalLong.of(42L));
-        assertThat(stats.weightedSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(42L);
+        assertThat(stats.weightedSize())
+                .isPresent()
+                .get()
+                .extracting(Gauge::getValue)
+                .isEqualTo(42L);
         verify(cache).policy();
         verify(policy).eviction();
         verify(eviction).weightedSize();
@@ -140,7 +156,11 @@ final class CaffeineStatsTest {
     @Test
     void weightedSizeNoWeights() {
         when(policy.eviction()).thenReturn(Optional.empty());
-        assertThat(stats.weightedSize()).isPresent().get().extracting(Gauge::getValue).isEqualTo(0L);
+        assertThat(stats.weightedSize())
+                .isPresent()
+                .get()
+                .extracting(Gauge::getValue)
+                .isEqualTo(0L);
         verify(cache).policy();
         verify(policy).eviction();
         verifyNoMoreInteractions(cache, policy, eviction);

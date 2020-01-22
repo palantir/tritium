@@ -77,8 +77,8 @@ public final class InstrumentationProperties {
 
     /**
      * Reload the instrumentation properties.
-     * <p>
-     * Note this should only be used for testing purposes when manipulating system properties at runtime.
+     *
+     * <p>Note this should only be used for testing purposes when manipulating system properties at runtime.
      */
     public static void reload() {
         instrumentationProperties = createSupplier();
@@ -87,8 +87,7 @@ public final class InstrumentationProperties {
     @SuppressWarnings("NoFunctionalReturnType")
     private static Supplier<Map<String, String>> createSupplier() {
         return Suppliers.memoizeWithExpiration(
-                InstrumentationProperties::createInstrumentationSystemProperties,
-                1L, TimeUnit.MINUTES);
+                InstrumentationProperties::createInstrumentationSystemProperties, 1L, TimeUnit.MINUTES);
     }
 
     private static Map<String, String> instrumentationProperties() {
@@ -105,14 +104,14 @@ public final class InstrumentationProperties {
          * See https://bugs.openjdk.java.net/browse/JDK-6977738 and https://bugs.openjdk.java.net/browse/JDK-8029891
          */
         @SuppressWarnings("unchecked")
-        Map<Object, Object> clonedSystemProperties = (Map<Object, Object>) System.getProperties().clone();
+        Map<Object, Object> clonedSystemProperties =
+                (Map<Object, Object>) System.getProperties().clone();
         Map<String, String> map = clonedSystemProperties.entrySet().stream()
                 .filter(entry -> entry.getKey() instanceof String
                         && entry.getValue() instanceof String
                         && String.valueOf(entry.getKey()).startsWith(INSTRUMENT_PREFIX))
                 .collect(ImmutableMap.toImmutableMap(
-                        entry -> String.valueOf(entry.getKey()),
-                        entry -> String.valueOf(entry.getValue())));
+                        entry -> String.valueOf(entry.getKey()), entry -> String.valueOf(entry.getValue())));
         log.debug("Reloaded instrumentation properties {}", UnsafeArg.of("instrumentationProperties", map));
         return map;
     }

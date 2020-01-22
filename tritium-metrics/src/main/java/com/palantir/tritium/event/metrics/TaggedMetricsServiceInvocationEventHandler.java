@@ -36,22 +36,23 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * An implementation of {@link AbstractInvocationEventHandler} whose purpose is to provide tagged metrics for
- * classes which look like services.
+ * An implementation of {@link AbstractInvocationEventHandler} whose purpose is to provide tagged metrics for classes
+ * which look like services.
  *
- * Specifically, this class will generate metrics with the following parameters:
+ * <p>Specifically, this class will generate metrics with the following parameters:
  *
  * <ul>
- *     <li>Metric Name: the service name supplied to the constructor</li>
- *     <li>Tag - service-name: The simple name of the invoked class</li>
- *     <li>Tag - endpoint: The name of the method that was invoked</li>
- *     <li>Tag - cause: When an error is hit, this will be filled with the full class name of the cause.</li>
+ *   <li>Metric Name: the service name supplied to the constructor
+ *   <li>Tag - service-name: The simple name of the invoked class
+ *   <li>Tag - endpoint: The name of the method that was invoked
+ *   <li>Tag - cause: When an error is hit, this will be filled with the full class name of the cause.
  * </ul>
  */
 public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final String FAILURES_METRIC_NAME = "failures";
-    private static final MetricName FAILURES_METRIC = MetricName.builder().safeName(FAILURES_METRIC_NAME).build();
+    private static final MetricName FAILURES_METRIC =
+            MetricName.builder().safeName(FAILURES_METRIC_NAME).build();
 
     private final TaggedMetricRegistry taggedMetricRegistry;
     private final String serviceName;
@@ -59,9 +60,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     private final ConcurrentMap<Method, Timer> timerCache = new ConcurrentHashMap<>();
     private final Function<Method, Timer> onSuccessTimerMappingFunction;
 
-    public TaggedMetricsServiceInvocationEventHandler(
-            TaggedMetricRegistry taggedMetricRegistry,
-            String serviceName) {
+    public TaggedMetricsServiceInvocationEventHandler(TaggedMetricRegistry taggedMetricRegistry, String serviceName) {
         super(getEnabledSupplier(serviceName));
         this.taggedMetricRegistry = checkNotNull(taggedMetricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
@@ -80,9 +79,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
 
     @Override
     public final InvocationContext preInvocation(
-            @Nonnull Object instance,
-            @Nonnull Method method,
-            @Nonnull Object[] args) {
+            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 
@@ -106,7 +103,9 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
         if (context != null) {
             MetricName failuresMetricName = MetricName.builder()
                     .safeName(serviceName + "-" + FAILURES_METRIC_NAME)
-                    .putSafeTags("service-name", context.getMethod().getDeclaringClass().getSimpleName())
+                    .putSafeTags(
+                            "service-name",
+                            context.getMethod().getDeclaringClass().getSimpleName())
                     .putSafeTags("endpoint", context.getMethod().getName())
                     .putSafeTags("cause", cause.getClass().getName())
                     .build();

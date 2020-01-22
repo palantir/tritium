@@ -69,7 +69,8 @@ final class ReflectiveTracer implements Tracer {
     private static Method checkCompleteMethod(Method method) {
         checkNotNull(method, "method");
         checkPublicStaticMethod(method);
-        checkArgument(method.getParameterCount() == 0,
+        checkArgument(
+                method.getParameterCount() == 0,
                 "completeSpan method should take 0 arguments",
                 SafeArg.of("method", method),
                 SafeArg.of("argumentTypes", paramsToClassNames(method)));
@@ -82,9 +83,7 @@ final class ReflectiveTracer implements Tracer {
     }
 
     private static List<String> paramsToClassNames(Method method) {
-        return Arrays.stream(method.getParameterTypes())
-                .map(Class::getName)
-                .collect(Collectors.toList());
+        return Arrays.stream(method.getParameterTypes()).map(Class::getName).collect(Collectors.toList());
     }
 
     private static RuntimeException throwUnchecked(ReflectiveOperationException reflectionException) {
@@ -92,5 +91,4 @@ final class ReflectiveTracer implements Tracer {
         Throwables.throwIfUnchecked(cause);
         throw new IllegalStateException(cause);
     }
-
 }

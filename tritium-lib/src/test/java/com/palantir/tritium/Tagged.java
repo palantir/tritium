@@ -34,13 +34,13 @@ public final class Tagged {
     private Tagged() {}
 
     public static <M extends Metric> ImmutableSortedMap<String, M> filter(
-            Map<MetricName, Metric> metrics,
-            Class<M> clazz) {
+            Map<MetricName, Metric> metrics, Class<M> clazz) {
         return metrics.entrySet().stream()
                 .filter(metricNameMetricEntry -> clazz.isInstance(metricNameMetricEntry.getValue()))
                 .collect(ImmutableSortedMap.toImmutableSortedMap(
                         Comparator.comparing(Object::toString),
-                        entry -> entry.getKey().safeName() + ":" + entry.getKey().safeTags(),
+                        entry ->
+                                entry.getKey().safeName() + ":" + entry.getKey().safeTags(),
                         entry -> clazz.cast(entry.getValue())));
     }
 
