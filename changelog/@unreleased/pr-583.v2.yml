@@ -1,0 +1,8 @@
+type: improvement
+improvement:
+  description: |-
+    Upgrades gradle wrapper to 6.1
+
+    Fixes issues seen in #573 upgrading to Gradle 6.1 via gradle-baseline 2.49.2 upgrade to pick up https://github.com/palantir/gradle-baseline/pull/1176
+  links:
+  - https://github.com/palantir/tritium/pull/583
