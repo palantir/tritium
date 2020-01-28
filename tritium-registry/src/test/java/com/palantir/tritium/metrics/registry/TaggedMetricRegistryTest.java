@@ -172,8 +172,10 @@ final class TaggedMetricRegistryTest {
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testSuppliedHistogram(TaggedMetricRegistry registry) {
-        testSuppliedCall(registry::histogram, new Histogram(new ExponentiallyDecayingReservoir()), new Histogram(
-                new ExponentiallyDecayingReservoir()));
+        testSuppliedCall(
+                registry::histogram,
+                new Histogram(new ExponentiallyDecayingReservoir()),
+                new Histogram(new ExponentiallyDecayingReservoir()));
     }
 
     @ParameterizedTest
