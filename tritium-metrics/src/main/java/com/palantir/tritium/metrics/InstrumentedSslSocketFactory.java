@@ -93,11 +93,7 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
     }
 
     static HandshakeCompletedListener newHandshakeListener(TlsMetrics metrics, String name) {
-        return event -> metrics.handshake()
-                .context(name)
-                .cipher(event.getCipherSuite())
-                .protocol(event.getSession().getProtocol())
-                .build()
-                .mark();
+        return event -> HandshakeInstrumentation.record(
+                metrics, name, event.getCipherSuite(), event.getSession().getProtocol());
     }
 }
