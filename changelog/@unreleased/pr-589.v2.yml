@@ -1,0 +1,6 @@
+type: improvement
+improvement:
+  description: Add TLS handshake debug logging describing the negotiated protocol
+    and cipher
+  links:
+  - https://github.com/palantir/tritium/pull/589
