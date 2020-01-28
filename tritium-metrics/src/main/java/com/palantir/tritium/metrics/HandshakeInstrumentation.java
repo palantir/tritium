@@ -37,7 +37,7 @@ final class HandshakeInstrumentation {
                 .mark();
         if (log.isDebugEnabled()) {
             log.debug(
-                    "SSL Handshake completed for context {}, cipher {}, protocol {}",
+                    "TLS Handshake completed for context {}, cipher {}, protocol {}",
                     SafeArg.of("context", contextName),
                     SafeArg.of("cipherSuite", cipherSuite),
                     SafeArg.of("protocol", protocol));
