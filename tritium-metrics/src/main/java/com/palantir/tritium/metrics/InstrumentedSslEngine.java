@@ -283,12 +283,7 @@ class InstrumentedSslEngine extends SSLEngine {
             try {
                 SSLSession session = engine.getSession();
                 if (session != null) {
-                    metrics.handshake()
-                            .context(name)
-                            .cipher(session.getCipherSuite())
-                            .protocol(session.getProtocol())
-                            .build()
-                            .mark();
+                    HandshakeInstrumentation.record(metrics, name, session.getCipherSuite(), session.getProtocol());
                 }
             } catch (RuntimeException e) {
                 log.warn("Failed to record handshake metrics", e);
