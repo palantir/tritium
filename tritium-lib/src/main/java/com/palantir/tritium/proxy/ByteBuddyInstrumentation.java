@@ -196,8 +196,9 @@ final class ByteBuddyInstrumentation {
                             InvocationContext.class,
                             Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
                     .initializer(new StaticFieldLoadedTypeInitializer(METHODS_FIELD, allMethods.toArray(new Method[0])))
-                    .initializer(new StaticFieldLoadedTypeInitializer(
-                            DISABLED_HANDLER_SENTINEL_FIELD, DisabledHandlerSentinel.INSTANCE))
+                    .initializer(
+                            new StaticFieldLoadedTypeInitializer(
+                                    DISABLED_HANDLER_SENTINEL_FIELD, DisabledHandlerSentinel.INSTANCE))
                     .initializer(LoggerInitializer.INSTANCE)
                     .make()
                     .load(classLoader)
