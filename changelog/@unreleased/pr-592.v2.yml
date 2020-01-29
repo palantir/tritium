@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: tritium-metrics-jvm no longer throws a `NoClassDefFoundError` for `JvmAttributeGaugeSet`
+    when used with codahale metrics 4.x (io.dropwizard.metrics:metrics-jvm).
+  links:
+  - https://github.com/palantir/tritium/pull/592
