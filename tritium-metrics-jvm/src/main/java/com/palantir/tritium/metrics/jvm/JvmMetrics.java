@@ -16,21 +16,16 @@
 
 package com.palantir.tritium.metrics.jvm;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.JvmAttributeGaugeSet;
-import com.codahale.metrics.Metric;
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.Preconditions;
-import com.palantir.logsafe.SafeArg;
-import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ManagementFactory;
-import java.util.Map;
+import java.lang.management.RuntimeMXBean;
 
 /** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
@@ -62,7 +57,7 @@ public final class JvmMetrics {
     }
 
     private static void registerAttributes(InternalJvmMetrics metrics) {
-        Map<String, Metric> jvmAttributes = new JvmAttributeGaugeSet().getMetrics();
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         metrics.attributeUptime()
                 .javaSpecificationVersion(System.getProperty("java.specification.version", "unknown"))
                 .javaVersion(System.getProperty("java.version", "unknown"))
@@ -70,16 +65,7 @@ public final class JvmMetrics {
                 .javaRuntimeVersion(System.getProperty("java.runtime.version", "unknown"))
                 .javaVendorVersion(System.getProperty("java.vendor.version", "unknown"))
                 .javaVmVendor(System.getProperty("java.vm.vendor", "unknown"))
-                .build(gauge(jvmAttributes, "uptime"));
-    }
-
-    private static Gauge<?> gauge(Map<String, Metric> metrics, String name) {
-        Metric metric =
-                Preconditions.checkNotNull(metrics.get(name), "Failed to find metric", SafeArg.of("name", name));
-        if (metric instanceof Gauge) {
-            return (Gauge<?>) metric;
-        }
-        throw new SafeIllegalStateException("Expected a gauge", SafeArg.of("type", metric.getClass()));
+                .build(runtimeMxBean::getUptime);
     }
 
     private JvmMetrics() {
