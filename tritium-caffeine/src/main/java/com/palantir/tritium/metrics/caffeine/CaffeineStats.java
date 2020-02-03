@@ -34,12 +34,12 @@ final class CaffeineStats implements InternalCacheMetrics.Stats {
     private final Supplier<CacheStats> stats;
 
     @VisibleForTesting
-    CaffeineStats(Cache cache, Supplier<CacheStats> stats) {
+    CaffeineStats(Cache<?, ?> cache, Supplier<CacheStats> stats) {
         this.cache = cache;
         this.stats = stats;
     }
 
-    static InternalCacheMetrics.Stats create(Cache cache, long duration, TimeUnit timeUnit) {
+    static InternalCacheMetrics.Stats create(Cache<?, ?> cache, long duration, TimeUnit timeUnit) {
         Supplier<CacheStats> statsSupplier = Suppliers.memoizeWithExpiration(cache::stats, duration, timeUnit);
         return new CaffeineStats(cache, statsSupplier);
     }

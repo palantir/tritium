@@ -34,9 +34,9 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
 
     public static final class TestImplementation {
 
-        @SuppressWarnings("unused")
+        @SuppressWarnings("unused") // instrumented
         public String doFoo() {
-            return "bar";
+            return this.getClass().getSimpleName();
         }
     }
 
@@ -81,7 +81,7 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
 
     @SuppressWarnings("SameParameterValue")
     private static void invokeMethod(
-            AbstractInvocationEventHandler handler, Object obj, String methodName, Object result, boolean success)
+            AbstractInvocationEventHandler<?> handler, Object obj, String methodName, Object result, boolean success)
             throws Exception {
         InvocationContext context =
                 DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);

@@ -70,20 +70,20 @@ final class CaffeineCacheMetricsTest {
     void estimatedSize() {
         assertThat(metrics.get("test.cache.estimated.size"))
                 .isInstanceOf(Gauge.class)
-                .returns(0L, metric -> ((Gauge) metric).getValue());
+                .returns(0L, metric -> ((Gauge<?>) metric).getValue());
     }
 
     @Test
     void maximumSize() {
         assertThat(metrics.get("test.cache.maximum.size"))
                 .isInstanceOf(Gauge.class)
-                .returns(-1L, metric -> ((Gauge) metric).getValue());
+                .returns(-1L, metric -> ((Gauge<?>) metric).getValue());
     }
 
     @Test
     void weightedSize() {
         assertThat(metrics.get("test.cache.weighted.size"))
                 .isInstanceOf(Gauge.class)
-                .returns(0L, metric -> ((Gauge) metric).getValue());
+                .returns(0L, metric -> ((Gauge<?>) metric).getValue());
     }
 }

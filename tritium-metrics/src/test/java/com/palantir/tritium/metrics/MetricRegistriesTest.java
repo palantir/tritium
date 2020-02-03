@@ -211,6 +211,7 @@ final class MetricRegistriesTest {
         when(cache.stats()).thenReturn(new CacheStats(1, 2, 3, 4, 5, 6));
         when(cache.size()).thenReturn(42L);
 
+        @SuppressWarnings("rawtypes")
         SortedMap<String, Gauge> gauges = metrics.getGauges();
         assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(3L);
         assertThat(gauges.get("test.cache.hit.count").getValue()).isEqualTo(1L);
@@ -227,10 +228,10 @@ final class MetricRegistriesTest {
 
     @Test
     void testRegisterCacheReplacement() {
-        Cache cache1 = CacheBuilder.newBuilder().build();
+        Cache<?, ?> cache1 = CacheBuilder.newBuilder().build();
         MetricRegistries.registerCache(metrics, cache1, "test");
 
-        Cache cache2 = CacheBuilder.newBuilder().build();
+        Cache<?, ?> cache2 = CacheBuilder.newBuilder().build();
         MetricRegistries.registerCache(metrics, cache2, "test");
     }
 

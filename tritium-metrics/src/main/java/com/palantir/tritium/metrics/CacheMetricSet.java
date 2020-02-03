@@ -60,12 +60,12 @@ final class CacheMetricSet implements MetricSet {
         private final Supplier<CacheStats> stats;
 
         @VisibleForTesting
-        GuavaStats(Cache cache, Supplier<CacheStats> stats) {
+        GuavaStats(Cache<?, ?> cache, Supplier<CacheStats> stats) {
             this.cache = cache;
             this.stats = stats;
         }
 
-        static InternalCacheMetrics.Stats create(Cache cache, long duration, TimeUnit timeUnit) {
+        static InternalCacheMetrics.Stats create(Cache<?, ?> cache, long duration, TimeUnit timeUnit) {
             Supplier<CacheStats> statsSupplier = Suppliers.memoizeWithExpiration(cache::stats, duration, timeUnit);
             return new GuavaStats(cache, statsSupplier);
         }
