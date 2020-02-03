@@ -70,7 +70,7 @@ final class CacheMetricSetTest {
     void estimatedSize() {
         assertThat(metrics.get("test.cache.estimated.size"))
                 .isInstanceOf(Gauge.class)
-                .returns(0L, metric -> ((Gauge) metric).getValue());
+                .returns(0L, metric -> ((Gauge<?>) metric).getValue());
     }
 
     @Test

@@ -58,7 +58,10 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     @SuppressWarnings("InconsistentOverloads")
     public MetricsInvocationEventHandler(
-            MetricRegistry metricRegistry, Class serviceClass, String serviceName, @Nullable String globalGroupPrefix) {
+            MetricRegistry metricRegistry,
+            Class<?> serviceClass,
+            String serviceName,
+            @Nullable String globalGroupPrefix) {
         super(getEnabledSupplier(serviceName));
         this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
@@ -68,7 +71,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     @SuppressWarnings("WeakerAccess") // public API
     public MetricsInvocationEventHandler(
-            MetricRegistry metricRegistry, Class serviceClass, @Nullable String globalGroupPrefix) {
+            MetricRegistry metricRegistry, Class<?> serviceClass, @Nullable String globalGroupPrefix) {
         this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
     }
 
