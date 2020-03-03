@@ -23,12 +23,14 @@ dependencies {
     implementation 'org.slf4j:slf4j-api'
 
     testImplementation project(':tritium-test')
-    testImplementation 'ch.qos.logback:logback-classic'
     testImplementation 'com.squareup.okhttp3:okhttp'
+    testImplementation 'io.dropwizard.metrics:metrics-core'
     testImplementation 'io.undertow:undertow-core'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.awaitility:awaitility'
+    testImplementation 'org.jboss.xnio:xnio-api'
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
