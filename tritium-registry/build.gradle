@@ -14,13 +14,15 @@ dependencies {
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
+    implementation 'io.dropwizard.metrics:metrics-core'
+    implementation 'org.slf4j:slf4j-api'
 
+    testImplementation 'net.jqwik:jqwik-api'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testImplementation 'org.mockito:mockito-core'
-    testImplementation 'org.mockito:mockito-junit-jupiter'
-    testImplementation 'net.jqwik:jqwik-api'
 
     // Work around https://github.com/immutables/immutables/issues/291
     compileOnly 'org.immutables:value::annotations'
