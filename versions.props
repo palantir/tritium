@@ -13,6 +13,7 @@ com.squareup.okhttp3:okhttp = 4.0.0
 com.uber.nullaway:nullaway = 0.7.9
 io.undertow:undertow-core = 2.0.20.Final
 net.bytebuddy:byte-buddy = 1.10.8
+net.jqwik:* = 1.2.4
 org.assertj:assertj-core = 3.15.0
 org.awaitility:awaitility = 4.0.2
 org.checkerframework:checker-qual = 2.5.0
@@ -23,7 +24,6 @@ org.mockito:* = 3.3.1
 org.mpierce.metrics.reservoir:* = 1.1.2
 org.openjdk.jmh:* = 1.23
 org.slf4j:* = 1.7.30
-net.jqwik:jqwik = 1.2.4
 
 
 # dependency-upgrader:OFF
