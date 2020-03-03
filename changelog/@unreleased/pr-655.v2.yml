@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Upgrade jmh to 1.23 and jmh-gradle plugin to 0.5.0
+  links:
+  - https://github.com/palantir/tritium/pull/655
