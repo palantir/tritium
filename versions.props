@@ -23,7 +23,7 @@ org.mockito:* = 3.3.1
 org.mpierce.metrics.reservoir:* = 1.1.2
 org.openjdk.jmh:* = 1.23
 org.slf4j:* = 1.7.30
-net.jqwik:jqwik = 1.2.0
+net.jqwik:jqwik = 1.2.4
 
 
 # dependency-upgrader:OFF
