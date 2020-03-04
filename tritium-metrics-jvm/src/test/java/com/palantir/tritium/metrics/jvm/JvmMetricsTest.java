@@ -139,8 +139,9 @@ final class JvmMetricsTest {
         JvmMetrics.register(registry);
         Gauge<Double> processCpuLoad = (Gauge<Double>) registry.getMetrics()
                 .get(MetricName.builder().safeName("process.cpu.utilization").build());
-        assertThat(processCpuLoad).satisfies(gauge ->
-                assertThat(gauge.getValue()).isGreaterThanOrEqualTo(0D).isLessThanOrEqualTo(1D));
+        assertThat(processCpuLoad)
+                .satisfies(gauge ->
+                        assertThat(gauge.getValue()).isGreaterThanOrEqualTo(0D).isLessThanOrEqualTo(1D));
     }
 
     @Test

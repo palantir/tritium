@@ -52,12 +52,15 @@ final class MemoryPoolMetrics {
             String poolName = canonicalName(memoryPool.getName());
 
             metrics.max().memoryPool(poolName).build(() -> memoryPool.getUsage().getMax());
-            metrics.used().memoryPool(poolName).build(() ->
-                    memoryPool.getUsage().getUsed());
-            metrics.committed().memoryPool(poolName).build(() ->
-                    memoryPool.getUsage().getCommitted());
-            metrics.init().memoryPool(poolName).build(() ->
-                    memoryPool.getUsage().getInit());
+            metrics.used()
+                    .memoryPool(poolName)
+                    .build(() -> memoryPool.getUsage().getUsed());
+            metrics.committed()
+                    .memoryPool(poolName)
+                    .build(() -> memoryPool.getUsage().getCommitted());
+            metrics.init()
+                    .memoryPool(poolName)
+                    .build(() -> memoryPool.getUsage().getInit());
 
             metrics.usage().memoryPool(poolName).build(new RatioGauge() {
                 @Override
@@ -70,8 +73,9 @@ final class MemoryPoolMetrics {
 
             // MetricPool.getCollectionUsage is not supported by all implementations, returning null in some cases.
             if (memoryPool.getCollectionUsage() != null) {
-                metrics.usedAfterGc().memoryPool(poolName).build(() ->
-                        memoryPool.getCollectionUsage().getUsed());
+                metrics.usedAfterGc()
+                        .memoryPool(poolName)
+                        .build(() -> memoryPool.getCollectionUsage().getUsed());
             }
         }
     }

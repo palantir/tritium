@@ -232,8 +232,9 @@ public final class MetricRegistries {
         checkNotNull(clock, "clock");
         checkArgument(!name.trim().isEmpty(), "Cache name cannot be blank or empty");
 
-        CacheMetricSet.create(cache, name).getMetrics().forEach((key, value) ->
-                registerWithReplacement(registry, key, value));
+        CacheMetricSet.create(cache, name)
+                .getMetrics()
+                .forEach((key, value) -> registerWithReplacement(registry, key, value));
     }
 
     /**

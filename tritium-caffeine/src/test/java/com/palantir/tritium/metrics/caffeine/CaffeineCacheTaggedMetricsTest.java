@@ -51,7 +51,8 @@ final class CaffeineCacheTaggedMetricsTest {
                         "cache.load.success.count",
                         "cache.load.failure.count",
                         "cache.load.average.millis");
-        metrics.keySet().forEach(metricName ->
-                assertThat(metricName.safeTags()).containsOnlyKeys("cache").containsValue("test"));
+        metrics.keySet().forEach(metricName -> assertThat(metricName.safeTags())
+                .containsOnlyKeys("cache")
+                .containsValue("test"));
     }
 }

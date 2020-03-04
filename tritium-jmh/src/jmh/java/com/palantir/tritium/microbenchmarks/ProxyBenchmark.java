@@ -141,9 +141,8 @@ public class ProxyBenchmark {
                 .build();
 
         instrumentedWithRemoting = Instrumentation.builder(serviceInterface, raw)
-                .withHandler(
-                        new RemotingCompatibleTracingInvocationEventHandler(
-                                serviceInterface.getName(), Remoting3Tracer.INSTANCE))
+                .withHandler(new RemotingCompatibleTracingInvocationEventHandler(
+                        serviceInterface.getName(), Remoting3Tracer.INSTANCE))
                 .build();
 
         instrumentedWithEverything = Instrumentation.builder(serviceInterface, raw)

@@ -45,8 +45,9 @@ final class InstrumentationPropertiesTest {
     void before() {
         executorService = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         System.clearProperty("instrument");
-        System.getProperties().entrySet().removeIf(entry ->
-                entry.getKey().toString().startsWith("instrument"));
+        System.getProperties()
+                .entrySet()
+                .removeIf(entry -> entry.getKey().toString().startsWith("instrument"));
         InstrumentationProperties.reload();
     }
 

@@ -51,8 +51,9 @@ final class MetricsBooleanSupplierTest {
     @BeforeEach
     void before() {
         System.clearProperty(METRICS_SYSTEM_PROPERTY_PREFIX);
-        System.getProperties().entrySet().removeIf(entry ->
-                entry.getKey().toString().startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
+        System.getProperties()
+                .entrySet()
+                .removeIf(entry -> entry.getKey().toString().startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
         InstrumentationProperties.reload();
     }
 
