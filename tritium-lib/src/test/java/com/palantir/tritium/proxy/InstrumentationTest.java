@@ -534,8 +534,9 @@ public abstract class InstrumentationTest {
                 .isInstanceOf(ParentInterface.class);
 
         assertThat(result.getValue()).isEqualTo(3);
-        assertThat(result).isInstanceOfSatisfying(ParentInterface.class, parentInterface ->
-                assertThat(parentInterface.getString()).isEqualTo("string"));
+        assertThat(result).isInstanceOfSatisfying(ParentInterface.class, parentInterface -> assertThat(
+                        parentInterface.getString())
+                .isEqualTo("string"));
         verify(mockHandler, times(2)).isEnabled();
         verify(mockHandler, times(2)).preInvocation(any(), any(), any());
         verify(mockHandler, times(2)).onSuccess(any(), any());

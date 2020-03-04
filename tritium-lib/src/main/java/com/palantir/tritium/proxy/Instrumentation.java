@@ -127,9 +127,8 @@ public final class Instrumentation {
          */
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry, String globalPrefix) {
             checkNotNull(metricRegistry, "metricRegistry");
-            this.handlers.add(
-                    new MetricsInvocationEventHandler(
-                            metricRegistry, delegate.getClass(), interfaceClass.getName(), globalPrefix));
+            this.handlers.add(new MetricsInvocationEventHandler(
+                    metricRegistry, delegate.getClass(), interfaceClass.getName(), globalPrefix));
             return this;
         }
 

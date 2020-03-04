@@ -27,8 +27,9 @@ final class AbstractInvocationEventHandlerTest {
     @BeforeEach
     void before() {
         System.clearProperty("instrument");
-        System.getProperties().entrySet().removeIf(entry ->
-                entry.getKey().toString().startsWith("instrument"));
+        System.getProperties()
+                .entrySet()
+                .removeIf(entry -> entry.getKey().toString().startsWith("instrument"));
         InstrumentationProperties.reload();
     }
 

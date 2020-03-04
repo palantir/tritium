@@ -177,8 +177,9 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     public final Map<MetricName, Metric> getMetrics() {
         ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.builder();
         result.putAll(registry);
-        taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics().forEach((metricName, metric) ->
-                result.put(RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
+        taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
+                .forEach((metricName, metric) ->
+                        result.put(RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
 
         return result.build();
     }

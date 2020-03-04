@@ -50,9 +50,12 @@ public final class JvmMetrics {
         MetricRegistries.registerAll(
                 registry, "jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
         MetricRegistries.registerAll(registry, "jvm.classloader", new ClassLoadingGaugeSet());
-        MetricRegistries.registerAll(registry, "jvm.memory", () -> Maps.filterKeys(
-                // Memory pool metrics are already provided by MetricRegistries.registerMemoryPools
-                new MemoryUsageGaugeSet().getMetrics(), name -> !name.startsWith("pools")));
+        MetricRegistries.registerAll(
+                registry,
+                "jvm.memory",
+                () -> Maps.filterKeys(
+                        // Memory pool metrics are already provided by MetricRegistries.registerMemoryPools
+                        new MemoryUsageGaugeSet().getMetrics(), name -> !name.startsWith("pools")));
         MetricRegistries.registerAll(registry, "jvm.threads", new ThreadStatesGaugeSet());
     }
 

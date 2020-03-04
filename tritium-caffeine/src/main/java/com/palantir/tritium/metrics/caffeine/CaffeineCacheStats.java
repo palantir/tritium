@@ -46,8 +46,9 @@ public final class CaffeineCacheStats {
         checkNotNull(cache, "cache");
         checkNotNull(name, "name");
 
-        CaffeineCacheMetrics.create(cache, name).getMetrics().forEach((key, value) ->
-                MetricRegistries.registerWithReplacement(registry, key, value));
+        CaffeineCacheMetrics.create(cache, name)
+                .getMetrics()
+                .forEach((key, value) -> MetricRegistries.registerWithReplacement(registry, key, value));
     }
 
     /**
