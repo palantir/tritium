@@ -16,9 +16,14 @@
 
 package com.palantir.tritium.test;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
+@SuppressWarnings("unused") // tests via reflection & mocks
 public interface TestInterface extends LessSpecificReturn {
 
     String test();
@@ -33,4 +38,16 @@ public interface TestInterface extends LessSpecificReturn {
     int throwsThrowable() throws Throwable;
 
     void throwsOutOfMemoryError();
+
+    default Future<String> future() {
+        return Futures.immediateFuture("future");
+    }
+
+    default CompletableFuture<String> completableFuture() {
+        return CompletableFuture.completedFuture("completable");
+    }
+
+    default ListenableFuture<String> listenableFuture() {
+        return Futures.immediateFuture("listenable");
+    }
 }

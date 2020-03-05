@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.event;
 
+import static com.palantir.tritium.event.InstrumentationFilters.INSTRUMENT_NON_FUTURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -27,37 +28,54 @@ import org.junit.jupiter.api.Test;
 
 final class InstrumentationFiltersTest {
 
+    private static final Object[] NO_ARGS = new Object[0];
+
     private final TestInterface instance = mock(TestImplementation.class);
-    private final Method method = testMethod();
-    private final Object[] args = new Object[0];
 
     @Test
     void testInstrumentAll() {
-        assertThat(InstrumentationFilters.INSTRUMENT_ALL.shouldInstrument(instance, method, args))
+        assertThat(InstrumentationFilters.INSTRUMENT_ALL.shouldInstrument(instance, method("test"), NO_ARGS))
                 .isTrue();
     }
 
     @Test
     void testInstrumentNone() {
-        assertThat(InstrumentationFilters.INSTRUMENT_NONE.shouldInstrument(instance, method, args))
+        assertThat(InstrumentationFilters.INSTRUMENT_NONE.shouldInstrument(instance, method("test"), NO_ARGS))
                 .isFalse();
     }
 
     @Test
     void testFromTrueSupplier() {
         InstrumentationFilter filter = InstrumentationFilters.from((java.util.function.BooleanSupplier) () -> true);
-        assertThat(filter.shouldInstrument(instance, method, args)).isTrue();
+        assertThat(filter.shouldInstrument(instance, method("test"), NO_ARGS)).isTrue();
     }
 
     @Test
     void testFromFalseSupplier() {
         InstrumentationFilter filter = InstrumentationFilters.from((java.util.function.BooleanSupplier) () -> false);
-        assertThat(filter.shouldInstrument(instance, method, args)).isFalse();
+        assertThat(filter.shouldInstrument(instance, method("test"), NO_ARGS)).isFalse();
     }
 
-    private static Method testMethod() {
+    @Test
+    void testSynchronousOnly() {
+        assertThat(INSTRUMENT_NON_FUTURE.shouldInstrument(instance, method("test"), NO_ARGS))
+                .isTrue();
+        assertThat(INSTRUMENT_NON_FUTURE.shouldInstrument(instance, method("throwsThrowable"), NO_ARGS))
+                .isTrue();
+        assertThat(INSTRUMENT_NON_FUTURE.shouldInstrument(instance, method("throwsCheckedException"), NO_ARGS))
+                .isTrue();
+
+        assertThat(INSTRUMENT_NON_FUTURE.shouldInstrument(instance, method("future"), NO_ARGS))
+                .isFalse();
+        assertThat(INSTRUMENT_NON_FUTURE.shouldInstrument(instance, method("listenableFuture"), NO_ARGS))
+                .isFalse();
+        assertThat(INSTRUMENT_NON_FUTURE.shouldInstrument(instance, method("completableFuture"), NO_ARGS))
+                .isFalse();
+    }
+
+    private static Method method(String methodName, Class<?>... parameterTypes) {
         try {
-            return TestInterface.class.getDeclaredMethod("test");
+            return TestInterface.class.getDeclaredMethod(methodName, parameterTypes);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }

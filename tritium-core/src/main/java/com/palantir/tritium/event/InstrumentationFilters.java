@@ -18,6 +18,7 @@ package com.palantir.tritium.event;
 
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
+import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
 
 public enum InstrumentationFilters implements InstrumentationFilter {
@@ -27,6 +28,14 @@ public enum InstrumentationFilters implements InstrumentationFilter {
         @Override
         public boolean shouldInstrument(@Nonnull Object _instance, @Nonnull Method _method, @Nonnull Object[] _args) {
             return true;
+        }
+    },
+
+    /** Instrument invocations that do not return Future. */
+    INSTRUMENT_NON_FUTURE {
+        @Override
+        public boolean shouldInstrument(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+            return !Future.class.isAssignableFrom(method.getReturnType());
         }
     },
 
