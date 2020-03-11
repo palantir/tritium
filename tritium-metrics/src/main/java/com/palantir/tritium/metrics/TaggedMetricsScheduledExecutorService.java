@@ -171,7 +171,7 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
         return delegate.awaitTermination(timeout, unit);
     }
 
-    private class TaggedMetricsRunnable implements Runnable {
+    private final class TaggedMetricsRunnable implements Runnable {
 
         private final Runnable task;
 
@@ -191,7 +191,7 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
         }
     }
 
-    private class TaggedMetricsScheduledRunnable implements Runnable {
+    private final class TaggedMetricsScheduledRunnable implements Runnable {
 
         private final Runnable task;
         private final long periodInNanos;
@@ -219,7 +219,7 @@ final class TaggedMetricsScheduledExecutorService implements ScheduledExecutorSe
         }
     }
 
-    private class TaggedMetricsCallable<T> implements Callable<T> {
+    private final class TaggedMetricsCallable<T> implements Callable<T> {
 
         private final Callable<T> task;
 

@@ -136,7 +136,7 @@ final class TaggedMetricsExecutorService implements ExecutorService {
         return delegate.awaitTermination(timeout, unit);
     }
 
-    private class TaggedMetricsRunnable implements Runnable {
+    private final class TaggedMetricsRunnable implements Runnable {
 
         private final Runnable task;
 
@@ -159,7 +159,7 @@ final class TaggedMetricsExecutorService implements ExecutorService {
         }
     }
 
-    private class TaggedMetricsCallable<T> implements Callable<T> {
+    private final class TaggedMetricsCallable<T> implements Callable<T> {
 
         private final Callable<T> task;
 
