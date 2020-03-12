@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Objects;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -28,9 +29,11 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
 
     private final SSLSocketFactory delegate;
     private final HandshakeCompletedListener listener;
+    private final String name;
 
     InstrumentedSslSocketFactory(SSLSocketFactory delegate, TlsMetrics metrics, String name) {
         this.delegate = delegate;
+        this.name = name;
         this.listener = newHandshakeListener(metrics, name);
     }
 
@@ -82,7 +85,24 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
 
     @Override
     public String toString() {
-        return "InstrumentedSSLSocketFactory{delegate=" + delegate + '}';
+        return "InstrumentedSSLSocketFactory{delegate=" + delegate + ", name=" + name + '}';
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        InstrumentedSslSocketFactory that = (InstrumentedSslSocketFactory) other;
+        return delegate.equals(that.delegate) && name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(delegate, name);
     }
 
     private Socket wrap(Socket socket) {

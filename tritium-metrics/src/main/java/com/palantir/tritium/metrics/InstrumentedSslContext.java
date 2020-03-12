@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics;
 
 import java.security.KeyManagementException;
 import java.security.SecureRandom;
+import java.util.Objects;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLContextSpi;
@@ -42,6 +43,23 @@ final class InstrumentedSslContext extends SSLContext {
     @Override
     public String toString() {
         return "InstrumentedSSLContext{delegate=" + context + ", name=" + name + '}';
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        InstrumentedSslContext that = (InstrumentedSslContext) other;
+        return context.equals(that.context) && name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(context, name);
     }
 
     private static final class InstrumentedSslContextSpi extends SSLContextSpi {

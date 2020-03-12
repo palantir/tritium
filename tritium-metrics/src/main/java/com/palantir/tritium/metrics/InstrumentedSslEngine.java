@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
@@ -275,6 +276,23 @@ class InstrumentedSslEngine extends SSLEngine {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{name=" + name + ", delegate=" + engine + '}';
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other instanceof InstrumentedSslEngine) {
+            InstrumentedSslEngine that = (InstrumentedSslEngine) other;
+            return engine.equals(that.engine) && name.equals(that.name);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(engine, name);
     }
 
     private SSLEngineResult check(SSLEngineResult result) {
