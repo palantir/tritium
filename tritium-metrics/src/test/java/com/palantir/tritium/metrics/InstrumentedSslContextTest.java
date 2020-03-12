@@ -207,6 +207,30 @@ final class InstrumentedSslContextTest {
         assertThat(MetricRegistries.unwrap(engine)).isNotNull().isNotInstanceOf(InstrumentedSslEngine.class);
     }
 
+    @Test
+    void testSslContext_equality() throws IOException, GeneralSecurityException {
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        SSLContext context = newClientContext();
+        SSLContext instrumentedFirst = MetricRegistries.instrument(metrics, context, "factory");
+        SSLContext instrumentedSecond = MetricRegistries.instrument(metrics, context, "factory");
+        SSLContext instrumentedThirdDifferentName = MetricRegistries.instrument(metrics, context, "other");
+        assertThat(instrumentedFirst).isEqualTo(instrumentedSecond).isNotEqualTo(instrumentedThirdDifferentName);
+        assertThat(instrumentedFirst).hasSameHashCodeAs(instrumentedSecond);
+        assertThat(instrumentedFirst.hashCode()).isNotEqualTo(instrumentedThirdDifferentName.hashCode());
+    }
+
+    @Test
+    void testSslSocketFactory_equality() throws IOException, GeneralSecurityException {
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        SSLSocketFactory socketFactory = newClientContext().getSocketFactory();
+        SSLSocketFactory instrumentedFirst = MetricRegistries.instrument(metrics, socketFactory, "factory");
+        SSLSocketFactory instrumentedSecond = MetricRegistries.instrument(metrics, socketFactory, "factory");
+        SSLSocketFactory instrumentedThirdDifferentName = MetricRegistries.instrument(metrics, socketFactory, "other");
+        assertThat(instrumentedFirst).isEqualTo(instrumentedSecond).isNotEqualTo(instrumentedThirdDifferentName);
+        assertThat(instrumentedFirst).hasSameHashCodeAs(instrumentedSecond);
+        assertThat(instrumentedFirst.hashCode()).isNotEqualTo(instrumentedThirdDifferentName.hashCode());
+    }
+
     private static Closeable server(SSLContext context) {
         Undertow server = Undertow.builder()
                 .addHttpsListener(PORT, "0.0.0.0", context)
