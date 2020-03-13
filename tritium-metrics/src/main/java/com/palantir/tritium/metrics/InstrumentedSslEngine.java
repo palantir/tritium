@@ -44,6 +44,13 @@ class InstrumentedSslEngine extends SSLEngine {
     private final TlsMetrics metrics;
     private final String name;
 
+    /**
+     * Instrument the provided {@link SSLEngine}.
+     * This method behaves in a strange way to support java 9 without fooling java 8 consumers. Many libraries use
+     * the existence of the new JDK9 methods to attempt ALPN via reflection, so we cannot return an implementation
+     * with these methods unless the delegate engine provides them. Conversely, regardless of the runtime version
+     * we need to preserve the new ALPN methods from the delegate engine to avoid modifying application behavior.
+     */
     static SSLEngine instrument(SSLEngine engine, TlsMetrics metrics, String name) {
         Method getApplicationProtocol = getMethodNullable(engine.getClass(), "getApplicationProtocol");
         // Avoid the other three lookups if methods aren't present
