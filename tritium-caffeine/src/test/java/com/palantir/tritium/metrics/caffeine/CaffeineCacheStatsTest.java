@@ -17,6 +17,7 @@
 package com.palantir.tritium.metrics.caffeine;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.awaitility.Awaitility.await;
 
 import com.codahale.metrics.ConsoleReporter;
@@ -111,6 +112,10 @@ final class CaffeineCacheStatsTest {
                 .isNotNull()
                 .extracting(Gauge::getValue)
                 .isEqualTo(3L);
+
+        assertThat(metricRegistry.getCounters())
+                .extractingByKey("test.cache.stats.disabled")
+                .isNull();
     }
 
     @Test
@@ -153,6 +158,45 @@ final class CaffeineCacheStatsTest {
         assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.ratio")
                         .getValue())
                 .isEqualTo(0.25);
+
+        assertThat(taggedMetricRegistry.getMetrics())
+                .extractingByKey(MetricName.builder()
+                        .safeName("cache.stats.disabled")
+                        .putSafeTags("cache", "test")
+                        .build())
+                .isNull();
+    }
+
+    @Test
+    void registerCacheWithoutRecordingStats() {
+        Cache<Integer, String> cache = Caffeine.newBuilder().build();
+        CaffeineCacheStats.registerCache(metricRegistry, cache, "test");
+        String disabledMetricName = "test.cache.stats.disabled";
+        assertThat(metricRegistry.getCounters())
+                .hasSize(1)
+                .containsOnlyKeys(disabledMetricName)
+                .extractingByKey(disabledMetricName)
+                .isInstanceOf(Counter.class)
+                .extracting(Counter::getCount)
+                .isEqualTo(1L);
+    }
+
+    @Test
+    void registerCacheWithoutRecordingStatsTagged() {
+        Cache<Integer, String> cache = Caffeine.newBuilder().build();
+        CaffeineCacheStats.registerCache(taggedMetricRegistry, cache, "test");
+        MetricName disabledMetricName = MetricName.builder()
+                .safeName("cache.stats.disabled")
+                .putSafeTags("cache", "test")
+                .build();
+        assertThat(taggedMetricRegistry.getMetrics())
+                .hasSize(1)
+                .containsOnlyKeys(disabledMetricName)
+                .extractingByKey(disabledMetricName)
+                .isInstanceOf(Counter.class)
+                .asInstanceOf(type(Counter.class))
+                .extracting(Counter::getCount)
+                .isEqualTo(1L);
     }
 
     private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {

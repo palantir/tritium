@@ -18,19 +18,26 @@ package com.palantir.tritium.metrics.caffeine;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.logsafe.Safe;
+import com.palantir.logsafe.SafeArg;
 import com.palantir.tritium.metrics.InternalCacheMetrics;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("WeakerAccess") // public API
 public final class CaffeineCacheStats {
+
+    private static final Logger log = LoggerFactory.getLogger(CaffeineCacheStats.class);
+    private static final String STATS_DISABLED = "cache.stats.disabled";
 
     private CaffeineCacheStats() {}
 
@@ -45,10 +52,13 @@ public final class CaffeineCacheStats {
         checkNotNull(registry, "registry");
         checkNotNull(cache, "cache");
         checkNotNull(name, "name");
-
-        CaffeineCacheMetrics.create(cache, name)
-                .getMetrics()
-                .forEach((key, value) -> MetricRegistries.registerWithReplacement(registry, key, value));
+        if (cache.policy().isRecordingStats()) {
+            CaffeineCacheMetrics.create(cache, name)
+                    .getMetrics()
+                    .forEach((key, value) -> MetricRegistries.registerWithReplacement(registry, key, value));
+        } else {
+            warnNotRecordingStats(name, registry.counter(MetricRegistry.name(name, STATS_DISABLED)));
+        }
     }
 
     /**
@@ -62,8 +72,22 @@ public final class CaffeineCacheStats {
         checkNotNull(registry, "registry");
         checkNotNull(cache, "cache");
         checkNotNull(name, "name");
+        if (cache.policy().isRecordingStats()) {
+            CaffeineCacheTaggedMetrics.create(cache, name).getMetrics().forEach(registry::registerWithReplacement);
+        } else {
+            warnNotRecordingStats(
+                    name,
+                    registry.counter(InternalCacheMetrics.taggedMetricName(name).apply(STATS_DISABLED)));
+        }
+    }
 
-        CaffeineCacheTaggedMetrics.create(cache, name).getMetrics().forEach(registry::registerWithReplacement);
+    private static void warnNotRecordingStats(@Safe String name, Counter counter) {
+        counter.inc();
+        log.warn(
+                "Registered cache does not have stats recording enabled, stats will always be zero. "
+                        + "To enable cache metrics, stats recording must be enabled when constructing the cache: "
+                        + "Caffeine.newBuilder().recordStats()",
+                SafeArg.of("cacheName", name));
     }
 
     static <K> ImmutableMap<K, Gauge<?>> createCacheGauges(Cache<?, ?> cache, Function<String, K> metricNamer) {
