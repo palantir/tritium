@@ -22,6 +22,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.logsafe.Safe;
 import com.palantir.logsafe.SafeArg;
@@ -44,6 +45,9 @@ public final class CaffeineCacheStats {
     /**
      * Register specified cache with the given metric registry.
      *
+     * Callers should ensure that they have {@link Caffeine#recordStats() enabled stats recording}
+     * {@code Caffeine.newBuilder().recordStats()} otherwise there are no cache metrics to register.
+     *
      * @param registry metric registry
      * @param cache cache to instrument
      * @param name cache name
@@ -63,6 +67,9 @@ public final class CaffeineCacheStats {
 
     /**
      * Register specified cache with the given metric registry.
+     *
+     * Callers should ensure that they have {@link Caffeine#recordStats() enabled stats recording}
+     * {@code Caffeine.newBuilder().recordStats()} otherwise there are no cache metrics to register.
      *
      * @param registry metric registry
      * @param cache cache to instrument

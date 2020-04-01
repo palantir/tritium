@@ -33,6 +33,7 @@ import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
@@ -213,6 +214,9 @@ public final class MetricRegistries {
     /**
      * Register specified cache with the given metric registry.
      *
+     * Callers should ensure that they have {@link CacheBuilder#recordStats() enabled stats recording}
+     * {@code CacheBuilder.newBuilder().recordStats()} otherwise there are no cache metrics to register.
+     *
      * @param registry metric registry
      * @param cache cache to instrument
      * @param name cache name
@@ -239,6 +243,9 @@ public final class MetricRegistries {
 
     /**
      * Register specified cache with the given metric registry.
+     *
+     * Callers should ensure that they have {@link CacheBuilder#recordStats() enabled stats recording}
+     * {@code CacheBuilder.newBuilder().recordStats()} otherwise there are no cache metrics to register.
      *
      * @param registry metric registry
      * @param cache cache to instrument
