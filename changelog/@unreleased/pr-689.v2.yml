@@ -1,0 +1,13 @@
+type: improvement
+improvement:
+  description: |-
+    When registering a Caffeine cache that does not have stats recording
+    enabled, log a warning and increment a "cache.stats.disabled" counter to
+    notify consumers of that their caches will not produce expected metrics.
+
+    Unfortunately Guava Caches do not currently expose a mechanism to
+    determine this, so this only applies to Caffeine caches (which should
+    generally be preferred over Guava caches anyway, see
+    <https://github.com/palantir/gradle-baseline/pull/317>).
+  links:
+  - https://github.com/palantir/tritium/pull/689
