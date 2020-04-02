@@ -41,3 +41,9 @@ namespaces:
         - javaRuntimeVersion
         - javaVendorVersion
         - javaVmVendor
+      classloader.loaded:
+        type: gauge
+        docs: Total number of classes that have been loaded.
+      classloader.unloaded:
+        type: gauge
+        docs: Total number of classes that have been unloaded.

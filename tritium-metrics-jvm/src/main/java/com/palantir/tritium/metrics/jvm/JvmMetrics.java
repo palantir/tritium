@@ -17,13 +17,13 @@
 package com.palantir.tritium.metrics.jvm;
 
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
-import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 
@@ -42,14 +42,14 @@ public final class JvmMetrics {
         Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
         MetricRegistries.registerGarbageCollection(registry);
         MetricRegistries.registerMemoryPools(registry);
-        Jdk9CompatibleFileDescriptorRatioGauge.register(registry);
+        InternalJvmMetrics metrics = InternalJvmMetrics.of(registry);
+        Jdk9CompatibleFileDescriptorRatioGauge.register(metrics);
         OperatingSystemMetrics.register(registry);
         SafepointMetrics.register(registry);
-        InternalJvmMetrics metrics = InternalJvmMetrics.of(registry);
         registerAttributes(metrics);
         MetricRegistries.registerAll(
                 registry, "jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
-        MetricRegistries.registerAll(registry, "jvm.classloader", new ClassLoadingGaugeSet());
+        registerClassLoading(metrics);
         MetricRegistries.registerAll(
                 registry,
                 "jvm.memory",
@@ -69,6 +69,12 @@ public final class JvmMetrics {
                 .javaVendorVersion(System.getProperty("java.vendor.version", "unknown"))
                 .javaVmVendor(System.getProperty("java.vm.vendor", "unknown"))
                 .build(runtimeMxBean::getUptime);
+    }
+
+    private static void registerClassLoading(InternalJvmMetrics metrics) {
+        ClassLoadingMXBean classLoadingBean = ManagementFactory.getClassLoadingMXBean();
+        metrics.classloaderLoaded(classLoadingBean::getTotalLoadedClassCount);
+        metrics.classloaderUnloaded(classLoadingBean::getUnloadedClassCount);
     }
 
     private JvmMetrics() {
