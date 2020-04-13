@@ -50,6 +50,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -343,6 +344,22 @@ public final class MetricRegistries {
         }
         return new TaggedMetricsExecutorService(
                 checkNotNull(delegate, "delegate"), ExecutorMetrics.of(registry), checkNotNull(name, "name"));
+    }
+
+    /**
+     * Returns an instrumented {@link ThreadFactory} that monitors the number of created, running, and terminated
+     * threads.
+     *
+     * @param registry tagged metric registry
+     * @param delegate Thread factory to instrument
+     * @param name Thread factory name
+     * @return instrumented thread factory
+     */
+    public static ThreadFactory instrument(TaggedMetricRegistry registry, ThreadFactory delegate, String name) {
+        return new TaggedMetricsThreadFactory(
+                checkNotNull(delegate, "ThreadFactory is required"),
+                ExecutorMetrics.of(registry),
+                checkNotNull(name, "Name is required"));
     }
 
     /**
