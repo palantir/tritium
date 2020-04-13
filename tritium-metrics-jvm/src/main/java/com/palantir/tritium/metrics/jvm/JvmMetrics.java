@@ -19,6 +19,7 @@ package com.palantir.tritium.metrics.jvm;
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadDeadlockDetector;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.tritium.metrics.MetricRegistries;
@@ -28,6 +29,11 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
@@ -86,28 +92,37 @@ public final class JvmMetrics {
         ThreadDeadlockDetector deadlockDetector = new ThreadDeadlockDetector(threads);
         metrics.threadsDeadlockCount(
                 () -> deadlockDetector.getDeadlockedThreads().size());
-        metrics.threadsNewCount(() -> threadsByState(threads, Thread.State.NEW));
-        metrics.threadsRunnableCount(() -> threadsByState(threads, Thread.State.RUNNABLE));
-        metrics.threadsBlockedCount(() -> threadsByState(threads, Thread.State.BLOCKED));
-        metrics.threadsWaitingCount(() -> threadsByState(threads, Thread.State.WAITING));
-        metrics.threadsTimedWaitingCount(() -> threadsByState(threads, Thread.State.TIMED_WAITING));
-        metrics.threadsTerminatedCount(() -> threadsByState(threads, Thread.State.TERMINATED));
+        Supplier<Map<Thread.State, Integer>> threadsByStateSupplier =
+                Suppliers.memoizeWithExpiration(() -> threadsByState(threads), 10, TimeUnit.SECONDS);
+        metrics.threadsNewCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.NEW, 0));
+        metrics.threadsRunnableCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.RUNNABLE, 0));
+        metrics.threadsBlockedCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.BLOCKED, 0));
+        metrics.threadsWaitingCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.WAITING, 0));
+        metrics.threadsTimedWaitingCount(
+                () -> threadsByStateSupplier.get().getOrDefault(Thread.State.TIMED_WAITING, 0));
+        metrics.threadsTerminatedCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.TERMINATED, 0));
     }
 
-    private static int threadsByState(ThreadMXBean threads, Thread.State requestedState) {
+    @SuppressWarnings("UnnecessaryLambda") // Avoid allocations in the threads-by-state loop
+    private static final BiFunction<Thread.State, Integer, Integer> incrementThreadState = (state, input) -> {
+        int existingValue = input == null ? 0 : input;
+        return existingValue + 1;
+    };
+
+    private static Map<Thread.State, Integer> threadsByState(ThreadMXBean threads) {
         // max-depth zero to avoid creating stack traces, we're only interested in high level metadata
-        final ThreadInfo[] loadedThreadInfo = threads.getThreadInfo(threads.getAllThreadIds(), 0);
-        int matchingThreads = 0;
+        ThreadInfo[] loadedThreadInfo = threads.getThreadInfo(threads.getAllThreadIds(), 0);
+        Map<Thread.State, Integer> threadsByState = new EnumMap<>(Thread.State.class);
         for (ThreadInfo threadInfo : loadedThreadInfo) {
             // Threads may have been destroyed between ThreadMXBean.getAllThreadIds and ThreadMXBean.getThreadInfo
-            if (threadInfo == null) {
-                continue;
-            }
-            if (requestedState == threadInfo.getThreadState()) {
-                matchingThreads++;
+            if (threadInfo != null) {
+                Thread.State threadState = threadInfo.getThreadState();
+                if (threadState != null) {
+                    threadsByState.compute(threadState, incrementThreadState);
+                }
             }
         }
-        return matchingThreads;
+        return threadsByState;
     }
 
     private JvmMetrics() {
