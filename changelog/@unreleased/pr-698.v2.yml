@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Implement a tagged instrumented ThreadFactory
+  links:
+  - https://github.com/palantir/tritium/pull/698
