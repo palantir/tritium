@@ -18,7 +18,7 @@ package com.palantir.tritium.metrics.jvm;
 
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
-import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
+import com.codahale.metrics.jvm.ThreadDeadlockDetector;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.tritium.metrics.MetricRegistries;
@@ -26,6 +26,8 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 
 /** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
@@ -56,7 +58,7 @@ public final class JvmMetrics {
                 () -> Maps.filterKeys(
                         // Memory pool metrics are already provided by MetricRegistries.registerMemoryPools
                         new MemoryUsageGaugeSet().getMetrics(), name -> !name.startsWith("pools")));
-        MetricRegistries.registerAll(registry, "jvm.threads", new ThreadStatesGaugeSet());
+        registerThreads(metrics);
     }
 
     private static void registerAttributes(InternalJvmMetrics metrics) {
@@ -75,6 +77,37 @@ public final class JvmMetrics {
         ClassLoadingMXBean classLoadingBean = ManagementFactory.getClassLoadingMXBean();
         metrics.classloaderLoaded(classLoadingBean::getTotalLoadedClassCount);
         metrics.classloaderUnloaded(classLoadingBean::getUnloadedClassCount);
+    }
+
+    private static void registerThreads(InternalJvmMetrics metrics) {
+        ThreadMXBean threads = ManagementFactory.getThreadMXBean();
+        metrics.threadsCount(threads::getThreadCount);
+        metrics.threadsDaemonCount(threads::getDaemonThreadCount);
+        ThreadDeadlockDetector deadlockDetector = new ThreadDeadlockDetector(threads);
+        metrics.threadsDeadlockCount(
+                () -> deadlockDetector.getDeadlockedThreads().size());
+        metrics.threadsNewCount(() -> threadsByState(threads, Thread.State.NEW));
+        metrics.threadsRunnableCount(() -> threadsByState(threads, Thread.State.RUNNABLE));
+        metrics.threadsBlockedCount(() -> threadsByState(threads, Thread.State.BLOCKED));
+        metrics.threadsWaitingCount(() -> threadsByState(threads, Thread.State.WAITING));
+        metrics.threadsTimedWaitingCount(() -> threadsByState(threads, Thread.State.TIMED_WAITING));
+        metrics.threadsTerminatedCount(() -> threadsByState(threads, Thread.State.TERMINATED));
+    }
+
+    private static int threadsByState(ThreadMXBean threads, Thread.State requestedState) {
+        // max-depth zero to avoid creating stack traces, we're only interested in high level metadata
+        final ThreadInfo[] loadedThreadInfo = threads.getThreadInfo(threads.getAllThreadIds(), 0);
+        int matchingThreads = 0;
+        for (ThreadInfo threadInfo : loadedThreadInfo) {
+            // Threads may have been destroyed between ThreadMXBean.getAllThreadIds and ThreadMXBean.getThreadInfo
+            if (threadInfo == null) {
+                continue;
+            }
+            if (requestedState == threadInfo.getThreadState()) {
+                matchingThreads++;
+            }
+        }
+        return matchingThreads;
     }
 
     private JvmMetrics() {
