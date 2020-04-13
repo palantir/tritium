@@ -86,3 +86,16 @@ namespaces:
         type: histogram
         tags: [executor]
         docs: A histogram of the time it took to run a fixed-rate scheduled task as a percentage of the scheduled rate. Applies only to scheduled executors.
+      # ThreadFactory metrics
+      threads.created:
+        type: meter
+        tags: [executor]
+        docs: Rate that new threads are created for this executor.
+      threads.terminated:
+        type: meter
+        tags: [executor]
+        docs: Rate that executor threads are terminated.
+      threads.running:
+        type: counter
+        tags: [executor]
+        docs: Number of live threads created by this executor.
