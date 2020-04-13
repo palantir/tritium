@@ -1,0 +1,6 @@
+type: improvement
+improvement:
+  description: Migrate JVM thread gauges to metric-schema for more thorough generated
+    documentation.
+  links:
+  - https://github.com/palantir/tritium/pull/697
