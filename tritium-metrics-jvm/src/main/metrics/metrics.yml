@@ -47,3 +47,30 @@ namespaces:
       classloader.unloaded:
         type: gauge
         docs: Total number of classes that have been unloaded.
+      threads.count:
+        type: gauge
+        docs: Total number of live threads.
+      threads.daemon.count:
+        type: gauge
+        docs: Total number of live daemon threads.
+      threads.deadlock.count:
+        type: gauge
+        docs: Number of threads that are currently deadlocked.
+      threads.new.count:
+        type: gauge
+        docs: Number of live threads in the `NEW` state.
+      threads.runnable.count:
+        type: gauge
+        docs: Number of live threads in the `RUNNABLE` state.
+      threads.blocked.count:
+        type: gauge
+        docs: Number of live threads in the `BLOCKED` state.
+      threads.waiting.count:
+        type: gauge
+        docs: Number of live threads in the `WAITING` state.
+      threads.timed-waiting.count:
+        type: gauge
+        docs: Number of live threads in the `TIMED_WAITING` state.
+      threads.terminated.count:
+        type: gauge
+        docs: Number of live threads in the `TERMINATED` state.
