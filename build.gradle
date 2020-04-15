@@ -143,6 +143,10 @@ allprojects {
     }
     tasks.check.dependsOn(javadoc)
 
+    checkImplicitDependencies {
+        // avoid spurious flags on dropwizard metrics
+        ignore 'io.dropwizard.metrics', 'metrics-core'
+    }
     tasks.check.dependsOn(checkImplicitDependencies)
     tasks.check.dependsOn(checkUnusedDependencies)
 
