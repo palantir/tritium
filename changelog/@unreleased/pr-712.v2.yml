@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Report the finalizer queue size
+  links:
+  - https://github.com/palantir/tritium/pull/712

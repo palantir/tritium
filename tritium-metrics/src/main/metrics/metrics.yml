@@ -13,6 +13,12 @@ namespaces:
         type: gauge
         tags: [collector]
         docs: The accumulated collection elapsed time in milliseconds.
+      finalizer.queue.size:
+        type: gauge
+        docs: Estimate of the number of objects pending finalization. Finalizers are executed in serial on a single
+              thread shared across the entire JVM. When a finalizer is slow and blocks execution, or objects which
+              override `Object.finalize` are allocated more quickly than they can be freed, the JVM will run out
+              of memory. Cleaners are recommended over implementing finalize in most scenarios.
   jvm.memory.pools:
     docs: Java virtual machine memory usage metrics by memory pool.
     metrics:
