@@ -20,6 +20,7 @@ import com.google.common.base.CharMatcher;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 
 /**
  * {@link GarbageCollectorMetrics} provides the same data as codahale GarbageCollectorMetricSet, but uses tags to
@@ -29,19 +30,7 @@ import java.lang.management.ManagementFactory;
 final class GarbageCollectorMetrics {
 
     /**
-     * Registers gauges
-     *
-     * <pre>jvm.gc.count</pre>
-     *
-     * and
-     *
-     * <pre>jvm.gc.time</pre>
-     *
-     * tagged with
-     *
-     * <pre>{collector: NAME}</pre>
-     *
-     * .
+     * Registers gauges {@code jvm.gc.count} and {@code jvm.gc.time} tagged with {@code {collector: NAME}}.
      */
     static void register(TaggedMetricRegistry metrics) {
         JvmGcMetrics gcMetrics = JvmGcMetrics.of(metrics);
@@ -50,6 +39,8 @@ final class GarbageCollectorMetrics {
             gcMetrics.count().collector(collector).build(gc::getCollectionCount);
             gcMetrics.time().collector(collector).build(gc::getCollectionTime);
         }
+        MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+        gcMetrics.finalizerQueueSize(memoryBean::getObjectPendingFinalizationCount);
     }
 
     private static String canonicalName(String collectorName) {
