@@ -46,7 +46,7 @@ namespaces:
       handshake:
         type: meter
         tags: [context, cipher, protocol]
-        docs: Measures the rate of TLS handshake by SSLContext, cipher suite, and TLS protocol. A high rate of handnshake suggests that clients are not properly reusing conections, which results in additional CPU overhead and round trips.
+        docs: Measures the rate of TLS handshake by SSLContext, cipher suite, and TLS protocol. A high rate of handshake suggests that clients are not properly reusing connections, which results in additional CPU overhead and round trips.
   executor:
     docs: Executor metrics.
     metrics:
