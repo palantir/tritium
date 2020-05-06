@@ -34,7 +34,6 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("WeakerAccess") // public API
 public final class CaffeineCacheStats {
 
     private static final Logger log = LoggerFactory.getLogger(CaffeineCacheStats.class);
@@ -48,10 +47,13 @@ public final class CaffeineCacheStats {
      * Callers should ensure that they have {@link Caffeine#recordStats() enabled stats recording}
      * {@code Caffeine.newBuilder().recordStats()} otherwise there are no cache metrics to register.
      *
+     * @deprecated use {@link #registerCache(TaggedMetricRegistry, Cache, String)}
+     *
      * @param registry metric registry
      * @param cache cache to instrument
      * @param name cache name
      */
+    @Deprecated
     public static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
         checkNotNull(registry, "registry");
         checkNotNull(cache, "cache");

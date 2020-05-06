@@ -65,6 +65,7 @@ final class CaffeineCacheStatsTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void registerCacheMetrics() {
         Cache<Integer, String> cache =
                 Caffeine.newBuilder().recordStats().maximumSize(2).build();
@@ -168,6 +169,7 @@ final class CaffeineCacheStatsTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void registerCacheWithoutRecordingStats() {
         Cache<Integer, String> cache = Caffeine.newBuilder().build();
         CaffeineCacheStats.registerCache(metricRegistry, cache, "test");
