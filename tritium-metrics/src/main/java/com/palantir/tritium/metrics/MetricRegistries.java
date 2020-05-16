@@ -201,7 +201,6 @@ public final class MetricRegistries {
      * @param filter metric filter predicate
      * @return sorted map of metrics
      */
-    @SuppressWarnings("WeakerAccess") // public API
     public static SortedMap<String, Metric> metricsMatching(MetricRegistry metrics, MetricFilter filter) {
         SortedMap<String, Metric> matchingMetrics = new TreeMap<>();
         metrics.getMetrics().forEach((key, value) -> {
@@ -218,12 +217,15 @@ public final class MetricRegistries {
      * Callers should ensure that they have {@link CacheBuilder#recordStats() enabled stats recording}
      * {@code CacheBuilder.newBuilder().recordStats()} otherwise there are no cache metrics to register.
      *
+     * @deprecated use {@link #registerCache(TaggedMetricRegistry, Cache, String)}
+     *
      * @param registry metric registry
      * @param cache cache to instrument
      * @param name cache name
      * @throws IllegalArgumentException if name is blank
      */
-    @SuppressWarnings({"BanGuavaCaches", "WeakerAccess"}) // this implementation is explicitly for Guava caches, API
+    @Deprecated
+    @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
     public static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
         registerCache(registry, cache, name, Clock.defaultClock());
     }
@@ -253,7 +255,7 @@ public final class MetricRegistries {
      * @param name cache name
      * @throws IllegalArgumentException if name is blank
      */
-    @SuppressWarnings({"BanGuavaCaches", "WeakerAccess"}) // this implementation is explicitly for Guava caches
+    @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
     public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
         checkNotNull(registry, "metric registry");
         checkNotNull(cache, "cache");

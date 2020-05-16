@@ -227,6 +227,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void testRegisterCacheReplacement() {
         Cache<?, ?> cache1 = CacheBuilder.newBuilder().build();
         MetricRegistries.registerCache(metrics, cache1, "test");
@@ -236,6 +237,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void testNoStats() {
         MetricRegistries.registerCache(metrics, cache, "test");
 
