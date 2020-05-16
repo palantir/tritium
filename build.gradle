@@ -95,7 +95,6 @@ allprojects {
                 'PreferListsPartition',
                 'PreferSafeLoggingPreconditions',
                 'PreferSafeLoggableExceptions',
-                'SwitchStatementDefaultCase',
             ]
 
             com.google.errorprone.scanner.BuiltInCheckerSuppliers.ENABLED_WARNINGS.forEach {
