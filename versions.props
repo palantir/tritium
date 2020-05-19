@@ -1,5 +1,5 @@
 com.fasterxml.jackson.*:* = 2.11.0
-com.github.ben-manes.caffeine:caffeine = 2.8.2
+com.github.ben-manes.caffeine:caffeine = 2.8.3
 com.google.auto.service:auto-service = 1.0-rc4
 com.google.auto:auto-common = 0.10
 com.google.code.findbugs:jFormatString = 3.0.0
@@ -14,7 +14,7 @@ io.undertow:undertow-core = 2.1.1.Final
 net.bytebuddy:byte-buddy = 1.10.10
 net.jqwik:* = 1.2.7
 org.assertj:assertj-core = 3.16.1
-org.awaitility:awaitility = 4.0.2
+org.awaitility:awaitility = 4.0.3
 org.checkerframework:checker-qual = 2.5.0
 org.hdrhistogram:* = 2.1.12
 org.immutables:* = 2.8.8
