@@ -1,0 +1,15 @@
+options:
+  javaPackage: com.palantir.tritium.event.metrics
+  javaVisibility: packagePrivate
+namespaces:
+  invocation:
+    docs: Tritium invocation proxy metrics for components wrapped using `Tritium.instrument` or `Instrumentation.builder()` with tagged metrics handlers.
+    metrics:
+      success:
+        type: timer
+        tags: [service-name, method-name]
+        docs: Time taken for a successful invocation to complete.
+      failure:
+        type: meter
+        tags: [service-name, method-name]
+        docs: Rate of invocations which resulted in exceptions.
