@@ -7,7 +7,7 @@ com.fasterxml.jackson.datatype:jackson-datatype-guava:2.11.0 (3 constraints: a42
 com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.11.0 (3 constraints: a42a4ebc)
 com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.11.0 (1 constraints: a310d0ae)
 com.fasterxml.jackson.module:jackson-module-afterburner:2.11.0 (3 constraints: a42a4ebc)
-com.github.ben-manes.caffeine:caffeine:2.8.3 (1 constraints: 0f051036)
+com.github.ben-manes.caffeine:caffeine:2.8.4 (1 constraints: 10051136)
 com.google.auto:auto-common:0.10 (2 constraints: 1714ff67)
 com.google.auto.service:auto-service:1.0-rc4 (1 constraints: db05b241)
 com.google.code.findbugs:jsr305:3.0.2 (4 constraints: 5b3585ed)
