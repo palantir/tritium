@@ -19,6 +19,7 @@ package com.palantir.tritium.event.metrics;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Timer;
+import com.palantir.logsafe.Safe;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -45,7 +46,7 @@ public final class TaggedMetricInvocationEventHandler extends AbstractInvocation
     private final Function<Method, Timer> onSuccessTimerMappingFunction;
     private final InvocationMetrics metrics;
 
-    public static InvocationEventHandler<?> of(TaggedMetricRegistry taggedMetricRegistry, String serviceName) {
+    public static InvocationEventHandler<?> of(TaggedMetricRegistry taggedMetricRegistry, @Safe String serviceName) {
         return new TaggedMetricInvocationEventHandler(taggedMetricRegistry, serviceName);
     }
 
