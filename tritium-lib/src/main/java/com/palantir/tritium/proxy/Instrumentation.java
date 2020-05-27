@@ -150,9 +150,10 @@ public final class Instrumentation {
         @SuppressWarnings("deprecation") // TaggedMetricsServiceInvocationEventHandler is provided for backcompat
         public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String prefix) {
             checkNotNull(metricRegistry, "metricRegistry");
-            String serviceName = Strings.isNullOrEmpty(prefix) ? interfaceClass.getName() : prefix;
-            this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(metricRegistry, serviceName));
-            this.handlers.add(TaggedMetricInvocationEventHandler.of(metricRegistry, serviceName));
+            this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(
+                    metricRegistry, Strings.isNullOrEmpty(prefix) ? interfaceClass.getName() : prefix));
+            this.handlers.add(TaggedMetricInvocationEventHandler.of(
+                    metricRegistry, Strings.isNullOrEmpty(prefix) ? interfaceClass.getSimpleName() : prefix));
             return this;
         }
 
