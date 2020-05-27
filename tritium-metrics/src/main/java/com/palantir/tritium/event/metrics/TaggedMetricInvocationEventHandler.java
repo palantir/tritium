@@ -46,7 +46,8 @@ public final class TaggedMetricInvocationEventHandler extends AbstractInvocation
     private final Function<Method, Timer> onSuccessTimerMappingFunction;
     private final InvocationMetrics metrics;
 
-    public static InvocationEventHandler<?> of(TaggedMetricRegistry taggedMetricRegistry, @Safe String serviceName) {
+    public static InvocationEventHandler<InvocationContext> of(
+            TaggedMetricRegistry taggedMetricRegistry, @Safe String serviceName) {
         return new TaggedMetricInvocationEventHandler(taggedMetricRegistry, serviceName);
     }
 

@@ -29,6 +29,7 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
+import com.palantir.tritium.event.metrics.TaggedMetricInvocationEventHandler;
 import com.palantir.tritium.event.metrics.TaggedMetricsServiceInvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Collections;
@@ -146,10 +147,12 @@ public final class Instrumentation {
          * @param prefix - Metrics name prefix to be used
          * @return - InstrumentationBuilder
          */
+        @SuppressWarnings("deprecation") // TaggedMetricsServiceInvocationEventHandler is provided for backcompat
         public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String prefix) {
             checkNotNull(metricRegistry, "metricRegistry");
             String serviceName = Strings.isNullOrEmpty(prefix) ? interfaceClass.getName() : prefix;
             this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(metricRegistry, serviceName));
+            this.handlers.add(TaggedMetricInvocationEventHandler.of(metricRegistry, serviceName));
             return this;
         }
 

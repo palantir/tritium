@@ -60,6 +60,12 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     private final ConcurrentMap<Method, Timer> timerCache = new ConcurrentHashMap<>();
     private final Function<Method, Timer> onSuccessTimerMappingFunction;
 
+    /**
+     * Please prefer {@link TaggedMetricInvocationEventHandler} over {@link TaggedMetricsServiceInvocationEventHandler}.
+     *
+     * @deprecated in favor of {@link TaggedMetricInvocationEventHandler}.
+     */
+    @Deprecated
     public TaggedMetricsServiceInvocationEventHandler(TaggedMetricRegistry taggedMetricRegistry, String serviceName) {
         super(getEnabledSupplier(serviceName));
         this.taggedMetricRegistry = checkNotNull(taggedMetricRegistry, "metricRegistry");

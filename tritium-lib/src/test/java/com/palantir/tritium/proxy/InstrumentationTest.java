@@ -47,7 +47,7 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
-import com.palantir.tritium.event.metrics.TaggedMetricsServiceInvocationEventHandler;
+import com.palantir.tritium.event.metrics.TaggedMetricInvocationEventHandler;
 import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
@@ -593,11 +593,11 @@ public abstract class InstrumentationTest {
         StackTraceSupplier singleHandlerInstrumentedStackSupplier = Instrumentation.builder(
                         StackTraceSupplier.class, stackTraceSupplier)
                 // Use enabled event handlers to avoid bugs from optimizations on disabled handlers
-                .withHandler(new TaggedMetricsServiceInvocationEventHandler(new DefaultTaggedMetricRegistry(), "test0"))
+                .withHandler(TaggedMetricInvocationEventHandler.of(new DefaultTaggedMetricRegistry(), "test0"))
                 .build();
         StackTraceSupplier multipleHandlerInstrumentedStackSupplier = Instrumentation.builder(
                         StackTraceSupplier.class, stackTraceSupplier)
-                .withHandler(new TaggedMetricsServiceInvocationEventHandler(new DefaultTaggedMetricRegistry(), "test1"))
+                .withHandler(TaggedMetricInvocationEventHandler.of(new DefaultTaggedMetricRegistry(), "test1"))
                 .withHandler(new MetricsInvocationEventHandler(new MetricRegistry(), "test2"))
                 .build();
         StackTraceElement[] singleHandlerInstrumentedStackTrace = singleHandlerInstrumentedStackSupplier.get();

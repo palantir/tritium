@@ -30,6 +30,7 @@ import java.util.Map;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@SuppressWarnings("deprecation") // Testing a deprecated class
 final class TaggedMetricsServiceInvocationEventHandlerTest {
 
     public static final class TestImplementation {
