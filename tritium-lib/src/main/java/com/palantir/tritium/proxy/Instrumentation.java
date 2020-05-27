@@ -144,16 +144,16 @@ public final class Instrumentation {
          * are chosen based off of the interface name and invoked method.
          *
          * @param metricRegistry - TaggedMetricsRegistry used for this application.
-         * @param prefix - Metrics name prefix to be used
-         * @return - InstrumentationBuilder
+         * @param serviceName - Service name with which to associate metrics.
+         * @return - Instrumentation builder
          */
         @SuppressWarnings("deprecation") // TaggedMetricsServiceInvocationEventHandler is provided for backcompat
-        public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String prefix) {
+        public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String serviceName) {
             checkNotNull(metricRegistry, "metricRegistry");
             this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(
-                    metricRegistry, Strings.isNullOrEmpty(prefix) ? interfaceClass.getName() : prefix));
+                    metricRegistry, Strings.isNullOrEmpty(serviceName) ? interfaceClass.getName() : serviceName));
             this.handlers.add(TaggedMetricInvocationEventHandler.of(
-                    metricRegistry, Strings.isNullOrEmpty(prefix) ? interfaceClass.getSimpleName() : prefix));
+                    metricRegistry, Strings.isNullOrEmpty(serviceName) ? interfaceClass.getSimpleName() : serviceName));
             return this;
         }
 
