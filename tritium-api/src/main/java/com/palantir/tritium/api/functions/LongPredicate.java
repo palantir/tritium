@@ -19,10 +19,10 @@ package com.palantir.tritium.api.functions;
 public interface LongPredicate extends java.util.function.LongPredicate {
 
     /** {@link LongPredicate} that always returns true. */
-    LongPredicate TRUE = input -> true;
+    LongPredicate TRUE = _input -> true;
 
     /** {@link LongPredicate} that always returns false. */
-    LongPredicate FALSE = input -> false;
+    LongPredicate FALSE = _input -> false;
 
     /**
      * Returns the result of applying this predicate to {@code input}.

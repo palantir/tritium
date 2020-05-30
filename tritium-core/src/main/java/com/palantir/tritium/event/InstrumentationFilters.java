@@ -40,7 +40,7 @@ public enum InstrumentationFilters implements InstrumentationFilter {
 
     @SuppressWarnings("FunctionalInterfaceClash")
     public static InstrumentationFilter from(java.util.function.BooleanSupplier isEnabledSupplier) {
-        return (instance, method, args) -> isEnabledSupplier.getAsBoolean();
+        return (_instance, _method, _args) -> isEnabledSupplier.getAsBoolean();
     }
 
     /**

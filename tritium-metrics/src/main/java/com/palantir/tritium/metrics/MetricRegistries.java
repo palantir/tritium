@@ -191,7 +191,7 @@ public final class MetricRegistries {
      */
     public static MetricFilter metricsPrefixedBy(String prefix) {
         checkNotNull(prefix, "prefix");
-        return (name, metric) -> name.startsWith(prefix);
+        return (name, _metric) -> name.startsWith(prefix);
     }
 
     /**
