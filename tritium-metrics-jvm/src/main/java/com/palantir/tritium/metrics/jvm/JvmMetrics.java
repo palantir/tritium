@@ -104,7 +104,7 @@ public final class JvmMetrics {
     }
 
     @SuppressWarnings("UnnecessaryLambda") // Avoid allocations in the threads-by-state loop
-    private static final BiFunction<Thread.State, Integer, Integer> incrementThreadState = (state, input) -> {
+    private static final BiFunction<Thread.State, Integer, Integer> incrementThreadState = (_state, input) -> {
         int existingValue = input == null ? 0 : input;
         return existingValue + 1;
     };

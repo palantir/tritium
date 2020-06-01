@@ -415,7 +415,7 @@ final class MetricRegistriesTest {
 
     @Test
     void testMetricsMatching() {
-        MetricFilter palantirFilter = (name, metric) -> name.startsWith("test");
+        MetricFilter palantirFilter = (name, _metric) -> name.startsWith("test");
 
         metrics.counter("test.a");
         metrics.timer("test.b");
