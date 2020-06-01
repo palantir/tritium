@@ -52,8 +52,8 @@ final class CaffeineStatsTest {
     @BeforeEach
     void before() {
         stats = new CaffeineStats(cache, () -> new CacheStats(1, 2, 3, 4, 5, 6, 7));
-        lenient().when(cache.policy()).thenAnswer(ignored -> policy);
-        lenient().when(policy.eviction()).thenAnswer(ignored -> Optional.of(eviction));
+        lenient().when(cache.policy()).thenAnswer(_ignored -> policy);
+        lenient().when(policy.eviction()).thenAnswer(_ignored -> Optional.of(eviction));
     }
 
     @Test
