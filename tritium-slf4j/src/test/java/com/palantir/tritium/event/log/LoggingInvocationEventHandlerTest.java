@@ -163,7 +163,7 @@ public class LoggingInvocationEventHandlerTest {
         assertThat(LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND)
                 .isInstanceOf(com.palantir.tritium.api.functions.LongPredicate.class);
 
-        java.util.function.LongPredicate legacyPredicate = input -> false;
+        java.util.function.LongPredicate legacyPredicate = _ignored -> false;
         assertThat(new LoggingInvocationEventHandler(getLogger(), LoggingLevel.TRACE, legacyPredicate))
                 .isNotNull();
     }

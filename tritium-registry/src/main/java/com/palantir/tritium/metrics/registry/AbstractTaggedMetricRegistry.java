@@ -213,7 +213,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     protected final <T extends Metric> T getOrAdd(
             MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
-        Metric metric = registry.computeIfAbsent(metricName, name -> metricSupplier.get());
+        Metric metric = registry.computeIfAbsent(metricName, _name -> metricSupplier.get());
         return checkNotNull(checkMetricType(metricName, metricClass, metric), "metric");
     }
 

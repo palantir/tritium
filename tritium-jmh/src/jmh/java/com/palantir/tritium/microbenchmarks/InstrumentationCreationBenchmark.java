@@ -76,7 +76,7 @@ public class InstrumentationCreationBenchmark {
                 getClass().getClassLoader(),
                 // Apply runnable to avoid benchmarks reusing the proxy class
                 new Class<?>[] {Runnable.class, Stubs.Iface99.class},
-                (proxy, method, args) -> null);
+                (_proxy, _method, _args) -> null);
         this.duplicateStub = (Stubs.Iface99) Proxy.newProxyInstance(
                 getClass().getClassLoader(),
                 // Apply runnable to avoid benchmarks reusing the proxy class
@@ -91,7 +91,7 @@ public class InstrumentationCreationBenchmark {
                                     }
                                 }))
                         .toArray(Class<?>[]::new),
-                (proxy, method, args) -> null);
+                (_proxy, _method, _args) -> null);
     }
 
     @Benchmark

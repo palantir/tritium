@@ -38,7 +38,7 @@ final class ProxiesTest {
         TestInterface proxy = Proxies.newProxy(
                 TestInterface.class,
                 implementation,
-                (delegate, method, args) -> method.invoke(implementation, args) + ", world");
+                (_delegate, method, args) -> method.invoke(implementation, args) + ", world");
         assertThat(proxy.test()).isEqualTo("hello, world");
     }
 

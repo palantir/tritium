@@ -626,7 +626,7 @@ public abstract class InstrumentationTest {
 
     @SuppressWarnings("SameParameterValue")
     private static InstrumentationFilter methodNameFilter(String methodName) {
-        return (instance, method, args) -> method.getName().equals(methodName);
+        return (_instance, method, _args) -> method.getName().equals(methodName);
     }
 
     @Test
