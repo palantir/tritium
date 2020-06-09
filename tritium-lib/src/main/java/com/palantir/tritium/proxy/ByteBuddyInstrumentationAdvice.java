@@ -24,6 +24,7 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import javax.annotation.Nullable;
@@ -40,7 +41,7 @@ final class ByteBuddyInstrumentationAdvice {
      * method, with the index of the current method bound individually. https://github.com/raphw/byte-buddy/issues/714
      */
     @Retention(RetentionPolicy.RUNTIME)
-    @java.lang.annotation.Target(ElementType.PARAMETER)
+    @Target(ElementType.PARAMETER)
     @interface MethodIndex {}
 
     @Nullable

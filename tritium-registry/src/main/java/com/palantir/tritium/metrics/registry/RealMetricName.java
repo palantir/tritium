@@ -33,6 +33,7 @@ final class RealMetricName implements MetricName {
         this.hashCode = computeHashCode();
     }
 
+    @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
     private int computeHashCode() {
         int hash = 5381;
         hash += (hash << 5) + safeName().hashCode();
@@ -61,6 +62,7 @@ final class RealMetricName implements MetricName {
     }
 
     @Override
+    @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
     public boolean equals(Object other) {
         if (!(other instanceof MetricName)) {
             return false;

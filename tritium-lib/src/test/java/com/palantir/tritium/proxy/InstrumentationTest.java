@@ -141,6 +141,7 @@ public abstract class InstrumentationTest {
     }
 
     @Test
+    @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
     void testBuilder() {
         TestImplementation delegate = new TestImplementation();
 

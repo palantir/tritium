@@ -25,6 +25,7 @@ import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("UnnecessarilyFullyQualified") // explicitly qualifying BooleanSupplier types for deconfliction
 final class InstrumentationFiltersTest {
 
     private final TestInterface instance = mock(TestImplementation.class);

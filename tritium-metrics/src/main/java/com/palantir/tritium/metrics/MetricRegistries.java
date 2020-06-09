@@ -201,6 +201,7 @@ public final class MetricRegistries {
      * @param filter metric filter predicate
      * @return sorted map of metrics
      */
+    @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
     public static SortedMap<String, Metric> metricsMatching(MetricRegistry metrics, MetricFilter filter) {
         SortedMap<String, Metric> matchingMetrics = new TreeMap<>();
         metrics.getMetrics().forEach((key, value) -> {

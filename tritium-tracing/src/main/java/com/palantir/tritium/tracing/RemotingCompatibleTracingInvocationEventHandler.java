@@ -31,6 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -85,7 +86,7 @@ public final class RemotingCompatibleTracingInvocationEventHandler
     private final Tracer tracer;
 
     public RemotingCompatibleTracingInvocationEventHandler(String component, Tracer tracer) {
-        super((java.util.function.BooleanSupplier) InstrumentationProperties.getSystemPropertySupplier(component));
+        super((BooleanSupplier) InstrumentationProperties.getSystemPropertySupplier(component));
         this.component = checkNotNull(component, "component");
         this.tracer = checkNotNull(tracer, "tracer");
     }
@@ -143,6 +144,7 @@ public final class RemotingCompatibleTracingInvocationEventHandler
         return Boolean.TRUE.equals(requiresFallback.get());
     }
 
+    @SuppressWarnings("UnnecessarilyFullyQualified") // explicitly qualifying given remoting3 vs. tracing
     private static boolean isUsingMultipleTracers(Class<?> tracersClass)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         if (tracersClass != null) {
