@@ -50,6 +50,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
 
+    @SuppressWarnings("PublicConstructorForAbstractClass") // public API (e.g. used by Dialogue TaggedMetrics)
     public AbstractTaggedMetricRegistry(Supplier<Reservoir> reservoirSupplier) {
         this.reservoirSupplier = checkNotNull(reservoirSupplier, "reservoirSupplier");
     }

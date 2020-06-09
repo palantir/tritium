@@ -11,7 +11,7 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
         classpath 'com.netflix.nebula:gradle-info-plugin:8.1.0'
         classpath 'com.netflix.nebula:nebula-publishing-plugin:17.2.1'
-        classpath 'com.palantir.baseline:gradle-baseline-java:3.18.0'
+        classpath 'com.palantir.baseline:gradle-baseline-java:3.23.0'
         classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:1.20.0'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.3'
         classpath 'com.palantir.metricschema:gradle-metric-schema:0.5.3'
@@ -78,14 +78,14 @@ allprojects {
                 '-Xlint:unchecked',
             ]
             options.errorprone.disableWarningsInGeneratedCode = true
-            options.errorprone.errorproneArgs += [
+            options.errorprone.errorproneArgs.addAll([
                 '-Werror',
                 '-Xlint:deprecation',
                 '-Xlint:unchecked',
                 '-XepDisableWarningsInGeneratedCode',
                 '-XepExcludedPaths:.*(generated).*',
                 '-XepOpt:NullAway:AnnotatedPackages=com.palantir',
-            ]
+            ])
 
             // warnings not explicitly provided by error-prone
             Set<String> warningsToPromote = [
@@ -113,7 +113,7 @@ allprojects {
             ])
 
             for (String checkName : warningsToPromote) {
-                options.errorprone.errorproneArgs << '-Xep:' + checkName + ':ERROR'
+                options.errorprone.error(checkName)
             }
 
             logger.info("Error-prone args: {}", options.errorprone.errorproneArgs)

@@ -157,6 +157,7 @@ final class JvmMetricsTest {
     }
 
     @Test
+    @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
     void testUptimeHasExtraTags() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
