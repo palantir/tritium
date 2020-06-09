@@ -95,7 +95,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         return builder.build();
     }
 
-    @SuppressWarnings("NoFunctionalReturnType") // helper
+    // explicitly qualifying BooleanSupplier types for deconfliction
+    @SuppressWarnings({"NoFunctionalReturnType", "UnnecessarilyFullyQualified"})
     static java.util.function.BooleanSupplier getEnabledSupplier(String serviceName) {
         return InstrumentationProperties.getSystemPropertySupplier(serviceName);
     }

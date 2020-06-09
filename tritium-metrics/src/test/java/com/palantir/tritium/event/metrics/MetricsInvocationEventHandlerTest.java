@@ -51,6 +51,7 @@ final class MetricsInvocationEventHandlerTest {
     }
 
     @Test
+    @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
     void testFailure() throws Exception {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");
@@ -77,6 +78,7 @@ final class MetricsInvocationEventHandlerTest {
     }
 
     @Test
+    @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
     void testOnFailureNullContext() {
         MetricRegistry metricRegistry = new MetricRegistry();
         MetricsInvocationEventHandler handler = new MetricsInvocationEventHandler(metricRegistry, "test");

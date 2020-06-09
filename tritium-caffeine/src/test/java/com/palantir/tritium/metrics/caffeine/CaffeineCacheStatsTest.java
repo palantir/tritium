@@ -36,6 +36,8 @@ import java.util.function.Function;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+// explicitly testing deprecated non-tagged metric registry. SortedMap is part of Metrics API
+@SuppressWarnings({"deprecation", "JdkObsolete"})
 final class CaffeineCacheStatsTest {
 
     private final MetricRegistry metricRegistry = new MetricRegistry();
@@ -65,7 +67,6 @@ final class CaffeineCacheStatsTest {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     void registerCacheMetrics() {
         Cache<Integer, String> cache =
                 Caffeine.newBuilder().recordStats().maximumSize(2).build();
@@ -169,7 +170,6 @@ final class CaffeineCacheStatsTest {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     void registerCacheWithoutRecordingStats() {
         Cache<Integer, String> cache = Caffeine.newBuilder().build();
         CaffeineCacheStats.registerCache(metricRegistry, cache, "test");

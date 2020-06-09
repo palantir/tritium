@@ -90,6 +90,7 @@ public class TritiumTest {
     }
 
     @Test
+    @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
     public void testInstrument() {
         assertThat(delegate.invocationCount()).isZero();
         assertThat(metricRegistry.getTimers()).doesNotContainKey(Runnable.class.getName());

@@ -65,6 +65,7 @@ import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings({
     "BanGuavaCaches", // this implementation is explicitly for Guava caches
+    "JdkObsolete", // SortedMap is part of Metrics API
     "NullAway"
 }) // IntelliJ warnings about injected fields
 final class MetricRegistriesTest {
@@ -227,7 +228,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("deprecation") // explicitly testing deprecated non-tagged metric registry
     void testRegisterCacheReplacement() {
         Cache<?, ?> cache1 = CacheBuilder.newBuilder().build();
         MetricRegistries.registerCache(metrics, cache1, "test");
@@ -237,7 +238,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("deprecation") // explicitly testing deprecated non-tagged metric registry
     void testNoStats() {
         MetricRegistries.registerCache(metrics, cache, "test");
 

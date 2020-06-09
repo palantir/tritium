@@ -87,6 +87,7 @@ public class TestImplementation implements TestInterface, Runnable, MoreSpecific
         return TestImplementation.class.getName();
     }
 
+    @SuppressWarnings("ExtendsErrorOrThrowable") // explicilty testing arbitrary Throwable handling
     public static final class TestThrowable extends Throwable {
         TestThrowable() {
             super(TestThrowable.class.getSimpleName());
