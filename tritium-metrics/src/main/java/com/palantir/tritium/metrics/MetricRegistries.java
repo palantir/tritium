@@ -46,6 +46,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -53,7 +54,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.net.ssl.SSLContext;
@@ -516,6 +519,9 @@ public final class MetricRegistries {
 
     @CheckReturnValue
     public static final class WrapWithLibraryInfoBuilder {
+        private static final Predicate<String> LIBRARY_NAME =
+                Pattern.compile("[a-z0-9]+(-[a-z0-9]+)*").asPredicate();
+
         @Nullable
         private TaggedMetricRegistry delegate;
 
@@ -525,25 +531,52 @@ public final class MetricRegistries {
         @Nullable
         private String libraryVersion;
 
-        public WrapWithLibraryInfoBuilder underlyingRegistry(TaggedMetricRegistry value) {
+        /** Metrics will be created in this registry. */
+        public WrapWithLibraryInfoBuilder registry(TaggedMetricRegistry value) {
             this.delegate = value;
             return this;
         }
 
-        public WrapWithLibraryInfoBuilder libraryName(String value) {
+        /**
+         * A lower kebab or snake-cased value representing which library source code is responsible for this registry,
+         * e.g. 'dialogue' or 'conjure-java-runtime' or 'atlasdb'. Expected to have one-per repo.
+         */
+        public WrapWithLibraryInfoBuilder libraryName(@Safe String value) {
+            Preconditions.checkArgument(
+                    value.length() < 128,
+                    "libraryName must be less than 128 chars",
+                    SafeArg.of("length", value.length()));
+            Preconditions.checkArgument(
+                    LIBRARY_NAME.test(value), "libraryName must be lower kebab case", SafeArg.of("value", value));
             this.libraryName = value;
             return this;
         }
 
-        public WrapWithLibraryInfoBuilder libraryVersion(String value) {
+        /**
+         * Library version will be determined from the given class's 'Implementation-Version', or omitted if that
+         * attribute cannot be found.
+         */
+        public WrapWithLibraryInfoBuilder libraryVersionFromClass(Class<?> clazz) {
+            return libraryVersion(Optional.ofNullable(clazz.getPackage().getImplementationVersion()));
+        }
+
+        /**
+         * An optional version of this library, e.g. "1.2.3".
+         * Please avoid setting this to unhelpful values like "0.0.0" or "dev", and just pass Optional.empty() instead.
+         */
+        private WrapWithLibraryInfoBuilder libraryVersion(@Safe Optional<String> value) {
+            return value.map(this::libraryVersion).orElse(this);
+        }
+
+        @VisibleForTesting
+        WrapWithLibraryInfoBuilder libraryVersion(@Safe String value) {
             this.libraryVersion = value;
             return this;
         }
 
-        public TaggedMetricRegistry build() {
-            TaggedMetricRegistry registry = Preconditions.checkNotNull(delegate);
-            registry = AugmentedTaggedMetricRegistry.create(
-                    registry, "libraryName", Preconditions.checkNotNull(libraryName));
+        public AugmentedTaggedMetricRegistry build() {
+            AugmentedTaggedMetricRegistry registry = AugmentedTaggedMetricRegistry.create(
+                    Preconditions.checkNotNull(delegate), "libraryName", Preconditions.checkNotNull(libraryName));
             if (libraryVersion != null) {
                 registry = AugmentedTaggedMetricRegistry.create(registry, "libraryVersion", libraryVersion);
             }

@@ -42,6 +42,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.palantir.tritium.metrics.registry.AugmentedTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -507,6 +508,26 @@ final class MetricRegistriesTest {
         MetricSet metricSet = () -> ImmutableMap.of("unknown", new Metric() {});
         assertThatThrownBy(() -> MetricRegistries.registerAll(registry, "prefix", metricSet))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void augmenting_with_library_version() {
+        TaggedMetricRegistry delegate = new DefaultTaggedMetricRegistry();
+        AugmentedTaggedMetricRegistry registry = MetricRegistries.wrapWithLibraryInfo()
+                .registry(delegate)
+                .libraryName("lib")
+                .libraryVersion("1.0.0")
+                .build();
+
+        Counter counter = registry.counter(MetricName.builder().safeName("foo").build());
+        assertThat(delegate.getMetrics())
+                .containsEntry(
+                        MetricName.builder()
+                                .safeName("foo")
+                                .putSafeTags("libraryName", "lib")
+                                .putSafeTags("libraryVersion", "1.0.0")
+                                .build(),
+                        counter);
     }
 
     private static MetricName simpleName(String name) {

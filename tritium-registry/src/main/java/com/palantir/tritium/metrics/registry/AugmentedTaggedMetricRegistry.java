@@ -143,6 +143,11 @@ public final class AugmentedTaggedMetricRegistry implements TaggedMetricRegistry
         return delegate.remove(augment(metricName));
     }
 
+    /**
+     * .
+     * @deprecated not implemented
+     */
+    @Deprecated
     @Override
     public void addMetrics(String _safeTagName, String _safeTagValue, TaggedMetricSet _metrics) {
         throw new UnsupportedOperationException(
@@ -150,12 +155,22 @@ public final class AugmentedTaggedMetricRegistry implements TaggedMetricRegistry
                         + "delegate directly");
     }
 
+    /**
+     * .
+     * @deprecated not implemented
+     */
+    @Deprecated
     @Override
     public Optional<TaggedMetricSet> removeMetrics(String _safeTagName, String _safeTagValue) {
         throw new UnsupportedOperationException(
                 "Removal of an entire TaggedMetricSet is not supported, please interact with the delegate directly");
     }
 
+    /**
+     * .
+     * @deprecated not implemented
+     */
+    @Deprecated
     @Override
     public boolean removeMetrics(String _safeTagName, String _safeTagValue, TaggedMetricSet _metrics) {
         throw new UnsupportedOperationException(
