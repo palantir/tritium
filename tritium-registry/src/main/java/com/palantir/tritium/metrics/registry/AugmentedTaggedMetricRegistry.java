@@ -178,14 +178,14 @@ public final class AugmentedTaggedMetricRegistry implements TaggedMetricRegistry
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        AugmentedTaggedMetricRegistry that = (AugmentedTaggedMetricRegistry) o;
+        AugmentedTaggedMetricRegistry that = (AugmentedTaggedMetricRegistry) obj;
         return delegate.equals(that.delegate) && tagName.equals(that.tagName) && tagValue.equals(that.tagValue);
     }
 

@@ -18,7 +18,6 @@ package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 import com.codahale.metrics.Counter;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;

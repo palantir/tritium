@@ -523,7 +523,7 @@ public final class MetricRegistries {
                 Pattern.compile("[a-z0-9]+(-[a-z0-9]+)*").asPredicate();
 
         @Nullable
-        private TaggedMetricRegistry delegate;
+        private TaggedMetricRegistry registry;
 
         @Nullable
         private String libraryName;
@@ -533,7 +533,7 @@ public final class MetricRegistries {
 
         /** Metrics will be created in this registry. */
         public WrapWithLibraryInfoBuilder registry(TaggedMetricRegistry value) {
-            this.delegate = value;
+            this.registry = value;
             return this;
         }
 
@@ -575,12 +575,14 @@ public final class MetricRegistries {
         }
 
         public AugmentedTaggedMetricRegistry build() {
-            AugmentedTaggedMetricRegistry registry = AugmentedTaggedMetricRegistry.create(
-                    Preconditions.checkNotNull(delegate), "libraryName", Preconditions.checkNotNull(libraryName));
+            AugmentedTaggedMetricRegistry augmented = AugmentedTaggedMetricRegistry.create(
+                    Preconditions.checkNotNull(registry, "registry"),
+                    "libraryName",
+                    Preconditions.checkNotNull(libraryName));
             if (libraryVersion != null) {
-                registry = AugmentedTaggedMetricRegistry.create(registry, "libraryVersion", libraryVersion);
+                augmented = AugmentedTaggedMetricRegistry.create(augmented, "libraryVersion", libraryVersion);
             }
-            return registry;
+            return augmented;
         }
     }
 }
