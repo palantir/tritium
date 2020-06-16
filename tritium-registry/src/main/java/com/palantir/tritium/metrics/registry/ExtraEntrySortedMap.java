@@ -16,7 +16,6 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableList;
@@ -24,6 +23,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import com.palantir.logsafe.Safe;
+import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
@@ -43,14 +45,20 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
     private final V extraValue;
     private final int extraEntryHashCode;
 
-    ExtraEntrySortedMap(SortedMap<K, V> base, K extraKey, V extraValue) {
+    ExtraEntrySortedMap(SortedMap<K, V> base, @Safe K extraKey, @Safe V extraValue) {
         this.base = checkNotNull(base, "base");
         this.extraKey = checkNotNull(extraKey, "extraKey");
         this.extraValue = checkNotNull(extraValue, "extraValue");
         this.ordering = Ordering.from(base.comparator());
         this.extraEntryHashCode = Maps.immutableEntry(extraKey, extraValue).hashCode();
         // This line of code is roughly a 50% perf regression for iterating through metrics. Remove if causing issues.
-        checkArgument(!base.containsKey(extraKey), "Base must not contain the extra key that is to be added");
+        if (base.containsKey(extraKey)) {
+            throw new SafeIllegalArgumentException(
+                    "Map must not contain the extra key that is to be added",
+                    SafeArg.of("key", extraKey),
+                    SafeArg.of("existingValue", base.get(extraKey)),
+                    SafeArg.of("newValue", extraValue));
+        }
     }
 
     @Override

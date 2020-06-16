@@ -24,6 +24,8 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
+import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,10 +34,7 @@ import java.util.function.Supplier;
 
 /**
  * Any metric created on this registry will be saved into the delegate {@link TaggedMetricRegistry} with an extra tag
- * added.
- *
- * 'Read' methods (like {@link #getMetrics} and {@link #forEachMetric} just read from the delegate, so some
- * returned MetricNames may not have the extra tag.
+ * added. This ensures any reads from the underlying delegate will have the desired 'augmented' tag.
  */
 public final class AugmentedTaggedMetricRegistry implements TaggedMetricRegistry {
     private final TaggedMetricRegistry delegate;
@@ -52,12 +51,21 @@ public final class AugmentedTaggedMetricRegistry implements TaggedMetricRegistry
             TaggedMetricRegistry delegate, @Safe String tagName, @Safe String tagValue) {
         if (delegate instanceof AugmentedTaggedMetricRegistry) {
             AugmentedTaggedMetricRegistry other = (AugmentedTaggedMetricRegistry) delegate;
-            if (Objects.equals(delegate, other.delegate)
-                    && Objects.equals(tagName, other.tagName)
-                    && Objects.equals(tagValue, other.tagValue)) {
-                return other;
+            if (Objects.equals(tagName, other.tagName)) {
+                if (Objects.equals(tagValue, other.tagValue)) {
+                    if (Objects.equals(delegate, other.delegate)) {
+                        return other;
+                    }
+                } else {
+                    throw new SafeIllegalArgumentException(
+                            "Tag is already defined with a different value",
+                            SafeArg.of("tagName", tagName),
+                            SafeArg.of("existing", other.tagValue),
+                            SafeArg.of("new", tagValue));
+                }
             }
         }
+
         return new AugmentedTaggedMetricRegistry(delegate, tagName, tagValue);
     }
 
