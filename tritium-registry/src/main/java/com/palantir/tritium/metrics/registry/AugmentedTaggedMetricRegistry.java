@@ -47,7 +47,7 @@ public final class AugmentedTaggedMetricRegistry implements TaggedMetricRegistry
         this.tagValue = Preconditions.checkNotNull(tagValue, "tagValue");
     }
 
-    static AugmentedTaggedMetricRegistry create(
+    public static AugmentedTaggedMetricRegistry create(
             TaggedMetricRegistry delegate, @Safe String tagName, @Safe String tagValue) {
         if (delegate instanceof AugmentedTaggedMetricRegistry) {
             AugmentedTaggedMetricRegistry other = (AugmentedTaggedMetricRegistry) delegate;

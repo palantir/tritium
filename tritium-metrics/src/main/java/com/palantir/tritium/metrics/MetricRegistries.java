@@ -39,6 +39,7 @@ import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
+import com.palantir.tritium.metrics.registry.AugmentedTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.ZoneOffset;
@@ -53,6 +54,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -501,5 +503,51 @@ public final class MetricRegistries {
                 throw new SafeIllegalArgumentException("Unknown Metric Type", SafeArg.of("type", metric.getClass()));
             }
         });
+    }
+
+    /**
+     * Wraps an existing {@link TaggedMetricRegistry} so that all created metrics have "libraryName" and optionally
+     * also a "libraryVersion" tag.
+     */
+    @CheckReturnValue
+    public static WrapWithLibraryInfoBuilder wrapWithLibraryInfo() {
+        return new WrapWithLibraryInfoBuilder();
+    }
+
+    @CheckReturnValue
+    public static final class WrapWithLibraryInfoBuilder {
+        @Nullable
+        private TaggedMetricRegistry delegate;
+
+        @Nullable
+        private String libraryName;
+
+        @Nullable
+        private String libraryVersion;
+
+        public WrapWithLibraryInfoBuilder underlyingRegistry(TaggedMetricRegistry value) {
+            this.delegate = value;
+            return this;
+        }
+
+        public WrapWithLibraryInfoBuilder libraryName(String value) {
+            this.libraryName = value;
+            return this;
+        }
+
+        public WrapWithLibraryInfoBuilder libraryVersion(String value) {
+            this.libraryVersion = value;
+            return this;
+        }
+
+        public TaggedMetricRegistry build() {
+            TaggedMetricRegistry registry = Preconditions.checkNotNull(delegate);
+            registry = AugmentedTaggedMetricRegistry.create(
+                    registry, "libraryName", Preconditions.checkNotNull(libraryName));
+            if (libraryVersion != null) {
+                registry = AugmentedTaggedMetricRegistry.create(registry, "libraryVersion", libraryVersion);
+            }
+            return registry;
+        }
     }
 }
