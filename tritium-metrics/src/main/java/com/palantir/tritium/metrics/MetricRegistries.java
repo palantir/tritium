@@ -578,7 +578,7 @@ public final class MetricRegistries {
             AugmentedTaggedMetricRegistry augmented = AugmentedTaggedMetricRegistry.create(
                     Preconditions.checkNotNull(registry, "registry"),
                     "libraryName",
-                    Preconditions.checkNotNull(libraryName));
+                    Preconditions.checkNotNull(libraryName, "libraryName"));
             if (libraryVersion != null) {
                 augmented = AugmentedTaggedMetricRegistry.create(augmented, "libraryVersion", libraryVersion);
             }
