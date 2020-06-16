@@ -1,0 +1,13 @@
+type: feature
+feature:
+  description: |-
+    Library authors can now construct a TaggedMetricRegistry that augments all created metrics with a `libraryName` and `libraryVersion` tag:
+    ```java
+    MetricRegistries.wrapWithLibraryInfo()
+                    .registry(registry)
+                    .libraryName("my-library")
+                    .libraryVersionFromClass(MyLibrary.class)
+                    .build()
+    ```
+  links:
+  - https://github.com/palantir/tritium/pull/754
