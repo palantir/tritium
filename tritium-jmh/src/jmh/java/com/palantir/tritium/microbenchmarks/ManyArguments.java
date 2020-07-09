@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.microbenchmarks;
 
+@SuppressWarnings("TooManyArguments") // explicitly testing many arguments performance
 public interface ManyArguments {
     void apply(
             int arg0,
