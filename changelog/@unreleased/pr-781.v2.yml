@@ -1,0 +1,11 @@
+type: improvement
+improvement:
+  description: |-
+    Upgrade CircleCI build to JDK 8u252
+
+    Suppress JEP 244 SSLEngine overrides
+    JEP 244: TLS Application-Layer Protocol Negotiation Extension was backported to JDK8u251+ per https://bugs.openjdk.java.net/browse/JDK-8230977 which added 4 methods that were previously only in JDK9+.
+
+    Unfortunately this causes problems compiling locally when using JDK 8u251+ as error-prone will flag missing `@Override` annotations, so for now going to suppress the missing annotation to allow compilation across multiple different JDK versions without issue.
+  links:
+  - https://github.com/palantir/tritium/pull/781
