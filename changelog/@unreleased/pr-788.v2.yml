@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Remove Checkstyle guava version override
+  links:
+  - https://github.com/palantir/tritium/pull/788
