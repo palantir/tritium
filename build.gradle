@@ -42,12 +42,6 @@ allprojects {
         testImplementationClasspath {
             exclude module: 'junit'
         }
-        checkstyle {
-            resolutionStrategy {
-                // checkstyle requires different Guava
-                force 'com.google.guava:guava:25.1-jre'
-            }
-        }
     }
 
     repositories {
