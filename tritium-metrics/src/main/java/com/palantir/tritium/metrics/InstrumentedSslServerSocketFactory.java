@@ -222,7 +222,7 @@ final class InstrumentedSslServerSocketFactory extends SSLServerSocketFactory {
         }
 
         private Socket wrap(Socket socket) {
-            if (socket instanceof SSLSocket) {
+            if (socket instanceof SSLSocket && InstrumentedSslSocketFactory.tlsMetricsEnabled.getAsBoolean()) {
                 ((SSLSocket) socket).addHandshakeCompletedListener(listener);
             }
             return socket;
