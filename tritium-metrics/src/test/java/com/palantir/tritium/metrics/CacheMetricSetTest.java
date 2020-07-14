@@ -22,30 +22,23 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 @SuppressWarnings({
     "BanGuavaCaches", // this implementation is explicitly for Guava caches
     "NullAway"
 }) // IntelliJ warnings about injected fields
 final class CacheMetricSetTest {
 
-    @Mock
-    Cache<String, String> cache;
+    private final Map<String, Metric> metrics =
+            createCacheMetrics(CacheBuilder.newBuilder().recordStats().build());
 
-    private Map<String, Metric> metrics;
-
-    @BeforeEach
-    void before() {
+    private static Map<String, Metric> createCacheMetrics(Cache<String, String> cache) {
         MetricSet cacheMetricSet = CacheMetricSet.create(cache, "test");
         assertThat(cacheMetricSet).isNotNull();
-        metrics = cacheMetricSet.getMetrics();
+        return cacheMetricSet.getMetrics();
     }
 
     @Test
