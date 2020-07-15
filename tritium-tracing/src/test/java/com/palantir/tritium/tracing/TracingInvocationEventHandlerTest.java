@@ -26,7 +26,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.palantir.tracing.AlwaysSampler;
 import com.palantir.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.tracing.Tracer;
-import com.palantir.tracing.Tracers;
 import com.palantir.tracing.api.Span;
 import com.palantir.tracing.api.SpanObserver;
 import com.palantir.tritium.event.InvocationContext;
@@ -96,14 +95,14 @@ public class TracingInvocationEventHandlerTest {
         assertThat(context.getArgs()).isEqualTo(args);
         assertThat(context.getStartTimeNanos()).isGreaterThan(startNanoseconds);
         assertThat(context.getStartTimeNanos()).isLessThan(System.nanoTime());
-        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNotNull();
+        assertThat(Tracer.hasTraceId()).isTrue();
     }
 
     @Test
     public void testSuccess() {
         InvocationContext context = handler.preInvocation(instance, method, args);
 
-        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNotNull();
+        assertThat(Tracer.hasTraceId()).isTrue();
 
         handler.onSuccess(context, null);
 
@@ -112,14 +111,14 @@ public class TracingInvocationEventHandlerTest {
 
         Span span = spanCaptor.getValue();
         assertThat(span.getDurationNanoSeconds()).isGreaterThan(0L);
-        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNull();
+        assertThat(Tracer.hasTraceId()).isFalse();
     }
 
     @Test
     public void testFailure() {
         InvocationContext context = handler.preInvocation(instance, method, args);
 
-        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNotNull();
+        assertThat(Tracer.hasTraceId()).isTrue();
 
         handler.onFailure(context, new RuntimeException("unexpected"));
 
@@ -128,7 +127,7 @@ public class TracingInvocationEventHandlerTest {
 
         Span span = spanCaptor.getValue();
         assertThat(span.getDurationNanoSeconds()).isGreaterThan(0L);
-        assertThat(MDC.get(Tracers.TRACE_ID_KEY)).isNull();
+        assertThat(Tracer.hasTraceId()).isFalse();
     }
 
     @Test
