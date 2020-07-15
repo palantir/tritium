@@ -1,0 +1,10 @@
+type: improvement
+improvement:
+  description: |-
+    Socket handshake metrics are not recorded by default to prevent new threads for each handshake
+
+    Metrics and logging can be enabled by either enabling debug logging
+    on `com.palantir.tritium.metrics.HandshakeInstrumentation` or
+    by setting the `instrument.tls.socket` property to `true`.
+  links:
+  - https://github.com/palantir/tritium/pull/792
