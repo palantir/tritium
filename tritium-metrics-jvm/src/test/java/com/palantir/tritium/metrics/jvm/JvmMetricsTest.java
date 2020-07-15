@@ -19,10 +19,9 @@ package com.palantir.tritium.metrics.jvm;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Metric;
 import com.codahale.metrics.RatioGauge;
 import com.google.common.collect.ImmutableSet;
-import com.palantir.logsafe.Preconditions;
+import com.google.common.collect.MoreCollectors;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -32,6 +31,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -99,11 +100,9 @@ final class JvmMetricsTest {
     void testFileDescriptors(@TempDir File temporaryFolder) throws IOException {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
-        Metric fileDescriptorsMetric = registry.getMetrics()
-                .get(MetricName.builder().safeName("jvm.filedescriptor").build());
-        assertThat(fileDescriptorsMetric).isInstanceOf(RatioGauge.class);
-        RatioGauge fileDescriptorsRatio =
-                Preconditions.checkNotNull((RatioGauge) fileDescriptorsMetric, "fileDescriptorsMetric");
+
+        RatioGauge fileDescriptorsRatio = find(
+                registry, MetricName.builder().safeName("jvm.filedescriptor").build(), RatioGauge.class);
         double initialDescriptorsRatio = fileDescriptorsRatio.getValue();
         List<Closeable> handles = new ArrayList<>();
         try {
@@ -124,10 +123,10 @@ final class JvmMetricsTest {
     void testSystemLoad() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
-        Gauge<Double> systemLoadNormalized = (Gauge<Double>) registry.getMetrics()
-                .get(MetricName.builder().safeName("os.load.norm.1").build());
-        Gauge<Double> systemLoad = (Gauge<Double>) registry.getMetrics()
-                .get(MetricName.builder().safeName("os.load.1").build());
+        Gauge<Double> systemLoadNormalized = (Gauge<Double>)
+                find(registry, MetricName.builder().safeName("os.load.norm.1").build(), Gauge.class);
+        Gauge<Double> systemLoad = (Gauge<Double>)
+                find(registry, MetricName.builder().safeName("os.load.1").build(), Gauge.class);
         assertThat(systemLoad).satisfies(gauge -> assertThat(gauge.getValue()).isPositive());
         assertThat(systemLoadNormalized)
                 .satisfies(gauge -> assertThat(gauge.getValue()).isPositive());
@@ -138,8 +137,11 @@ final class JvmMetricsTest {
     void testCpuLoad() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
-        Gauge<Double> processCpuLoad = (Gauge<Double>) registry.getMetrics()
-                .get(MetricName.builder().safeName("process.cpu.utilization").build());
+
+        Gauge<Double> processCpuLoad = (Gauge<Double>) find(
+                registry,
+                MetricName.builder().safeName("process.cpu.utilization").build(),
+                Gauge.class);
         assertThat(processCpuLoad)
                 .satisfies(gauge ->
                         assertThat(gauge.getValue()).isGreaterThanOrEqualTo(0D).isLessThanOrEqualTo(1D));
@@ -150,8 +152,9 @@ final class JvmMetricsTest {
     void testSafepoint() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.register(registry);
-        Gauge<Long> safepointTime = (Gauge<Long>) registry.getMetrics()
-                .get(MetricName.builder().safeName("jvm.safepoint.time").build());
+
+        Gauge<Long> safepointTime = (Gauge<Long>) find(
+                registry, MetricName.builder().safeName("jvm.safepoint.time").build(), Gauge.class);
         assertThat(safepointTime)
                 .satisfies(gauge -> assertThat(gauge.getValue()).isNotNegative());
     }
@@ -164,7 +167,7 @@ final class JvmMetricsTest {
         assertThat(registry.getMetrics().keySet()).anySatisfy(name -> {
             assertThat(name.safeName()).isEqualTo("jvm.attribute.uptime");
             assertThat(name.safeTags().keySet())
-                    .containsExactlyInAnyOrder(
+                    .contains(
                             "javaRuntimeVersion",
                             "javaSpecificationVersion",
                             "javaVendorVersion",
@@ -172,5 +175,18 @@ final class JvmMetricsTest {
                             "javaVersionDate",
                             "javaVmVendor");
         });
+    }
+
+    @SuppressWarnings("JdkObsolete")
+    private static <T> T find(TaggedMetricRegistry metrics, MetricName baseName, Class<T> type) {
+        return metrics.getMetrics().entrySet().stream()
+                .filter(entry -> Objects.equals(entry.getKey().safeName(), baseName.safeName())
+                        && entry.getKey()
+                                .safeTags()
+                                .entrySet()
+                                .containsAll(baseName.safeTags().entrySet()))
+                .map(Entry::getValue)
+                .map(type::cast)
+                .collect(MoreCollectors.onlyElement());
     }
 }

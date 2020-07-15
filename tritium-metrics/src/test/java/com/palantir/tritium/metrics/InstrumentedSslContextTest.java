@@ -19,6 +19,7 @@ package com.palantir.tritium.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 
+import com.google.common.collect.MoreCollectors;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -33,6 +34,7 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -67,12 +69,14 @@ final class InstrumentedSslContextTest {
             assertThat(con.getResponseCode()).isEqualTo(200);
         }
 
-        MetricName name = MetricName.builder()
-                .safeName("tls.handshake")
-                .putSafeTags("context", "client-context")
-                .putSafeTags("cipher", ENABLED_CIPHER)
-                .putSafeTags("protocol", ENABLED_PROTOCOL)
-                .build();
+        MetricName name = findName(
+                metrics,
+                MetricName.builder()
+                        .safeName("tls.handshake")
+                        .putSafeTags("context", "client-context")
+                        .putSafeTags("cipher", ENABLED_CIPHER)
+                        .putSafeTags("protocol", ENABLED_PROTOCOL)
+                        .build());
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
         assertThat(metrics.meter(name).getCount()).isOne();
     }
@@ -97,12 +101,14 @@ final class InstrumentedSslContextTest {
             assertThat(response.protocol()).isEqualTo(Protocol.HTTP_1_1);
         }
 
-        MetricName name = MetricName.builder()
-                .safeName("tls.handshake")
-                .putSafeTags("context", "okhttp-client")
-                .putSafeTags("cipher", ENABLED_CIPHER)
-                .putSafeTags("protocol", ENABLED_PROTOCOL)
-                .build();
+        MetricName name = findName(
+                metrics,
+                MetricName.builder()
+                        .safeName("tls.handshake")
+                        .putSafeTags("context", "okhttp-client")
+                        .putSafeTags("cipher", ENABLED_CIPHER)
+                        .putSafeTags("protocol", ENABLED_PROTOCOL)
+                        .build());
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
         assertThat(metrics.meter(name).getCount()).isOne();
     }
@@ -130,12 +136,14 @@ final class InstrumentedSslContextTest {
             assertThat(response.protocol()).isEqualTo(Protocol.HTTP_2);
         }
 
-        MetricName name = MetricName.builder()
-                .safeName("tls.handshake")
-                .putSafeTags("context", "okhttp-client")
-                .putSafeTags("cipher", ENABLED_CIPHER)
-                .putSafeTags("protocol", ENABLED_PROTOCOL)
-                .build();
+        MetricName name = findName(
+                metrics,
+                MetricName.builder()
+                        .safeName("tls.handshake")
+                        .putSafeTags("context", "okhttp-client")
+                        .putSafeTags("cipher", ENABLED_CIPHER)
+                        .putSafeTags("protocol", ENABLED_PROTOCOL)
+                        .build());
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
         assertThat(metrics.meter(name).getCount()).isOne();
     }
@@ -161,12 +169,14 @@ final class InstrumentedSslContextTest {
             assertThat(response.protocol()).isEqualTo(Protocol.HTTP_2);
         }
 
-        MetricName name = MetricName.builder()
-                .safeName("tls.handshake")
-                .putSafeTags("context", "h2-server")
-                .putSafeTags("cipher", ENABLED_CIPHER)
-                .putSafeTags("protocol", ENABLED_PROTOCOL)
-                .build();
+        MetricName name = findName(
+                metrics,
+                MetricName.builder()
+                        .safeName("tls.handshake")
+                        .putSafeTags("context", "h2-server")
+                        .putSafeTags("cipher", ENABLED_CIPHER)
+                        .putSafeTags("protocol", ENABLED_PROTOCOL)
+                        .build());
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
         assertThat(metrics.meter(name).getCount()).isOne();
     }
@@ -180,12 +190,14 @@ final class InstrumentedSslContextTest {
             assertThat(con.getResponseCode()).isEqualTo(200);
         }
 
-        MetricName name = MetricName.builder()
-                .safeName("tls.handshake")
-                .putSafeTags("context", "server-context")
-                .putSafeTags("cipher", ENABLED_CIPHER)
-                .putSafeTags("protocol", ENABLED_PROTOCOL)
-                .build();
+        MetricName name = findName(
+                metrics,
+                MetricName.builder()
+                        .safeName("tls.handshake")
+                        .putSafeTags("context", "server-context")
+                        .putSafeTags("cipher", ENABLED_CIPHER)
+                        .putSafeTags("protocol", ENABLED_PROTOCOL)
+                        .build());
         assertThat(metrics.getMetrics()).containsOnlyKeys(name);
         assertThat(metrics.meter(name).getCount()).isOne();
     }
@@ -284,5 +296,14 @@ final class InstrumentedSslContextTest {
             keyStore.load(stream, password.toCharArray());
         }
         return keyStore;
+    }
+
+    private static MetricName findName(TaggedMetricRegistry metrics, MetricName baseName) {
+        return metrics.getMetrics().keySet().stream()
+                .filter(name -> Objects.equals(name.safeName(), baseName.safeName())
+                        && name.safeTags()
+                                .entrySet()
+                                .containsAll(baseName.safeTags().entrySet()))
+                .collect(MoreCollectors.onlyElement());
     }
 }

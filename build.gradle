@@ -116,7 +116,7 @@ allprojects {
 
     tasks.withType(Test) {
         useJUnitPlatform {
-            includeEngines 'jqwik'
+            includeEngines 'jqwik', 'junit-jupiter'
         }
         maxParallelForks Runtime.getRuntime().availableProcessors()
         testLogging {
