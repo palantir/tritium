@@ -298,6 +298,7 @@ final class InstrumentedSslContextTest {
         return keyStore;
     }
 
+    @SuppressWarnings("JdkObsolete")
     private static MetricName findName(TaggedMetricRegistry metrics, MetricName baseName) {
         return metrics.getMetrics().keySet().stream()
                 .filter(name -> Objects.equals(name.safeName(), baseName.safeName())
