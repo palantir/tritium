@@ -65,8 +65,8 @@ final class InternalCacheMetricsTest {
         when(stats.hitRatio()).thenCallRealMethod();
         when(stats.missRatio()).thenCallRealMethod();
 
-        assertThat(stats.hitRatio().getValue()).isEqualTo(Double.NaN);
-        assertThat(stats.missRatio().getValue()).isEqualTo(Double.NaN);
+        assertThat(stats.hitRatio().getValue()).isNaN();
+        assertThat(stats.missRatio().getValue()).isNaN();
     }
 
     @Test

@@ -18,8 +18,6 @@ package com.palantir.tritium.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.codahale.metrics.MetricRegistry;
-import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
 import java.util.concurrent.CountDownLatch;
@@ -33,24 +31,18 @@ final class TaggedMetricsExecutorServiceTest {
 
     private static final String NAME = "name";
 
-    private static final MetricName SUBMITTED = metricName("submitted");
-    private static final MetricName RUNNING = metricName("running");
-    private static final MetricName COMPLETED = metricName("completed");
-    private static final MetricName DURATION = metricName("duration");
-    private static final MetricName QUEUED_DURATION = metricName("queued-duration");
-
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testMetrics(TaggedMetricRegistry registry) throws Exception {
         ExecutorService executorService =
                 MetricRegistries.instrument(registry, Executors.newSingleThreadExecutor(), NAME);
-        assertThat(registry.getMetrics()).containsKeys(SUBMITTED, RUNNING, COMPLETED, DURATION, QUEUED_DURATION);
+        ExecutorMetrics metrics = ExecutorMetrics.of(registry);
 
-        assertThat(registry.meter(SUBMITTED).getCount()).isZero();
-        assertThat(registry.counter(RUNNING).getCount()).isZero();
-        assertThat(registry.meter(COMPLETED).getCount()).isZero();
-        assertThat(registry.timer(DURATION).getCount()).isZero();
-        assertThat(registry.timer(QUEUED_DURATION).getCount()).isZero();
+        assertThat(metrics.submitted(NAME).getCount()).isZero();
+        assertThat(metrics.running(NAME).getCount()).isZero();
+        assertThat(metrics.completed(NAME).getCount()).isZero();
+        assertThat(metrics.duration(NAME).getCount()).isZero();
+        assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
 
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch finishLatch = new CountDownLatch(1);
@@ -63,26 +55,19 @@ final class TaggedMetricsExecutorServiceTest {
         executorService.shutdown();
         startLatch.await();
 
-        assertThat(registry.meter(SUBMITTED).getCount()).isOne();
-        assertThat(registry.counter(RUNNING).getCount()).isOne();
-        assertThat(registry.meter(COMPLETED).getCount()).isZero();
-        assertThat(registry.timer(DURATION).getCount()).isZero();
-        assertThat(registry.timer(QUEUED_DURATION).getCount()).isOne();
+        assertThat(metrics.submitted(NAME).getCount()).isOne();
+        assertThat(metrics.running(NAME).getCount()).isOne();
+        assertThat(metrics.completed(NAME).getCount()).isZero();
+        assertThat(metrics.duration(NAME).getCount()).isZero();
+        assertThat(metrics.queuedDuration(NAME).getCount()).isOne();
 
         finishLatch.countDown();
         future.get();
 
-        assertThat(registry.meter(SUBMITTED).getCount()).isOne();
-        assertThat(registry.counter(RUNNING).getCount()).isZero();
-        assertThat(registry.meter(COMPLETED).getCount()).isOne();
-        assertThat(registry.timer(DURATION).getCount()).isOne();
-        assertThat(registry.timer(QUEUED_DURATION).getCount()).isOne();
-    }
-
-    private static MetricName metricName(String metricName) {
-        return MetricName.builder()
-                .safeName(MetricRegistry.name("executor", metricName))
-                .putSafeTags("executor", NAME)
-                .build();
+        assertThat(metrics.submitted(NAME).getCount()).isOne();
+        assertThat(metrics.running(NAME).getCount()).isZero();
+        assertThat(metrics.completed(NAME).getCount()).isOne();
+        assertThat(metrics.duration(NAME).getCount()).isOne();
+        assertThat(metrics.queuedDuration(NAME).getCount()).isOne();
     }
 }
