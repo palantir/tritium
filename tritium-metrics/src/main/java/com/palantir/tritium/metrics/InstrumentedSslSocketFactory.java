@@ -16,20 +16,17 @@
 
 package com.palantir.tritium.metrics;
 
-import com.palantir.tritium.event.InstrumentationProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Objects;
-import java.util.function.BooleanSupplier;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 final class InstrumentedSslSocketFactory extends SSLSocketFactory {
 
-    static final BooleanSupplier tlsMetricsEnabled = InstrumentationProperties.getSystemPropertySupplier("tls.socket");
     private final SSLSocketFactory delegate;
     private final HandshakeCompletedListener listener;
     private final String name;
@@ -109,7 +106,7 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
     }
 
     private Socket wrap(Socket socket) {
-        if (socket instanceof SSLSocket && tlsMetricsEnabled.getAsBoolean()) {
+        if (socket instanceof SSLSocket && HandshakeInstrumentation.isSocketInstrumentationEnabled()) {
             ((SSLSocket) socket).addHandshakeCompletedListener(listener);
         }
         return socket;

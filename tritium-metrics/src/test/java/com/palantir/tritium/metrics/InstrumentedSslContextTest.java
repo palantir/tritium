@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 
 import com.google.common.collect.MoreCollectors;
+import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -47,6 +48,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xnio.Options;
 import org.xnio.Sequence;
@@ -58,6 +61,18 @@ final class InstrumentedSslContextTest {
     private static final boolean IS_JAVA_8 = System.getProperty("java.version").startsWith("1.8");
 
     private static final int PORT = 4483;
+
+    @BeforeEach
+    void beforeEach() {
+        System.setProperty("instrument.tls.socket", "true");
+        InstrumentationProperties.reload();
+    }
+
+    @AfterEach
+    void afterEach() {
+        System.clearProperty("instrument.tls.socket");
+        InstrumentationProperties.reload();
+    }
 
     @Test
     void testClientInstrumentationHttpsUrlConnection() throws Exception {
