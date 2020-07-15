@@ -17,6 +17,7 @@
 package com.palantir.tritium.metrics;
 
 import com.palantir.logsafe.SafeArg;
+import com.palantir.tritium.event.InstrumentationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,15 @@ final class HandshakeInstrumentation {
                     SafeArg.of("cipherSuite", cipherSuite),
                     SafeArg.of("protocol", protocol));
         }
+    }
+
+    /**
+     * Socket metrics are more expensive than SSLEngine instrumentation due to HandshakeCompletedListener
+     * instances running on a new short-lived thread. When no HandshakeCompletedListeners are registered,
+     * the thread is completely avoided.
+     */
+    static boolean isSocketInstrumentationEnabled() {
+        return log.isDebugEnabled() || InstrumentationProperties.isSpecificEnabled("tls.socket", false);
     }
 
     private HandshakeInstrumentation() {}
