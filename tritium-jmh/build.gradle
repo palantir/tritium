@@ -30,6 +30,7 @@ dependencies {
     annotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess'
     api 'io.dropwizard.metrics:metrics-core'
 
+    jmhAnnotationProcessor 'com.uber.nullaway:nullaway'
     jmh project(':tritium-api')
     jmh project(':tritium-core')
     jmh project(':tritium-lib')
