@@ -62,7 +62,7 @@ allprojects {
 
     plugins.withId('com.palantir.baseline-error-prone', {
         dependencies {
-            errorprone 'com.uber.nullaway:nullaway'
+            annotationProcessor 'com.uber.nullaway:nullaway'
         }
 
         tasks.withType(JavaCompile).configureEach {
