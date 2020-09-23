@@ -23,6 +23,7 @@ import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,8 +41,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
 
     @Test
     public void aReservoirOf100OutOf1000Elements() {
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(100, 0.99, TimeUnit.HOURS.toNanos(1));
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(100)
+                .alpha(0.99)
+                .rescaleThreshold(Duration.ofHours(1))
+                .build();
         for (int i = 0; i < 1000; i++) {
             reservoir.update(i);
         }
@@ -57,8 +61,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
 
     @Test
     public void aReservoirOf100OutOf10Elements() {
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(100, 0.99, TimeUnit.HOURS.toNanos(1));
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(100)
+                .alpha(0.99)
+                .rescaleThreshold(Duration.ofHours(1))
+                .build();
         for (int i = 0; i < 10; i++) {
             reservoir.update(i);
         }
@@ -74,8 +81,10 @@ class LockFreeExponentiallyDecayingReservoirTest {
 
     @Test
     public void aHeavilyBiasedReservoirOf100OutOf1000Elements() {
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(1000, 0.01, TimeUnit.HOURS.toNanos(1));
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(1000)
+                .alpha(0.01)
+                .build();
         for (int i = 0; i < 100; i++) {
             reservoir.update(i);
         }
@@ -92,8 +101,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void longPeriodsOfInactivityShouldNotCorruptSamplingState() {
         ManualClock clock = new ManualClock();
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(10, 0.15, TimeUnit.HOURS.toNanos(1), clock);
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(10)
+                .alpha(.15)
+                .clock(clock)
+                .build();
 
         // add 1000 values at a rate of 10 values/second
         for (int i = 0; i < 1000; i++) {
@@ -123,8 +135,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void longPeriodsOfInactivity_fetchShouldResample() {
         ManualClock clock = new ManualClock();
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(10, 0.015, TimeUnit.HOURS.toNanos(1), clock);
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(10)
+                .alpha(.015)
+                .clock(clock)
+                .build();
 
         // add 1000 values at a rate of 10 values/second
         for (int i = 0; i < 1000; i++) {
@@ -147,8 +162,10 @@ class LockFreeExponentiallyDecayingReservoirTest {
 
     @Test
     public void emptyReservoirSnapshot_shouldReturnZeroForAllValues() {
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(100, 0.015, TimeUnit.HOURS.toNanos(1), new ManualClock());
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(100)
+                .alpha(0.015)
+                .build();
 
         Snapshot snapshot = reservoir.getSnapshot();
         assertThat(snapshot.getMax()).isEqualTo(0);
@@ -160,8 +177,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void removeZeroWeightsInSamplesToPreventNaNInMeanValues() {
         ManualClock clock = new ManualClock();
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(1028, 0.015, TimeUnit.HOURS.toNanos(1), clock);
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(1028)
+                .alpha(.015)
+                .clock(clock)
+                .build();
         Timer timer = new Timer(reservoir, clock);
 
         Context context = timer.time();
@@ -188,8 +208,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
         // Run the test several times.
         for (int attempt = 0; attempt < 10; attempt++) {
             ManualClock clock = new ManualClock();
-            LockFreeExponentiallyDecayingReservoir reservoir =
-                    new LockFreeExponentiallyDecayingReservoir(10, 0.015, TimeUnit.HOURS.toNanos(1), clock);
+            Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                    .size(10)
+                    .alpha(.015)
+                    .clock(clock)
+                    .build();
 
             // Various atomics used to communicate between this thread and the
             // thread created below.
@@ -273,8 +296,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void spotLift() {
         ManualClock clock = new ManualClock();
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(1000, 0.015, TimeUnit.HOURS.toNanos(1), clock);
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(1000)
+                .alpha(.015)
+                .clock(clock)
+                .build();
 
         int valuesRatePerMinute = 10;
         int valuesIntervalMillis = (int) (TimeUnit.MINUTES.toMillis(1) / valuesRatePerMinute);
@@ -297,8 +323,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void spotFall() {
         ManualClock clock = new ManualClock();
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(1000, 0.015, TimeUnit.HOURS.toNanos(1), clock);
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(1000)
+                .alpha(.015)
+                .clock(clock)
+                .build();
 
         int valuesRatePerMinute = 10;
         int valuesIntervalMillis = (int) (TimeUnit.MINUTES.toMillis(1) / valuesRatePerMinute);
@@ -321,8 +350,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void quantiliesShouldBeBasedOnWeights() {
         ManualClock clock = new ManualClock();
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(1000, 0.015, TimeUnit.HOURS.toNanos(1), clock);
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(1000)
+                .alpha(.015)
+                .clock(clock)
+                .build();
         for (int i = 0; i < 40; i++) {
             reservoir.update(177);
         }
@@ -352,8 +384,11 @@ class LockFreeExponentiallyDecayingReservoirTest {
 
     private static void testShortPeriodShouldNotRescale(long startTimeNanos) {
         ManualClock clock = new ManualClock(startTimeNanos);
-        LockFreeExponentiallyDecayingReservoir reservoir =
-                new LockFreeExponentiallyDecayingReservoir(10, 1, TimeUnit.HOURS.toNanos(1), clock);
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                .size(10)
+                .alpha(1)
+                .clock(clock)
+                .build();
 
         reservoir.update(1000);
         assertThat(reservoir.getSnapshot().size()).isEqualTo(1);

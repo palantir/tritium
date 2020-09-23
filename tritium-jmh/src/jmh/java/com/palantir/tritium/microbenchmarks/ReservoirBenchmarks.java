@@ -56,7 +56,7 @@ public class ReservoirBenchmarks {
         LOCK_FREE_EXPO_DECAY() {
             @Override
             Reservoir create() {
-                return new LockFreeExponentiallyDecayingReservoir();
+                return LockFreeExponentiallyDecayingReservoir.builder().build();
             }
         };
 
