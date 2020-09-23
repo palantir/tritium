@@ -22,9 +22,9 @@ import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.WeightedSnapshot;
 import com.codahale.metrics.WeightedSnapshot.WeightedSample;
 import com.google.common.annotations.Beta;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     private static final int DEFAULT_SIZE = 1028;
     private static final double DEFAULT_ALPHA = 0.015;
-    private static final long DEFAULT_RESCALE_THRESHOLD = TimeUnit.HOURS.toNanos(1);
+    private static final Duration DEFAULT_RESCALE_THRESHOLD = Duration.ofHours(1);
 
     private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoir, State> stateUpdater =
             AtomicReferenceFieldUpdater.newUpdater(LockFreeExponentiallyDecayingReservoir.class, State.class, "state");
@@ -109,15 +109,15 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         this(DEFAULT_SIZE, DEFAULT_ALPHA, DEFAULT_RESCALE_THRESHOLD);
     }
 
-    public LockFreeExponentiallyDecayingReservoir(int size, double alpha, long rescaleThresholdNanos) {
-        this(size, alpha, rescaleThresholdNanos, Clock.defaultClock());
+    public LockFreeExponentiallyDecayingReservoir(int size, double alpha, Duration rescaleThreshold) {
+        this(size, alpha, rescaleThreshold, Clock.defaultClock());
     }
 
-    public LockFreeExponentiallyDecayingReservoir(int size, double alpha, long rescaleThresholdNanos, Clock clock) {
+    public LockFreeExponentiallyDecayingReservoir(int size, double alpha, Duration rescaleThreshold, Clock clock) {
         this.alpha = alpha;
         this.size = size;
         this.clock = clock;
-        this.rescaleThresholdNanos = rescaleThresholdNanos;
+        this.rescaleThresholdNanos = rescaleThreshold.toNanos();
         this.state = new State(clock.getTick(), new AtomicLong(), new ConcurrentSkipListMap<>());
     }
 
