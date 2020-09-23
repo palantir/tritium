@@ -122,10 +122,6 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         rescaleIfNeeded(now).update(value, now);
     }
 
-    private State rescaleIfNeeded() {
-        return rescaleIfNeeded(clock.getTick());
-    }
-
     private State rescaleIfNeeded(long currentTick) {
         State stateSnapshot = this.state;
         final long lastScaleTick = stateSnapshot.startTick;
@@ -145,7 +141,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
     @Override
     public Snapshot getSnapshot() {
-        State stateSnapshot = rescaleIfNeeded();
+        State stateSnapshot = rescaleIfNeeded(clock.getTick());
         return new WeightedSnapshot(stateSnapshot.values.values());
     }
 
