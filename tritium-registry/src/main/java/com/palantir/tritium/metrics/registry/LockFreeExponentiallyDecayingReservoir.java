@@ -51,7 +51,6 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     private final long rescaleThresholdNanos;
     private final Clock clock;
 
-    // state
     private volatile State state;
 
     private final class State {
