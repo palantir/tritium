@@ -16,14 +16,13 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.google.auto.service.AutoService;
 
 @AutoService(TaggedMetricRegistry.class)
 public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegistry {
 
     public DefaultTaggedMetricRegistry() {
-        super(ExponentiallyDecayingReservoir::new);
+        super(() -> LockFreeExponentiallyDecayingReservoir.builder().build());
     }
 
     /**
