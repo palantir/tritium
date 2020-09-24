@@ -32,8 +32,20 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 /**
  * {@link LockFreeExponentiallyDecayingReservoir} is based closely on the codahale
  * <a href="https://github.com/dropwizard/metrics/blob/0313a104bf785e87d7d14a18a82026225304c402/metrics-core/src/main/java/com/codahale/metrics/ExponentiallyDecayingReservoir.java">
- * ExponentiallyDecayingReservoir.java</a>, however it provides looser guarantees (updates which race rescale may be
- * lost) while completely avoiding locks.
+ * ExponentiallyDecayingReservoir.java</a>, however it provides looser guarantees while completely avoiding locks.
+ *
+ * Looser guarantees:
+ * <ul>
+ *     <li> Updates which occur concurrently with rescaling may be discarded if the orphaned state node is updated after
+ *     rescale has replaced it. This condition has a greater probability as the rescale interval is reduced due to the
+ *     increased frequency of rescaling. {@link #rescaleThresholdNanos} values below 30 seconds are not recommended.
+ *     <li> Given a small rescale threshold, updates may attempt to rescale into a new bucket, but lose the CAS race
+ *     and update into a newer bucket than expected. In these cases the measurement weight is reduced accordingly.
+ *     <li>In the worst case, all concurrent threads updating the reservoir may attempt to rescale rather than
+ *     a single thread holding an exclusive write lock. It's expected that the configuration is set such that
+ *     rescaling is substantially less common than updating at peak load. Even so, when size is reasonably small
+ *     it can be more efficient to rescale than to park and context switch.
+ * </ul>
  *
  * See {@link com.codahale.metrics.ExponentiallyDecayingReservoir} Copyright 2010-2012 Coda Hale and Yammer, Inc.
  * Licensed under the Apache License, Version 2.0. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -63,11 +75,11 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
 
         private void update(long value, long timestampNanos) {
-            final double itemWeight = weight(timestampNanos - startTick);
-            final WeightedSample sample = new WeightedSample(value, itemWeight);
-            final double priority = itemWeight / ThreadLocalRandom.current().nextDouble();
+            double itemWeight = weight(timestampNanos - startTick);
+            WeightedSample sample = new WeightedSample(value, itemWeight);
+            double priority = itemWeight / ThreadLocalRandom.current().nextDouble();
 
-            final long newCount = count.incrementAndGet();
+            long newCount = count.incrementAndGet();
             if (newCount <= size || values.isEmpty()) {
                 values.put(priority, sample);
             } else {
@@ -124,7 +136,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
     private State rescaleIfNeeded(long currentTick) {
         State stateSnapshot = this.state;
-        final long lastScaleTick = stateSnapshot.startTick;
+        long lastScaleTick = stateSnapshot.startTick;
         if (currentTick - lastScaleTick >= rescaleThresholdNanos) {
             State newState = stateSnapshot.rescale(currentTick);
             if (stateUpdater.compareAndSet(this, stateSnapshot, newState)) {
