@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.BiConsumer;
 
 /**
  * {@link LockFreeExponentiallyDecayingReservoir} is based closely on the codahale
@@ -97,21 +98,39 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
             long durationNanos = newTick - startTick;
             double durationSeconds = durationNanos / 1_000_000_000D;
             double scalingFactor = Math.exp(-alpha * durationSeconds);
-            AtomicLong newCount = new AtomicLong();
+            final AtomicLong newCount;
             ConcurrentSkipListMap<Double, WeightedSample> newValues = new ConcurrentSkipListMap<>();
             if (Double.compare(scalingFactor, 0) != 0) {
-                values.forEach((key, sample) -> {
-                    double newWeight = sample.weight * scalingFactor;
-                    if (Double.compare(newWeight, 0) == 0) {
-                        return;
-                    }
-                    WeightedSample newSample = new WeightedSample(sample.value, newWeight);
-                    if (newValues.put(key * scalingFactor, newSample) == null) {
-                        newCount.incrementAndGet();
-                    }
-                });
+                RescalingConsumer consumer = new RescalingConsumer(scalingFactor, newValues);
+                values.forEach(consumer);
+                newCount = new AtomicLong(consumer.count);
+            } else {
+                newCount = new AtomicLong();
             }
             return new State(newTick, newCount, newValues);
+        }
+    }
+
+    private static final class RescalingConsumer implements BiConsumer<Double, WeightedSample> {
+        private final double scalingFactor;
+        private final ConcurrentSkipListMap<Double, WeightedSample> values;
+        private long count;
+
+        RescalingConsumer(double scalingFactor, ConcurrentSkipListMap<Double, WeightedSample> values) {
+            this.scalingFactor = scalingFactor;
+            this.values = values;
+        }
+
+        @Override
+        public void accept(Double priority, WeightedSample sample) {
+            double newWeight = sample.weight * scalingFactor;
+            if (Double.compare(newWeight, 0) == 0) {
+                return;
+            }
+            WeightedSample newSample = new WeightedSample(sample.value, newWeight);
+            if (values.put(priority * scalingFactor, newSample) == null) {
+                count++;
+            }
         }
     }
 
