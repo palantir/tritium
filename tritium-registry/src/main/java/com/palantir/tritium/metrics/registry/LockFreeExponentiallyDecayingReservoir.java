@@ -168,7 +168,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
     public static final class Builder {
         private static final int DEFAULT_SIZE = 1028;
-        private static final double DEFAULT_ALPHA = 0.015;
+        private static final double DEFAULT_ALPHA = 0.015D;
         private static final Duration DEFAULT_RESCALE_THRESHOLD = Duration.ofHours(1);
 
         private int size = DEFAULT_SIZE;
@@ -178,21 +178,34 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
         private Builder() {}
 
+        /**
+         * Maximum number of samples to keep in the reservoir. Once this number is reached older samples are
+         * replaced (based on weight, with some amount of random jitter).
+         */
         public Builder size(int value) {
             this.size = value;
             return this;
         }
 
+        /**
+         * Alpha is the exponential decay factor. Higher values bias results more heavily toward newer values.
+         */
         public Builder alpha(double value) {
             this.alpha = value;
             return this;
         }
 
+        /**
+         * Interval at which this reservoir is rescaled.
+         */
         public Builder rescaleThreshold(Duration value) {
             this.rescaleThreshold = Preconditions.checkNotNull(value, "rescaleThreshold is required");
             return this;
         }
 
+        /**
+         * Clock instance used for decay.
+         */
         public Builder clock(Clock value) {
             this.clock = Preconditions.checkNotNull(value, "clock is required");
             return this;
