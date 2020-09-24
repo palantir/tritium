@@ -1,5 +1,11 @@
-type: improvement
-improvement:
-  description: Implement a lock-free exponential decaying reservoir
-  links:
-  - https://github.com/palantir/tritium/pull/860
+changes:
+  - type: improvement
+    improvement:
+      description: Implement a lock-free exponential decaying reservoir
+      links:
+      - https://github.com/palantir/tritium/pull/860
+  - type: improvement
+    improvement:
+      description: DefaultTaggedMetricRegistry uses the lock-free exponential decay reservoir for improved performance.
+      links:
+        - https://github.com/palantir/tritium/pull/860
