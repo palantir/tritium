@@ -35,6 +35,9 @@ import java.util.function.BiConsumer;
  * <a href="https://github.com/dropwizard/metrics/blob/0313a104bf785e87d7d14a18a82026225304c402/metrics-core/src/main/java/com/codahale/metrics/ExponentiallyDecayingReservoir.java">
  * ExponentiallyDecayingReservoir.java</a>, however it provides looser guarantees while completely avoiding locks.
  *
+ * This implementation is being contributed upstream:
+ * <a href="https://github.com/dropwizard/metrics/pull/1656">metrics#1656</a>
+ *
  * Looser guarantees:
  * <ul>
  *     <li> Updates which occur concurrently with rescaling may be discarded if the orphaned state node is updated after
@@ -54,10 +57,11 @@ import java.util.function.BiConsumer;
 @Beta
 public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
+    private static final double SECONDS_PER_NANO = .000000001D;
     private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoir, State> stateUpdater =
             AtomicReferenceFieldUpdater.newUpdater(LockFreeExponentiallyDecayingReservoir.class, State.class, "state");
 
-    private final double alpha;
+    private final double alphaNanos;
     private final int size;
     private final long rescaleThresholdNanos;
     private final Clock clock;
@@ -66,6 +70,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
     private final class State {
         private final long startTick;
+        // Count is updated after samples are successfully added to the map.
         private final AtomicLong count;
         private final ConcurrentSkipListMap<Double, WeightedSample> values;
 
@@ -77,32 +82,47 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
         private void update(long value, long timestampNanos) {
             double itemWeight = weight(timestampNanos - startTick);
-            WeightedSample sample = new WeightedSample(value, itemWeight);
             double priority = itemWeight / ThreadLocalRandom.current().nextDouble();
-
-            long newCount = count.incrementAndGet();
-            if (newCount <= size || values.isEmpty()) {
-                values.put(priority, sample);
-            } else {
-                Double first = values.firstKey();
-                if (first < priority && values.putIfAbsent(priority, sample) == null) {
-                    // Always remove an item
-                    while (values.remove(first) == null) {
-                        first = values.firstKey();
-                    }
-                }
+            long currentCount = count.get();
+            if (currentCount < size || values.firstKey() < priority) {
+                addSample(priority, value, itemWeight);
             }
         }
 
+        private void addSample(double priority, long value, double itemWeight) {
+            if (values.putIfAbsent(priority, new WeightedSample(value, itemWeight)) == null
+                    && count.incrementAndGet() > size) {
+                values.pollFirstEntry();
+            }
+        }
+
+        /* "A common feature of the above techniques—indeed, the key technique that
+         * allows us to track the decayed weights efficiently—is that they maintain
+         * counts and other quantities based on g(ti − L), and only scale by g(t − L)
+         * at query time. But while g(ti −L)/g(t−L) is guaranteed to lie between zero
+         * and one, the intermediate values of g(ti − L) could become very large. For
+         * polynomial functions, these values should not grow too large, and should be
+         * effectively represented in practice by floating point values without loss of
+         * precision. For exponential functions, these values could grow quite large as
+         * new values of (ti − L) become large, and potentially exceed the capacity of
+         * common floating point types. However, since the values stored by the
+         * algorithms are linear combinations of g values (scaled sums), they can be
+         * rescaled relative to a new landmark. That is, by the analysis of exponential
+         * decay in Section III-A, the choice of L does not affect the final result. We
+         * can therefore multiply each value based on L by a factor of exp(−α(L′ − L)),
+         * and obtain the correct value as if we had instead computed relative to a new
+         * landmark L′ (and then use this new L′ at query time). This can be done with
+         * a linear pass over whatever data structure is being used."
+         */
         State rescale(long newTick) {
             long durationNanos = newTick - startTick;
-            double durationSeconds = durationNanos / 1_000_000_000D;
-            double scalingFactor = Math.exp(-alpha * durationSeconds);
+            double scalingFactor = Math.exp(-alphaNanos * durationNanos);
             final AtomicLong newCount;
             ConcurrentSkipListMap<Double, WeightedSample> newValues = new ConcurrentSkipListMap<>();
             if (Double.compare(scalingFactor, 0) != 0) {
                 RescalingConsumer consumer = new RescalingConsumer(scalingFactor, newValues);
                 values.forEach(consumer);
+                // make sure the counter is in sync with the number of stored samples.
                 newCount = new AtomicLong(consumer.count);
             } else {
                 newCount = new AtomicLong();
@@ -135,7 +155,11 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     }
 
     private LockFreeExponentiallyDecayingReservoir(int size, double alpha, Duration rescaleThreshold, Clock clock) {
-        this.alpha = alpha;
+        // Scale alpha to nanoseconds
+        this.alphaNanos = alpha * SECONDS_PER_NANO;
+        if (Double.compare(alphaNanos, 0) == 0) {
+            throw new IllegalArgumentException("Alpha value " + alpha + " is to small to be scaled to nanoseconds");
+        }
         this.size = size;
         this.clock = clock;
         this.rescaleThresholdNanos = rescaleThreshold.toNanos();
@@ -177,14 +201,18 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     }
 
     private double weight(long durationNanos) {
-        double durationSeconds = durationNanos / 1_000_000_000D;
-        return Math.exp(alpha * durationSeconds);
+        return Math.exp(alphaNanos * durationNanos);
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * By default this uses a size of 1028 elements, which offers a 99.9%
+     * confidence level with a 5% margin of error assuming a normal distribution, and an alpha
+     * factor of 0.015, which heavily biases the reservoir to the past 5 minutes of measurements.
+     */
     public static final class Builder {
         private static final int DEFAULT_SIZE = 1028;
         private static final double DEFAULT_ALPHA = 0.015D;
