@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Simplify TracingInvocationEventHandler using `hasUnobservableTrace`
+  links:
+  - https://github.com/palantir/tritium/pull/866
