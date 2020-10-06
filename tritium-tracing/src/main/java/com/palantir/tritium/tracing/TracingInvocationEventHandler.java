@@ -93,14 +93,10 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
 
     static BooleanSupplier getEnabledSupplier(String component) {
         BooleanSupplier systemPropertyEnabled = InstrumentationProperties.getSystemPropertySupplier(component);
-        return () -> systemPropertyEnabled.getAsBoolean() && !inUnsampledTrace();
-    }
-
-    /**
-     * In an unsampled trace, there's no reason to record additional spans. Note that this will create new root spans if
-     * not present in order to create a new traceId regardless of sampling state to preserve behavior.
-     */
-    static boolean inUnsampledTrace() {
-        return Tracer.hasTraceId() && !Tracer.isTraceObservable();
+        return () -> systemPropertyEnabled.getAsBoolean()
+                // In an unsampled trace, there's no reason to record additional spans. Note that this will create
+                // new root spans if not present in order to create a new traceId regardless of sampling state to
+                // preserve behavior.
+                && !Tracer.hasUnobservableTrace();
     }
 }
