@@ -143,7 +143,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
             // It's possible that more values were added while the map was scanned, those with the
             // minimum priorities are removed.
             while (newCount > size) {
-                newValues.pollFirstEntry();
+                Preconditions.checkNotNull(newValues.pollFirstEntry(), "Expected an entry");
                 newCount--;
             }
             return new State(alphaNanos, size, newTick, newCount, newValues);
