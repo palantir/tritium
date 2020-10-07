@@ -1,0 +1,6 @@
+type: fix
+fix:
+  description: Fix LockFreeExponentiallyDecayingReservoir potential race allowing
+    additional samples to be retained on rescale
+  links:
+  - https://github.com/palantir/tritium/pull/869
