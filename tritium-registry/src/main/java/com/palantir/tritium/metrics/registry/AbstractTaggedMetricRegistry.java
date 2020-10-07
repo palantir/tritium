@@ -18,7 +18,9 @@ package com.palantir.tritium.metrics.registry;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.codahale.metrics.Clock;
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.ExponentialMovingAverages;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
@@ -49,10 +51,18 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
     private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
+    private final Supplier<Counter> counterSupplier;
+    private final Supplier<Histogram> histogramSupplier;
+    private final Supplier<Meter> meterSupplier;
+    private final Supplier<Timer> timerSupplier;
 
     @SuppressWarnings("PublicConstructorForAbstractClass") // public API (e.g. used by Dialogue TaggedMetrics)
     public AbstractTaggedMetricRegistry(Supplier<Reservoir> reservoirSupplier) {
         this.reservoirSupplier = checkNotNull(reservoirSupplier, "reservoirSupplier");
+        this.counterSupplier = checkNotNull(counterSupplier(), "counterSupplier");
+        this.histogramSupplier = checkNotNull(histogramSupplier(), "histogramSupplier");
+        this.meterSupplier = checkNotNull(meterSupplier(), "meterSupplier");
+        this.timerSupplier = checkNotNull(timerSupplier(), "timerSupplier");
     }
 
     /**
@@ -85,7 +95,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     @Nonnull
     @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Meter> meterSupplier() {
-        return Meter::new;
+        return () -> new Meter(new LazilyInitializedMovingAverages(ExponentialMovingAverages::new));
     }
 
     /**
@@ -96,7 +106,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     @Nonnull
     @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Timer> timerSupplier() {
-        return () -> new Timer(createReservoir());
+        return () -> new Timer(meterSupplier.get(), histogramSupplier.get(), Clock.defaultClock());
     }
 
     /**
@@ -111,12 +121,12 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Counter counter(MetricName metricName) {
-        return counter(metricName, counterSupplier());
+        return counter(metricName, counterSupplier);
     }
 
     @Override
-    public final Counter counter(MetricName metricName, Supplier<Counter> counterSupplier) {
-        return getOrAdd(metricName, Counter.class, counterSupplier);
+    public final Counter counter(MetricName metricName, Supplier<Counter> supplier) {
+        return getOrAdd(metricName, Counter.class, supplier);
     }
 
     @Override
@@ -145,32 +155,32 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final Histogram histogram(MetricName metricName) {
-        return histogram(metricName, histogramSupplier());
+        return histogram(metricName, histogramSupplier);
     }
 
     @Override
-    public final Histogram histogram(MetricName metricName, Supplier<Histogram> histogramSupplier) {
-        return getOrAdd(metricName, Histogram.class, histogramSupplier);
+    public final Histogram histogram(MetricName metricName, Supplier<Histogram> supplier) {
+        return getOrAdd(metricName, Histogram.class, supplier);
     }
 
     @Override
     public final Meter meter(MetricName metricName) {
-        return meter(metricName, meterSupplier());
+        return meter(metricName, meterSupplier);
     }
 
     @Override
-    public final Meter meter(MetricName metricName, Supplier<Meter> meterSupplier) {
-        return getOrAdd(metricName, Meter.class, meterSupplier);
+    public final Meter meter(MetricName metricName, Supplier<Meter> supplier) {
+        return getOrAdd(metricName, Meter.class, supplier);
     }
 
     @Override
     public final Timer timer(MetricName metricName) {
-        return timer(metricName, timerSupplier());
+        return timer(metricName, timerSupplier);
     }
 
     @Override
-    public final Timer timer(MetricName metricName, Supplier<Timer> timerSupplier) {
-        return getOrAdd(metricName, Timer.class, timerSupplier);
+    public final Timer timer(MetricName metricName, Supplier<Timer> supplier) {
+        return getOrAdd(metricName, Timer.class, supplier);
     }
 
     @Override

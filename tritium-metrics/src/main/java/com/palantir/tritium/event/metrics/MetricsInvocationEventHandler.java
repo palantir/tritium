@@ -34,6 +34,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /** {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics. */
+@SuppressWarnings("PreferJavaTimeOverload") // Allocation sensitive
 public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final String FAILURES = "failures";

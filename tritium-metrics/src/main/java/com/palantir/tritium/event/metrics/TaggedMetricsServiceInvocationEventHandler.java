@@ -48,6 +48,7 @@ import javax.annotation.Nullable;
  *   <li>Tag - cause: When an error is hit, this will be filled with the full class name of the cause.
  * </ul>
  */
+@SuppressWarnings("PreferJavaTimeOverload") // Allocation sensitive
 public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     private static final String FAILURES_METRIC_NAME = "failures";

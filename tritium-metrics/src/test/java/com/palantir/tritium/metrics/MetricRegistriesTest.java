@@ -112,7 +112,7 @@ final class MetricRegistriesTest {
         assertThat(histogramSnapshot.size()).isOne();
         assertThat(histogramSnapshot.getMax()).isEqualTo(42);
 
-        metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
+        metrics.timer("timer").update(Duration.ofMillis(123));
         assertThat(metrics.timer("timer").getCount()).isOne();
     }
 
@@ -129,7 +129,7 @@ final class MetricRegistriesTest {
         assertThat(histogramSnapshot.size()).isOne();
         assertThat(histogramSnapshot.getMax()).isEqualTo(42);
 
-        metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
+        metrics.timer("timer").update(Duration.ofMillis(123));
         assertThat(metrics.timer("timer").getCount()).isOne();
     }
 
@@ -172,7 +172,7 @@ final class MetricRegistriesTest {
         assertThat(histogram.getCount()).isEqualTo(2);
         assertThat(histogramSnapshot.size()).isZero();
 
-        metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
+        metrics.timer("timer").update(Duration.ofMillis(123));
         assertThat(metrics.timer("timer").getCount()).isOne();
     }
 
@@ -189,7 +189,7 @@ final class MetricRegistriesTest {
         assertThat(histogramSnapshot.size()).isOne();
         assertThat(histogramSnapshot.getMax()).isEqualTo(42);
 
-        metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
+        metrics.timer("timer").update(Duration.ofMillis(123));
         assertThat(metrics.timer("timer").getCount()).isOne();
     }
 

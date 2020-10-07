@@ -26,6 +26,6 @@ org.openjdk.jmh:* = 1.25.2
 org.slf4j:* = 1.7.30
 
 # dependency-upgrader:OFF
-# Explicitly maintaining back-compat with dropwizard metrics
-io.dropwizard.metrics:* = 3.2.5
+# Explicitly aligning with spark
+io.dropwizard.metrics:* = 4.1.12.1
 # dependency-upgrader:ON
