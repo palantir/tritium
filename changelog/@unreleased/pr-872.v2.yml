@@ -1,0 +1,7 @@
+type: improvement
+improvement:
+  description: Creating a counter in a TaggedMetricRegistry will now provide a `HasBeenUpdatedCounter`
+    instance, which allows users to differentiate whether the counter has ever been
+    updated and avoid writing down the count=0 case.
+  links:
+  - https://github.com/palantir/tritium/pull/872
