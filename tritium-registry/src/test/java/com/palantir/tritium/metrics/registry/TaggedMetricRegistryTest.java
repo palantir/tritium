@@ -211,7 +211,7 @@ final class TaggedMetricRegistryTest {
                 .isThrownBy(() -> registry.timer(METRIC_1))
                 .withMessageStartingWith("Metric name already used for different metric type: ")
                 .withMessageContaining("metricName=name")
-                .withMessageContaining("existingMetricType=Counter")
+                .withMessageContaining("existingMetricType=" + HasBeenUpdatedCounter.class.getSimpleName())
                 .withMessageContaining("newMetricType=Timer")
                 .withMessageContaining("safeTags={}");
     }
