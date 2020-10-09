@@ -23,9 +23,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class HasBeenUpdatedCounter extends Counter {
     private volatile boolean hasBeenUpdated = false;
 
-    HasBeenUpdatedCounter() {
-        super();
-    }
+    HasBeenUpdatedCounter() {}
 
     /**
      * Returns false if this counter has never been interacted with, allowing users to differentiate whether
@@ -42,9 +40,9 @@ public final class HasBeenUpdatedCounter extends Counter {
     }
 
     @Override
-    public void inc(long n) {
+    public void inc(long num) {
         hasBeenUpdated = true;
-        super.inc(n);
+        super.inc(num);
     }
 
     @Override
@@ -53,8 +51,8 @@ public final class HasBeenUpdatedCounter extends Counter {
     }
 
     @Override
-    public void dec(long n) {
+    public void dec(long num) {
         hasBeenUpdated = true;
-        super.dec(n);
+        super.dec(num);
     }
 }
