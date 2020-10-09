@@ -17,18 +17,17 @@
 package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Counter;
-import javax.annotation.concurrent.ThreadSafe;
 
-@ThreadSafe
 public final class HasBeenUpdatedCounter extends Counter {
-    private volatile boolean hasBeenUpdated = false;
+
+    private boolean hasBeenUpdated = false;
 
     HasBeenUpdatedCounter() {}
 
     /**
      * Returns false if this counter has never been interacted with, allowing users to differentiate whether
-     * {#getCount} returns 0 because the Counter has never been touched from the case where it has been incremented
-     * and then decremented.
+     * {#getCount} returns 0 because the Counter has never been touched or whether it has been incremented
+     * and then decremented back down to 0.
      */
     public boolean hasBeenUpdated() {
         return hasBeenUpdated;
