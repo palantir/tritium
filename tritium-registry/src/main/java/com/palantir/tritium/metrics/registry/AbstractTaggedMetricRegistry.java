@@ -63,7 +63,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     @Nonnull
     @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Counter> counterSupplier() {
-        return Counter::new;
+        return HasBeenUpdatedCounter::new;
     }
 
     /**
