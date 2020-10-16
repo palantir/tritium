@@ -173,12 +173,11 @@ public final class Instrumentation {
                 Logger logger,
                 LoggingLevel loggingLevel,
                 com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
-            return withLogging(logger, loggingLevel, (java.util.function.LongPredicate) durationPredicate);
+            return withLogging(logger, loggingLevel, (LongPredicate) durationPredicate);
         }
 
         @SuppressWarnings("FunctionalInterfaceClash")
-        public Builder<T, U> withLogging(
-                Logger logger, LoggingLevel loggingLevel, java.util.function.LongPredicate durationPredicate) {
+        public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel, LongPredicate durationPredicate) {
             this.handlers.add(new LoggingInvocationEventHandler(logger, loggingLevel, durationPredicate));
             return this;
         }
