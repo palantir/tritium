@@ -64,7 +64,7 @@ public class TracingInvocationEventHandlerTest {
         executor = MoreExecutors.newDirectExecutorService();
         handler = TracingInvocationEventHandler.create("testComponent");
         assertThat(handler).isInstanceOf(TracingInvocationEventHandler.class);
-        com.palantir.tracing.Tracer.setSampler(AlwaysSampler.INSTANCE);
+        Tracer.setSampler(AlwaysSampler.INSTANCE);
         Tracer.subscribe("sysout", System.out::println);
         Tracer.subscribe("mock", mockSpanObserver);
         Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
