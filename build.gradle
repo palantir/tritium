@@ -71,46 +71,37 @@ allprojects {
                 '-Xlint:deprecation',
                 '-Xlint:unchecked',
             ]
-            options.errorprone.disableWarningsInGeneratedCode = true
-            options.errorprone.errorproneArgs.addAll([
-                '-Werror',
-                '-Xlint:deprecation',
-                '-Xlint:unchecked',
-                '-XepDisableWarningsInGeneratedCode',
-                '-XepExcludedPaths:.*(generated).*',
-                '-XepOpt:NullAway:AnnotatedPackages=com.palantir',
-            ])
 
-            // warnings not explicitly provided by error-prone
-            Set<String> warningsToPromote = [
-                'NullAway',
-                'Slf4jLogsafeArgs',
-                'PreferCollectionTransform',
-                'PreferListsPartition',
-                'PreferSafeLoggingPreconditions',
-                'PreferSafeLoggableExceptions',
-            ]
+            options.errorprone {
+                disableWarningsInGeneratedCode = true
+                excludedPaths = '.*(generated).*'
 
-            com.google.errorprone.scanner.BuiltInCheckerSuppliers.ENABLED_WARNINGS.forEach {
-                check -> warningsToPromote << check.canonicalName()
+                errorproneArgs.addAll([
+                    '-Werror',
+                    '-Xlint:deprecation',
+                    '-Xlint:unchecked',
+                ])
+
+                option('NullAway:AnnotatedPackages', 'com.palantir')
+
+                // warnings not explicitly provided by error-prone
+                error 'NullAway',
+                    'Slf4jLogsafeArgs',
+                    'PreferCollectionTransform',
+                    'PreferListsPartition',
+                    'PreferSafeLoggingPreconditions',
+                    'PreferSafeLoggableExceptions'
+
+                // increase strictness for built-in error-prone checks
+                error((com.google.errorprone.scanner.BuiltInCheckerSuppliers.ENABLED_WARNINGS +
+                        com.google.errorprone.scanner.BuiltInCheckerSuppliers.DISABLED_CHECKS
+                    ).collect { it.canonicalName() } as String[])
+
+                disable 'AndroidJdkLibsChecker', // ignore Android
+                    'Java7ApiChecker', // tritium requires JDK8+
+                    'StaticOrDefaultInterfaceMethod', // Android specific
+                    'Var' // high noise, low signal
             }
-
-            com.google.errorprone.scanner.BuiltInCheckerSuppliers.DISABLED_CHECKS.forEach {
-                check -> warningsToPromote << check.canonicalName()
-            }
-
-            warningsToPromote.removeAll([
-                'AndroidJdkLibsChecker', // ignore Android
-                'Java7ApiChecker', // tritium requires JDK8+
-                'StaticOrDefaultInterfaceMethod', // Android specific
-                'Var', // high noise, low signal
-            ])
-
-            for (String checkName : warningsToPromote) {
-                options.errorprone.error(checkName)
-            }
-
-            logger.info("Error-prone args: {}", options.errorprone.errorproneArgs)
         }
     })
 
