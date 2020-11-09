@@ -33,6 +33,7 @@ allprojects {
     apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
     apply plugin: 'com.palantir.baseline-exact-dependencies'
+    apply plugin: 'com.palantir.baseline-fix-gradle-java'
     apply plugin: 'com.palantir.java-format'
 
     sourceCompatibility = '1.8'
