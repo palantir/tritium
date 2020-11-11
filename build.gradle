@@ -76,12 +76,6 @@ allprojects {
                 disableWarningsInGeneratedCode = true
                 excludedPaths = '.*(generated).*'
 
-                errorproneArgs.addAll([
-                    '-Werror',
-                    '-Xlint:deprecation',
-                    '-Xlint:unchecked',
-                ])
-
                 option('NullAway:AnnotatedPackages', 'com.palantir')
 
                 // warnings not explicitly provided by error-prone
