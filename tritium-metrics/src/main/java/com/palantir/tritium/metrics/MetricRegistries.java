@@ -39,6 +39,7 @@ import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
+import com.palantir.tritium.metrics.registry.LockFreeExponentiallyDecayingReservoir;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.ZoneOffset;
@@ -102,6 +103,18 @@ public final class MetricRegistries {
      */
     public static MetricRegistry createWithSlidingTimeWindowReservoirs(long window, TimeUnit windowUnit) {
         return createWithReservoirType(() -> Reservoirs.slidingTimeWindowArrayReservoir(window, windowUnit));
+    }
+
+    /**
+     * Create a {@link MetricRegistry metric registry} which produces timers and histograms backed by
+     * {@link LockFreeExponentiallyDecayingReservoir lock free expoentially decaying reservoirs}.
+     *
+     * @see LockFreeExponentiallyDecayingReservoir
+     * @return metric registry
+     */
+    public static MetricRegistry createWithLockFreeExponentiallyDecayingReservoirs() {
+        return createWithReservoirType(
+                () -> LockFreeExponentiallyDecayingReservoir.builder().build());
     }
 
     @VisibleForTesting

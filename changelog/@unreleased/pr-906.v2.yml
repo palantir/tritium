@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Expose a factory for untagged registries with lock-free reservoirs
+  links:
+  - https://github.com/palantir/tritium/pull/906
