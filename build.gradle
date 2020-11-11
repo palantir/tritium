@@ -73,9 +73,6 @@ allprojects {
             ]
 
             options.errorprone {
-                disableWarningsInGeneratedCode = true
-                excludedPaths = '.*(generated).*'
-
                 option('NullAway:AnnotatedPackages', 'com.palantir')
 
                 // warnings not explicitly provided by error-prone
