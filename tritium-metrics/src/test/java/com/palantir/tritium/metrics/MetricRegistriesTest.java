@@ -194,6 +194,23 @@ final class MetricRegistriesTest {
     }
 
     @Test
+    void testLockFreeDecayingHistogramReservoirs() {
+        metrics = MetricRegistries.createWithLockFreeExponentiallyDecayingReservoirs();
+        assertThat(metrics).isNotNull();
+
+        Histogram histogram = metrics.histogram("histogram");
+        histogram.update(42L);
+        assertThat(histogram.getCount()).isOne();
+        Snapshot histogramSnapshot = histogram.getSnapshot();
+        assertThat(histogram.getCount()).isOne();
+        assertThat(histogramSnapshot.size()).isOne();
+        assertThat(histogramSnapshot.getMax()).isEqualTo(42);
+
+        metrics.timer("timer").update(123, TimeUnit.MILLISECONDS);
+        assertThat(metrics.timer("timer").getCount()).isOne();
+    }
+
+    @Test
     void testRegisterCache() {
         MetricRegistries.registerCache(metrics, cache, "test", clock);
 
