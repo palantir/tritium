@@ -1,0 +1,7 @@
+type: improvement
+improvement:
+  description: |-
+    Use JDK 11 for building, maintain JDK 8 source & target compatibility for now.
+    Use circleci/openjdk:11-node for all circle tasks except JDK 8 unit test.
+  links:
+  - https://github.com/palantir/tritium/pull/922
