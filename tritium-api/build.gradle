@@ -4,6 +4,5 @@ apply plugin: 'com.palantir.revapi'
 dependencies {
 
     implementation 'com.google.code.findbugs:jsr305'
-
 }
 

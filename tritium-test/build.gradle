@@ -5,5 +5,4 @@ dependencies {
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'io.dropwizard.metrics:metrics-core'
-
 }
