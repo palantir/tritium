@@ -77,21 +77,21 @@ allprojects {
 
                 // warnings not explicitly provided by error-prone
                 error 'NullAway',
-                    'Slf4jLogsafeArgs',
-                    'PreferCollectionTransform',
-                    'PreferListsPartition',
-                    'PreferSafeLoggingPreconditions',
-                    'PreferSafeLoggableExceptions'
+                        'Slf4jLogsafeArgs',
+                        'PreferCollectionTransform',
+                        'PreferListsPartition',
+                        'PreferSafeLoggingPreconditions',
+                        'PreferSafeLoggableExceptions'
 
                 // increase strictness for built-in error-prone checks
                 error((com.google.errorprone.scanner.BuiltInCheckerSuppliers.ENABLED_WARNINGS +
                         com.google.errorprone.scanner.BuiltInCheckerSuppliers.DISABLED_CHECKS
-                    ).collect { it.canonicalName() } as String[])
+                        ).collect { it.canonicalName() } as String[])
 
                 disable 'AndroidJdkLibsChecker', // ignore Android
-                    'Java7ApiChecker', // tritium requires JDK8+
-                    'StaticOrDefaultInterfaceMethod', // Android specific
-                    'Var' // high noise, low signal
+                        'Java7ApiChecker', // tritium requires JDK8+
+                        'StaticOrDefaultInterfaceMethod', // Android specific
+                        'Var' // high noise, low signal
             }
         }
     })
