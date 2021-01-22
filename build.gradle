@@ -90,6 +90,7 @@ allprojects {
 
                 disable 'AndroidJdkLibsChecker', // ignore Android
                         'Java7ApiChecker', // tritium requires JDK8+
+                        'MemberName', // false positives on ignored lambda args
                         'StaticOrDefaultInterfaceMethod', // Android specific
                         'Var' // high noise, low signal
             }

@@ -38,8 +38,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     private static final ImmutableList<String> MESSAGE_PATTERNS = generateMessagePatterns(20);
 
-    public static final com.palantir.tritium.api.functions.LongPredicate LOG_ALL_DURATIONS =
-            com.palantir.tritium.api.functions.LongPredicate.TRUE;
+    public static final com.palantir.tritium.api.functions.LongPredicate LOG_ALL_DURATIONS = _input -> true;
 
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND =
             nanos -> TimeUnit.MICROSECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 1;
@@ -47,8 +46,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS =
             nanos -> TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 0;
 
-    public static final com.palantir.tritium.api.functions.LongPredicate NEVER_LOG =
-            com.palantir.tritium.api.functions.LongPredicate.FALSE;
+    public static final com.palantir.tritium.api.functions.LongPredicate NEVER_LOG = _input -> false;
 
     private final Logger logger;
     private final LoggingLevel level;
@@ -169,7 +167,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).getAsBoolean()) {
             return () -> isEnabled(logger, level);
         } else {
-            return BooleanSupplier.FALSE;
+            return () -> false;
         }
     }
 
