@@ -109,7 +109,8 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     // All message formats are generated with placeholders and safe args
-    @SuppressWarnings({"Slf4jConstantLogMessage", "Slf4jLogsafeArgs", "Var"})
+    // switch generates larger bytecode and is less JIT inline friendly
+    @SuppressWarnings({"UseEnumSwitch", "Slf4jConstantLogMessage", "Slf4jLogsafeArgs", "Var"})
     private void log(final String messageFormat, Object[] args) {
         if (level == LoggingLevel.TRACE) {
             logger.trace(messageFormat, args);
@@ -121,7 +122,8 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     // explicitly treating this method as slow path as invocation logging is typically only enabled at TRACE or DEBUG
-    @SuppressWarnings({"Slf4jConstantLogMessage", "Slf4jLogsafeArgs", "Var"})
+    // switch generates larger bytecode and is less JIT inline friendly
+    @SuppressWarnings({"UseEnumSwitch", "Slf4jConstantLogMessage", "Slf4jLogsafeArgs", "Var"})
     private void logUncommon(String messageFormat, Object[] args) {
         if (level == LoggingLevel.INFO) {
             logger.info(messageFormat, args);
@@ -134,6 +136,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         }
     }
 
+    @SuppressWarnings("UseEnumSwitch") // switch generates larger bytecode and is less JIT inline friendly
     static boolean isEnabled(Logger logger, LoggingLevel level) {
         if (level == LoggingLevel.TRACE) {
             return logger.isTraceEnabled();
@@ -145,6 +148,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     // explicitly treating this method as slow path as invocation logging is typically only enabled at TRACE or DEBUG
+    @SuppressWarnings("UseEnumSwitch") // switch generates larger bytecode and is less JIT inline friendly
     private static boolean isEnabledUncommon(Logger logger, LoggingLevel level) {
         if (level == LoggingLevel.INFO) {
             return logger.isInfoEnabled();
