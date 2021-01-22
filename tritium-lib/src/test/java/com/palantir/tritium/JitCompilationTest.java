@@ -24,13 +24,14 @@ import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.impl.TestLogs;
 
 public final class JitCompilationTest {
 
     private static final long COUNT = 5_000_000L;
+    private static final ImmutableList<String> strings =
+            ImmutableList.of("1", "22", "333", "4444", "55555", "666666", "7777777");
 
     static {
         // avoid logging
@@ -45,8 +46,6 @@ public final class JitCompilationTest {
     }
 
     private final TestImplementation delegate = new TestImplementation() {
-        private final List<String> strings = ImmutableList.of("1", "22", "333", "4444", "55555", "666666", "7777777");
-
         @Override
         public String test() {
             return strings.get(ThreadLocalRandom.current().nextInt(strings.size()));
