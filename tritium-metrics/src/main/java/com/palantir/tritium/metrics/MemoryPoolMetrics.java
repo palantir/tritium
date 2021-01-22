@@ -67,7 +67,7 @@ final class MemoryPoolMetrics {
                 protected Ratio getRatio() {
                     MemoryUsage memoryUsage = memoryPool.getUsage();
                     long maximum = memoryUsage.getMax() == -1 ? memoryUsage.getCommitted() : memoryUsage.getMax();
-                    return RatioGauge.Ratio.of(memoryUsage.getUsed(), maximum);
+                    return Ratio.of(memoryUsage.getUsed(), maximum);
                 }
             });
 
