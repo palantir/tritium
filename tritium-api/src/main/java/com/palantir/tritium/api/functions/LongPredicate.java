@@ -16,12 +16,23 @@
 
 package com.palantir.tritium.api.functions;
 
+@FunctionalInterface
 public interface LongPredicate extends java.util.function.LongPredicate {
 
-    /** {@link LongPredicate} that always returns true. */
+    /**
+     * {@link LongPredicate} that always returns true.
+     * @deprecated prefer simple inlined lambda for clarity
+     */
+    @Deprecated
+    @SuppressWarnings("MemberName") // public API
     LongPredicate TRUE = _input -> true;
 
-    /** {@link LongPredicate} that always returns false. */
+    /**
+     * {@link LongPredicate} that always returns false.
+     * @deprecated prefer simple inlined lambda for clarity
+     */
+    @Deprecated
+    @SuppressWarnings("MemberName") // public API
     LongPredicate FALSE = _input -> false;
 
     /**

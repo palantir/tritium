@@ -94,7 +94,7 @@ public final class InternalCacheMetrics {
             return new RatioGauge() {
                 @Override
                 protected Ratio getRatio() {
-                    return RatioGauge.Ratio.of(
+                    return Ratio.of(
                             hitCount().getValue().doubleValue(),
                             requestCount().getValue().doubleValue());
                 }
@@ -105,7 +105,7 @@ public final class InternalCacheMetrics {
             return new RatioGauge() {
                 @Override
                 protected Ratio getRatio() {
-                    return RatioGauge.Ratio.of(
+                    return Ratio.of(
                             missCount().getValue().doubleValue(),
                             requestCount().getValue().doubleValue());
                 }

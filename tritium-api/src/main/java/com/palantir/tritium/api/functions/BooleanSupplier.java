@@ -19,10 +19,20 @@ package com.palantir.tritium.api.functions;
 @FunctionalInterface
 public interface BooleanSupplier extends java.util.function.BooleanSupplier {
 
-    /** {@link BooleanSupplier} that always returns true. */
+    /**
+     * {@link BooleanSupplier} that always returns true.
+     * @deprecated prefer simple inlined lambda for clarity
+     */
+    @Deprecated
+    @SuppressWarnings("MemberName") // public API
     BooleanSupplier TRUE = () -> true;
 
-    /** {@link BooleanSupplier} that always returns false. */
+    /**
+     * {@link BooleanSupplier} that always returns false.
+     * @deprecated prefer simple inlined lambda for clarity
+     */
+    @Deprecated
+    @SuppressWarnings("MemberName") // public API
     BooleanSupplier FALSE = () -> false;
 
     /**
