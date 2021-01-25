@@ -13,12 +13,12 @@ dependencies {
     api 'io.dropwizard.metrics:metrics-core'
 
     implementation 'net.bytebuddy:byte-buddy'
-    implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.google.errorprone:error_prone_annotations'
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'io.dropwizard.metrics:metrics-core'
+    implementation 'org.checkerframework:checker-qual'
     implementation 'org.slf4j:slf4j-api'
 
     testImplementation project(':tritium-test')

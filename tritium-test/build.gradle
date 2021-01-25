@@ -1,8 +1,8 @@
 dependencies {
 
     implementation project(':tritium-api')
-    implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'io.dropwizard.metrics:metrics-core'
+    implementation 'org.checkerframework:checker-qual'
 }

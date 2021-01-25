@@ -19,7 +19,9 @@ package com.palantir.tritium.event;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.palantir.logsafe.SafeArg;
-import javax.annotation.Nullable;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

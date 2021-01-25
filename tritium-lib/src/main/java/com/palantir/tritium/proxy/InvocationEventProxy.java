@@ -24,15 +24,15 @@ import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InstrumentationFilters;
-import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

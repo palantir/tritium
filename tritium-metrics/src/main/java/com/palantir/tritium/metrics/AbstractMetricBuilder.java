@@ -19,7 +19,7 @@ package com.palantir.tritium.metrics;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Metric;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 abstract class AbstractMetricBuilder<T extends Metric> implements MetricBuilder<T> {
 

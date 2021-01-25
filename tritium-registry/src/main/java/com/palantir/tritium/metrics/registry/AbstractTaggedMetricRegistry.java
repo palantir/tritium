@@ -35,8 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +59,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
      *
      * @return counter supplier
      */
-    @Nonnull
+    @NonNull
     @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Counter> counterSupplier() {
         return Counter::new;
@@ -71,7 +70,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
      *
      * @return histogram supplier
      */
-    @Nonnull
+    @NonNull
     @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Histogram> histogramSupplier() {
         return () -> new Histogram(createReservoir());
@@ -82,7 +81,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
      *
      * @return meter supplier
      */
-    @Nonnull
+    @NonNull
     @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Meter> meterSupplier() {
         return Meter::new;
@@ -93,7 +92,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
      *
      * @return timer supplier
      */
-    @Nonnull
+    @NonNull
     @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Timer> timerSupplier() {
         return () -> new Timer(createReservoir());
@@ -104,7 +103,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
      *
      * @return reservoir supplier
      */
-    @Nonnull
+    @NonNull
     protected final Reservoir createReservoir() {
         return this.reservoirSupplier.get();
     }

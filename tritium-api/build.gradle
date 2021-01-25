@@ -2,7 +2,6 @@ apply from: "${rootDir}/gradle/publish-jar.gradle"
 apply plugin: 'com.palantir.revapi'
 
 dependencies {
-
-    implementation 'com.google.code.findbugs:jsr305'
+    implementation 'org.checkerframework:checker-qual'
 }
 

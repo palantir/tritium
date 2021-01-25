@@ -13,6 +13,7 @@ dependencies {
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
+    implementation 'org.checkerframework:checker-qual'
     implementation 'org.slf4j:slf4j-api'
 
     testImplementation 'org.assertj:assertj-core'

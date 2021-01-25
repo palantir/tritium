@@ -24,7 +24,6 @@ import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.SlidingTimeWindowArrayReservoir;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
 import org.HdrHistogram.Recorder;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
@@ -41,12 +40,12 @@ final class Reservoirs {
      * <p>See <a href="http://taint.org/2014/01/16/145944a.html">Don't use Timers with exponentially-decaying reservoirs
      * in Graphite </a>
      */
-    @Nonnull
+    @NonNull
     static Reservoir hdrHistogramReservoir() {
         return hdrHistogramReservoir(new Recorder(/* significant digits = */ 2));
     }
 
-    @Nonnull
+    @NonNull
     private static Reservoir hdrHistogramReservoir(Recorder recorder) {
         checkNotNull(recorder, "recorder");
         return new HdrHistogramReservoir(recorder);
@@ -72,12 +71,12 @@ final class Reservoirs {
      * @param windowUnit unit for window
      * @return reservoir
      */
-    @Nonnull
+    @NonNull
     static Reservoir slidingTimeWindowArrayReservoir(long window, TimeUnit windowUnit) {
         return slidingTimeWindowArrayReservoir(window, windowUnit, Clock.defaultClock());
     }
 
-    @Nonnull
+    @NonNull
     @VisibleForTesting
     static Reservoir slidingTimeWindowArrayReservoir(long window, TimeUnit windowUnit, Clock clock) {
         checkState(window > 0, "window must be positive");

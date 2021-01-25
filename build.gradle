@@ -35,8 +35,8 @@ allprojects {
     apply plugin: 'com.palantir.baseline-exact-dependencies'
     apply plugin: 'com.palantir.java-format'
 
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
 
     configurations {
         testImplementationClasspath {
@@ -50,6 +50,10 @@ allprojects {
         maven { url 'https://dl.bintray.com/marshallpierce/maven/' }
     }
 
+    java {
+        modularity.inferModulePath = true
+    }
+
     dependencies {
         constraints {
             rootConfiguration 'io.dropwizard.metrics:metrics-core', {
@@ -57,7 +61,6 @@ allprojects {
                 because "Spark still uses 3.X, which can't co-exist with 4.X"
             }
         }
-
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {

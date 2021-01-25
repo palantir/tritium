@@ -20,11 +20,13 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +65,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
         InvocationContext[] contexts = new InvocationContext[handlers.length];
 
         for (int i = 0; i < handlers.length; i++) {
@@ -81,21 +83,21 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
-    private void success(@Nonnull InvocationContext[] contexts, @Nullable Object result) {
+    private void success(@NonNull InvocationContext[] contexts, @Nullable Object result) {
         for (int i = contexts.length - 1; i > -1; i--) {
             handleSuccess(handlers[i], contexts[i], result);
         }
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+    public void onFailure(@Nullable InvocationContext context, @NonNull Throwable cause) {
         debugIfNullContext(context);
         if (context != null) {
             failure(((CompositeInvocationContext) context).getContexts(), cause);
         }
     }
 
-    private void failure(InvocationContext[] contexts, @Nonnull Throwable cause) {
+    private void failure(InvocationContext[] contexts, @NonNull Throwable cause) {
         for (int i = contexts.length - 1; i > -1; i--) {
             handleFailure(handlers[i], contexts[i], cause);
         }

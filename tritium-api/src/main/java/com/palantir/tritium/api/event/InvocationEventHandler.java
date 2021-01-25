@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2017 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2021 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.event;
+package com.palantir.tritium.api.event;
 
 import java.lang.reflect.Method;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Interface for handing invocation events.
@@ -46,7 +46,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      *     {@code java.lang.Boolean}.
      * @return the current invocation context. Null values are not recommended but are supported
      */
-    C preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args);
+    C preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args);
 
     /**
      * Invoked with the result of the invocation when it is successful.
@@ -65,5 +65,5 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
      * @param cause the throwable which caused the failure.
      */
-    void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause);
+    void onFailure(@Nullable InvocationContext context, @NonNull Throwable cause);
 }

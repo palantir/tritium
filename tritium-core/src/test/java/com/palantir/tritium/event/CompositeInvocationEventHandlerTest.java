@@ -24,13 +24,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.test.event.ThrowingInvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 final class CompositeInvocationEventHandlerTest {
@@ -95,7 +97,7 @@ final class CompositeInvocationEventHandlerTest {
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
                     @Override
                     public InvocationContext preInvocation(
-                            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+                            @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
                         return DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
@@ -112,7 +114,7 @@ final class CompositeInvocationEventHandlerTest {
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
                     @Override
                     public InvocationContext preInvocation(
-                            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+                            @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
                         return DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
@@ -212,7 +214,7 @@ final class CompositeInvocationEventHandlerTest {
     private static final class SimpleInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
         @Override
         public InvocationContext preInvocation(
-                @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+                @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
             return DefaultInvocationContext.of(instance, method, args);
         }
 
@@ -220,6 +222,6 @@ final class CompositeInvocationEventHandlerTest {
         public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {}
 
         @Override
-        public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {}
+        public void onFailure(@Nullable InvocationContext _context, @NonNull Throwable _cause) {}
     }
 }

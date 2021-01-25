@@ -17,7 +17,7 @@
 package com.palantir.tritium.api.event;
 
 import java.lang.reflect.Method;
-import javax.annotation.Nonnull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 @FunctionalInterface
 public interface InstrumentationFilter {
@@ -32,5 +32,5 @@ public interface InstrumentationFilter {
      *     {@code java.lang.Boolean}.
      * @return true if invocation should be instrumented, false if invocation should not be instrumented
      */
-    boolean shouldInstrument(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args);
+    boolean shouldInstrument(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args);
 }

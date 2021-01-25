@@ -17,12 +17,11 @@
 package com.palantir.tritium.microbenchmarks;
 
 import com.palantir.logsafe.Preconditions;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.openjdk.jmh.infra.Blackhole;
 
 final class BlackholeInvocationEventHandler implements InvocationEventHandler<InvocationContext> {
@@ -42,7 +41,7 @@ final class BlackholeInvocationEventHandler implements InvocationEventHandler<In
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
         consume(instance, method, args);
         return SINGLETON_CONTEXT;
     }
@@ -53,7 +52,7 @@ final class BlackholeInvocationEventHandler implements InvocationEventHandler<In
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+    public void onFailure(@Nullable InvocationContext context, @NonNull Throwable cause) {
         consume(context, cause);
     }
 

@@ -17,7 +17,7 @@
 package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Metric;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 interface MetricBuilder<T extends Metric> {
 

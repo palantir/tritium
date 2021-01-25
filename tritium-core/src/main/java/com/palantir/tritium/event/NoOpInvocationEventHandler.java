@@ -16,9 +16,11 @@
 
 package com.palantir.tritium.event;
 
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import java.lang.reflect.Method;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /** No-op implementation of {@link InvocationEventHandler}. */
 public enum NoOpInvocationEventHandler implements InvocationEventHandler<InvocationContext> {
@@ -30,7 +32,7 @@ public enum NoOpInvocationEventHandler implements InvocationEventHandler<Invocat
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 
@@ -40,7 +42,7 @@ public enum NoOpInvocationEventHandler implements InvocationEventHandler<Invocat
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {
+    public void onFailure(@Nullable InvocationContext _context, @NonNull Throwable _cause) {
         // no-op
     }
 }

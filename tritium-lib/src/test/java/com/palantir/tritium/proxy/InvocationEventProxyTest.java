@@ -27,18 +27,17 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationFilters;
-import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BooleanSupplier;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -98,7 +97,7 @@ public class InvocationEventProxyTest {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler() {
             @Override
             public InvocationContext preInvocation(
-                    @Nonnull Object _instance, @Nonnull Method _method, @Nonnull Object[] _args) {
+                    @NonNull Object _instance, @NonNull Method _method, @NonNull Object[] _args) {
                 throw new IllegalStateException("expected");
             }
         };
@@ -139,7 +138,7 @@ public class InvocationEventProxyTest {
             }
 
             @Override
-            public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {
+            public void onFailure(@Nullable InvocationContext _context, @NonNull Throwable _cause) {
                 throw new IllegalStateException("expected");
             }
         };
@@ -320,7 +319,7 @@ public class InvocationEventProxyTest {
 
         @Override
         public InvocationContext preInvocation(
-                @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+                @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
             return DefaultInvocationContext.of(instance, method, args);
         }
 
@@ -328,7 +327,7 @@ public class InvocationEventProxyTest {
         public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {}
 
         @Override
-        public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {}
+        public void onFailure(@Nullable InvocationContext _context, @NonNull Throwable _cause) {}
     }
 
     private static class TestProxy extends InvocationEventProxy {
