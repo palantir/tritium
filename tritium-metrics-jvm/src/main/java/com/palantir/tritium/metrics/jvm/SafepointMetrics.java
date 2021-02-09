@@ -37,7 +37,7 @@ final class SafepointMetrics {
         }
     }
 
-    @SuppressWarnings("UnnecessarilyFullyQualified") // would otherwise be an illegal import
+    @SuppressWarnings({"UnnecessarilyFullyQualified", "restriction"}) // would otherwise be an illegal import
     private static final class HotspotSafepointMetrics {
         private static final sun.management.HotspotRuntimeMBean runtime =
                 sun.management.ManagementFactoryHelper.getHotspotRuntimeMBean();
