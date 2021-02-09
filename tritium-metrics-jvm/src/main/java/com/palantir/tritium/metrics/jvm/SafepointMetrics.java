@@ -18,6 +18,18 @@ package com.palantir.tritium.metrics.jvm;
 
 import com.codahale.metrics.Gauge;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
+import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
+import net.bytebuddy.implementation.MethodCall;
+import net.bytebuddy.implementation.bytecode.ByteCodeAppender.Size;
+import net.bytebuddy.implementation.bytecode.StackManipulation;
+import net.bytebuddy.implementation.bytecode.member.FieldAccess;
+import net.bytebuddy.implementation.bytecode.member.MethodInvocation;
+import net.bytebuddy.jar.asm.Opcodes;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,24 +39,65 @@ import org.slf4j.LoggerFactory;
  * essentially provides the information of '+PrintGCApplicationStoppedTime' programmatically.
  */
 final class SafepointMetrics {
+    private static final String RUNTIME_FIELD = "runtime";
     private static final Logger log = LoggerFactory.getLogger(SafepointMetrics.class);
+    private static final Optional<Gauge<Long>> gauge = getGauge();
 
     static void register(TaggedMetricRegistry registry) {
-        try {
-            InternalJvmMetrics.of(registry).safepointTime(HotspotSafepointMetrics.getTotalSafepointTime());
-        } catch (NoClassDefFoundError e) {
-            log.info("Could not get the total safepoint time, these metrics will not be registered.", e);
-        }
+        gauge.ifPresent(g -> InternalJvmMetrics.of(registry).safepointTime(g));
     }
 
-    @SuppressWarnings({"UnnecessarilyFullyQualified", "restriction"}) // would otherwise be an illegal import
-    private static final class HotspotSafepointMetrics {
-        private static final sun.management.HotspotRuntimeMBean runtime =
-                sun.management.ManagementFactoryHelper.getHotspotRuntimeMBean();
-
-        public static Gauge<Long> getTotalSafepointTime() {
-            runtime.getTotalSafepointTime();
-            return runtime::getTotalSafepointTime;
+    /**
+     * This is somewhat involved. Basically, Java 11+ does not let you compile against sun.management classes when using
+     * the --release flag. But the classes are present at runtime. We used to use reflection to access this, but the
+     * reflection is caught by JDK internal security and eventually will be blocked by the module system.
+     * So, we generate a short class where we call the actual method, which does not have the same module boundary
+     * issues.
+     */
+    @SuppressWarnings("unchecked")
+    private static Optional<Gauge<Long>> getGauge() {
+        try {
+            Class<?> managementFactory = Class.forName("sun.management.ManagementFactoryHelper");
+            Class<?> runtimeMbean = Class.forName("sun.management.HotspotRuntimeMBean");
+            Gauge<Long> gaugeImplementation = (Gauge<Long>) new ByteBuddy()
+                    .subclass(Object.class)
+                    .implement(Gauge.class)
+                    .defineField(
+                            RUNTIME_FIELD, runtimeMbean, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL)
+                    .initializer((methodVisitor, implementationContext, instrumentedMethod) -> {
+                        StackManipulation.Size size = new StackManipulation.Compound(
+                                        // call method, put result on top of stack
+                                        MethodInvocation.invoke(new TypeDescription.ForLoadedType(managementFactory)
+                                                .getDeclaredMethods()
+                                                .filter(ElementMatchers.named("getHotspotRuntimeMBean"))
+                                                .getOnly()),
+                                        // write element on top of stack into appropriate field
+                                        FieldAccess.forField(implementationContext
+                                                        .getInstrumentedType()
+                                                        .getDeclaredFields()
+                                                        .filter(ElementMatchers.named(RUNTIME_FIELD))
+                                                        .getOnly())
+                                                .write())
+                                .apply(methodVisitor, implementationContext);
+                        return new Size(size.getMaximalSize(), instrumentedMethod.getStackSize());
+                    })
+                    .method(ElementMatchers.named("getValue"))
+                    .intercept(MethodCall.invoke(ElementMatchers.named("getTotalSafepointTime"))
+                            .onField("runtime"))
+                    .make()
+                    .load(SafepointMetrics.class.getClassLoader(), ClassLoadingStrategy.Default.WRAPPER)
+                    .getLoaded()
+                    .getConstructor()
+                    .newInstance();
+            gaugeImplementation.getValue();
+            return Optional.of(gaugeImplementation);
+        } catch (ClassNotFoundException
+                | NoSuchMethodException
+                | IllegalAccessException
+                | InstantiationException
+                | InvocationTargetException e) {
+            log.info("Could not get the total safepoint time, these metrics will not be registered.", e);
+            return Optional.empty();
         }
     }
 
