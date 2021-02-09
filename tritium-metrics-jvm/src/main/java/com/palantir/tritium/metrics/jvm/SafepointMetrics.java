@@ -48,12 +48,13 @@ final class SafepointMetrics {
 
     /**
      * This is somewhat involved. Basically, Java 11+ does not let you compile against sun.management classes when using
-     * the --release flag. But the classes are present at runtime. We used to use reflection to access this, but the
-     * reflection is caught by JDK internal security and eventually will be blocked by the module system.
+     * the --release flag, and they may or may not even be present. But the classes are present at runtime on JVMs we
+     * use, and the beans are available for diagnostics purposes (e.g. JMX). We used to use reflection to access
+     * this, but the reflection is caught by JDK internal security and eventually will be blocked by the module system.
      * So, we generate a short class where we call the actual method, which does not have the same module boundary
      * issues.
      *
-     * Code should be equivalent to:
+     * Code should end up being equivalent to:
      *
      * <pre>
      *     class SomeGauge implements Gauge {
@@ -64,6 +65,8 @@ final class SafepointMetrics {
      *         }
      *     }
      * </pre>
+     *
+     * but is generated at runtime.
      *
      */
     @SuppressWarnings("unchecked")
