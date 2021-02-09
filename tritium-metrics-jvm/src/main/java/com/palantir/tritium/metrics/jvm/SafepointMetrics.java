@@ -103,7 +103,7 @@ final class SafepointMetrics {
                     .newInstance();
             gaugeImplementation.getValue();
             return Optional.of(gaugeImplementation);
-        } catch (ReflectiveOperationException e) {
+        } catch (ReflectiveOperationException | NoClassDefFoundError e) {
             log.info("Could not get the total safepoint time, these metrics will not be registered.", e);
             return Optional.empty();
         }
