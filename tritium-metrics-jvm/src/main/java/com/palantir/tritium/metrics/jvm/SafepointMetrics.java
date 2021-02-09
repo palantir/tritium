@@ -18,7 +18,6 @@ package com.palantir.tritium.metrics.jvm;
 
 import com.codahale.metrics.Gauge;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.type.TypeDescription;
@@ -104,11 +103,7 @@ final class SafepointMetrics {
                     .newInstance();
             gaugeImplementation.getValue();
             return Optional.of(gaugeImplementation);
-        } catch (ClassNotFoundException
-                | NoSuchMethodException
-                | IllegalAccessException
-                | InstantiationException
-                | InvocationTargetException e) {
+        } catch (ReflectiveOperationException e) {
             log.info("Could not get the total safepoint time, these metrics will not be registered.", e);
             return Optional.empty();
         }
