@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Safepoint metrics no longer return illegal access warnings
+  links:
+  - https://github.com/palantir/tritium/pull/989
