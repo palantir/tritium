@@ -53,6 +53,19 @@ final class SafepointMetrics {
      * reflection is caught by JDK internal security and eventually will be blocked by the module system.
      * So, we generate a short class where we call the actual method, which does not have the same module boundary
      * issues.
+     *
+     * Code should be equivalent to:
+     *
+     * <pre>
+     *     class SomeGauge implements Gauge {
+     *         private static final HotspotRuntimeMBean runtime = ManagementFactoryHelper.getHotspotRuntimeMBean();
+     *
+     *         public Object getValue() {
+     *             return runtime.getTotalSafepointTime();
+     *         }
+     *     }
+     * </pre>
+     *
      */
     @SuppressWarnings("unchecked")
     private static Optional<Gauge<Long>> getGauge() {
