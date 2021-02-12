@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractInvocationEventHandler<C extends InvocationContext> implements InvocationEventHandler<C> {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationEventHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractInvocationEventHandler.class);
 
     private static final Object[] NO_ARGS = {};
 
@@ -79,7 +79,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      */
     protected final void debugIfNullContext(@Nullable InvocationContext context) {
         if (context == null) {
-            logger.debug(
+            log.debug(
                     "{} encountered null metric context, likely due to exception in preInvocation",
                     safeClassName(getClass()));
         }
