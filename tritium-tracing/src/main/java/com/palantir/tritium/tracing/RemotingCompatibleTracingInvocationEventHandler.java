@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 public final class RemotingCompatibleTracingInvocationEventHandler
         extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger logger = LoggerFactory.getLogger(RemotingCompatibleTracingInvocationEventHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(RemotingCompatibleTracingInvocationEventHandler.class);
 
     private static final AtomicBoolean shouldLogFallbackError = new AtomicBoolean();
 
@@ -76,7 +76,7 @@ public final class RemotingCompatibleTracingInvocationEventHandler
             }
         } catch (ReflectiveOperationException e) {
             // expected case when remoting3 is not on classpath
-            logger.debug("Remoting3 unavailable, using Java tracing", e);
+            log.debug("Remoting3 unavailable, using Java tracing", e);
         }
 
         return JavaTracingTracer.INSTANCE;
@@ -157,7 +157,7 @@ public final class RemotingCompatibleTracingInvocationEventHandler
                         wrappedTrace.getClass().getPackage().getName();
                 if (!Objects.equals(expectedTracingPackage, actualTracingPackage)) {
                     if (shouldLogFallbackError.compareAndSet(false, true)) {
-                        logger.error(
+                        log.error(
                                 "Multiple tracing implementations detected, expected '{}' but found '{}',"
                                         + " using legacy remoting3 tracing for backward compatibility",
                                 SafeArg.of("expectedPackage", expectedTracingPackage),

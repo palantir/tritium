@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 abstract class InvocationEventProxy implements InvocationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(InvocationEventProxy.class);
+    private static final Logger log = LoggerFactory.getLogger(InvocationEventProxy.class);
     private static final Object[] EMPTY_ARRAY = new Object[0];
 
     private final InstrumentationFilter filter;
@@ -194,8 +194,8 @@ abstract class InvocationEventProxy implements InvocationHandler {
 
     static void logInvocationWarning(
             String event, @Nullable InvocationContext context, @Nullable Object result, Throwable cause) {
-        if (logger.isWarnEnabled()) {
-            logger.warn(
+        if (log.isWarnEnabled()) {
+            log.warn(
                     "{} occurred handling '{}' ({}, {}): {}",
                     safeSimpleClassName("cause", cause),
                     SafeArg.of("event", event),
@@ -206,8 +206,8 @@ abstract class InvocationEventProxy implements InvocationHandler {
     }
 
     static void logInvocationWarning(String event, Object instance, Method method, Throwable cause) {
-        if (logger.isWarnEnabled()) {
-            logger.warn(
+        if (log.isWarnEnabled()) {
+            log.warn(
                     "{} occurred handling '{}' invocation of {} {} on {} instance: {}",
                     safeSimpleClassName("cause", cause),
                     SafeArg.of("event", event),

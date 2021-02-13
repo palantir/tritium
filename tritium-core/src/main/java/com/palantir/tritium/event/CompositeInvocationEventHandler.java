@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public final class CompositeInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger logger = LoggerFactory.getLogger(CompositeInvocationEventHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(CompositeInvocationEventHandler.class);
 
     private final InvocationEventHandler<InvocationContext>[] handlers;
 
@@ -128,7 +128,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
             @Nullable Object instance,
             Method method,
             @Nullable Exception exception) {
-        logger.warn(
+        log.warn(
                 "Exception handling preInvocation({}): invocation of {}.{} on {} threw",
                 UnsafeArg.of("handler", handler),
                 SafeArg.of("class", method.getDeclaringClass().getCanonicalName()),
@@ -161,7 +161,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private static void eventFailed(
             String event, @Nullable InvocationContext context, @Nullable Object result, RuntimeException exception) {
-        logger.warn(
+        log.warn(
                 "Exception handling {}({}, {})",
                 SafeArg.of("event", event),
                 UnsafeArg.of("context", context),
