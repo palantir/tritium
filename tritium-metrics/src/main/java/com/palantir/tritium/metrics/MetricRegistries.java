@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
 /** Utilities for working with {@link MetricRegistry} instances. */
 public final class MetricRegistries {
 
-    private static final Logger logger = LoggerFactory.getLogger(MetricRegistries.class);
+    private static final Logger log = LoggerFactory.getLogger(MetricRegistries.class);
 
     static final String RESERVOIR_TYPE_METRIC_NAME = MetricRegistry.name(MetricRegistries.class, "reservoir.type");
 
@@ -461,7 +461,7 @@ public final class MetricRegistries {
                 }
 
                 if (replace && registry.remove(name)) {
-                    logger.info(
+                    log.info(
                             "Removed existing registered metric with name {}: {}",
                             SafeArg.of("name", name),
                             // #256: Metric implementations are necessarily json serializable
@@ -469,7 +469,7 @@ public final class MetricRegistries {
                     registry.register(name, metric);
                     return metric;
                 } else {
-                    logger.warn(
+                    log.warn(
                             "Metric already registered at this name. Name: {}, existing metric: {}",
                             SafeArg.of("name", name),
                             // #256: Metric implementations are necessarily json serializable
