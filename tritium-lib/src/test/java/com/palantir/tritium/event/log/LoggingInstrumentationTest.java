@@ -105,7 +105,7 @@ public class LoggingInstrumentationTest {
                 .withHandler(handler)
                 .build();
 
-        assertThat(LoggingInvocationEventHandler.isEnabled(logger, level)).isTrue();
+        assertThat(handler.isEnabled()).isTrue();
 
         assertThat(delegate.invocationCount()).isZero();
 

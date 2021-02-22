@@ -21,6 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.Arg;
 import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
@@ -29,6 +30,7 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -48,7 +50,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     public static final com.palantir.tritium.api.functions.LongPredicate NEVER_LOG = _input -> false;
 
-    private final Logger logger;
+    private final BiConsumer<String, Object[]> logger;
     private final LoggingLevel level;
     private final java.util.function.LongPredicate durationPredicate;
 
@@ -71,9 +73,10 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     @SuppressWarnings("FunctionalInterfaceClash") // back compat
     public LoggingInvocationEventHandler(
             Logger logger, LoggingLevel level, java.util.function.LongPredicate durationPredicate) {
-        super((java.util.function.BooleanSupplier) createEnabledSupplier(logger, level));
-        this.logger = checkNotNull(logger, "logger");
-        this.level = checkNotNull(level, "level");
+        super((java.util.function.BooleanSupplier)
+                createEnabledSupplier(checkNotNull(logger, "logger"), checkNotNull(level, "level")));
+        this.level = level;
+        this.logger = bindToLevel(logger, level);
         this.durationPredicate = checkNotNull(durationPredicate, "durationPredicate");
     }
 
@@ -104,72 +107,61 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     private void logInvocation(Method method, @Nullable Object[] nullableArgs, long durationNanos) {
         if (isEnabled() && durationPredicate.test(durationNanos)) {
             Object[] args = nullToEmpty(nullableArgs);
-            log(getMessagePattern(args), getLogParams(method, args, durationNanos, level));
+            logger.accept(getMessagePattern(args), getLogParams(method, args, durationNanos, level));
         }
     }
 
-    // All message formats are generated with placeholders and safe args
-    // switch generates larger bytecode and is less JIT inline friendly
-    @SuppressWarnings({"UseEnumSwitch", "Slf4jConstantLogMessage", "Slf4jLogsafeArgs", "Var"})
-    private void log(final String messageFormat, Object[] args) {
-        if (level == LoggingLevel.TRACE) {
-            logger.trace(messageFormat, args);
-        } else if (level == LoggingLevel.DEBUG) {
-            logger.debug(messageFormat, args);
-        } else {
-            logUncommon(messageFormat, args);
-        }
-    }
-
-    // explicitly treating this method as slow path as invocation logging is typically only enabled at TRACE or DEBUG
-    // switch generates larger bytecode and is less JIT inline friendly
-    @SuppressWarnings({"UseEnumSwitch", "Slf4jConstantLogMessage", "Slf4jLogsafeArgs", "Var"})
-    private void logUncommon(String messageFormat, Object[] args) {
-        if (level == LoggingLevel.INFO) {
-            logger.info(messageFormat, args);
-        } else if (level == LoggingLevel.WARN) {
-            logger.warn(messageFormat, args);
-        } else if (level == LoggingLevel.ERROR) {
-            logger.error(messageFormat, args);
-        } else {
-            throw invalidLoggingLevel(level);
-        }
-    }
-
-    @SuppressWarnings("UseEnumSwitch") // switch generates larger bytecode and is less JIT inline friendly
-    static boolean isEnabled(Logger logger, LoggingLevel level) {
-        if (level == LoggingLevel.TRACE) {
-            return logger.isTraceEnabled();
-        } else if (level == LoggingLevel.DEBUG) {
-            return logger.isDebugEnabled();
-        } else {
-            return isEnabledUncommon(logger, level);
-        }
-    }
-
-    // explicitly treating this method as slow path as invocation logging is typically only enabled at TRACE or DEBUG
-    @SuppressWarnings("UseEnumSwitch") // switch generates larger bytecode and is less JIT inline friendly
-    private static boolean isEnabledUncommon(Logger logger, LoggingLevel level) {
-        if (level == LoggingLevel.INFO) {
-            return logger.isInfoEnabled();
-        } else if (level == LoggingLevel.WARN) {
-            return logger.isWarnEnabled();
-        } else if (level == LoggingLevel.ERROR) {
-            return logger.isErrorEnabled();
+    /**
+     * Precompute the logging function based on the configured level.
+     * This visitor should be used initially when the handler is created
+     * to avoid additional checks on each invocation.
+     * <ul>
+     *     <li>{@link Logger#trace(String, Object...)}</li>
+     *     <li>{@link Logger#debug(String, Object...)}</li>
+     *     <li>{@link Logger#info(String, Object...)}</li>
+     *     <li>{@link Logger#warn(String, Object...)}</li>
+     *     <li>{@link Logger#error(String, Object...)}</li>
+     * </ul>
+     */
+    @SuppressWarnings("NoFunctionalReturnType") // internal functionality
+    private static BiConsumer<String, Object[]> bindToLevel(Logger logger, LoggingLevel level) {
+        switch (level) {
+            case TRACE:
+                return logger::trace;
+            case DEBUG:
+                return logger::debug;
+            case INFO:
+                return logger::info;
+            case WARN:
+                return logger::warn;
+            case ERROR:
+                return logger::error;
         }
         throw invalidLoggingLevel(level);
     }
 
-    private static IllegalArgumentException invalidLoggingLevel(LoggingLevel level) {
+    private static SafeIllegalArgumentException invalidLoggingLevel(LoggingLevel level) {
         checkNotNull(level, "level");
-        return new IllegalArgumentException("Unsupported logging level " + level);
+        return new SafeIllegalArgumentException("Unsupported logging level", SafeArg.of("level", level));
     }
 
     private static BooleanSupplier createEnabledSupplier(Logger logger, LoggingLevel level) {
         checkNotNull(logger, "logger");
         checkNotNull(level, "level");
         if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).getAsBoolean()) {
-            return () -> isEnabled(logger, level);
+            switch (level) {
+                case TRACE:
+                    return logger::isTraceEnabled;
+                case DEBUG:
+                    return logger::isDebugEnabled;
+                case INFO:
+                    return logger::isInfoEnabled;
+                case WARN:
+                    return logger::isWarnEnabled;
+                case ERROR:
+                    return logger::isErrorEnabled;
+            }
+            throw invalidLoggingLevel(level);
         } else {
             return () -> false;
         }
