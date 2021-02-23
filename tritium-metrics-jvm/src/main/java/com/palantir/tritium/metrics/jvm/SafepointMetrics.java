@@ -16,10 +16,10 @@
 
 package com.palantir.tritium.metrics.jvm;
 
-import com.codahale.metrics.Gauge;
+import com.palantir.jvm.diagnostics.JvmDiagnostics;
+import com.palantir.jvm.diagnostics.SafepointTimeAccessor;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,27 +31,12 @@ import org.slf4j.LoggerFactory;
 final class SafepointMetrics {
     private static final Logger log = LoggerFactory.getLogger(SafepointMetrics.class);
 
-    // The reflection is so that we can use this on non-Hotspot JVMs
-    @SuppressWarnings("LiteralClassName")
     static void register(TaggedMetricRegistry registry) {
-        try {
-            Class<?> managementFactoryHelper = Class.forName("sun.management.ManagementFactoryHelper");
-            Method getHotspotRuntimeMBean = managementFactoryHelper.getMethod("getHotspotRuntimeMBean");
-            Object hotspotRuntimeMBean = getHotspotRuntimeMBean.invoke(null);
-            Method getTotalSafepointTime = hotspotRuntimeMBean.getClass().getMethod("getTotalSafepointTime");
-            getTotalSafepointTime.setAccessible(true);
-            Gauge<Long> gauge = () -> (Long) invoke(getTotalSafepointTime, hotspotRuntimeMBean);
-            InternalJvmMetrics.of(registry).safepointTime(gauge);
-        } catch (ReflectiveOperationException e) {
-            log.info("Could not get the total safepoint time, these metrics will not be registered.", e);
-        }
-    }
-
-    private static Object invoke(Method method, Object object) {
-        try {
-            return method.invoke(object);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException(e);
+        Optional<SafepointTimeAccessor> safepointTimeAccessor = JvmDiagnostics.totalSafepointTime();
+        if (safepointTimeAccessor.isPresent()) {
+            InternalJvmMetrics.of(registry).safepointTime(safepointTimeAccessor.get()::safepointTimeMilliseconds);
+        } else {
+            log.info("Could not get the total safepoint time, these metrics will not be registered.");
         }
     }
 
