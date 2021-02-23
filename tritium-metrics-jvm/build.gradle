@@ -8,6 +8,7 @@ dependencies {
     api 'io.dropwizard.metrics:metrics-core'
 
     implementation project(':tritium-metrics')
+    implementation 'com.palantir.jvm.diagnostics:jvm-diagnostics'
     implementation 'io.dropwizard.metrics:metrics-core'
     implementation 'io.dropwizard.metrics:metrics-jvm'
     implementation 'com.google.guava:guava'
