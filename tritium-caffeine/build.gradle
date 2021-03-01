@@ -23,9 +23,5 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
-
-    // Work around https://github.com/immutables/immutables/issues/291
-    compileOnly 'org.immutables:value::annotations'
-    testCompileOnly 'org.immutables:value::annotations'
 }
 

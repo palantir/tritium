@@ -21,10 +21,7 @@ import java.util.SortedMap;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Value.Style(
-        get = {"get*", "is*"},
-        overshadowImplementation = true,
-        visibility = Value.Style.ImplementationVisibility.PACKAGE)
+@ImmutablesStyle
 public interface MetricName {
 
     /**

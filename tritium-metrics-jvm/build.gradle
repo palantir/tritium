@@ -19,9 +19,5 @@ dependencies {
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
-
-    // Work around https://github.com/immutables/immutables/issues/291
-    compileOnly 'org.immutables:value::annotations'
-    testCompileOnly 'org.immutables:value::annotations'
 }
 

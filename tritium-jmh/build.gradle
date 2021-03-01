@@ -45,9 +45,4 @@ dependencies {
     jmh 'com.palantir.safe-logging:safe-logging'
     jmh 'com.palantir.tracing:tracing'
     jmh 'io.dropwizard.metrics:metrics-core'
-
-    // Work around https://github.com/immutables/immutables/issues/291
-    compileOnly 'org.immutables:value::annotations'
-    jmhCompileOnly 'org.immutables:value::annotations'
-    testCompileOnly 'org.immutables:value::annotations'
 }
