@@ -6,6 +6,7 @@ dependencies {
     annotationProcessor 'com.google.auto.service:auto-service'
     annotationProcessor 'org.immutables:value'
     compileOnly 'com.google.auto.service:auto-service'
+    compileOnly 'org.immutables:value::annotations'
 
     api 'io.dropwizard.metrics:metrics-core'
 
@@ -23,9 +24,5 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testImplementation 'org.mockito:mockito-core'
-
-    // Work around https://github.com/immutables/immutables/issues/291
-    compileOnly 'org.immutables:value::annotations'
-    testCompileOnly 'org.immutables:value::annotations'
 }
 

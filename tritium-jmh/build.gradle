@@ -40,14 +40,8 @@ dependencies {
     jmh project(':tritium-tracing')
     jmh 'com.google.code.findbugs:jsr305'
     jmh 'com.google.guava:guava'
-    jmh 'com.palantir.remoting3:tracing'
     jmh 'com.palantir.safe-logging:preconditions'
     jmh 'com.palantir.safe-logging:safe-logging'
     jmh 'com.palantir.tracing:tracing'
     jmh 'io.dropwizard.metrics:metrics-core'
-
-    // Work around https://github.com/immutables/immutables/issues/291
-    compileOnly 'org.immutables:value::annotations'
-    jmhCompileOnly 'org.immutables:value::annotations'
-    testCompileOnly 'org.immutables:value::annotations'
 }

@@ -27,7 +27,6 @@ import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.proxy.Instrumentation;
-import com.palantir.tritium.tracing.RemotingCompatibleTracingInvocationEventHandler;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongPredicate;
@@ -92,7 +91,6 @@ public class ProxyBenchmark {
     private Service instrumentedWithEverything;
     private Service instrumentedWithTracing;
     private Service instrumentedWithTracingNested;
-    private Service instrumentedWithRemoting;
     private Service instrumentedDefaultUntagged;
     private Service instrumentedDefaultTagged;
     private Runnable instrumentedFailing;
@@ -138,11 +136,6 @@ public class ProxyBenchmark {
                 .withHandlers(IntStream.range(0, 10)
                         .mapToObj(index -> TracingInvocationEventHandler.create(serviceInterface.getName() + index))
                         .collect(ImmutableList.toImmutableList()))
-                .build();
-
-        instrumentedWithRemoting = Instrumentation.builder(serviceInterface, raw)
-                .withHandler(new RemotingCompatibleTracingInvocationEventHandler(
-                        serviceInterface.getName(), Remoting3Tracer.INSTANCE))
                 .build();
 
         instrumentedWithEverything = Instrumentation.builder(serviceInterface, raw)
@@ -225,11 +218,6 @@ public class ProxyBenchmark {
         return instrumentedWithTracingNested.echo("test");
     }
 
-    // @Benchmark
-    public String instrumentedWithRemoting() {
-        return instrumentedWithRemoting.echo("test");
-    }
-
     @Benchmark
     public String instrumentedWithEverything() {
         return instrumentedWithEverything.echo("test");
@@ -285,19 +273,5 @@ public class ProxyBenchmark {
                 .forks(1)
                 .build();
         new Runner(options).run();
-    }
-
-    public enum Remoting3Tracer implements com.palantir.tritium.tracing.Tracer {
-        INSTANCE;
-
-        @Override
-        public void startSpan(String operationName) {
-            com.palantir.remoting3.tracing.Tracer.startSpan(operationName);
-        }
-
-        @Override
-        public void completeSpan() {
-            com.palantir.remoting3.tracing.Tracer.fastCompleteSpan();
-        }
     }
 }

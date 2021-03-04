@@ -4,8 +4,6 @@ apply plugin: 'com.palantir.metric-schema'
 
 dependencies {
 
-    annotationProcessor "org.immutables:value"
-
     api project(':tritium-api')
     api project(':tritium-core')
     api project(':tritium-registry')
@@ -33,9 +31,5 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
-
-    // Work around https://github.com/immutables/immutables/issues/291
-    compileOnly 'org.immutables:value::annotations'
-    testCompileOnly 'org.immutables:value::annotations'
 }
 
