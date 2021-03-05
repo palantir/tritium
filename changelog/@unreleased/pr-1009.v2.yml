@@ -1,0 +1,9 @@
+type: improvement
+improvement:
+  description: |-
+    Methods returning `AutoCloseable` marked as `@MustBeClosed`
+
+    ./gradlew clean compileJava compileTestJava -PerrorProneApply=AutoCloseableMustBeClosed
+    ./gradlew format
+  links:
+  - https://github.com/palantir/tritium/pull/1009
