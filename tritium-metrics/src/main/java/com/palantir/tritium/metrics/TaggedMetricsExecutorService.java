@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.Nullable;
 
 final class TaggedMetricsExecutorService implements ExecutorService {
 
@@ -37,16 +38,19 @@ final class TaggedMetricsExecutorService implements ExecutorService {
     private final Counter running;
     private final Meter completed;
     private final Timer duration;
+
+    @Nullable
     private final Timer queuedDuration;
 
-    TaggedMetricsExecutorService(ExecutorService delegate, ExecutorMetrics metrics, String name) {
+    TaggedMetricsExecutorService(
+            ExecutorService delegate, ExecutorMetrics metrics, String name, boolean reportQueuedDuration) {
         this.delegate = delegate;
 
         this.submitted = metrics.submitted(name);
         this.running = metrics.running(name);
         this.completed = metrics.completed(name);
         this.duration = metrics.duration(name);
-        this.queuedDuration = metrics.queuedDuration(name);
+        this.queuedDuration = reportQueuedDuration ? metrics.queuedDuration(name) : null;
     }
 
     @Override
@@ -136,11 +140,18 @@ final class TaggedMetricsExecutorService implements ExecutorService {
         return delegate.awaitTermination(timeout, unit);
     }
 
+    @Nullable
+    private Timer.Context startQueueTimerIfEnabled() {
+        Timer queuedDurationTimer = queuedDuration;
+        return queuedDurationTimer == null ? null : queuedDurationTimer.time();
+    }
+
     private final class TaggedMetricsRunnable implements Runnable {
 
         private final Runnable task;
 
-        private final Timer.Context queuedContext = queuedDuration.time();
+        @Nullable
+        private final Timer.Context queuedContext = startQueueTimerIfEnabled();
 
         TaggedMetricsRunnable(Runnable task) {
             this.task = task;
@@ -148,7 +159,7 @@ final class TaggedMetricsExecutorService implements ExecutorService {
 
         @Override
         public void run() {
-            queuedContext.stop();
+            stopQueueTimer();
             running.inc();
             try (Timer.Context ignored = duration.time()) {
                 task.run();
@@ -157,13 +168,21 @@ final class TaggedMetricsExecutorService implements ExecutorService {
                 completed.mark();
             }
         }
+
+        void stopQueueTimer() {
+            Timer.Context queuedContextSnapshot = queuedContext;
+            if (queuedContextSnapshot != null) {
+                queuedContextSnapshot.stop();
+            }
+        }
     }
 
     private final class TaggedMetricsCallable<T> implements Callable<T> {
 
         private final Callable<T> task;
 
-        private final Timer.Context queuedContext = queuedDuration.time();
+        @Nullable
+        private final Timer.Context queuedContext = startQueueTimerIfEnabled();
 
         TaggedMetricsCallable(Callable<T> task) {
             this.task = task;
@@ -171,13 +190,20 @@ final class TaggedMetricsExecutorService implements ExecutorService {
 
         @Override
         public T call() throws Exception {
-            queuedContext.stop();
+            stopQueueTimer();
             running.inc();
             try (Timer.Context ignored = duration.time()) {
                 return task.call();
             } finally {
                 running.dec();
                 completed.mark();
+            }
+        }
+
+        void stopQueueTimer() {
+            Timer.Context queuedContextSnapshot = queuedContext;
+            if (queuedContextSnapshot != null) {
+                queuedContextSnapshot.stop();
             }
         }
     }
