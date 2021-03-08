@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Allow executor queuedDuration metrics to be disabled
+  links:
+  - https://github.com/palantir/tritium/pull/1012

@@ -54,6 +54,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -355,11 +356,7 @@ public final class MetricRegistries {
      * @return instrumented executor service
      */
     public static ExecutorService instrument(TaggedMetricRegistry registry, ExecutorService delegate, String name) {
-        if (delegate instanceof ScheduledExecutorService) {
-            return instrument(registry, (ScheduledExecutorService) delegate, name);
-        }
-        return new TaggedMetricsExecutorService(
-                checkNotNull(delegate, "delegate"), ExecutorMetrics.of(registry), checkNotNull(name, "name"));
+        return executor().registry(registry).name(name).executor(delegate).build();
     }
 
     /**
@@ -514,5 +511,108 @@ public final class MetricRegistries {
                 throw new SafeIllegalArgumentException("Unknown Metric Type", SafeArg.of("type", metric.getClass()));
             }
         });
+    }
+
+    /** Returns a builder for {@link ExecutorService} instrumentation. */
+    @CheckReturnValue
+    public static ExecutorInstrumentationBuilderRegistryStage executor() {
+        return new ExecutorInstrumentationBuilder();
+    }
+
+    private static final class ExecutorInstrumentationBuilder
+            implements ExecutorInstrumentationBuilderRegistryStage,
+                    ExecutorInstrumentationBuilderNameStage,
+                    ExecutorInstrumentationBuilderExecutorStage,
+                    ExecutorInstrumentationBuilderFinalStage {
+
+        @Nullable
+        private TaggedMetricRegistry registry;
+
+        @Nullable
+        private String name;
+
+        @Nullable
+        private ExecutorService executor;
+
+        private boolean reportQueuedDuration = true;
+
+        @Override
+        @CheckReturnValue
+        public ExecutorInstrumentationBuilderNameStage registry(TaggedMetricRegistry value) {
+            this.registry = Preconditions.checkNotNull(value, "TaggedMetricRegistry");
+            return this;
+        }
+
+        @Override
+        @CheckReturnValue
+        public ExecutorInstrumentationBuilderExecutorStage name(String value) {
+            this.name = Preconditions.checkNotNull(value, "Name");
+            return this;
+        }
+
+        @Override
+        @CheckReturnValue
+        public ExecutorInstrumentationBuilderFinalStage executor(ExecutorService value) {
+            this.executor = Preconditions.checkNotNull(value, "ExecutorService");
+            return this;
+        }
+
+        @Override
+        @CheckReturnValue
+        public ExecutorInstrumentationBuilderFinalStage reportQueuedDuration(boolean value) {
+            this.reportQueuedDuration = value;
+            return this;
+        }
+
+        @Override
+        @CheckReturnValue
+        public ExecutorService build() {
+            if (executor instanceof ScheduledExecutorService) {
+                return instrument(
+                        checkNotNull(registry, "delegate"),
+                        (ScheduledExecutorService) executor,
+                        checkNotNull(name, "Name"));
+            }
+            return new TaggedMetricsExecutorService(
+                    checkNotNull(executor, "delegate"),
+                    ExecutorMetrics.of(checkNotNull(registry, "registry")),
+                    checkNotNull(name, "name"),
+                    reportQueuedDuration);
+        }
+    }
+
+    public interface ExecutorInstrumentationBuilderRegistryStage {
+        @CheckReturnValue
+        ExecutorInstrumentationBuilderNameStage registry(TaggedMetricRegistry value);
+    }
+
+    public interface ExecutorInstrumentationBuilderNameStage {
+        @CheckReturnValue
+        ExecutorInstrumentationBuilderExecutorStage name(String value);
+    }
+
+    public interface ExecutorInstrumentationBuilderExecutorStage {
+        @CheckReturnValue
+        ExecutorInstrumentationBuilderFinalStage executor(ExecutorService value);
+    }
+
+    public interface ExecutorInstrumentationBuilderFinalStage {
+
+        /**
+         * May be used to inform instrumentation that the delegate executor does not
+         * have a queue and the queue time metric is unnecessary to track. This is
+         * the case for cached executors, and executors which immediately reject
+         * work when all threads are saturated, otherwise the timer is always updated
+         * with very small values that aren't helpful.
+         */
+        @CheckReturnValue
+        ExecutorInstrumentationBuilderFinalStage reportQueuedDuration(boolean value);
+
+        /**
+         * Builds the instrumented {@link ExecutorService}.
+         * @return instrumented executor service
+         */
+        @CheckReturnValue
+        ExecutorService build();
     }
 }

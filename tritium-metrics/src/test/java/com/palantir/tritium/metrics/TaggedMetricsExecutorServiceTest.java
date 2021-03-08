@@ -70,4 +70,48 @@ final class TaggedMetricsExecutorServiceTest {
         assertThat(metrics.duration(NAME).getCount()).isOne();
         assertThat(metrics.queuedDuration(NAME).getCount()).isOne();
     }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testMetricsWithoutQueuedDuration(TaggedMetricRegistry registry) throws Exception {
+        ExecutorService executorService = MetricRegistries.executor()
+                .registry(registry)
+                .name(NAME)
+                .executor(Executors.newSingleThreadExecutor())
+                .reportQueuedDuration(false)
+                .build();
+        ExecutorMetrics metrics = ExecutorMetrics.of(registry);
+
+        assertThat(metrics.submitted(NAME).getCount()).isZero();
+        assertThat(metrics.running(NAME).getCount()).isZero();
+        assertThat(metrics.completed(NAME).getCount()).isZero();
+        assertThat(metrics.duration(NAME).getCount()).isZero();
+        assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
+
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch finishLatch = new CountDownLatch(1);
+        Future<String> future = executorService.submit(() -> {
+            startLatch.countDown();
+            finishLatch.await();
+            return Thread.currentThread().getName();
+        });
+
+        executorService.shutdown();
+        startLatch.await();
+
+        assertThat(metrics.submitted(NAME).getCount()).isOne();
+        assertThat(metrics.running(NAME).getCount()).isOne();
+        assertThat(metrics.completed(NAME).getCount()).isZero();
+        assertThat(metrics.duration(NAME).getCount()).isZero();
+        assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
+
+        finishLatch.countDown();
+        future.get();
+
+        assertThat(metrics.submitted(NAME).getCount()).isOne();
+        assertThat(metrics.running(NAME).getCount()).isZero();
+        assertThat(metrics.completed(NAME).getCount()).isOne();
+        assertThat(metrics.duration(NAME).getCount()).isOne();
+        assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
+    }
 }
