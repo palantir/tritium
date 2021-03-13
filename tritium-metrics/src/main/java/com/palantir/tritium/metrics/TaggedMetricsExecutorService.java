@@ -19,6 +19,7 @@ package com.palantir.tritium.metrics;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
+import com.google.errorprone.annotations.MustBeClosed;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -141,6 +142,7 @@ final class TaggedMetricsExecutorService implements ExecutorService {
     }
 
     @Nullable
+    @MustBeClosed
     private Timer.Context startQueueTimerIfEnabled() {
         Timer queuedDurationTimer = queuedDuration;
         return queuedDurationTimer == null ? null : queuedDurationTimer.time();

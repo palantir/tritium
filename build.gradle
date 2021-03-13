@@ -76,7 +76,8 @@ allprojects {
                 option('NullAway:AnnotatedPackages', 'com.palantir')
 
                 // warnings not explicitly provided by error-prone
-                error 'NullAway',
+                error 'AutoCloseableMustBeClosed',
+                        'NullAway',
                         'Slf4jLogsafeArgs',
                         'PreferCollectionTransform',
                         'PreferListsPartition',

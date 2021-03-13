@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.metrics;
 
+import com.google.errorprone.annotations.MustBeClosed;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -94,6 +95,7 @@ final class InstrumentedSslServerSocketFactory extends SSLServerSocketFactory {
         return Objects.hash(name, delegate);
     }
 
+    @MustBeClosed
     private ServerSocket wrap(ServerSocket serverSocket) throws IOException {
         if (serverSocket instanceof SSLServerSocket) {
             return new InstrumentedServerSocket((SSLServerSocket) serverSocket, listener);
@@ -106,6 +108,7 @@ final class InstrumentedSslServerSocketFactory extends SSLServerSocketFactory {
         private final SSLServerSocket delegate;
         private final HandshakeCompletedListener listener;
 
+        @MustBeClosed
         InstrumentedServerSocket(SSLServerSocket delegate, HandshakeCompletedListener listener) throws IOException {
             this.delegate = delegate;
             this.listener = listener;
@@ -221,6 +224,7 @@ final class InstrumentedSslServerSocketFactory extends SSLServerSocketFactory {
             return wrap(delegate.accept());
         }
 
+        @MustBeClosed
         private Socket wrap(Socket socket) {
             if (socket instanceof SSLSocket && HandshakeInstrumentation.isSocketInstrumentationEnabled()) {
                 ((SSLSocket) socket).addHandshakeCompletedListener(listener);

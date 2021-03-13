@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
 
 import com.google.common.collect.MoreCollectors;
+import com.google.errorprone.annotations.MustBeClosed;
 import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
@@ -258,6 +259,7 @@ final class InstrumentedSslContextTest {
         assertThat(instrumentedFirst.hashCode()).isNotEqualTo(instrumentedThirdDifferentName.hashCode());
     }
 
+    @MustBeClosed
     private static Closeable server(SSLContext context) {
         Undertow server = Undertow.builder()
                 .addHttpsListener(PORT, "0.0.0.0", context)
