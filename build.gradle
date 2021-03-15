@@ -85,8 +85,8 @@ allprojects {
 
                 // increase strictness for built-in error-prone checks
                 error((com.google.errorprone.scanner.BuiltInCheckerSuppliers.ENABLED_WARNINGS +
-                        com.google.errorprone.scanner.BuiltInCheckerSuppliers.DISABLED_CHECKS
-                        ).collect { it.canonicalName() } as String[])
+                        com.google.errorprone.scanner.BuiltInCheckerSuppliers.DISABLED_CHECKS)
+                        .collect { it.canonicalName() } as String[])
 
                 disable 'AndroidJdkLibsChecker', // ignore Android
                         'Java7ApiChecker', // tritium requires JDK8+

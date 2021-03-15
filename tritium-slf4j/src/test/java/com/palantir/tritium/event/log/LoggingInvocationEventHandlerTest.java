@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -152,6 +152,7 @@ public class LoggingInvocationEventHandlerTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation") // testing backward compatibility
     public void testBackwardCompatibility() {
         assertThat(LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND)
                 .isInstanceOf(com.palantir.tritium.api.functions.LongPredicate.class);

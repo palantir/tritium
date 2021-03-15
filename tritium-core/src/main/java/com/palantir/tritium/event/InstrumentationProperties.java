@@ -23,7 +23,6 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
-import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -40,7 +39,8 @@ public final class InstrumentationProperties {
 
     private static volatile Supplier<Map<String, String>> instrumentationProperties = createSupplier();
 
-    public static BooleanSupplier getSystemPropertySupplier(String name) {
+    @SuppressWarnings({"deprecation", "UnnecessarilyFullyQualified"}) // back-compat return type for now
+    public static com.palantir.tritium.api.functions.BooleanSupplier getSystemPropertySupplier(String name) {
         checkArgument(!Strings.isNullOrEmpty(name), "name cannot be null or empty", SafeArg.of("name", name));
         boolean instrumentationEnabled = isGloballyEnabled() && isSpecificEnabled(name);
         return () -> instrumentationEnabled;

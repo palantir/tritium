@@ -26,12 +26,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Executors;
+import java.util.function.BooleanSupplier;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,28 +59,28 @@ final class InstrumentationPropertiesTest {
     @Test
     void testSystemPropertySupplierEnabledByDefault() {
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
-        assertThat(supplier.asBoolean()).isTrue();
+        assertThat(supplier.getAsBoolean()).isTrue();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentFalse() {
         System.setProperty("instrument", "false");
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
-        assertThat(supplier.asBoolean()).isFalse();
+        assertThat(supplier.getAsBoolean()).isFalse();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentTrue() {
         System.setProperty("instrument", "true");
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
-        assertThat(supplier.asBoolean()).isTrue();
+        assertThat(supplier.getAsBoolean()).isTrue();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentClassFalse() {
         System.setProperty("instrument.test", "false");
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
-        assertThat(supplier.asBoolean()).isFalse();
+        assertThat(supplier.getAsBoolean()).isFalse();
     }
 
     @Test
@@ -88,7 +88,7 @@ final class InstrumentationPropertiesTest {
         System.clearProperty("instrument");
         System.setProperty("instrument.test", "true");
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
-        assertThat(supplier.asBoolean()).isTrue();
+        assertThat(supplier.getAsBoolean()).isTrue();
     }
 
     @Test

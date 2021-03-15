@@ -18,6 +18,7 @@ package com.palantir.tritium.event;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.palantir.tritium.api.event.InvocationContext;
 import java.lang.reflect.Method;
 import javax.annotation.Nullable;
 

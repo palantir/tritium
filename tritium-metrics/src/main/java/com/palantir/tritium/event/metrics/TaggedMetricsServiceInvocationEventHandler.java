@@ -20,10 +20,10 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
+import com.palantir.tritium.api.event.InvocationContext;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;

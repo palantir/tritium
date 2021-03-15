@@ -16,6 +16,12 @@
 
 package com.palantir.tritium.api.functions;
 
+/**
+ * {@code boolean} supplier.
+ * Back-compat bridge type, will be removed in future major version bump.
+ * @deprecated use {@link java.util.function.BooleanSupplier}
+ */
+@Deprecated
 @FunctionalInterface
 public interface BooleanSupplier extends java.util.function.BooleanSupplier {
 

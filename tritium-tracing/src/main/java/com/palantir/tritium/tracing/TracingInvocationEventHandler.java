@@ -20,13 +20,13 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.base.Strings;
 import com.palantir.tracing.Tracer;
-import com.palantir.tritium.api.functions.BooleanSupplier;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
+import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -43,7 +43,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed") // used by static factory
     public TracingInvocationEventHandler(String component) {
-        super((java.util.function.BooleanSupplier) getEnabledSupplier(component));
+        super(getEnabledSupplier(component));
         this.component = checkNotNull(component, "component");
     }
 
@@ -91,6 +91,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
         }
     }
 
+    @SuppressWarnings("NoFunctionalReturnType") // lazy eval
     static BooleanSupplier getEnabledSupplier(String component) {
         BooleanSupplier systemPropertyEnabled = InstrumentationProperties.getSystemPropertySupplier(component);
         return () -> systemPropertyEnabled.getAsBoolean()

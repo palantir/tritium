@@ -17,8 +17,8 @@
 package com.palantir.tritium.test.event;
 
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
-import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

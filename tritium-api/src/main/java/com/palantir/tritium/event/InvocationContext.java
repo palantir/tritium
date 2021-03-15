@@ -16,38 +16,10 @@
 
 package com.palantir.tritium.event;
 
-import java.lang.reflect.Method;
-import javax.annotation.Nullable;
-
-/** Represents the state when an invocation event occurred. */
-public interface InvocationContext {
-
-    /**
-     * Returns the invocation start time in nanoseconds local to this machine.
-     *
-     * @return start time
-     */
-    long getStartTimeNanos();
-
-    /**
-     * Returns the instance a method was invoked upon.
-     *
-     * @return instance invoked or null if a static method
-     */
-    @Nullable
-    Object getInstance();
-
-    /**
-     * Returns the method invoked.
-     *
-     * @return method invoked
-     */
-    Method getMethod();
-
-    /**
-     * Returns the array of arguments for the specified invocation.
-     *
-     * @return arguments
-     */
-    Object[] getArgs();
-}
+/**
+ * Represents the state when an invocation event occurred.
+ * Back-compat bridge type, will be removed in future major version bump.
+ * @deprecated use {@link com.palantir.tritium.api.event.InvocationContext}
+ */
+@Deprecated
+public interface InvocationContext extends com.palantir.tritium.api.event.InvocationContext {}

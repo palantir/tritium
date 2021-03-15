@@ -22,15 +22,15 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.Arg;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
-import com.palantir.tritium.api.functions.BooleanSupplier;
+import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -40,14 +40,18 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     private static final ImmutableList<String> MESSAGE_PATTERNS = generateMessagePatterns(20);
 
+    @SuppressWarnings({"deprecation", "UnnecessarilyFullyQualified"}) // back-compat return type for now
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_ALL_DURATIONS = _input -> true;
 
+    @SuppressWarnings({"deprecation", "UnnecessarilyFullyQualified"}) // back-compat return type for now
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND =
             nanos -> TimeUnit.MICROSECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 1;
 
+    @SuppressWarnings({"deprecation", "UnnecessarilyFullyQualified"}) // back-compat return type for now
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS =
             nanos -> TimeUnit.MILLISECONDS.convert(nanos, TimeUnit.NANOSECONDS) > 0;
 
+    @SuppressWarnings({"deprecation", "UnnecessarilyFullyQualified"}) // back-compat return type for now
     public static final com.palantir.tritium.api.functions.LongPredicate NEVER_LOG = _input -> false;
 
     private final BiConsumer<String, Object[]> logger;
@@ -73,8 +77,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     @SuppressWarnings("FunctionalInterfaceClash") // back compat
     public LoggingInvocationEventHandler(
             Logger logger, LoggingLevel level, java.util.function.LongPredicate durationPredicate) {
-        super((java.util.function.BooleanSupplier)
-                createEnabledSupplier(checkNotNull(logger, "logger"), checkNotNull(level, "level")));
+        super(createEnabledSupplier(checkNotNull(logger, "logger"), checkNotNull(level, "level")));
         this.level = level;
         this.logger = bindToLevel(logger, level);
         this.durationPredicate = checkNotNull(durationPredicate, "durationPredicate");
@@ -145,6 +148,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         return new SafeIllegalArgumentException("Unsupported logging level", SafeArg.of("level", level));
     }
 
+    @SuppressWarnings("NoFunctionalReturnType") // lazy eval
     private static BooleanSupplier createEnabledSupplier(Logger logger, LoggingLevel level) {
         checkNotNull(logger, "logger");
         checkNotNull(level, "level");

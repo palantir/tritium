@@ -16,6 +16,12 @@
 
 package com.palantir.tritium.api.functions;
 
+/**
+ * {@code long} predicate.
+ * Back-compat bridge type, will be removed in future major version bump.
+ * @deprecated use {@link java.util.function.LongPredicate}
+ */
+@Deprecated
 @FunctionalInterface
 public interface LongPredicate extends java.util.function.LongPredicate {
 
