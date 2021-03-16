@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Instrument only public interface methods by default
+  links:
+  - https://github.com/palantir/tritium/pull/1018
