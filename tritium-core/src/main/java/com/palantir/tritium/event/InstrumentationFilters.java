@@ -18,6 +18,7 @@ package com.palantir.tritium.event;
 
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import javax.annotation.Nonnull;
 
 public enum InstrumentationFilters implements InstrumentationFilter {
@@ -35,6 +36,16 @@ public enum InstrumentationFilters implements InstrumentationFilter {
         @Override
         public boolean shouldInstrument(@Nonnull Object _instance, @Nonnull Method _method, @Nonnull Object[] _args) {
             return false;
+        }
+    },
+
+    /** Instrument public interface methods. */
+    INSTRUMENT_PUBLIC_INTERFACE_METHODS {
+        @Override
+        public boolean shouldInstrument(@Nonnull Object _instance, @Nonnull Method method, @Nonnull Object[] _args) {
+            return Modifier.isPublic(method.getModifiers())
+                    && method.getDeclaringClass().isInterface()
+                    && !Modifier.isStatic(method.getModifiers());
         }
     };
 

@@ -54,7 +54,7 @@ public final class Instrumentation {
         checkNotNull(instrumentationFilter, "instrumentationFilter");
         checkNotNull(handlers, "handlers");
 
-        if (handlers.isEmpty() || instrumentationFilter == InstrumentationFilters.INSTRUMENT_NONE) {
+        if (handlers.isEmpty() || InstrumentationFilters.INSTRUMENT_NONE.equals(instrumentationFilter)) {
             return delegate;
         }
 
@@ -74,7 +74,7 @@ public final class Instrumentation {
     @Deprecated
     static <T, U extends T> T wrap(
             Class<T> interfaceClass, U delegate, List<InvocationEventHandler<InvocationContext>> handlers) {
-        return wrap(interfaceClass, delegate, handlers, InstrumentationFilters.INSTRUMENT_ALL);
+        return wrap(interfaceClass, delegate, handlers, InstrumentationFilters.INSTRUMENT_PUBLIC_INTERFACE_METHODS);
     }
 
     /**
@@ -90,7 +90,7 @@ public final class Instrumentation {
     @Deprecated
     public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
         return builder(serviceInterface, delegate)
-                .withFilter(InstrumentationFilters.INSTRUMENT_ALL)
+                .withFilter(InstrumentationFilters.INSTRUMENT_PUBLIC_INTERFACE_METHODS)
                 .withMetrics(metricRegistry)
                 .withPerformanceTraceLogging()
                 .build();
@@ -111,7 +111,7 @@ public final class Instrumentation {
         private final U delegate;
         private final ImmutableList.Builder<InvocationEventHandler<InvocationContext>> handlers =
                 ImmutableList.builder();
-        private InstrumentationFilter filter = InstrumentationFilters.INSTRUMENT_ALL;
+        private InstrumentationFilter filter = InstrumentationFilters.INSTRUMENT_PUBLIC_INTERFACE_METHODS;
 
         private Builder(Class<T> interfaceClass, U delegate) {
             this.interfaceClass = checkNotNull(interfaceClass, "class");
