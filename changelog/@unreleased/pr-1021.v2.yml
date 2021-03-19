@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Don't include performance logging in the Tritium.instrument method
+  links:
+  - https://github.com/palantir/tritium/pull/1021
