@@ -30,7 +30,11 @@ public final class Tritium {
 
     /**
      * Return an instrumented proxy of the specified service interface and delegate that records aggregated invocation
-     * metrics, Zipkin style traces, and performance trace logging.
+     * metrics, and Zipkin style traces.
+     *
+     * NB: Previous versions of this method included performance logging. With changes in Java9+ the method
+     * of constructing performance logs became a slow operation. So this is no longer included.
+     * See: https://github.com/apache/logging-log4j2/pull/475 for details
      *
      * @param serviceInterface service interface
      * @param delegate delegate to instrument
@@ -40,14 +44,17 @@ public final class Tritium {
     public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
         return Instrumentation.builder(serviceInterface, delegate)
                 .withMetrics(metricRegistry)
-                .withPerformanceTraceLogging()
                 .withHandler(TracingInvocationEventHandler.create(serviceInterface.getName()))
                 .build();
     }
 
     /**
      * Return an instrumented proxy of the specified service interface, and delegate that records aggregated invocation
-     * metrics, Zipkin style traces and performance trace logging.
+     * metrics, and Zipkin style traces.
+     *
+     * NB: Previous versions of this method included performance logging. With changes in Java9+ the method
+     * of constructing performance logs became a slow operation. So this is no longer included.
+     * See: https://github.com/apache/logging-log4j2/pull/475 for details
      *
      * @param serviceInterface The service class to instrument
      * @param delegate Delegate to instrument
@@ -58,7 +65,6 @@ public final class Tritium {
             Class<T> serviceInterface, U delegate, TaggedMetricRegistry metricRegistry) {
         return Instrumentation.builder(serviceInterface, delegate)
                 .withTaggedMetrics(metricRegistry)
-                .withPerformanceTraceLogging()
                 .withHandler(TracingInvocationEventHandler.create(serviceInterface.getName()))
                 .build();
     }
