@@ -91,8 +91,8 @@ final class CompositeInvocationEventHandlerTest {
 
     @Test
     void testSuccessHandlerFailureShouldNotThrow() throws Exception {
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
+        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(Arrays.asList(
+                NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(/* isEnabled= */ true) {
                     @Override
                     public InvocationContext preInvocation(
                             @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
@@ -108,8 +108,8 @@ final class CompositeInvocationEventHandlerTest {
 
     @Test
     void testFailureHandlerFailureShouldNotThrow() throws Exception {
-        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(true) {
+        InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(Arrays.asList(
+                NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(/* isEnabled= */ true) {
                     @Override
                     public InvocationContext preInvocation(
                             @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
