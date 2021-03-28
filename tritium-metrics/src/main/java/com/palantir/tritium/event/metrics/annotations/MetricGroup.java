@@ -24,7 +24,9 @@ import java.lang.annotation.Target;
 /**
  * Instrumentation instruction to tritium to group calls into a common metric name. Setting Type (class) level applies a
  * default metric group to all Methods that are annotated
+ * @deprecated will be removed in future version
  */
+@Deprecated // remove post 1.0
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MetricGroup {

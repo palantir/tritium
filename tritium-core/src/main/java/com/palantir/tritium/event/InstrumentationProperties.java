@@ -16,63 +16,36 @@
 
 package com.palantir.tritium.event;
 
-import static com.palantir.logsafe.Preconditions.checkArgument;
+import java.util.function.BooleanSupplier;
 
-import com.google.common.base.Strings;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
-import com.palantir.logsafe.SafeArg;
-import com.palantir.logsafe.UnsafeArg;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+/**
+ * Methods for interacting with instrumentation system properties.
+ * @deprecated use {@link com.palantir.tritium.v1.core.event.InstrumentationProperties}
+ */
+@Deprecated // remove post 1.0
 public final class InstrumentationProperties {
-    private static final Logger log = LoggerFactory.getLogger(InstrumentationProperties.class);
-
     private InstrumentationProperties() {}
 
-    private static final String INSTRUMENT_PREFIX = "instrument";
-
-    private static volatile Supplier<Map<String, String>> instrumentationProperties = createSupplier();
-
-    @SuppressWarnings({"deprecation", "UnnecessarilyFullyQualified"}) // back-compat return type for now
+    @SuppressWarnings({"deprecation", "UnnecessarilyFullyQualified"}) // backward-compatibility return type for now
     public static com.palantir.tritium.api.functions.BooleanSupplier getSystemPropertySupplier(String name) {
-        checkArgument(!Strings.isNullOrEmpty(name), "name cannot be null or empty", SafeArg.of("name", name));
-        boolean instrumentationEnabled = isGloballyEnabled() && isSpecificEnabled(name);
-        return () -> instrumentationEnabled;
+        BooleanSupplier systemPropertySupplier =
+                com.palantir.tritium.v1.core.event.InstrumentationProperties.getSystemPropertySupplier(name);
+        return systemPropertySupplier::getAsBoolean;
     }
 
     @SuppressWarnings("WeakerAccess") // public API
     public static boolean isSpecificEnabled(String name) {
-        return isSpecificEnabled(name, true);
+        return com.palantir.tritium.v1.core.event.InstrumentationProperties.isSpecificallyEnabled(name);
     }
 
     @SuppressWarnings("WeakerAccess") // public API
     public static boolean isSpecificEnabled(String name, boolean defaultValue) {
-        String qualifiedValue = getSpecific(name);
-        if (qualifiedValue == null) {
-            return defaultValue;
-        }
-        return "true".equalsIgnoreCase(qualifiedValue);
-    }
-
-    /** Applies the {@link #INSTRUMENT_PREFIX} and returns the current value. */
-    @Nullable
-    private static String getSpecific(String name) {
-        return instrumentationProperties().get(INSTRUMENT_PREFIX + "." + name);
+        return com.palantir.tritium.v1.core.event.InstrumentationProperties.isSpecificallyEnabled(name, defaultValue);
     }
 
     @SuppressWarnings("WeakerAccess") // public API
     public static boolean isGloballyEnabled() {
-        return !isGloballyDisabled();
-    }
-
-    private static boolean isGloballyDisabled() {
-        return "false".equalsIgnoreCase(instrumentationProperties().get(INSTRUMENT_PREFIX));
+        return com.palantir.tritium.v1.core.event.InstrumentationProperties.isGloballyEnabled();
     }
 
     /**
@@ -81,38 +54,6 @@ public final class InstrumentationProperties {
      * <p>Note this should only be used for testing purposes when manipulating system properties at runtime.
      */
     public static void reload() {
-        instrumentationProperties = createSupplier();
-    }
-
-    @SuppressWarnings("NoFunctionalReturnType")
-    private static Supplier<Map<String, String>> createSupplier() {
-        return Suppliers.memoizeWithExpiration(
-                InstrumentationProperties::createInstrumentationSystemProperties, 1L, TimeUnit.MINUTES);
-    }
-
-    private static Map<String, String> instrumentationProperties() {
-        return instrumentationProperties.get();
-    }
-
-    private static Map<String, String> createInstrumentationSystemProperties() {
-        /*
-         * Since system properties are backed by a java.util.Hashtable, they can be
-         * a point of contention as all access is synchronized. We therefore take
-         * an approach of cloning the entire Hashtable (which does its own
-         * locking), then copying only the entries we are interested in keeping.
-         *
-         * See https://bugs.openjdk.java.net/browse/JDK-6977738 and https://bugs.openjdk.java.net/browse/JDK-8029891
-         */
-        @SuppressWarnings("unchecked")
-        Map<Object, Object> clonedSystemProperties =
-                (Map<Object, Object>) System.getProperties().clone();
-        Map<String, String> map = clonedSystemProperties.entrySet().stream()
-                .filter(entry -> entry.getKey() instanceof String
-                        && entry.getValue() instanceof String
-                        && String.valueOf(entry.getKey()).startsWith(INSTRUMENT_PREFIX))
-                .collect(ImmutableMap.toImmutableMap(
-                        entry -> String.valueOf(entry.getKey()), entry -> String.valueOf(entry.getValue())));
-        log.debug("Reloaded instrumentation properties {}", UnsafeArg.of("instrumentationProperties", map));
-        return map;
+        com.palantir.tritium.v1.core.event.InstrumentationProperties.reload();
     }
 }

@@ -20,10 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
-import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
+import com.palantir.tritium.v1.lib.Tritium;
+import com.palantir.tritium.v1.slf4j.event.LoggingLevel;
 import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.impl.TestLogs;
 

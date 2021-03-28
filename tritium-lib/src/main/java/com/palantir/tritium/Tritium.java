@@ -18,10 +18,14 @@ package com.palantir.tritium;
 
 import com.codahale.metrics.MetricRegistry;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
-import com.palantir.tritium.proxy.Instrumentation;
-import com.palantir.tritium.tracing.TracingInvocationEventHandler;
+import com.palantir.tritium.v1.lib.Instrumentation;
+import com.palantir.tritium.v1.tracing.event.TracingInvocationEventHandler;
 
-/** Provides static methods for Tritium instrumentation. */
+/**
+ * Provides static methods for Tritium instrumentation.
+ * @deprecated use {@link com.palantir.tritium.v1.lib.Tritium}
+ */
+@Deprecated
 public final class Tritium {
 
     private Tritium() {

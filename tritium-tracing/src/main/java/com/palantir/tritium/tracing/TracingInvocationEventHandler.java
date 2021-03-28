@@ -20,17 +20,22 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.base.Strings;
 import com.palantir.tracing.Tracer;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.event.AbstractInvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InstrumentationProperties;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
 import java.lang.reflect.Method;
 import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public final class TracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+/**
+ * Invocation event handler that instruments using tracing-java {@link Tracer}.
+ * @deprecated use {@link com.palantir.tritium.v1.tracing.event.TracingInvocationEventHandler}
+ */
+@Deprecated // remove post 1.0
+@SuppressWarnings("UnnecessarilyFullyQualified") // deprecated types
+public final class TracingInvocationEventHandler
+        extends com.palantir.tritium.event.AbstractInvocationEventHandler<
+                com.palantir.tritium.event.InvocationContext> {
 
     private final String component;
 
@@ -38,9 +43,9 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
      * Constructs new tracing event handler.
      *
      * @param component component name
-     * @deprecated use {@link #create(String)}
+     * @deprecated use {@link com.palantir.tritium.v1.tracing.event.TracingInvocationEventHandler#create(String)}
      */
-    @Deprecated
+    @Deprecated // remove post 1.0
     @SuppressWarnings("DeprecatedIsStillUsed") // used by static factory
     public TracingInvocationEventHandler(String component) {
         super(getEnabledSupplier(component));
@@ -53,17 +58,20 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
      * @param component component name
      * @return tracing event handler
      */
-    public static InvocationEventHandler<InvocationContext> create(String component) {
+    @SuppressWarnings("unchecked")
+    public static com.palantir.tritium.event.InvocationEventHandler<com.palantir.tritium.event.InvocationContext>
+            create(String component) {
         if (RemotingCompatibleTracingInvocationEventHandler.requiresRemotingFallback()) {
             return RemotingCompatibleTracingInvocationEventHandler.create(component);
         }
-        //noinspection deprecation
         return new TracingInvocationEventHandler(component);
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        InvocationContext context = DefaultInvocationContext.of(instance, method, args);
+    public com.palantir.tritium.event.InvocationContext preInvocation(
+            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+        com.palantir.tritium.event.InvocationContext context =
+                com.palantir.tritium.event.DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
         Tracer.fastStartSpan(operationName);
         return context;

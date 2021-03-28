@@ -39,16 +39,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Runnables;
 import com.palantir.logsafe.exceptions.SafeRuntimeException;
 import com.palantir.tritium.Tagged;
-import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InstrumentationFilters;
-import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
-import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
-import com.palantir.tritium.event.metrics.TaggedMetricsServiceInvocationEventHandler;
-import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
@@ -56,7 +46,15 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.test.LessSpecificReturn;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
-import com.palantir.tritium.tracing.TracingInvocationEventHandler;
+import com.palantir.tritium.v1.api.event.InstrumentationFilter;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.api.event.InvocationEventHandler;
+import com.palantir.tritium.v1.core.event.DefaultInvocationContext;
+import com.palantir.tritium.v1.core.event.InstrumentationFilters;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
+import com.palantir.tritium.v1.metrics.event.MetricsInvocationEventHandler;
+import com.palantir.tritium.v1.metrics.event.TaggedMetricsServiceInvocationEventHandler;
+import com.palantir.tritium.v1.tracing.event.TracingInvocationEventHandler;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -79,15 +77,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings({"NullAway", "WeakerAccess"}) // mock injection
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated methods for backward compatibility
+    "NullAway", // mock injection
+    "UnnecessarilyFullyQualified", // deprecated types
+    "WeakerAccess" // mock injection
+})
 public abstract class InstrumentationTest {
 
-    @MetricGroup("DEFAULT")
+    @com.palantir.tritium.event.metrics.annotations.MetricGroup("DEFAULT")
     public interface AnnotatedInterface {
-        @MetricGroup("ONE")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("ONE")
         void method();
 
-        @MetricGroup("ONE")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("ONE")
         void otherMethod();
 
         void defaultMethod();
@@ -126,7 +129,7 @@ public abstract class InstrumentationTest {
     void testEmptyHandlers() {
         TestInterface delegate = new TestImplementation();
         TestInterface instrumented = Instrumentation.wrap(
-                TestInterface.class, delegate, Collections.emptyList(), InstrumentationFilters.INSTRUMENT_NONE);
+                TestInterface.class, delegate, Collections.emptyList(), InstrumentationFilters.instrumentNone());
         assertThat(instrumented).isEqualTo(delegate);
         assertThat(Proxy.isProxyClass(instrumented.getClass())).isFalse();
     }
@@ -232,7 +235,7 @@ public abstract class InstrumentationTest {
         for (com.palantir.tritium.event.log.LoggingLevel level : com.palantir.tritium.event.log.LoggingLevel.values()) {
             @SuppressWarnings("deprecation") // explicitly testing
             TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                    .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
+                    .withLogging(logger, level, com.palantir.tritium.event.log.LoggingInvocationEventHandler.NEVER_LOG)
                     .build();
             executeManyTimes(instrumentedService, 100);
         }
@@ -247,7 +250,8 @@ public abstract class InstrumentationTest {
             for (int i = 0; i < 100; i++) {
                 @SuppressWarnings("deprecation") // explicitly testing
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                        .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
+                        .withLogging(
+                                logger, level, com.palantir.tritium.event.log.LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
 
                 assertThatThrownBy(instrumentedService::throwsCheckedException)
@@ -266,7 +270,8 @@ public abstract class InstrumentationTest {
             for (int i = 0; i < 100; i++) {
                 @SuppressWarnings("deprecation") // explicitly testing
                 TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                        .withLogging(logger, level, LoggingInvocationEventHandler.NEVER_LOG)
+                        .withLogging(
+                                logger, level, com.palantir.tritium.event.log.LoggingInvocationEventHandler.NEVER_LOG)
                         .build();
 
                 assertThatExceptionOfType(TestImplementation.TestThrowable.class)
@@ -347,18 +352,21 @@ public abstract class InstrumentationTest {
                 .isThrownBy(() -> builder.withLogging(
                         null,
                         com.palantir.tritium.event.log.LoggingLevel.INFO,
-                        LoggingInvocationEventHandler.NEVER_LOG))
+                        com.palantir.tritium.event.log.LoggingInvocationEventHandler.NEVER_LOG))
                 .withMessage("logger");
     }
 
     @Test
-    @SuppressWarnings("deprecation") // explicitly testing
+    @SuppressWarnings({"deprecation", "ConstantConditions"}) // explicitly testing
     void testNullLogLevel() {
         Instrumentation.Builder<Runnable, TestImplementation> builder =
                 Instrumentation.builder(Runnable.class, new TestImplementation());
         Logger logger = LoggerFactory.getLogger(InstrumentationTest.class);
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> builder.withLogging(logger, null, LoggingInvocationEventHandler.NEVER_LOG))
+                .isThrownBy(() -> builder.withLogging(
+                        logger,
+                        (com.palantir.tritium.event.log.LoggingLevel) null,
+                        com.palantir.tritium.event.log.LoggingInvocationEventHandler.NEVER_LOG))
                 .withMessage("level");
     }
 

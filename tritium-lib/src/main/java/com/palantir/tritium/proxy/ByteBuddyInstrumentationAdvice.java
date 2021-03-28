@@ -18,9 +18,9 @@ package com.palantir.tritium.proxy;
 
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
-import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
+import com.palantir.tritium.v1.api.event.InstrumentationFilter;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.api.event.InvocationEventHandler;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

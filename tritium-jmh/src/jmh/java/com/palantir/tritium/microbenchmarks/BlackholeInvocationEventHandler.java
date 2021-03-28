@@ -17,9 +17,9 @@
 package com.palantir.tritium.microbenchmarks;
 
 import com.palantir.logsafe.Preconditions;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.api.event.InvocationEventHandler;
+import com.palantir.tritium.v1.core.event.DefaultInvocationContext;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

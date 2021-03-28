@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation") // explicitly testing deprecated type
 final class ProxiesTest {
 
     @Test

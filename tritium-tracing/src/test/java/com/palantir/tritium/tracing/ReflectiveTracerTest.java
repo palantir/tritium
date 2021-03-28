@@ -24,7 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("NullAway") // mock injection
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "NullAway" // mock injection
+})
 public class ReflectiveTracerTest {
 
     @Test

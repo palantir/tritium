@@ -22,25 +22,31 @@ import com.google.common.base.Strings;
 import com.google.common.base.Suppliers;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.event.AbstractInvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InstrumentationProperties;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.core.event.DefaultInvocationContext;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("TryFailRefactoring") // work-around https://github.com/google/error-prone/issues/1447
+/**
+ * Invocation event handler that instruments using com.palantir.remoting3.tracing.Tracer.
+ * @deprecated use {@link com.palantir.tritium.v1.tracing.event.TracingInvocationEventHandler}
+ */
+@Deprecated // remove post 1.0
+@SuppressWarnings({
+    "TryFailRefactoring", // work-around https://github.com/google/error-prone/issues/1447
+    "UnnecessarilyFullyQualified" // deprecated types
+})
 public final class RemotingCompatibleTracingInvocationEventHandler
-        extends AbstractInvocationEventHandler<InvocationContext> {
+        extends com.palantir.tritium.event.AbstractInvocationEventHandler<
+                com.palantir.tritium.event.InvocationContext> {
 
     private static final Logger log = LoggerFactory.getLogger(RemotingCompatibleTracingInvocationEventHandler.class);
 
@@ -86,18 +92,21 @@ public final class RemotingCompatibleTracingInvocationEventHandler
     private final Tracer tracer;
 
     public RemotingCompatibleTracingInvocationEventHandler(String component, Tracer tracer) {
-        super((BooleanSupplier) InstrumentationProperties.getSystemPropertySupplier(component));
+        super(InstrumentationProperties.getSystemPropertySupplier(component));
         this.component = checkNotNull(component, "component");
         this.tracer = checkNotNull(tracer, "tracer");
     }
 
-    static InvocationEventHandler<InvocationContext> create(String component) {
+    static com.palantir.tritium.event.InvocationEventHandler<com.palantir.tritium.event.InvocationContext> create(
+            String component) {
         return new RemotingCompatibleTracingInvocationEventHandler(component, tracerFactory.get());
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        InvocationContext context = DefaultInvocationContext.of(instance, method, args);
+    public com.palantir.tritium.event.InvocationContext preInvocation(
+            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+        com.palantir.tritium.event.InvocationContext context =
+                (com.palantir.tritium.event.InvocationContext) DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
         tracer.startSpan(operationName);
         return context;

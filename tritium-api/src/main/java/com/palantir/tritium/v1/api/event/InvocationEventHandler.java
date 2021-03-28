@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2017 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2021 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.api.event;
+package com.palantir.tritium.v1.api.event;
 
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;

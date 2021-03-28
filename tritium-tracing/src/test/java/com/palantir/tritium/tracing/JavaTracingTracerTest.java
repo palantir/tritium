@@ -24,6 +24,10 @@ import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "NullAway" // mock injection
+})
 public class JavaTracingTracerTest {
 
     @Test

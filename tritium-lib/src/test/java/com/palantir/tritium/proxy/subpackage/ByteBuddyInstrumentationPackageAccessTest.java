@@ -18,8 +18,8 @@ package com.palantir.tritium.proxy.subpackage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.proxy.Instrumentation;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
+import com.palantir.tritium.v1.lib.Instrumentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

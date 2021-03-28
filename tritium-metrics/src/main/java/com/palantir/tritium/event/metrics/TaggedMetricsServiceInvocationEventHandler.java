@@ -16,28 +16,15 @@
 
 package com.palantir.tritium.event.metrics;
 
-import static com.palantir.logsafe.Preconditions.checkNotNull;
-
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Timer;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.event.AbstractInvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
 import java.lang.reflect.Method;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * An implementation of {@link AbstractInvocationEventHandler} whose purpose is to provide tagged metrics for classes
- * which look like services.
+ * An implementation of {@link com.palantir.tritium.event.AbstractInvocationEventHandler}
+ * whose purpose is to provide tagged metrics for classes which look like services.
  *
  * <p>Specifically, this class will generate metrics with the following parameters:
  *
@@ -47,69 +34,37 @@ import javax.annotation.Nullable;
  *   <li>Tag - endpoint: The name of the method that was invoked
  *   <li>Tag - cause: When an error is hit, this will be filled with the full class name of the cause.
  * </ul>
+ * @deprecated use {@link com.palantir.tritium.v1.metrics.event.TaggedMetricsServiceInvocationEventHandler}
  */
-public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+@Deprecated // remove post 1.0
+@SuppressWarnings("UnnecessarilyFullyQualified") // deprecated types
+public class TaggedMetricsServiceInvocationEventHandler
+        extends com.palantir.tritium.event.AbstractInvocationEventHandler<
+                com.palantir.tritium.event.InvocationContext> {
 
-    private static final String FAILURES_METRIC_NAME = "failures";
-    private static final MetricName FAILURES_METRIC =
-            MetricName.builder().safeName(FAILURES_METRIC_NAME).build();
-
-    private final TaggedMetricRegistry taggedMetricRegistry;
-    private final String serviceName;
-    private final Meter globalFailureMeter;
-    private final ConcurrentMap<Method, Timer> timerCache = new ConcurrentHashMap<>();
-    private final Function<Method, Timer> onSuccessTimerMappingFunction;
+    private final com.palantir.tritium.v1.metrics.event.TaggedMetricsServiceInvocationEventHandler delegate;
 
     public TaggedMetricsServiceInvocationEventHandler(TaggedMetricRegistry taggedMetricRegistry, String serviceName) {
-        super(getEnabledSupplier(serviceName));
-        this.taggedMetricRegistry = checkNotNull(taggedMetricRegistry, "metricRegistry");
-        this.serviceName = checkNotNull(serviceName, "serviceName");
-        this.globalFailureMeter = taggedMetricRegistry.meter(FAILURES_METRIC);
-        this.onSuccessTimerMappingFunction = method -> taggedMetricRegistry.timer(MetricName.builder()
-                .safeName(serviceName)
-                .putSafeTags("service-name", method.getDeclaringClass().getSimpleName())
-                .putSafeTags("endpoint", method.getName())
-                .build());
-    }
-
-    @SuppressWarnings("NoFunctionalReturnType") // helper
-    private static BooleanSupplier getEnabledSupplier(final String serviceName) {
-        return InstrumentationProperties.getSystemPropertySupplier(serviceName);
+        super(InstrumentationProperties.getSystemPropertySupplier(serviceName));
+        delegate = new com.palantir.tritium.v1.metrics.event.TaggedMetricsServiceInvocationEventHandler(
+                taggedMetricRegistry, serviceName);
     }
 
     @Override
-    public final InvocationContext preInvocation(
+    public final com.palantir.tritium.event.InvocationContext preInvocation(
             @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        return DefaultInvocationContext.of(instance, method, args);
+        return com.palantir.tritium.event.DefaultInvocationContext.wrap(delegate.preInvocation(instance, method, args));
     }
 
     @Override
-    public final void onSuccess(@Nullable InvocationContext context, @Nullable Object _result) {
-        debugIfNullContext(context);
-        if (context != null) {
-            long nanos = System.nanoTime() - context.getStartTimeNanos();
-            getSuccessTimer(context.getMethod()).update(nanos, TimeUnit.NANOSECONDS);
-        }
-    }
-
-    private Timer getSuccessTimer(Method method) {
-        return timerCache.computeIfAbsent(method, onSuccessTimerMappingFunction);
+    public final void onSuccess(
+            @Nullable com.palantir.tritium.v1.api.event.InvocationContext context, @Nullable Object result) {
+        delegate.onSuccess(context, result);
     }
 
     @Override
-    public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
-        globalFailureMeter.mark();
-        debugIfNullContext(context);
-        if (context != null) {
-            MetricName failuresMetricName = MetricName.builder()
-                    .safeName(serviceName + "-" + FAILURES_METRIC_NAME)
-                    .putSafeTags(
-                            "service-name",
-                            context.getMethod().getDeclaringClass().getSimpleName())
-                    .putSafeTags("endpoint", context.getMethod().getName())
-                    .putSafeTags("cause", cause.getClass().getName())
-                    .build();
-            taggedMetricRegistry.meter(failuresMetricName).mark();
-        }
+    public final void onFailure(
+            @Nullable com.palantir.tritium.v1.api.event.InvocationContext context, @Nonnull Throwable cause) {
+        delegate.onFailure(context, cause);
     }
 }

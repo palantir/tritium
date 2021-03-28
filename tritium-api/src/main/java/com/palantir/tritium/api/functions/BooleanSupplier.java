@@ -18,10 +18,10 @@ package com.palantir.tritium.api.functions;
 
 /**
  * {@code boolean} supplier.
- * Back-compat bridge type, will be removed in future major version bump.
+ * Back-compatibility bridge type, will be removed in future major version bump.
  * @deprecated use {@link java.util.function.BooleanSupplier}
  */
-@Deprecated
+@Deprecated // remove post 1.0
 @FunctionalInterface
 public interface BooleanSupplier extends java.util.function.BooleanSupplier {
 
@@ -29,7 +29,7 @@ public interface BooleanSupplier extends java.util.function.BooleanSupplier {
      * {@link BooleanSupplier} that always returns true.
      * @deprecated prefer simple inlined lambda for clarity
      */
-    @Deprecated
+    @Deprecated // remove post 1.0
     @SuppressWarnings("MemberName") // public API
     BooleanSupplier TRUE = () -> true;
 
@@ -37,7 +37,7 @@ public interface BooleanSupplier extends java.util.function.BooleanSupplier {
      * {@link BooleanSupplier} that always returns false.
      * @deprecated prefer simple inlined lambda for clarity
      */
-    @Deprecated
+    @Deprecated // remove post 1.0
     @SuppressWarnings("MemberName") // public API
     BooleanSupplier FALSE = () -> false;
 

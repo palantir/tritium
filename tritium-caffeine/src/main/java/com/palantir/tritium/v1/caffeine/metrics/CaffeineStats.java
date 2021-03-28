@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2019 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2021 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.caffeine;
+package com.palantir.tritium.v1.caffeine.metrics;
 
 import com.codahale.metrics.Gauge;
 import com.github.benmanes.caffeine.cache.Cache;

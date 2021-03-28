@@ -26,17 +26,16 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
+import com.palantir.tritium.v1.api.event.InstrumentationFilter;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.api.event.InvocationEventHandler;
+import com.palantir.tritium.v1.core.event.DefaultInvocationContext;
+import com.palantir.tritium.v1.core.event.InstrumentationFilters;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.Test;
@@ -45,7 +44,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("NullAway") // mock injection
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "NullAway", // implicitly testing null handling
+    "UnnecessarilyFullyQualified" // deprecated types
+})
 public class InvocationEventProxyTest {
 
     private static final Object[] EMPTY_ARGS = {};
@@ -60,8 +63,7 @@ public class InvocationEventProxyTest {
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testDisabled() throws Throwable {
         InvocationEventProxy proxy =
-                new InvocationEventProxy(
-                        Collections.emptyList(), InstrumentationFilters.from((BooleanSupplier) () -> false)) {
+                new InvocationEventProxy(Collections.emptyList(), InstrumentationFilters.from(() -> false)) {
                     @Override
                     Object getDelegate() {
                         return "disabled";
@@ -283,7 +285,9 @@ public class InvocationEventProxyTest {
 
     private static InvocationEventProxy createSimpleTestProxy() {
         return new TestProxy(
-                new TestImplementation(), ImmutableList.of(new SimpleHandler()), InstrumentationFilters.INSTRUMENT_ALL);
+                new TestImplementation(),
+                ImmutableList.of(new SimpleHandler()),
+                InstrumentationFilters.instrumentAll());
     }
 
     private static InvocationEventProxy createTestProxy(
@@ -292,7 +296,7 @@ public class InvocationEventProxyTest {
     }
 
     private static InvocationEventProxy createTestProxy(InvocationEventHandler<InvocationContext> handler) {
-        return createTestProxy(handler, InstrumentationFilters.INSTRUMENT_ALL);
+        return createTestProxy(handler, InstrumentationFilters.instrumentAll());
     }
 
     // n.b. cannot use toString because it's special cased

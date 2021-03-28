@@ -17,14 +17,13 @@
 package com.palantir.tritium.test.event;
 
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-@SuppressWarnings("DesignForExtension")
-public class ThrowingInvocationEventHandler implements InvocationEventHandler<InvocationContext> {
+@SuppressWarnings({"DesignForExtension", "deprecation", "UnnecessarilyFullyQualified"}) // backward-compatibility
+public class ThrowingInvocationEventHandler
+        implements com.palantir.tritium.event.InvocationEventHandler<com.palantir.tritium.event.InvocationContext> {
 
     private final boolean isEnabled;
 
@@ -33,18 +32,18 @@ public class ThrowingInvocationEventHandler implements InvocationEventHandler<In
     }
 
     @Override
-    public InvocationContext preInvocation(
+    public com.palantir.tritium.event.InvocationContext preInvocation(
             @Nonnull Object _instance, @Nonnull Method _method, @Nonnull Object[] _args) {
         throw new SafeIllegalStateException("preInvocation always throws");
     }
 
     @Override
-    public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {
+    public void onSuccess(@Nullable com.palantir.tritium.event.InvocationContext _context, @Nullable Object _result) {
         throw new SafeIllegalStateException("onSuccess always throws");
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {
+    public void onFailure(@Nullable com.palantir.tritium.event.InvocationContext _context, @Nonnull Throwable _cause) {
         throw new SafeIllegalStateException("onFailure always throws");
     }
 

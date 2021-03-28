@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2019 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2021 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.caffeine;
+package com.palantir.tritium.v1.caffeine.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("NullAway") // mock injection
-final class CaffeineCacheMetricsTest {
+final class CaffeineCacheMetricSetTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     Cache<?, ?> cache;
@@ -41,7 +41,7 @@ final class CaffeineCacheMetricsTest {
 
     @BeforeEach
     void before() {
-        MetricSet cacheMetricSet = CaffeineCacheMetrics.create(cache, "test");
+        MetricSet cacheMetricSet = CaffeineCacheMetricSet.create(cache, "test");
         assertThat(cacheMetricSet).isNotNull();
         metrics = cacheMetricSet.getMetrics();
     }

@@ -28,8 +28,6 @@ import com.palantir.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.tracing.Tracer;
 import com.palantir.tracing.api.Span;
 import com.palantir.tracing.api.SpanObserver;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
@@ -45,10 +43,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("NullAway") // mock injection
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "NullAway", // mock injection
+    "UnnecessarilyFullyQualified" // deprecated types
+})
 public class TracingInvocationEventHandlerTest {
 
-    private InvocationEventHandler<InvocationContext> handler;
+    private com.palantir.tritium.event.InvocationEventHandler<com.palantir.tritium.event.InvocationContext> handler;
     private TestInterface instance;
     private Method method;
     private Object[] args;
@@ -88,7 +90,7 @@ public class TracingInvocationEventHandlerTest {
     public void testPreInvocation() {
         long startNanoseconds = System.nanoTime();
 
-        InvocationContext context = handler.preInvocation(instance, method, args);
+        com.palantir.tritium.event.InvocationContext context = handler.preInvocation(instance, method, args);
 
         assertThat(context).isNotNull();
         assertThat(context.getMethod()).isEqualTo(method);
@@ -100,7 +102,7 @@ public class TracingInvocationEventHandlerTest {
 
     @Test
     public void testSuccess() {
-        InvocationContext context = handler.preInvocation(instance, method, args);
+        com.palantir.tritium.event.InvocationContext context = handler.preInvocation(instance, method, args);
 
         assertThat(Tracer.hasTraceId()).isTrue();
 
@@ -116,7 +118,7 @@ public class TracingInvocationEventHandlerTest {
 
     @Test
     public void testFailure() {
-        InvocationContext context = handler.preInvocation(instance, method, args);
+        com.palantir.tritium.event.InvocationContext context = handler.preInvocation(instance, method, args);
 
         assertThat(Tracer.hasTraceId()).isTrue();
 

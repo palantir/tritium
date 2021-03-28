@@ -19,13 +19,14 @@ package com.palantir.tritium.event;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
+import com.palantir.tritium.v1.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings("UnnecessarilyFullyQualified") // explicitly qualifying BooleanSupplier types for deconfliction
+// explicitly qualifying BooleanSupplier types for deconfliction
+@SuppressWarnings({"deprecation", "UnnecessarilyFullyQualified"}) // explicitly testing deprecated functionality
 final class InstrumentationFiltersTest {
 
     private final TestInterface instance = mock(TestImplementation.class);

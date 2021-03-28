@@ -19,7 +19,7 @@ package com.palantir.tritium.event.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import com.palantir.tritium.event.InstrumentationProperties;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -30,6 +30,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "UnnecessarilyFullyQualified" // deprecated types
+})
 final class MetricsBooleanSupplierTest {
 
     private static final String METRICS_SYSTEM_PROPERTY_PREFIX = "instrument";
@@ -74,7 +78,8 @@ final class MetricsBooleanSupplierTest {
                 String.valueOf(handler));
         System.setProperty(METRICS_SYSTEM_PROPERTY_PREFIX + ".test", String.valueOf(service));
         InstrumentationProperties.reload();
-        BooleanSupplier supplier = MetricsInvocationEventHandler.getEnabledSupplier("test");
+        BooleanSupplier supplier =
+                com.palantir.tritium.event.metrics.MetricsInvocationEventHandler.getEnabledSupplier("test");
         assertThat(supplier.getAsBoolean()).isEqualTo(expected);
     }
 }

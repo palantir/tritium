@@ -19,23 +19,17 @@ package com.palantir.tritium.event.log;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.test.TestInterface;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Set;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.core.event.DefaultInvocationContext;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.impl.SimpleLogger;
 
+@SuppressWarnings("deprecation") // explicitly testing deprecated functionality
 public class LoggingInvocationEventHandlerTest {
 
     private static final String LOG_KEY = SimpleLogger.LOG_KEY_PREFIX + "com.palantir";
@@ -97,58 +91,6 @@ public class LoggingInvocationEventHandlerTest {
     public void testNullLevel() {
         assertThatExceptionOfType(NullPointerException.class)
                 .isThrownBy(() -> new LoggingInvocationEventHandler(getLogger(), null));
-    }
-
-    @Test
-    public void testGenerateMessagePattern() {
-        assertThat(LoggingInvocationEventHandler.generateMessagePattern(0)).isEqualTo("{}.{}() took {}ms");
-        assertThat(LoggingInvocationEventHandler.generateMessagePattern(1)).isEqualTo("{}.{}({}) took {}ms");
-        assertThat(LoggingInvocationEventHandler.generateMessagePattern(2)).isEqualTo("{}.{}({}, {}) took {}ms");
-        assertThat(LoggingInvocationEventHandler.generateMessagePattern(3)).isEqualTo("{}.{}({}, {}, {}) took {}ms");
-    }
-
-    @Test
-    @SuppressWarnings("checkstyle:illegalthrows")
-    public void testGenerateMessage() throws Throwable {
-        Method method =
-                TestInterface.class.getDeclaredMethod("multiArgumentMethod", String.class, int.class, Collection.class);
-        long durationNanoseconds = 1234567L;
-        LoggingLevel level = LoggingLevel.TRACE;
-
-        Object[] args = new Object[method.getParameterTypes().length];
-        String messagePattern = LoggingInvocationEventHandler.getMessagePattern(args);
-        args[0] = "arg0";
-        args[1] = 1;
-        args[2] = ImmutableList.of("a", "b", "c");
-
-        Object[] logParams = LoggingInvocationEventHandler.getLogParams(method, args, durationNanoseconds, level);
-        String logMessage =
-                MessageFormatter.arrayFormat(messagePattern, logParams).getMessage();
-        assertThat(logMessage).startsWith("TestInterface.multiArgumentMethod(String, int, Collection[3]) took 1.235ms");
-    }
-
-    @Test
-    @SuppressWarnings("checkstyle:illegalthrows")
-    public void testGenerateCollectionsMessage() throws Throwable {
-        Method method = TestInterface.class.getDeclaredMethod("bulk", Set.class);
-        long durationNanoseconds = 1234567L;
-        LoggingLevel level = LoggingLevel.TRACE;
-
-        Object[] args = new Object[method.getParameterTypes().length];
-        String messagePattern = LoggingInvocationEventHandler.getMessagePattern(args);
-        args[0] = ImmutableSet.of("a", "b");
-        Object[] logParams = LoggingInvocationEventHandler.getLogParams(method, args, durationNanoseconds, level);
-        String logMessage =
-                MessageFormatter.arrayFormat(messagePattern, logParams).getMessage();
-        assertThat(logMessage).startsWith("TestInterface.bulk(Set[2]) took 1.235ms");
-    }
-
-    @Test
-    public void testGetMessagePattern() {
-        for (int i = 0; i < 20; i++) {
-            assertThat(LoggingInvocationEventHandler.getMessagePattern(new Object[i]))
-                    .contains("{}");
-        }
     }
 
     @Test

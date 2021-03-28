@@ -20,16 +20,14 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tracing.Tracer;
-import com.palantir.tritium.Tritium;
-import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
-import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
-import com.palantir.tritium.proxy.Instrumentation;
-import com.palantir.tritium.tracing.TracingInvocationEventHandler;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
+import com.palantir.tritium.v1.lib.Instrumentation;
+import com.palantir.tritium.v1.lib.Tritium;
+import com.palantir.tritium.v1.slf4j.event.LoggingLevel;
+import com.palantir.tritium.v1.tracing.event.TracingInvocationEventHandler;
 import java.util.concurrent.TimeUnit;
-import java.util.function.LongPredicate;
 import java.util.stream.IntStream;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -56,7 +54,7 @@ import org.slf4j.impl.TestLogs;
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 @Fork(1)
 @State(Scope.Benchmark)
-@SuppressWarnings({"designforextension", "NullAway"})
+@SuppressWarnings({"designforextension", "NullAway", "jol", "unused"})
 public class ProxyBenchmark {
     static {
         System.setProperty("org.slf4j.simpleLogger.log.performance", LoggingLevel.TRACE.name());
@@ -116,7 +114,7 @@ public class ProxyBenchmark {
                 .withLogging(
                         Instrumentation.getPerformanceLoggerForInterface(serviceInterface),
                         LoggingLevel.TRACE,
-                        (LongPredicate) LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
+                        _nanos -> true)
                 .build();
 
         instrumentedWithMetrics = Instrumentation.builder(serviceInterface, raw)
@@ -144,7 +142,7 @@ public class ProxyBenchmark {
                 .withLogging(
                         Instrumentation.getPerformanceLoggerForInterface(serviceInterface),
                         LoggingLevel.TRACE,
-                        (LongPredicate) LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
+                        _nanos -> true)
                 .withHandler(TracingInvocationEventHandler.create(serviceInterface.getName()))
                 .build();
 
@@ -169,7 +167,7 @@ public class ProxyBenchmark {
     }
 
     @TearDown
-    public void after() throws Exception {
+    public void after() {
         Tracer.unsubscribe("jmh");
         if (previousLogLevel == null) {
             System.clearProperty(DEFAULT_LOG_LEVEL);

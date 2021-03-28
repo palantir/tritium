@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2016 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2021 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.caffeine;
+package com.palantir.tritium.v1.caffeine.metrics;
 
 import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
@@ -25,24 +25,24 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
-final class CaffeineCacheMetrics implements MetricSet {
+final class CaffeineCacheMetricSet implements MetricSet {
 
     private final Cache<?, ?> cache;
     private final String cacheName;
 
-    private CaffeineCacheMetrics(Cache<?, ?> cache, String cacheName) {
+    private CaffeineCacheMetricSet(Cache<?, ?> cache, String cacheName) {
         this.cache = checkNotNull(cache, "cache");
         this.cacheName = checkNotNull(cacheName, "cacheName");
         checkArgument(!cacheName.trim().isEmpty(), "Cache name cannot be blank or empty");
     }
 
-    static CaffeineCacheMetrics create(Cache<?, ?> cache, String cacheName) {
-        return new CaffeineCacheMetrics(cache, cacheName);
+    static CaffeineCacheMetricSet create(Cache<?, ?> cache, String cacheName) {
+        return new CaffeineCacheMetricSet(cache, cacheName);
     }
 
     @Override
     @SuppressWarnings("MutableMethodReturnType") // API
     public Map<String, Metric> getMetrics() {
-        return ImmutableMap.copyOf(CaffeineCacheStats.createCacheGauges(cache, name -> cacheName + '.' + name));
+        return ImmutableMap.copyOf(CaffeineCacheMetrics.createCacheGauges(cache, name -> cacheName + '.' + name));
     }
 }

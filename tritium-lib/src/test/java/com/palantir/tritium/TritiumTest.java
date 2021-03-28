@@ -25,13 +25,13 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Timer;
 import com.google.common.collect.ImmutableSet;
-import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
+import com.palantir.tritium.v1.slf4j.event.LoggingLevel;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -43,10 +43,14 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.impl.SimpleLogger;
 import org.slf4j.impl.TestLogs;
 
-@SuppressWarnings("NullAway")
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "NullAway", // implicitly testing null handling
+    "UnnecessarilyFullyQualified" // deprecated types
+})
 public class TritiumTest {
     static {
-        System.setProperty("org.slf4j.simpleLogger.log.performance", LoggingLevel.TRACE.name());
+        System.setProperty("org.slf4j.simpleLogger.log.performance", Slf4jReporter.LoggingLevel.TRACE.name());
         TestLogs.setLevel("performance", LoggingLevel.TRACE.name());
         TestLogs.logTo("/dev/null");
     }

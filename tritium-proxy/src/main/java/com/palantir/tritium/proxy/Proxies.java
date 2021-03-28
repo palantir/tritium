@@ -17,12 +17,13 @@
 package com.palantir.tritium.proxy;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Methods for creating reflective {@link java.lang.reflect.Proxy}.
+ * @deprecated use {@link com.palantir.tritium.v1.proxy.Proxies}
+ */
+@Deprecated
 @SuppressWarnings("PreferSafeLoggingPreconditions") // this module depends only on JDK
 public final class Proxies {
 
@@ -40,13 +41,7 @@ public final class Proxies {
      *     delegate class
      */
     public static <T, U extends T> T newProxy(Class<T> iface, U delegate, InvocationHandler handler) {
-        Objects.requireNonNull(iface, "interface");
-        Objects.requireNonNull(delegate, "delegate");
-        Objects.requireNonNull(handler, "handler");
-        checkIsInterface(iface);
-
-        return iface.cast(Proxy.newProxyInstance(
-                delegate.getClass().getClassLoader(), Proxies.interfaces(iface, delegate.getClass()), handler));
+        return com.palantir.tritium.v1.proxy.Proxies.newProxy(iface, delegate, handler);
     }
 
     /**
@@ -58,27 +53,17 @@ public final class Proxies {
      * @throws IllegalArgumentException if the specified interface class is not an interface
      */
     static Class<?>[] interfaces(Class<?> iface, Class<?> delegateClass) {
-        checkIsInterface(iface);
-        Objects.requireNonNull(delegateClass, "delegateClass");
-
-        Set<Class<?>> interfaces = new LinkedHashSet<>();
-        interfaces.add(iface);
-        if (delegateClass.isInterface()) {
-            interfaces.add(delegateClass);
-        } else {
-            interfaces.addAll(Arrays.asList(delegateClass.getInterfaces()));
-        }
-
-        checkAreAllInterfaces(interfaces);
-        return interfaces.toArray(new Class<?>[0]);
+        return com.palantir.tritium.v1.proxy.Proxies.interfaces(iface, delegateClass);
     }
 
+    // @VisibleForTesting
     static void checkIsInterface(Class<?> iface) {
         if (!iface.isInterface()) {
             throw new IllegalArgumentException(iface + " is not an interface");
         }
     }
 
+    // @VisibleForTesting
     static void checkAreAllInterfaces(Set<Class<?>> interfaces) {
         for (Class<?> possibleInterface : interfaces) {
             checkIsInterface(possibleInterface);

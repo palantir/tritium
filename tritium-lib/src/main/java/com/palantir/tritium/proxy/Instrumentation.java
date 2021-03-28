@@ -21,29 +21,36 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.event.InstrumentationFilters;
-import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
-import com.palantir.tritium.event.log.LoggingLevel;
-import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
-import com.palantir.tritium.event.metrics.TaggedMetricsServiceInvocationEventHandler;
+import com.palantir.logsafe.Preconditions;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.v1.api.event.InstrumentationFilter;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.api.event.InvocationEventHandler;
+import com.palantir.tritium.v1.core.event.InstrumentationFilters;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
+import com.palantir.tritium.v1.metrics.event.MetricsInvocationEventHandler;
+import com.palantir.tritium.v1.metrics.event.TaggedMetricsServiceInvocationEventHandler;
+import com.palantir.tritium.v1.slf4j.event.LoggingInvocationEventHandler;
+import com.palantir.tritium.v1.slf4j.event.LoggingLevel;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Instrument arbitrary service interfaces with optional metrics and invocation logging. */
+/**
+ * Instrument arbitrary service interfaces with optional metrics and invocation logging.
+ * @deprecated use {@link com.palantir.tritium.v1.lib.Instrumentation}
+ */
+@Deprecated
 public final class Instrumentation {
 
     private Instrumentation() {
         throw new UnsupportedOperationException();
     }
 
+    @SuppressWarnings("deprecation") // backward compatibility for InstrumentationFilters.INSTRUMENT_NONE
     static <T, U extends T> T wrap(
             Class<T> interfaceClass,
             U delegate,
@@ -54,11 +61,13 @@ public final class Instrumentation {
         checkNotNull(instrumentationFilter, "instrumentationFilter");
         checkNotNull(handlers, "handlers");
 
-        if (handlers.isEmpty() || instrumentationFilter == InstrumentationFilters.INSTRUMENT_NONE) {
+        if (handlers.isEmpty()
+                || InstrumentationFilters.instrumentNone().equals(instrumentationFilter)
+                || com.palantir.tritium.event.InstrumentationFilters.INSTRUMENT_NONE.equals(instrumentationFilter)) {
             return delegate;
         }
 
-        if (InstrumentationProperties.isSpecificEnabled("dynamic-proxy", false)) {
+        if (InstrumentationProperties.isSpecificallyEnabled("dynamic-proxy", false)) {
             return Proxies.newProxy(
                     interfaceClass, delegate, new InstrumentationProxy<>(instrumentationFilter, handlers, delegate));
         } else {
@@ -71,10 +80,10 @@ public final class Instrumentation {
      *
      * @deprecated Use {@link #wrap(Class, Object, List, InstrumentationFilter)}
      */
-    @Deprecated
+    @Deprecated // remove post 1.0
     static <T, U extends T> T wrap(
             Class<T> interfaceClass, U delegate, List<InvocationEventHandler<InvocationContext>> handlers) {
-        return wrap(interfaceClass, delegate, handlers, InstrumentationFilters.INSTRUMENT_ALL);
+        return wrap(interfaceClass, delegate, handlers, InstrumentationFilters.instrumentAll());
     }
 
     /**
@@ -85,12 +94,12 @@ public final class Instrumentation {
      * @param delegate delegate to instrument
      * @param metricRegistry metric registry
      * @return instrumented proxy implementing specified service interface
-     * @deprecated use {@link com.palantir.tritium.Tritium#instrument(Class, Object, MetricRegistry)}
+     * @deprecated use {@link com.palantir.tritium.v1.lib.Tritium#instrument(Class, Object, MetricRegistry)}
      */
-    @Deprecated
+    @Deprecated // remove post 1.0
     public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
         return builder(serviceInterface, delegate)
-                .withFilter(InstrumentationFilters.INSTRUMENT_ALL)
+                .withFilter(InstrumentationFilters.instrumentAll())
                 .withMetrics(metricRegistry)
                 .withPerformanceTraceLogging()
                 .build();
@@ -111,7 +120,7 @@ public final class Instrumentation {
         private final U delegate;
         private final ImmutableList.Builder<InvocationEventHandler<InvocationContext>> handlers =
                 ImmutableList.builder();
-        private InstrumentationFilter filter = InstrumentationFilters.INSTRUMENT_ALL;
+        private InstrumentationFilter filter = InstrumentationFilters.instrumentAll();
 
         private Builder(Class<T> interfaceClass, U delegate) {
             this.interfaceClass = checkNotNull(interfaceClass, "class");
@@ -124,16 +133,23 @@ public final class Instrumentation {
          * @param metricRegistry - MetricsRegistry used for this application
          * @param globalPrefix - Metrics name prefix to be used
          * @return - InstrumentationBuilder
+         * @deprecated use {@link #withTaggedMetrics(TaggedMetricRegistry)} or {@link #withMetrics(MetricRegistry)}
          */
+        @Deprecated // remove post 1.0
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry, String globalPrefix) {
             checkNotNull(metricRegistry, "metricRegistry");
-            this.handlers.add(new MetricsInvocationEventHandler(
-                    metricRegistry, delegate.getClass(), interfaceClass.getName(), globalPrefix));
-            return this;
+            if (Strings.isNullOrEmpty(globalPrefix)) {
+                return withMetrics(metricRegistry);
+            } else {
+                // deprecated path
+                return withHandler(new com.palantir.tritium.event.metrics.MetricsInvocationEventHandler(
+                        metricRegistry, delegate.getClass(), interfaceClass.getName(), globalPrefix));
+            }
         }
 
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
-            return withMetrics(metricRegistry, "");
+            checkNotNull(metricRegistry, "metricRegistry");
+            return withHandler(new MetricsInvocationEventHandler(metricRegistry, interfaceClass.getName()));
         }
 
         /**
@@ -149,8 +165,7 @@ public final class Instrumentation {
         public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String prefix) {
             checkNotNull(metricRegistry, "metricRegistry");
             String serviceName = Strings.isNullOrEmpty(prefix) ? interfaceClass.getName() : prefix;
-            this.handlers.add(new TaggedMetricsServiceInvocationEventHandler(metricRegistry, serviceName));
-            return this;
+            return withHandler(new TaggedMetricsServiceInvocationEventHandler(metricRegistry, serviceName));
         }
 
         public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry) {
@@ -158,28 +173,56 @@ public final class Instrumentation {
         }
 
         public Builder<T, U> withPerformanceTraceLogging() {
-            return withLogging(getPerformanceLoggerForInterface(interfaceClass), LoggingLevel.TRACE, (LongPredicate)
-                    LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND);
+            return withLogging(
+                    getPerformanceLoggerForInterface(interfaceClass),
+                    LoggingLevel.TRACE,
+                    LoggingInvocationEventHandler.logDurationsGreaterThan(Duration.ofNanos(1000)));
         }
 
         /**
          * Bridge for backward compatibility.
          *
-         * @deprecated use {@link #withLogging(Logger, LoggingLevel, java.util.function.LongPredicate)}
+         * @deprecated use {@link #withLogging(Logger, LoggingLevel, LongPredicate)}
          */
-        @Deprecated
-        @SuppressWarnings("FunctionalInterfaceClash") // back compat
+        @Deprecated // remove post 1.0
+        @SuppressWarnings("FunctionalInterfaceClash") // backward compatibility
         public Builder<T, U> withLogging(
                 Logger logger,
-                LoggingLevel loggingLevel,
+                com.palantir.tritium.event.log.LoggingLevel loggingLevel,
                 com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
-            return withLogging(logger, loggingLevel, (LongPredicate) durationPredicate);
+            Preconditions.checkNotNull(loggingLevel, "level");
+            return withLogging(logger, loggingLevel.asV1(), durationPredicate);
         }
 
-        @SuppressWarnings("FunctionalInterfaceClash")
+        /**
+         * Bridge for backward compatibility.
+         *
+         * @deprecated use {@link #withLogging(Logger, LoggingLevel, LongPredicate)}
+         */
+        @Deprecated // remove post 1.0
+        @SuppressWarnings("FunctionalInterfaceClash") // backward compatibility
+        public Builder<T, U> withLogging(
+                Logger logger,
+                com.palantir.tritium.event.log.LoggingLevel loggingLevel,
+                LongPredicate durationPredicate) {
+            return withLogging(logger, loggingLevel.asV1(), durationPredicate);
+        }
+
+        @SuppressWarnings("FunctionalInterfaceClash") // backward compatibility
         public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel, LongPredicate durationPredicate) {
-            this.handlers.add(new LoggingInvocationEventHandler(logger, loggingLevel, durationPredicate));
-            return this;
+            return withHandler(new LoggingInvocationEventHandler(logger, loggingLevel, durationPredicate));
+        }
+
+        /**
+         * Bridge for backward compatibility.
+         * @deprecated use {@link #withHandler(InvocationEventHandler)}
+         */
+        @Deprecated // remove post 1.0
+        public Builder<T, U> withHandler(
+                com.palantir.tritium.event.InvocationEventHandler<com.palantir.tritium.event.InvocationContext>
+                        handler) {
+            checkNotNull(handler, "handler");
+            return withHandlers(Collections.singleton(handler.asV1()));
         }
 
         public Builder<T, U> withHandler(InvocationEventHandler<InvocationContext> handler) {
@@ -191,6 +234,16 @@ public final class Instrumentation {
             checkNotNull(additionalHandlers, "additionalHandlers");
             this.handlers.addAll(additionalHandlers);
             return this;
+        }
+
+        /**
+         * Bridge for backward compatibility.
+         * @deprecated use {@link #withFilter(InstrumentationFilter)}
+         */
+        @Deprecated // remove post 1.0
+        @SuppressWarnings("FunctionalInterfaceClash") // backward compatibility
+        public Builder<T, U> withFilter(com.palantir.tritium.api.event.InstrumentationFilter instrumentationFilter) {
+            return withFilter((InstrumentationFilter) instrumentationFilter);
         }
 
         public Builder<T, U> withFilter(InstrumentationFilter instrumentationFilter) {

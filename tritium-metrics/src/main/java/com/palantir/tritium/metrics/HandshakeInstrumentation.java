@@ -17,7 +17,7 @@
 package com.palantir.tritium.metrics;
 
 import com.palantir.logsafe.SafeArg;
-import com.palantir.tritium.event.InstrumentationProperties;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ final class HandshakeInstrumentation {
      * the thread is completely avoided.
      */
     static boolean isSocketInstrumentationEnabled() {
-        return log.isDebugEnabled() || InstrumentationProperties.isSpecificEnabled("tls.socket", false);
+        return log.isDebugEnabled() || InstrumentationProperties.isSpecificallyEnabled("tls.socket", false);
     }
 
     private HandshakeInstrumentation() {}

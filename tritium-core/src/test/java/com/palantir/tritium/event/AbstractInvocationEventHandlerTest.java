@@ -18,10 +18,12 @@ package com.palantir.tritium.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
 import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation") // explicitly testing deprecated functionality
 final class AbstractInvocationEventHandlerTest {
 
     @BeforeEach

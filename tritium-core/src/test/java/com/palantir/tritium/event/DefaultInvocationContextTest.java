@@ -18,9 +18,10 @@ package com.palantir.tritium.event;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.tritium.api.event.InvocationContext;
+import com.palantir.tritium.v1.api.event.InvocationContext;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation") // explicitly testing deprecated functionality
 final class DefaultInvocationContextTest {
 
     @Test

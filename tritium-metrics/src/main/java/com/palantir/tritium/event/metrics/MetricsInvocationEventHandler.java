@@ -21,20 +21,23 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.event.AbstractInvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.InstrumentationProperties;
-import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
-import com.palantir.tritium.event.metrics.annotations.MetricGroup;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.api.event.InvocationEventHandler;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/** {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics. */
-public final class MetricsInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+/**
+ * {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics.
+ * @deprecated use {@link com.palantir.tritium.v1.metrics.event.MetricsInvocationEventHandler}
+ */
+@Deprecated // remove post 1.0
+@SuppressWarnings("UnnecessarilyFullyQualified") // deprecated types
+public final class MetricsInvocationEventHandler
+        extends com.palantir.tritium.event.AbstractInvocationEventHandler<
+                com.palantir.tritium.event.InvocationContext> {
 
     private static final String FAILURES = "failures";
 
@@ -42,7 +45,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private final String serviceName;
 
     // consider creating annotation handlers as separate objects
-    private final ImmutableMap<AnnotationHelper.MethodSignature, String> metricGroups;
+    private final ImmutableMap<com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature, String>
+            metricGroups;
 
     @Nullable
     private final String globalGroupPrefix;
@@ -75,15 +79,22 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
     }
 
-    private static ImmutableMap<AnnotationHelper.MethodSignature, String> createMethodGroupMapping(
-            Class<?> serviceClass) {
-        ImmutableMap.Builder<AnnotationHelper.MethodSignature, String> builder = ImmutableMap.builder();
+    @SuppressWarnings("deprecation") // annotations are deprecated
+    private static ImmutableMap<com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature, String>
+            createMethodGroupMapping(Class<?> serviceClass) {
+        ImmutableMap.Builder<com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature, String>
+                builder = ImmutableMap.builder();
 
-        MetricGroup classGroup = AnnotationHelper.getSuperTypeAnnotation(serviceClass, MetricGroup.class);
+        com.palantir.tritium.event.metrics.annotations.MetricGroup classGroup =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getSuperTypeAnnotation(
+                        serviceClass, com.palantir.tritium.event.metrics.annotations.MetricGroup.class);
 
         for (Method method : serviceClass.getMethods()) {
-            AnnotationHelper.MethodSignature sig = AnnotationHelper.MethodSignature.of(method);
-            MetricGroup methodGroup = AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, sig);
+            com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature sig =
+                    com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(method);
+            com.palantir.tritium.event.metrics.annotations.MetricGroup methodGroup =
+                    com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                            com.palantir.tritium.event.metrics.annotations.MetricGroup.class, serviceClass, sig);
 
             if (methodGroup != null) {
                 builder.put(sig, methodGroup.value());
@@ -102,8 +113,9 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        return DefaultInvocationContext.of(instance, method, args);
+    public com.palantir.tritium.event.InvocationContext preInvocation(
+            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+        return com.palantir.tritium.event.DefaultInvocationContext.of(instance, method, args);
     }
 
     @Override
@@ -172,6 +184,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     @Nullable
     private String getAnnotatedMetricName(InvocationContext context) {
-        return metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
+        return metricGroups.get(com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                context.getMethod()));
     }
 }

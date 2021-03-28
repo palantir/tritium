@@ -16,14 +16,16 @@
 
 package com.palantir.tritium.event;
 
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/** No-op implementation of {@link InvocationEventHandler}. */
-public enum NoOpInvocationEventHandler implements InvocationEventHandler<InvocationContext> {
+/**
+ * No-op implementation of {@link InvocationEventHandler}.
+ * @deprecated use {@link com.palantir.tritium.v1.core.event.NoOpInvocationEventHandler}
+ */
+@Deprecated // remove post 1.0
+public enum NoOpInvocationEventHandler implements InvocationEventHandler<com.palantir.tritium.event.InvocationContext> {
     INSTANCE;
 
     @Override
@@ -32,8 +34,9 @@ public enum NoOpInvocationEventHandler implements InvocationEventHandler<Invocat
     }
 
     @Override
-    public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-        return DefaultInvocationContext.of(instance, method, args);
+    public com.palantir.tritium.event.InvocationContext preInvocation(
+            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+        return (com.palantir.tritium.event.InvocationContext) DefaultInvocationContext.of(instance, method, args);
     }
 
     @Override

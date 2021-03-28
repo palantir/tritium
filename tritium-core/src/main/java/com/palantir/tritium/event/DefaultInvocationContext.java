@@ -18,11 +18,15 @@ package com.palantir.tritium.event;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
-import com.palantir.tritium.api.event.InvocationContext;
 import java.lang.reflect.Method;
 import javax.annotation.Nullable;
 
-public class DefaultInvocationContext implements InvocationContext {
+/**
+ * Default representation of invocation event state.
+ * @deprecated use {@link com.palantir.tritium.v1.core.event.DefaultInvocationContext}
+ */
+@Deprecated // remove post 1.0
+public class DefaultInvocationContext implements com.palantir.tritium.event.InvocationContext {
 
     private static final Object[] NO_ARGS = {};
 
@@ -42,29 +46,66 @@ public class DefaultInvocationContext implements InvocationContext {
         return args == null ? NO_ARGS : args.clone();
     }
 
-    public static InvocationContext of(Object instance, Method method, @Nullable Object[] args) {
+    public static com.palantir.tritium.event.InvocationContext of(
+            Object instance, Method method, @Nullable Object[] args) {
         return new DefaultInvocationContext(
                 System.nanoTime(), checkNotNull(instance, "instance"), checkNotNull(method, "method"), args);
     }
 
     @Override
+    @SuppressWarnings("deprecation") // backward compatibility bridge
     public final long getStartTimeNanos() {
         return startTimeNanos;
     }
 
     @Override
+    @SuppressWarnings("deprecation") // backward compatibility bridge
     public final Object getInstance() {
         return instance;
     }
 
     @Override
+    @SuppressWarnings("deprecation") // backward compatibility bridge
     public final Method getMethod() {
         return method;
     }
 
     @Override
+    @SuppressWarnings("deprecation") // backward compatibility bridge
     public final Object[] getArgs() {
         return args;
+    }
+
+    /**
+     * Wraps {@link com.palantir.tritium.v1.api.event.InvocationContext} as a
+     * {@link com.palantir.tritium.event.InvocationContext}.
+     * @deprecated use {@link com.palantir.tritium.v1.api.event.InvocationContext}
+     */
+    @Deprecated // remove post 1.0
+    public static com.palantir.tritium.event.InvocationContext wrap(
+            com.palantir.tritium.v1.api.event.InvocationContext context) {
+        return new com.palantir.tritium.event.InvocationContext() {
+            @Override
+            public long getStartTimeNanos() {
+                return context.getStartTimeNanos();
+            }
+
+            @Nullable
+            @Override
+            public Object getInstance() {
+                return context.getInstance();
+            }
+
+            @Override
+            public Method getMethod() {
+                return context.getMethod();
+            }
+
+            @Override
+            public Object[] getArgs() {
+                return context.getArgs();
+            }
+        };
     }
 
     @Override

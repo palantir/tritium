@@ -19,26 +19,28 @@ package com.palantir.tritium.annotations;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
-import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings("NullAway") // implicitly testing null handling
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "NullAway", // implicitly testing null handling
+    "UnnecessarilyFullyQualified" // deprecated types
+})
 public class AnnotationHelperTest {
 
-    @MetricGroup("DEFAULT")
+    @com.palantir.tritium.event.metrics.annotations.MetricGroup("DEFAULT")
     public interface TestSuperInterface {
 
-        @MetricGroup("ONE")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("ONE")
         void method();
 
-        @MetricGroup("OVERLOAD")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("OVERLOAD")
         void method(String arg);
 
-        @MetricGroup("TWO")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("TWO")
         void hasParams(String arg);
 
-        @MetricGroup("VARGS")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("VARGS")
         void vargMethod(String... vargs);
 
         void otherMethod();
@@ -46,7 +48,7 @@ public class AnnotationHelperTest {
 
     public interface TestOverrideInterface extends TestSuperInterface {
         @Override
-        @MetricGroup("OVERRIDE")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("OVERRIDE")
         void method();
     }
 
@@ -55,73 +57,124 @@ public class AnnotationHelperTest {
         TestSuperInterface impl = mock(TestSuperInterface.class);
 
         // discovery annotation on parent class
-        MetricGroup cls = AnnotationHelper.getSuperTypeAnnotation(impl.getClass(), MetricGroup.class);
-        assertThat(cls).isNotNull().extracting(MetricGroup::value).isEqualTo("DEFAULT");
+        com.palantir.tritium.event.metrics.annotations.MetricGroup cls =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getSuperTypeAnnotation(
+                        impl.getClass(), com.palantir.tritium.event.metrics.annotations.MetricGroup.class);
+        assertThat(cls)
+                .isNotNull()
+                .extracting(com.palantir.tritium.event.metrics.annotations.MetricGroup::value)
+                .isEqualTo("DEFAULT");
 
         // find annotation by class method
-        MetricGroup met = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class,
-                impl.getClass(),
-                AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("method")));
-        assertThat(met).isNotNull().extracting(MetricGroup::value).isEqualTo("ONE");
+        com.palantir.tritium.event.metrics.annotations.MetricGroup met =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                        com.palantir.tritium.event.metrics.annotations.MetricGroup.class,
+                        impl.getClass(),
+                        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                                impl.getClass().getMethod("method")));
+        assertThat(met)
+                .isNotNull()
+                .extracting(com.palantir.tritium.event.metrics.annotations.MetricGroup::value)
+                .isEqualTo("ONE");
 
         // find annotation by string descriptor
-        MetricGroup descriptor = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("method"));
-        assertThat(descriptor).isNotNull().extracting(MetricGroup::value).isEqualTo("ONE");
+        com.palantir.tritium.event.metrics.annotations.MetricGroup descriptor =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                        com.palantir.tritium.event.metrics.annotations.MetricGroup.class,
+                        impl.getClass(),
+                        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of("method"));
+        assertThat(descriptor)
+                .isNotNull()
+                .extracting(com.palantir.tritium.event.metrics.annotations.MetricGroup::value)
+                .isEqualTo("ONE");
 
         // validate overloaded methods
-        MetricGroup overload = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("method", String.class));
-        assertThat(overload).isNotNull().extracting(MetricGroup::value).isEqualTo("OVERLOAD");
+        com.palantir.tritium.event.metrics.annotations.MetricGroup overload =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                        com.palantir.tritium.event.metrics.annotations.MetricGroup.class,
+                        impl.getClass(),
+                        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                                "method", String.class));
+        assertThat(overload)
+                .isNotNull()
+                .extracting(com.palantir.tritium.event.metrics.annotations.MetricGroup::value)
+                .isEqualTo("OVERLOAD");
 
         // return null if annotation does not exist
-        MetricGroup noAnnotation = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class,
-                impl.getClass(),
-                AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("otherMethod")));
+        com.palantir.tritium.event.metrics.annotations.MetricGroup noAnnotation =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                        com.palantir.tritium.event.metrics.annotations.MetricGroup.class,
+                        impl.getClass(),
+                        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                                impl.getClass().getMethod("otherMethod")));
         assertThat(noAnnotation).isNull();
 
         // validate method matching with parameters
-        MetricGroup clsParams = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class,
-                impl.getClass(),
-                AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("hasParams", String.class)));
-        assertThat(clsParams).isNotNull().extracting(MetricGroup::value).isEqualTo("TWO");
+        com.palantir.tritium.event.metrics.annotations.MetricGroup clsParams =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                        com.palantir.tritium.event.metrics.annotations.MetricGroup.class,
+                        impl.getClass(),
+                        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                                impl.getClass().getMethod("hasParams", String.class)));
+        assertThat(clsParams)
+                .isNotNull()
+                .extracting(com.palantir.tritium.event.metrics.annotations.MetricGroup::value)
+                .isEqualTo("TWO");
 
         // validate signature matching with parameters
-        MetricGroup sigParams = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("hasParams", String.class));
-        assertThat(sigParams).isNotNull().extracting(MetricGroup::value).isEqualTo("TWO");
+        com.palantir.tritium.event.metrics.annotations.MetricGroup sigParams =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                        com.palantir.tritium.event.metrics.annotations.MetricGroup.class,
+                        impl.getClass(),
+                        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                                "hasParams", String.class));
+        assertThat(sigParams)
+                .isNotNull()
+                .extracting(com.palantir.tritium.event.metrics.annotations.MetricGroup::value)
+                .isEqualTo("TWO");
 
         // return null if method does not exist
-        MetricGroup noMethod = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("noMethod"));
+        com.palantir.tritium.event.metrics.annotations.MetricGroup noMethod =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                        com.palantir.tritium.event.metrics.annotations.MetricGroup.class,
+                        impl.getClass(),
+                        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of("noMethod"));
         assertThat(noMethod).isNull();
     }
 
     @Test
     public void testMethodSignatureEquality() throws NoSuchMethodException {
-        assertThat(AnnotationHelper.MethodSignature.of(TestSuperInterface.class.getMethod("method")))
-                .isEqualTo(AnnotationHelper.MethodSignature.of("method"));
+        assertThat(com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                        TestSuperInterface.class.getMethod("method")))
+                .isEqualTo(
+                        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of("method"));
 
-        assertThat(AnnotationHelper.MethodSignature.of(TestSuperInterface.class.getMethod("hasParams", String.class)))
-                .isEqualTo(AnnotationHelper.MethodSignature.of("hasParams", String.class));
+        assertThat(com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                        TestSuperInterface.class.getMethod("hasParams", String.class)))
+                .isEqualTo(com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                        "hasParams", String.class));
     }
 
     @Test
     public void testVargVariants() throws NoSuchMethodException {
         TestSuperInterface impl = mock(TestSuperInterface.class);
-        AnnotationHelper.MethodSignature vargSig = AnnotationHelper.MethodSignature.of("vargMethod", String[].class);
+        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature vargSig =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                        "vargMethod", String[].class);
 
         // validate signature matching with vargs
-        MetricGroup vargParams = AnnotationHelper.getMethodAnnotation(MetricGroup.class, impl.getClass(), vargSig);
+        com.palantir.tritium.event.metrics.annotations.MetricGroup vargParams =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                        com.palantir.tritium.event.metrics.annotations.MetricGroup.class, impl.getClass(), vargSig);
 
-        assertThat(vargParams).isNotNull().extracting(MetricGroup::value).isEqualTo("VARGS");
+        assertThat(vargParams)
+                .isNotNull()
+                .extracting(com.palantir.tritium.event.metrics.annotations.MetricGroup::value)
+                .isEqualTo("VARGS");
 
         assertThat(vargSig)
-                .isEqualTo(
-                        AnnotationHelper.MethodSignature.of(impl.getClass().getMethod("vargMethod", String[].class)));
+                .isEqualTo(com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of(
+                        impl.getClass().getMethod("vargMethod", String[].class)));
     }
 
     @Test
@@ -129,9 +182,15 @@ public class AnnotationHelperTest {
         TestOverrideInterface impl = mock(TestOverrideInterface.class);
 
         // validate signature matching with vargs
-        MetricGroup override = AnnotationHelper.getMethodAnnotation(
-                MetricGroup.class, impl.getClass(), AnnotationHelper.MethodSignature.of("method"));
+        com.palantir.tritium.event.metrics.annotations.MetricGroup override =
+                com.palantir.tritium.event.metrics.annotations.AnnotationHelper.getMethodAnnotation(
+                        com.palantir.tritium.event.metrics.annotations.MetricGroup.class,
+                        impl.getClass(),
+                        com.palantir.tritium.event.metrics.annotations.AnnotationHelper.MethodSignature.of("method"));
 
-        assertThat(override).isNotNull().extracting(MetricGroup::value).isEqualTo("OVERRIDE");
+        assertThat(override)
+                .isNotNull()
+                .extracting(com.palantir.tritium.event.metrics.annotations.MetricGroup::value)
+                .isEqualTo("OVERRIDE");
     }
 }

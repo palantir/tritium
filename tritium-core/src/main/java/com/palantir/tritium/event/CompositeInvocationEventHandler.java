@@ -20,8 +20,6 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +28,15 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class CompositeInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+/**
+ * An {@link InvocationEventHandler} that composes more than one {@link InvocationEventHandler}.
+ * @deprecated use {@link com.palantir.tritium.v1.core.event.CompositeInvocationEventHandler}
+ */
+@Deprecated // remove post 1.0
+@SuppressWarnings("deprecation")
+public final class CompositeInvocationEventHandler
+        extends com.palantir.tritium.event.AbstractInvocationEventHandler<
+                com.palantir.tritium.event.InvocationContext> {
 
     private static final Logger log = LoggerFactory.getLogger(CompositeInvocationEventHandler.class);
 
@@ -44,8 +50,9 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
-    public static InvocationEventHandler<InvocationContext> of(
-            List<InvocationEventHandler<InvocationContext>> handlers) {
+    public static com.palantir.tritium.event.InvocationEventHandler<com.palantir.tritium.event.InvocationContext> of(
+            List<com.palantir.tritium.event.InvocationEventHandler<com.palantir.tritium.event.InvocationContext>>
+                    handlers) {
         if (handlers.isEmpty()) {
             return NoOpInvocationEventHandler.INSTANCE;
         } else if (handlers.size() == 1) {
@@ -75,8 +82,19 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         return new CompositeInvocationContext(instance, method, args, contexts);
     }
 
+    /**
+     * Backward compatibility bridge.
+     * @deprecated use {@link #onSuccess(com.palantir.tritium.v1.api.event.InvocationContext, Object)}
+     */
     @Override
+    @Deprecated // remove post 1.0
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object result) {
+        onSuccess((com.palantir.tritium.v1.api.event.InvocationContext) context, result);
+    }
+
+    @Override
+    public void onSuccess(
+            @Nullable com.palantir.tritium.v1.api.event.InvocationContext context, @Nullable Object result) {
         debugIfNullContext(context);
         if (context != null) {
             success(((CompositeInvocationContext) context).getContexts(), result);
@@ -89,8 +107,19 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
+    /**
+     * Backward compatibility bridge.
+     * @deprecated use {@link #onFailure(com.palantir.tritium.v1.api.event.InvocationContext, Throwable)}
+     */
     @Override
+    @Deprecated // remove post 1.0
     public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+        onFailure((com.palantir.tritium.v1.api.event.InvocationContext) context, cause);
+    }
+
+    @Override
+    public void onFailure(
+            @Nullable com.palantir.tritium.v1.api.event.InvocationContext context, @Nonnull Throwable cause) {
         debugIfNullContext(context);
         if (context != null) {
             failure(((CompositeInvocationContext) context).getContexts(), cause);

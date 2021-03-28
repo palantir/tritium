@@ -21,31 +21,34 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.MetricRegistry;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.event.DefaultInvocationContext;
-import com.palantir.tritium.event.metrics.annotations.MetricGroup;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.core.event.DefaultInvocationContext;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings("NullAway")
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "NullAway", // implicitly testing null handling
+    "UnnecessarilyFullyQualified" // deprecated types
+})
 final class MetricsInvocationEventHandlerTest {
 
-    @MetricGroup("DEFAULT")
+    @com.palantir.tritium.event.metrics.annotations.MetricGroup("DEFAULT")
     interface AnnotatedTestInterface {
 
-        @MetricGroup("ONE")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("ONE")
         String methodA();
 
-        @MetricGroup("ONE")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("ONE")
         void methodB();
 
-        @MetricGroup("TWO")
+        @com.palantir.tritium.event.metrics.annotations.MetricGroup("TWO")
         void methodC();
 
         // Should match the default
         void methodD();
     }
 
-    @MetricGroup("DEFAULT")
+    @com.palantir.tritium.event.metrics.annotations.MetricGroup("DEFAULT")
     interface AnnotatedOtherInterface {
         void methodE();
     }

@@ -23,11 +23,11 @@ import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
-import com.palantir.tritium.api.event.InstrumentationFilter;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.api.event.InvocationEventHandler;
-import com.palantir.tritium.event.CompositeInvocationEventHandler;
-import com.palantir.tritium.event.InstrumentationFilters;
+import com.palantir.tritium.v1.api.event.InstrumentationFilter;
+import com.palantir.tritium.v1.api.event.InvocationContext;
+import com.palantir.tritium.v1.api.event.InvocationEventHandler;
+import com.palantir.tritium.v1.core.event.CompositeInvocationEventHandler;
+import com.palantir.tritium.v1.core.event.InstrumentationFilters;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -50,7 +50,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
      * @param handlers event handlers
      */
     protected InvocationEventProxy(List<InvocationEventHandler<InvocationContext>> handlers) {
-        this(handlers, InstrumentationFilters.INSTRUMENT_ALL);
+        this(handlers, InstrumentationFilters.instrumentAll());
     }
 
     protected InvocationEventProxy(

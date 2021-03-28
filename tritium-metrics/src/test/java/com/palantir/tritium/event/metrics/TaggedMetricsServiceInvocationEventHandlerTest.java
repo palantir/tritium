@@ -20,16 +20,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.Metric;
 import com.palantir.logsafe.exceptions.SafeRuntimeException;
-import com.palantir.tritium.api.event.InvocationContext;
-import com.palantir.tritium.event.AbstractInvocationEventHandler;
-import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
+import com.palantir.tritium.v1.core.event.AbstractInvocationEventHandler;
 import java.util.Map;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "UnnecessarilyFullyQualified" // deprecated types
+})
 final class TaggedMetricsServiceInvocationEventHandlerTest {
 
     public static final class TestImplementation {
@@ -83,8 +85,8 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
     private static void invokeMethod(
             AbstractInvocationEventHandler<?> handler, Object obj, String methodName, Object result, boolean success)
             throws Exception {
-        InvocationContext context =
-                DefaultInvocationContext.of(obj, obj.getClass().getMethod(methodName), null);
+        com.palantir.tritium.event.InvocationContext context = com.palantir.tritium.event.DefaultInvocationContext.of(
+                obj, obj.getClass().getMethod(methodName), null);
         if (success) {
             handler.onSuccess(context, result);
         } else {
