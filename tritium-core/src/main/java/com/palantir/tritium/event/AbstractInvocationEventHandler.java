@@ -99,7 +99,8 @@ public abstract class AbstractInvocationEventHandler<C extends com.palantir.trit
     protected static com.palantir.tritium.api.functions.BooleanSupplier getSystemPropertySupplier(
             Class<? extends com.palantir.tritium.event.InvocationEventHandler<InvocationContext>> clazz) {
         checkNotNull(clazz, "clazz");
-        return () -> InstrumentationProperties.getSystemPropertySupplier(clazz).getAsBoolean();
+        BooleanSupplier systemPropertySupplier = InstrumentationProperties.getSystemPropertySupplier(clazz);
+        return systemPropertySupplier::getAsBoolean;
     }
 
     /**
