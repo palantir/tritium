@@ -33,6 +33,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation") // explicitly testing deprecated functionality
 final class CompositeInvocationEventHandlerTest {
 
     private static final Object[] EMPTY_ARGS = {};
@@ -96,7 +97,7 @@ final class CompositeInvocationEventHandlerTest {
                     @Override
                     public InvocationContext preInvocation(
                             @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-                        return DefaultInvocationContext.of(instance, method, args);
+                        return (InvocationContext) DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
 
@@ -113,7 +114,7 @@ final class CompositeInvocationEventHandlerTest {
                     @Override
                     public InvocationContext preInvocation(
                             @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-                        return DefaultInvocationContext.of(instance, method, args);
+                        return (InvocationContext) DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
@@ -156,7 +157,7 @@ final class CompositeInvocationEventHandlerTest {
     void testPreInvocationThrowingHandler() throws Exception {
         @SuppressWarnings("unchecked")
         List<InvocationEventHandler<InvocationContext>> handlers =
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, createThrowingHandler(true));
+                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, createThrowingHandler());
         InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(handlers);
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
@@ -168,7 +169,7 @@ final class CompositeInvocationEventHandlerTest {
     void testThrowingOnSuccess() throws Exception {
         @SuppressWarnings("unchecked")
         List<InvocationEventHandler<InvocationContext>> handlers =
-                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, createThrowingHandler(true));
+                Arrays.asList(NoOpInvocationEventHandler.INSTANCE, createThrowingHandler());
         InvocationEventHandler<InvocationContext> compositeHandler = CompositeInvocationEventHandler.of(handlers);
         assertThat(compositeHandler).isInstanceOf(CompositeInvocationEventHandler.class);
 
@@ -179,7 +180,7 @@ final class CompositeInvocationEventHandlerTest {
 
     @Test
     void testThrowingOnFailure() throws Exception {
-        InvocationEventHandler<InvocationContext> throwingHandler = createThrowingHandler(true);
+        InvocationEventHandler<InvocationContext> throwingHandler = createThrowingHandler();
         @SuppressWarnings("unchecked")
         List<InvocationEventHandler<InvocationContext>> handlers =
                 Arrays.asList(NoOpInvocationEventHandler.INSTANCE, throwingHandler);
@@ -205,21 +206,29 @@ final class CompositeInvocationEventHandlerTest {
         return Object.class.getDeclaredMethod("toString");
     }
 
-    private static InvocationEventHandler<InvocationContext> createThrowingHandler(boolean isEnabled) {
-        return new ThrowingInvocationEventHandler(isEnabled);
+    private static InvocationEventHandler<InvocationContext> createThrowingHandler() {
+        return new ThrowingInvocationEventHandler(/* isEnabled= */ true);
     }
 
     private static final class SimpleInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
         @Override
         public InvocationContext preInvocation(
                 @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
-            return DefaultInvocationContext.of(instance, method, args);
+            return (InvocationContext) DefaultInvocationContext.of(instance, method, args);
         }
+
+        @Override
+        public void onSuccess(
+                @Nullable com.palantir.tritium.v1.api.event.InvocationContext _context, @Nullable Object _result) {}
 
         @Override
         public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {}
 
         @Override
         public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {}
+
+        @Override
+        public void onFailure(
+                @Nullable com.palantir.tritium.v1.api.event.InvocationContext _context, @Nonnull Throwable _cause) {}
     }
 }

@@ -19,7 +19,6 @@ package com.palantir.tritium.event.log;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.util.Collections;
@@ -31,6 +30,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.SimpleLogger;
 
+@SuppressWarnings({
+    "deprecation", // explicitly testing deprecated types
+    "NullAway", // implicitly testing null handling
+    "UnnecessarilyFullyQualified" // deprecated types
+})
 public class LoggingInstrumentationTest {
 
     private static final String LOG_KEY = SimpleLogger.LOG_KEY_PREFIX + "com.palantir";
@@ -64,7 +68,7 @@ public class LoggingInstrumentationTest {
         TestImplementation delegate = new TestImplementation();
         Logger logger = getLogger();
         @SuppressWarnings("deprecation") // explicitly testing
-        Runnable instrumentedService = Instrumentation.builder(Runnable.class, delegate)
+        Runnable instrumentedService = com.palantir.tritium.proxy.Instrumentation.builder(Runnable.class, delegate)
                 .withLogging(logger, LoggingLevel.TRACE, LoggingInvocationEventHandler.LOG_ALL_DURATIONS)
                 .build();
         assertThat(delegate.invocationCount()).isZero();
@@ -83,8 +87,9 @@ public class LoggingInstrumentationTest {
         };
         Logger logger = getLogger();
         @SuppressWarnings("deprecation") // explicitly testing
-        TestInterface instrumentedService = Instrumentation.builder(TestInterface.class, delegate)
-                .withLogging(logger, LoggingLevel.ERROR, LoggingInvocationEventHandler.NEVER_LOG)
+        TestInterface instrumentedService = com.palantir.tritium.proxy.Instrumentation.builder(
+                        TestInterface.class, delegate)
+                .withLogging(logger, LoggingLevel.ERROR, _input -> false)
                 .build();
         assertThat(delegate.invocationCount()).isZero();
         assertThatExceptionOfType(RuntimeException.class)
@@ -101,7 +106,7 @@ public class LoggingInstrumentationTest {
         Logger logger = getLogger();
 
         LoggingInvocationEventHandler handler = new LoggingInvocationEventHandler(logger, level);
-        TestInterface instrumented = Instrumentation.builder(TestInterface.class, delegate)
+        TestInterface instrumented = com.palantir.tritium.proxy.Instrumentation.builder(TestInterface.class, delegate)
                 .withHandler(handler)
                 .build();
 

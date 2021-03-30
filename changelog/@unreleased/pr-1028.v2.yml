@@ -1,0 +1,5 @@
+type: deprecation
+deprecation:
+  description: Create v1 APIs and deprecate previous APIs
+  links:
+  - https://github.com/palantir/tritium/pull/1028

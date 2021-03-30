@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2017 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2021 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,10 @@
 
 package com.palantir.tritium.api.event;
 
-import java.lang.reflect.Method;
-import javax.annotation.Nonnull;
-
+/**
+ * Filter predicate to determine whether a method invocation should be instrumented.
+ * @deprecated use #com.palantir.tritium.v1.api.event.InstrumentationFilter
+ */
+@Deprecated // remove post 1.0
 @FunctionalInterface
-public interface InstrumentationFilter {
-
-    /**
-     * Invoked prior to a method invocation, allowing control whether the invocation will be instrumented.
-     *
-     * @param method the {@code Method} corresponding to the interface method invoked on the instance.
-     * @param args an array of objects containing the values of the arguments passed in the method invocation on the
-     *     instance, or empty array if interface method takes no arguments. Arguments of primitive types are wrapped in
-     *     instances of the appropriate primitive wrapper class, such as {@code java.lang.Integer} or
-     *     {@code java.lang.Boolean}.
-     * @return true if invocation should be instrumented, false if invocation should not be instrumented
-     */
-    boolean shouldInstrument(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args);
-}
+public interface InstrumentationFilter extends com.palantir.tritium.v1.api.event.InstrumentationFilter {}

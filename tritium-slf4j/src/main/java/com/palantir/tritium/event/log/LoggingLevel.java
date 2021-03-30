@@ -16,11 +16,24 @@
 
 package com.palantir.tritium.event.log;
 
-/** Logging level to avoid dependency on log4j or other slf4j implementations. */
+/**
+ * Logging level to avoid dependency on log4j or other slf4j implementations.
+ * @deprecated Use {@link com.palantir.tritium.v1.slf4j.event.LoggingLevel}
+ */
+@Deprecated // remove post 1.0
 public enum LoggingLevel {
     TRACE,
     DEBUG,
     INFO,
     WARN,
-    ERROR
+    ERROR;
+
+    /**
+     * Adapts to a {@link com.palantir.tritium.v1.slf4j.event.LoggingLevel} v1 compatible log level.
+     * @deprecated use {@link com.palantir.tritium.v1.slf4j.event.LoggingLevel}
+     */
+    @Deprecated // remove post 1.0
+    public com.palantir.tritium.v1.slf4j.event.LoggingLevel asV1() {
+        return com.palantir.tritium.v1.slf4j.event.LoggingLevel.valueOf(name());
+    }
 }

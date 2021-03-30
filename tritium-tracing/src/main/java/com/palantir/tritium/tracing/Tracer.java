@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.tracing;
 
+@Deprecated // remove post 1.0
 public interface Tracer {
 
     void startSpan(String operationName);

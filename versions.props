@@ -29,7 +29,7 @@ org.slf4j:* = 1.7.30
 # caffeine 3.0 requires JDK 11+ see https://github.com/ben-manes/caffeine/releases/tag/v3.0.0
 com.github.ben-manes.caffeine:caffeine = 2.9.0
 
-# Explicitly maintaining back-compat with dropwizard metrics
+# Explicitly maintaining backward-compatibility with dropwizard metrics
 io.dropwizard.metrics:* = 3.2.5
 
 # dependency-upgrader:ON

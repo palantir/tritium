@@ -25,6 +25,11 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import javax.annotation.Nullable;
 
+/**
+ * Utility for accessing annotations on classes and methods via reflection.
+ * @deprecated will be removed in future version
+ */
+@Deprecated // remove post 1.0
 public final class AnnotationHelper {
 
     private AnnotationHelper() {

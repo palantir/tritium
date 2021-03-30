@@ -22,11 +22,14 @@ import javax.annotation.Nullable;
 
 /**
  * Interface for handing invocation events.
+ * Backward-compatibility bridge type, will be removed in future major version bump.
  *
  * @see java.lang.reflect.InvocationHandler
  * @param <C> invocation context
+ * @deprecated use {@link com.palantir.tritium.v1.api.event.InvocationEventHandler}
  */
-public interface InvocationEventHandler<C extends InvocationContext> {
+@Deprecated // remove post 1.0
+public interface InvocationEventHandler<C extends com.palantir.tritium.event.InvocationContext> {
 
     /**
      * Returns true if this event handler instance is enabled, otherwise false.
@@ -54,7 +57,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
      * @param result the return value from invocation, or null if {@link Void}.
      */
-    void onSuccess(@Nullable InvocationContext context, @Nullable Object result);
+    void onSuccess(@Nullable com.palantir.tritium.event.InvocationContext context, @Nullable Object result);
 
     /**
      * Invoked when an invocation fails.
@@ -65,5 +68,40 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
      * @param cause the throwable which caused the failure.
      */
-    void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause);
+    void onFailure(@Nullable com.palantir.tritium.event.InvocationContext context, @Nonnull Throwable cause);
+
+    /**
+     * Adapts to a {@link com.palantir.tritium.v1.api.event.InvocationEventHandler} v1 compatible handler.
+     * @deprecated use {@link com.palantir.tritium.v1.api.event.InvocationEventHandler}
+     */
+    @Deprecated // remove post 1.0
+    default com.palantir.tritium.v1.api.event.InvocationEventHandler<
+                    com.palantir.tritium.v1.api.event.InvocationContext>
+            asV1() {
+        return new com.palantir.tritium.v1.api.event.InvocationEventHandler<
+                com.palantir.tritium.v1.api.event.InvocationContext>() {
+            @Override
+            public boolean isEnabled() {
+                return InvocationEventHandler.this.isEnabled();
+            }
+
+            @Override
+            public com.palantir.tritium.v1.api.event.InvocationContext preInvocation(
+                    @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+                return InvocationEventHandler.this.preInvocation(instance, method, args);
+            }
+
+            @Override
+            public void onSuccess(
+                    @Nullable com.palantir.tritium.v1.api.event.InvocationContext context, @Nullable Object result) {
+                InvocationEventHandler.this.onSuccess((com.palantir.tritium.event.InvocationContext) context, result);
+            }
+
+            @Override
+            public void onFailure(
+                    @Nullable com.palantir.tritium.v1.api.event.InvocationContext context, @Nonnull Throwable cause) {
+                InvocationEventHandler.this.onFailure((com.palantir.tritium.event.InvocationContext) context, cause);
+            }
+        };
+    }
 }

@@ -16,6 +16,12 @@
 
 package com.palantir.tritium.api.functions;
 
+/**
+ * {@code long} predicate.
+ * Back-compatibility bridge type, will be removed in future major version bump.
+ * @deprecated use {@link java.util.function.LongPredicate}
+ */
+@Deprecated // remove post 1.0
 @FunctionalInterface
 public interface LongPredicate extends java.util.function.LongPredicate {
 
@@ -23,7 +29,7 @@ public interface LongPredicate extends java.util.function.LongPredicate {
      * {@link LongPredicate} that always returns true.
      * @deprecated prefer simple inlined lambda for clarity
      */
-    @Deprecated
+    @Deprecated // remove post 1.0
     @SuppressWarnings("MemberName") // public API
     LongPredicate TRUE = _input -> true;
 
@@ -31,7 +37,7 @@ public interface LongPredicate extends java.util.function.LongPredicate {
      * {@link LongPredicate} that always returns false.
      * @deprecated prefer simple inlined lambda for clarity
      */
-    @Deprecated
+    @Deprecated // remove post 1.0
     @SuppressWarnings("MemberName") // public API
     LongPredicate FALSE = _input -> false;
 

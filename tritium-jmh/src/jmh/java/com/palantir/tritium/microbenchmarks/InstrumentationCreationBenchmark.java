@@ -18,10 +18,10 @@ package com.palantir.tritium.microbenchmarks;
 
 import com.google.common.collect.Streams;
 import com.google.common.util.concurrent.Runnables;
-import com.palantir.tritium.Tritium;
-import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.v1.core.event.InstrumentationProperties;
+import com.palantir.tritium.v1.lib.Tritium;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;

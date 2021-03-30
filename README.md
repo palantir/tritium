@@ -23,7 +23,7 @@ These metrics can be exposed at the Dropwizard ``MetricsServlet`` and can be exp
 ### Instrumenting a service interface of a dropwizard application with default metrics timers and optional trace logging.
 
 ```java
-import com.palantir.tritium.Tritium;
+import com.palantir.tritium.v1.lib.Tritium;
 
 Service interestingService = ...
 Service instrumentedService = Tritium.instrument(Service.class,

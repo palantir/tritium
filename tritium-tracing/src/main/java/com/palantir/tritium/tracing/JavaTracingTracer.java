@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.tracing;
 
+@Deprecated // remove post 1.0
 enum JavaTracingTracer implements com.palantir.tritium.tracing.Tracer {
     INSTANCE;
 

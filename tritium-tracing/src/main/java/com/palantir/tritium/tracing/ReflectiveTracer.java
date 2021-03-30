@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Deprecated // remove post 1.0
 final class ReflectiveTracer implements Tracer {
 
     private final Method startSpanMethod;
