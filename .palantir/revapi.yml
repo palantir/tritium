@@ -1,0 +1,14 @@
+acceptedBreaks:
+  "0.18.8":
+    com.palantir.tritium:tritium-metrics:
+    - code: "java.class.removed"
+      old: "interface com.palantir.tritium.metrics.InternalCacheMetrics.Stats"
+      justification: "Changed internal methods"
+    - code: "java.method.parameterTypeChanged"
+      old: "parameter <K> com.google.common.collect.ImmutableMap<K, com.codahale.metrics.Gauge<?>>\
+        \ com.palantir.tritium.metrics.InternalCacheMetrics::createMetrics(===com.palantir.tritium.metrics.InternalCacheMetrics.Stats===,\
+        \ java.util.function.Function<java.lang.String, K>)"
+      new: "parameter <K> com.google.common.collect.ImmutableMap<K, com.codahale.metrics.Gauge<?>>\
+        \ com.palantir.tritium.metrics.InternalCacheMetrics::createMetrics(===com.palantir.tritium.metrics.CacheMetrics.Stats===,\
+        \ java.util.function.Function<java.lang.String, K>)"
+      justification: "Changed internal methods"
