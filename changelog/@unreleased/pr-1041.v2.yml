@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: Add ability to register custom cache stats.
+  links:
+  - https://github.com/palantir/tritium/pull/1041
