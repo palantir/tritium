@@ -14,7 +14,7 @@ buildscript {
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.3'
         classpath 'com.palantir.metricschema:gradle-metric-schema:0.5.19'
         classpath 'gradle.plugin.org.inferred:gradle-processors:3.3.0'
-        classpath 'com.google.errorprone:error_prone_core:2.5.1'
+        classpath 'com.google.errorprone:error_prone_core:2.6.0'
     }
 }
 
