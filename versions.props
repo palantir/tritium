@@ -30,6 +30,6 @@ org.slf4j:* = 1.7.30
 com.github.ben-manes.caffeine:caffeine = 2.9.0
 
 # Explicitly maintaining back-compat with dropwizard metrics
-io.dropwizard.metrics:* = 3.2.5
+io.dropwizard.metrics:* = 4.1.18
 
 # dependency-upgrader:ON
