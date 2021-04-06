@@ -84,6 +84,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     @Override
+    @SuppressWarnings("PreferJavaTimeOverload")
     public final void onSuccess(@Nullable InvocationContext context, @Nullable Object _result) {
         debugIfNullContext(context);
         if (context != null) {

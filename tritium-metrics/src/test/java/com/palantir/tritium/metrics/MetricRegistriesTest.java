@@ -100,6 +100,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
+    @SuppressWarnings("PreferJavaTimeOverload")
     void testHdrHistogram() {
         metrics = MetricRegistries.createWithHdrHistogramReservoirs();
         assertThat(metrics).isNotNull();
@@ -117,6 +118,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
+    @SuppressWarnings("PreferJavaTimeOverload")
     void testSlidingTimeWindowHistogram() {
         metrics = MetricRegistries.createWithSlidingTimeWindowReservoirs(1, TimeUnit.MINUTES);
         assertThat(metrics).isNotNull();
@@ -134,6 +136,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
+    @SuppressWarnings("PreferJavaTimeOverload")
     void testSlidingTimeWindowHistogramExpiery() {
         final long window = 60;
         final TimeUnit windowUnit = TimeUnit.SECONDS;
@@ -177,6 +180,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
+    @SuppressWarnings("PreferJavaTimeOverload")
     void testDecayingHistogramReservoirs() {
         metrics = MetricRegistries.createWithReservoirType(ExponentiallyDecayingReservoir::new);
         assertThat(metrics).isNotNull();
@@ -194,6 +198,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
+    @SuppressWarnings("PreferJavaTimeOverload")
     void testLockFreeDecayingHistogramReservoirs() {
         metrics = MetricRegistries.createWithLockFreeExponentiallyDecayingReservoirs();
         assertThat(metrics).isNotNull();
