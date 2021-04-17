@@ -45,6 +45,7 @@ final class CaffeineCacheStatsTest {
     private final Function<Integer, String> mapping = String::valueOf;
 
     @AfterEach
+    @SuppressWarnings("SystemOut") // dumping metrics to standard out
     void after() {
         System.out.println("Metrics");
         try (ConsoleReporter reporter =

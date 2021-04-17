@@ -79,7 +79,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings({"NullAway", "WeakerAccess"}) // mock injection
+@SuppressWarnings({"NullAway", "SystemOut", "WeakerAccess"}) // mock injection, dumping metrics to standard out
 public abstract class InstrumentationTest {
 
     @MetricGroup("DEFAULT")

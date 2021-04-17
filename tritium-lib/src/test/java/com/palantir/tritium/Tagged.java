@@ -44,6 +44,7 @@ public final class Tagged {
                         entry -> clazz.cast(entry.getValue())));
     }
 
+    @SuppressWarnings("SystemOut") // dumping metrics to standard out
     public static void report(ConsoleReporter reporter, TaggedMetricRegistry taggedMetricRegistry) {
         Map<MetricName, Metric> metrics = taggedMetricRegistry.getMetrics();
         if (!metrics.isEmpty()) {

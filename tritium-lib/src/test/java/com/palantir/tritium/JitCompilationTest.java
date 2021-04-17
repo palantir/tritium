@@ -27,6 +27,7 @@ import com.palantir.tritium.test.TestInterface;
 import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.impl.TestLogs;
 
+@SuppressWarnings("SystemOut") // using standard output for test
 public final class JitCompilationTest {
 
     private static final long COUNT = 5_000_000L;

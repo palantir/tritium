@@ -58,6 +58,7 @@ public class TracingInvocationEventHandlerTest {
     private SpanObserver mockSpanObserver;
 
     @BeforeEach
+    @SuppressWarnings("SystemOut") // testing trace output to system out
     public void before() throws Exception {
         Tracer.getAndClearTrace();
         MDC.clear();
