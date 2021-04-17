@@ -20,7 +20,7 @@ org.hdrhistogram:* = 2.1.12
 org.immutables:* = 2.8.8
 org.junit.jupiter:* = 5.7.1
 org.mockito:* = 3.9.0
-org.mpierce.metrics.reservoir:* = 1.1.2
+org.mpierce.metrics.reservoir:* = 1.1.3
 org.openjdk.jmh:* = 1.29
 org.slf4j:* = 1.7.30
 
