@@ -16,16 +16,11 @@
 
 package com.palantir.tritium.metrics;
 
-import com.palantir.logsafe.exceptions.SafeIllegalStateException;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
-import javax.annotation.Nullable;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
@@ -34,7 +29,7 @@ import javax.net.ssl.SSLSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class InstrumentedSslEngine extends SSLEngine {
+final class InstrumentedSslEngine extends SSLEngine {
 
     private static final Logger log = LoggerFactory.getLogger(InstrumentedSslEngine.class);
 
@@ -46,34 +41,17 @@ class InstrumentedSslEngine extends SSLEngine {
 
     /**
      * Instrument the provided {@link SSLEngine}.
-     * This method behaves in a strange way to support java 9 without fooling java 8 consumers. Many libraries use
-     * the existence of the new JDK9 methods to attempt ALPN via reflection, so we cannot return an implementation
-     * with these methods unless the delegate engine provides them. Conversely, regardless of the runtime version
-     * we need to preserve the new ALPN methods from the delegate engine to avoid modifying application behavior.
+     * Note that this assumes up-to-date JVMs, older Java 8 releases did not provide
+     * ALPN API methods {@link #getApplicationProtocol()}, {@link #getHandshakeApplicationProtocol()},
+     * {@link #setHandshakeApplicationProtocolSelector(BiFunction)}, {@link #getHandshakeApplicationProtocolSelector()}.
+     * Using this method on an older jre8 release will not fail outright, but some callers may assume
+     * ALPN is supported by this implementation when calls to the delegate fail. Reflection is not
+     * used here because it increases risk of incorrect behavior using graalvm native-images.
+     *
+     * @see <a href="https://openjdk.java.net/jeps/244">JEP 244</a>
+     * @see <a href="https://bugs.openjdk.java.net/browse/JDK-8230977">JDK-8230977</a>
      */
     static SSLEngine instrument(SSLEngine engine, TlsMetrics metrics, String name) {
-        Method getApplicationProtocol = getMethodNullable(engine.getClass(), "getApplicationProtocol");
-        // Avoid the other three lookups if methods aren't present
-        if (getApplicationProtocol != null) {
-            Method getHandshakeApplicationProtocol =
-                    getMethodNullable(engine.getClass(), "getHandshakeApplicationProtocol");
-            Method setHandshakeApplicationProtocolSelector =
-                    getMethodNullable(engine.getClass(), "setHandshakeApplicationProtocolSelector", BiFunction.class);
-            Method getHandshakeApplicationProtocolSelector =
-                    getMethodNullable(engine.getClass(), "getHandshakeApplicationProtocolSelector");
-            if (getHandshakeApplicationProtocol != null
-                    && setHandshakeApplicationProtocolSelector != null
-                    && getHandshakeApplicationProtocolSelector != null) {
-                return new InstrumentedSslEngineJava9(
-                        engine,
-                        metrics,
-                        name,
-                        getApplicationProtocol,
-                        getHandshakeApplicationProtocol,
-                        setHandshakeApplicationProtocolSelector,
-                        getHandshakeApplicationProtocolSelector);
-            }
-        }
         return new InstrumentedSslEngine(engine, metrics, name);
     }
 
@@ -84,28 +62,6 @@ class InstrumentedSslEngine extends SSLEngine {
             current = ((InstrumentedSslEngine) current).engine;
         }
         return current;
-    }
-
-    @Nullable
-    private static Method getMethodNullable(Class<? extends SSLEngine> target, String name, Class<?>... paramTypes) {
-        if (System.getSecurityManager() == null) {
-            return getMethodNullableInternal(target, name, paramTypes);
-        } else {
-            return AccessController.doPrivileged(
-                    (PrivilegedAction<Method>) () -> getMethodNullableInternal(target, name, paramTypes));
-        }
-    }
-
-    @Nullable
-    private static Method getMethodNullableInternal(
-            Class<? extends SSLEngine> target, String name, Class<?>... paramTypes) {
-        try {
-            Method method = target.getMethod(name, paramTypes);
-            method.setAccessible(true);
-            return method;
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
     }
 
     private InstrumentedSslEngine(SSLEngine engine, TlsMetrics metrics, String name) {
@@ -286,6 +242,27 @@ class InstrumentedSslEngine extends SSLEngine {
     }
 
     @Override
+    public String getApplicationProtocol() {
+        return engine.getApplicationProtocol();
+    }
+
+    @Override
+    public String getHandshakeApplicationProtocol() {
+        return engine.getHandshakeApplicationProtocol();
+    }
+
+    @Override
+    public void setHandshakeApplicationProtocolSelector(BiFunction<SSLEngine, List<String>, String> selector) {
+        engine.setHandshakeApplicationProtocolSelector(selector);
+    }
+
+    @Override
+    @SuppressWarnings("NoFunctionalReturnType")
+    public BiFunction<SSLEngine, List<String>, String> getHandshakeApplicationProtocolSelector() {
+        return engine.getHandshakeApplicationProtocolSelector();
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (this == other) {
             return true;
@@ -315,71 +292,5 @@ class InstrumentedSslEngine extends SSLEngine {
             }
         }
         return result;
-    }
-
-    private static final class InstrumentedSslEngineJava9 extends InstrumentedSslEngine {
-
-        private final SSLEngine engine;
-        private final Method getApplicationProtocol;
-        private final Method getHandshakeApplicationProtocol;
-        private final Method setHandshakeApplicationProtocolSelector;
-        private final Method getHandshakeApplicationProtocolSelector;
-
-        private InstrumentedSslEngineJava9(
-                SSLEngine engine,
-                TlsMetrics metrics,
-                String name,
-                Method getApplicationProtocol,
-                Method getHandshakeApplicationProtocol,
-                Method setHandshakeApplicationProtocolSelector,
-                Method getHandshakeApplicationProtocolSelector) {
-            super(engine, metrics, name);
-            this.engine = engine;
-            this.getApplicationProtocol = getApplicationProtocol;
-            this.getHandshakeApplicationProtocol = getHandshakeApplicationProtocol;
-            this.setHandshakeApplicationProtocolSelector = setHandshakeApplicationProtocolSelector;
-            this.getHandshakeApplicationProtocolSelector = getHandshakeApplicationProtocolSelector;
-        }
-
-        // Override(java9+)
-        @SuppressWarnings({"MissingOverride", "unused"})
-        public String getApplicationProtocol() {
-            try {
-                return (String) getApplicationProtocol.invoke(engine);
-            } catch (ReflectiveOperationException e) {
-                throw new SafeIllegalStateException("Failed to invoke getApplicationProtocol", e);
-            }
-        }
-
-        // Override(java9+)
-        @SuppressWarnings({"MissingOverride", "unused"})
-        public String getHandshakeApplicationProtocol() {
-            try {
-                return (String) getHandshakeApplicationProtocol.invoke(engine);
-            } catch (ReflectiveOperationException e) {
-                throw new SafeIllegalStateException("Failed to invoke getHandshakeApplicationProtocol", e);
-            }
-        }
-
-        // Override(java9+)
-        @SuppressWarnings({"MissingOverride", "unused"})
-        public void setHandshakeApplicationProtocolSelector(BiFunction<SSLEngine, List<String>, String> selector) {
-            try {
-                setHandshakeApplicationProtocolSelector.invoke(engine, selector);
-            } catch (ReflectiveOperationException e) {
-                throw new SafeIllegalStateException("Failed to invoke setHandshakeApplicationProtocolSelector", e);
-            }
-        }
-
-        // Override(java9+)
-        @SuppressWarnings({"NoFunctionalReturnType", "MissingOverride", "unchecked", "unused"})
-        public BiFunction<SSLEngine, List<String>, String> getHandshakeApplicationProtocolSelector() {
-            try {
-                return (BiFunction<SSLEngine, List<String>, String>)
-                        getHandshakeApplicationProtocolSelector.invoke(engine);
-            } catch (ReflectiveOperationException e) {
-                throw new SafeIllegalStateException("Failed to invoke getHandshakeApplicationProtocolSelector", e);
-            }
-        }
     }
 }

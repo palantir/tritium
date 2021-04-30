@@ -130,9 +130,6 @@ final class InstrumentedSslContextTest {
 
     @Test
     void testClientInstrumentationOkHttpHttp2() throws Exception {
-        assumeThat(IS_JAVA_8)
-                .describedAs("Java 8 does not support ALPN without additional help")
-                .isFalse();
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         SSLSocketFactory socketFactory =
                 MetricRegistries.instrument(metrics, newClientContext().getSocketFactory(), "okhttp-client");
