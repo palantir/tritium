@@ -110,7 +110,6 @@ public final class CaffeineCacheStats {
      * @return stats counter
      */
     public static StatsCounter record(TaggedMetricRegistry registry, @Safe String name) {
-        //        return CaffeineCacheTaggedMetrics.statsCounter(registry, name);
         Function<String, MetricName> nameFunction = InternalCacheMetrics.taggedMetricName(name);
         return new TaggedCaffeineStatsCounter(
                 registry.counter(nameFunction.apply("cache.hit.count")),
