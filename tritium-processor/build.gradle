@@ -1,0 +1,23 @@
+apply plugin: 'com.palantir.external-publish-jar'
+
+dependencies {
+    compile project(':tritium-annotations')
+    compile project(':tritium-api')
+    compile project(':tritium-registry')
+    compile project(':tritium-core')
+
+    compile 'com.squareup:javapoet'
+    compile 'com.google.guava:guava'
+    compile 'com.google.auto:auto-common'
+    compile 'com.google.code.findbugs:jsr305'
+    compile 'com.palantir.safe-logging:preconditions'
+
+    annotationProcessor 'com.google.auto.service:auto-service'
+    compileOnly 'com.google.auto.service:auto-service-annotations'
+
+    testImplementation 'com.google.testing.compile:compile-testing'
+    testImplementation 'com.google.guava:guava'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+}

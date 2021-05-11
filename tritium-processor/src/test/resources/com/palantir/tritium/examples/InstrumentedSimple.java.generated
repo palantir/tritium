@@ -1,0 +1,85 @@
+package com.palantir.tritium.examples;
+
+import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.Handlers;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.Method;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+public final class InstrumentedSimple implements Simple {
+    private static final Method BAR;
+
+    private static final Method FOO;
+
+    static {
+        try {
+            BAR = Simple.class.getMethod("bar", double.class);
+            FOO = Simple.class.getMethod("foo");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final Simple delegate;
+
+    private final InvocationEventHandler<InvocationContext> handler;
+
+    private final InstrumentationFilter filter;
+
+    private InstrumentedSimple(Simple delegate, InvocationEventHandler<InvocationContext> handler,
+            InstrumentationFilter filter) {
+        this.delegate = delegate;
+        this.handler = handler;
+        this.filter = filter;
+    }
+
+    @Override
+    public short bar(double baz) {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, BAR, new Object[]{baz});
+            try {
+                short returnValue = this.delegate.bar(baz);
+                Handlers.onSuccess(this.handler, invocationContext, returnValue);
+                return returnValue;
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            return this.delegate.bar(baz);
+        }
+    }
+
+    @Override
+    public void foo() {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[]{});
+            try {
+                this.delegate.foo();
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.foo();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "InstrumentedSimple{" + delegate + '}';
+    }
+
+    public static InstrumentationBuilder<Simple, Simple> builder(Simple delegate) {
+        return new InstrumentationBuilder<Simple, Simple>(Simple.class, delegate, InstrumentedSimple::new);
+    }
+
+    public static Simple instrument(Simple delegate, TaggedMetricRegistry registry) {
+        return builder(delegate).withTaggedMetrics(registry).withTracing().build();
+    }
+}

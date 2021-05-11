@@ -156,19 +156,6 @@ public class InvocationEventProxyTest {
     }
 
     @Test
-    public void testToInvocationDebugString() throws Exception {
-        Throwable cause = new RuntimeException("cause");
-        InvocationEventProxy.logInvocationWarning("test", this, getStringLengthMethod(), cause);
-    }
-
-    @Test
-    public void testToInvocationContextDebugString() throws Exception {
-        Throwable cause = new RuntimeException("cause");
-        InvocationContext context = DefaultInvocationContext.of("test", getStringLengthMethod(), EMPTY_ARGS);
-        InvocationEventProxy.logInvocationWarning("test", context, 13, cause);
-    }
-
-    @Test
     public void testInstrumentToString() {
         List<InvocationEventHandler<InvocationContext>> handlers = Collections.emptyList();
         InvocationEventProxy proxy = new InvocationEventProxy(handlers) {

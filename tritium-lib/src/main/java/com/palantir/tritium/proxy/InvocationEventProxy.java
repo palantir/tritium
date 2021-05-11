@@ -19,12 +19,11 @@ package com.palantir.tritium.proxy;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.errorprone.annotations.CompileTimeConstant;
 import com.palantir.logsafe.SafeArg;
-import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
+import com.palantir.tritium.event.Handlers;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
@@ -33,12 +32,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 abstract class InvocationEventProxy implements InvocationHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(InvocationEventProxy.class);
     private static final Object[] EMPTY_ARRAY = new Object[0];
 
     private final InstrumentationFilter filter;
@@ -73,20 +68,6 @@ abstract class InvocationEventProxy implements InvocationHandler {
         return String.valueOf(getDelegate());
     }
 
-    /**
-     * Returns true if instrumentation handling is enabled, otherwise false.
-     *
-     * @return whether instrumentation handling is enabled
-     */
-    private boolean isEnabled(Object instance, Method method, Object[] args) {
-        try {
-            return eventHandler.isEnabled() && filter.shouldInstrument(instance, method, args);
-        } catch (RuntimeException | Error t) {
-            logInvocationWarning("isEnabled", instance, method, t);
-            return false;
-        }
-    }
-
     /** Optimized to avoid excessive stack frames for readable stack traces. */
     @Override
     @Nullable
@@ -95,22 +76,14 @@ abstract class InvocationEventProxy implements InvocationHandler {
         if (isSpecialMethod(method, arguments)) {
             return handleSpecialMethod(proxy, method, arguments);
         }
-        if (isEnabled(proxy, method, arguments)) {
-            InvocationContext context = handlePreInvocation(proxy, method, arguments);
-            try {
-                Object result = method.invoke(getDelegate(), arguments);
-                return handleOnSuccess(context, result);
-            } catch (InvocationTargetException ite) {
-                throw handleOnFailure(context, ite.getCause());
-            } catch (IllegalAccessException | RuntimeException | Error t) {
-                throw handleOnFailure(context, t);
-            }
-        } else {
-            try {
-                return method.invoke(getDelegate(), arguments);
-            } catch (InvocationTargetException e) {
-                throw e.getCause();
-            }
+        InvocationContext context = handlePreInvocation(proxy, method, arguments);
+        try {
+            Object result = method.invoke(getDelegate(), arguments);
+            return handleOnSuccess(context, result);
+        } catch (InvocationTargetException ite) {
+            throw handleOnFailure(context, ite.getCause());
+        } catch (IllegalAccessException | RuntimeException | Error t) {
+            throw handleOnFailure(context, t);
         }
     }
 
@@ -150,72 +123,18 @@ abstract class InvocationEventProxy implements InvocationHandler {
     @Nullable
     @VisibleForTesting
     final InvocationContext handlePreInvocation(Object instance, Method method, Object[] args) {
-        try {
-            return eventHandler.preInvocation(instance, method, args);
-        } catch (RuntimeException e) {
-            logInvocationWarning("preInvocation", instance, method, e);
-        }
-        return null;
+        return Handlers.preWithEnabledCheck(eventHandler, filter, instance, method, args);
     }
 
     @Nullable
     @VisibleForTesting
     final Object handleOnSuccess(@Nullable InvocationContext context, @Nullable Object result) {
-        try {
-            eventHandler.onSuccess(context, result);
-        } catch (RuntimeException e) {
-            logInvocationWarningOnSuccess(context, result, e);
-        }
+        Handlers.onSuccess(eventHandler, context, result);
         return result;
     }
 
     final Throwable handleOnFailure(@Nullable InvocationContext context, Throwable cause) {
-        try {
-            eventHandler.onFailure(context, cause);
-        } catch (RuntimeException e) {
-            logInvocationWarningOnFailure(context, cause, e);
-        }
+        Handlers.onFailure(eventHandler, context, cause);
         return cause;
-    }
-
-    private static void logInvocationWarningOnSuccess(
-            @Nullable InvocationContext context, @Nullable Object result, Exception cause) {
-        logInvocationWarning("onSuccess", context, result, cause);
-    }
-
-    private static void logInvocationWarningOnFailure(
-            @Nullable InvocationContext context, @Nullable Throwable result, Exception cause) {
-        logInvocationWarning("onFailure", context, result, cause);
-    }
-
-    private static SafeArg<String> safeSimpleClassName(@CompileTimeConstant String name, @Nullable Object object) {
-        return SafeArg.of(name, (object == null) ? "null" : object.getClass().getSimpleName());
-    }
-
-    static void logInvocationWarning(
-            String event, @Nullable InvocationContext context, @Nullable Object result, Throwable cause) {
-        if (log.isWarnEnabled()) {
-            log.warn(
-                    "{} occurred handling '{}' ({}, {}): {}",
-                    safeSimpleClassName("cause", cause),
-                    SafeArg.of("event", event),
-                    UnsafeArg.of("context", context),
-                    safeSimpleClassName("result", result),
-                    cause);
-        }
-    }
-
-    static void logInvocationWarning(String event, Object instance, Method method, Throwable cause) {
-        if (log.isWarnEnabled()) {
-            log.warn(
-                    "{} occurred handling '{}' invocation of {} {} on {} instance: {}",
-                    safeSimpleClassName("cause", cause),
-                    SafeArg.of("event", event),
-                    SafeArg.of("class", method.getDeclaringClass().getName()),
-                    SafeArg.of("method", method),
-                    safeSimpleClassName("instanceClass", instance),
-                    UnsafeArg.of("instance", instance),
-                    cause);
-        }
     }
 }

@@ -1,0 +1,141 @@
+package com.palantir.tritium.examples;
+
+import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.Handlers;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.Method;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+public final class InstrumentedOverloaded implements Overloaded {
+    private static final Method CONSUME;
+
+    private static final Method CONSUME1;
+
+    private static final Method CONSUME2;
+
+    private static final Method CONSUME3;
+
+    private static final Method CONSUME4;
+
+    static {
+        try {
+            CONSUME = Overloaded.class.getMethod("consume", int.class);
+            CONSUME1 = Overloaded.class.getMethod("consume", String.class);
+            CONSUME2 = Overloaded.class.getMethod("consume", Object.class);
+            CONSUME3 = Overloaded.class.getMethod("consume", double[].class);
+            CONSUME4 = Overloaded.class.getMethod("consume");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final Overloaded delegate;
+
+    private final InvocationEventHandler<InvocationContext> handler;
+
+    private final InstrumentationFilter filter;
+
+    private InstrumentedOverloaded(Overloaded delegate,
+            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+        this.delegate = delegate;
+        this.handler = handler;
+        this.filter = filter;
+    }
+
+    @Override
+    public void consume(int value) {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME, new Object[]{value});
+            try {
+                this.delegate.consume(value);
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.consume(value);
+        }
+    }
+
+    @Override
+    public void consume(String value) {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME1, new Object[]{value});
+            try {
+                this.delegate.consume(value);
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.consume(value);
+        }
+    }
+
+    @Override
+    public void consume(Object value) {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME2, new Object[]{value});
+            try {
+                this.delegate.consume(value);
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.consume(value);
+        }
+    }
+
+    @Override
+    public void consume(double[] value) {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME3, new Object[]{value});
+            try {
+                this.delegate.consume(value);
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.consume(value);
+        }
+    }
+
+    @Override
+    public void consume() {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME4, new Object[]{});
+            try {
+                this.delegate.consume();
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.consume();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "InstrumentedOverloaded{" + delegate + '}';
+    }
+
+    public static InstrumentationBuilder<Overloaded, Overloaded> builder(Overloaded delegate) {
+        return new InstrumentationBuilder<Overloaded, Overloaded>(Overloaded.class, delegate, InstrumentedOverloaded::new);
+    }
+
+    public static Overloaded instrument(Overloaded delegate, TaggedMetricRegistry registry) {
+        return builder(delegate).withTaggedMetrics(registry).withTracing().build();
+    }
+}

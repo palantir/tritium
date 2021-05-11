@@ -1,0 +1,65 @@
+package com.palantir.tritium.examples;
+
+import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.Handlers;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.Method;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+public final class InstrumentedHasToString implements HasToString {
+    private static final Method FOO;
+
+    static {
+        try {
+            FOO = HasToString.class.getMethod("foo");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final HasToString delegate;
+
+    private final InvocationEventHandler<InvocationContext> handler;
+
+    private final InstrumentationFilter filter;
+
+    private InstrumentedHasToString(HasToString delegate,
+            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+        this.delegate = delegate;
+        this.handler = handler;
+        this.filter = filter;
+    }
+
+    @Override
+    public void foo() {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[]{});
+            try {
+                this.delegate.foo();
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.foo();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "InstrumentedHasToString{" + delegate + '}';
+    }
+
+    public static InstrumentationBuilder<HasToString, HasToString> builder(HasToString delegate) {
+        return new InstrumentationBuilder<HasToString, HasToString>(HasToString.class, delegate, InstrumentedHasToString::new);
+    }
+
+    public static HasToString instrument(HasToString delegate, TaggedMetricRegistry registry) {
+        return builder(delegate).withTaggedMetrics(registry).withTracing().build();
+    }
+}

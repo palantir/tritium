@@ -1,0 +1,69 @@
+package com.palantir.tritium.examples;
+
+import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.Handlers;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.Method;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+public final class InstrumentedOverlappingNames implements OverlappingNames {
+    private static final Method FOO;
+
+    static {
+        try {
+            FOO = OverlappingNames.class.getMethod("foo", int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final OverlappingNames delegate;
+
+    private final InvocationEventHandler<InvocationContext> handler;
+
+    private final InstrumentationFilter filter;
+
+    private InstrumentedOverlappingNames(OverlappingNames delegate,
+            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+        this.delegate = delegate;
+        this.handler = handler;
+        this.filter = filter;
+    }
+
+    @Override
+    public int foo(int returnValue, int result, int context, int invocationContext, int throwable,
+            int thrown, int filter, int handler, int delegate) {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext_ = Handlers.pre(this.handler, this.filter, this, FOO, new Object[]{returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate});
+            try {
+                int returnValue_ = this.delegate.foo(returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate);
+                Handlers.onSuccess(this.handler, invocationContext_, returnValue);
+                return returnValue_;
+            } catch (Throwable throwable_) {
+                Handlers.onFailure(this.handler, invocationContext_, throwable_);
+                throw throwable_;
+            }
+        } else {
+            return this.delegate.foo(returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "InstrumentedOverlappingNames{" + delegate + '}';
+    }
+
+    public static InstrumentationBuilder<OverlappingNames, OverlappingNames> builder(
+            OverlappingNames delegate) {
+        return new InstrumentationBuilder<OverlappingNames, OverlappingNames>(OverlappingNames.class, delegate, InstrumentedOverlappingNames::new);
+    }
+
+    public static OverlappingNames instrument(OverlappingNames delegate,
+            TaggedMetricRegistry registry) {
+        return builder(delegate).withTaggedMetrics(registry).withTracing().build();
+    }
+}

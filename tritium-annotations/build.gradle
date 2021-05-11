@@ -1,0 +1,13 @@
+apply plugin: 'com.palantir.external-publish-jar'
+
+dependencies {
+    api project(':tritium-api')
+    api project(':tritium-lib')
+    implementation project(':tritium-core')
+    implementation project(':tritium-metrics')
+    implementation project(':tritium-registry')
+    implementation project(':tritium-slf4j')
+    implementation project(':tritium-tracing')
+    implementation 'org.slf4j:slf4j-api'
+    implementation 'com.palantir.safe-logging:preconditions'
+}
