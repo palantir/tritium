@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Interfaces annotated with {@link TritiumInstrument} will result in a generated concrete implementation
+ * Interfaces annotated with {@link Instrument} will result in a generated concrete implementation
  * using the same package, and name prefixed with {@code Instrumented}.
  * <p/>
  * Externally defined interfaces may be instrumented by defining an interface with the requested interface
@@ -32,4 +32,4 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.CLASS)
-public @interface TritiumInstrument {}
+public @interface Instrument {}

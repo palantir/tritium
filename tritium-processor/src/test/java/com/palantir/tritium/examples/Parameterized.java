@@ -16,10 +16,10 @@
 
 package com.palantir.tritium.examples;
 
-import com.palantir.tritium.annotations.TritiumInstrument;
+import com.palantir.tritium.annotations.Instrument;
 import java.util.List;
 
-@TritiumInstrument
+@Instrument
 public interface Parameterized<T> {
 
     T produceParameter();

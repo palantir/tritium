@@ -22,7 +22,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.palantir.logsafe.Preconditions;
-import com.palantir.tritium.annotations.TritiumInstrument;
+import com.palantir.tritium.annotations.Instrument;
 import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.Handlers;
@@ -78,9 +78,9 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
     private static final String DELEGATE_NAME = "delegate";
     private static final String FILTER_NAME = "filter";
     private static final String HANDLER_NAME = "handler";
-    private static final ImmutableSet<String> ANNOTATIONS = ImmutableSet.of(TritiumInstrument.class.getName());
+    private static final ImmutableSet<String> ANNOTATIONS = ImmutableSet.of(Instrument.class.getName());
 
-    private final Set<Name> inconsistentElements = new HashSet<>();
+    private final Set<Name> invalidElements = new HashSet<>();
     private Messager messager;
     private Filer filer;
     private Elements elements;
@@ -114,15 +114,15 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
             if (element.getKind() != ElementKind.INTERFACE) {
                 messager.printMessage(
                         Kind.ERROR,
-                        "Only interfaces may be instrumented using @" + TritiumInstrument.class.getSimpleName(),
+                        "Only interfaces may be instrumented using @" + Instrument.class.getSimpleName(),
                         element);
                 continue;
             }
             TypeElement typeElement = (TypeElement) element;
             List<DeclaredType> allInterfaces = new ArrayList<>();
             List<DeclaredType> minimalInterfaces = new ArrayList<>();
-            if (getInterfaces(element.asType(), allInterfaces, minimalInterfaces)) {
-                inconsistentElements.add(typeElement.getQualifiedName());
+            if (isInvalid(element.asType(), allInterfaces, minimalInterfaces)) {
+                invalidElements.add(typeElement.getQualifiedName());
                 continue;
             }
             if (allInterfaces.isEmpty()) {
@@ -150,26 +150,31 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
     }
 
     private Set<Element> getElementsToProcess(RoundEnvironment env) {
-        Set<Element> currentElements = new HashSet<>(env.getElementsAnnotatedWith(TritiumInstrument.class));
-        for (Name name : inconsistentElements) {
+        Set<Element> currentElements = new HashSet<>(env.getElementsAnnotatedWith(Instrument.class));
+        for (Name name : invalidElements) {
             currentElements.add(elements.getTypeElement(name));
         }
-        inconsistentElements.clear();
+        invalidElements.clear();
         return currentElements;
     }
 
-    private boolean getInterfaces(
+    private boolean isInvalid(
             List<? extends TypeMirror> mirrors,
             List<DeclaredType> allInterfaces,
             @Nullable List<DeclaredType> minimalInterfaces) {
-        boolean error = false;
         for (TypeMirror mirror : mirrors) {
-            error |= getInterfaces(mirror, allInterfaces, minimalInterfaces);
+            if (isInvalid(mirror, allInterfaces, minimalInterfaces)) {
+                return true;
+            }
         }
-        return error;
+        return false;
     }
 
-    private boolean getInterfaces(
+    /**
+     * Returns true if the given {@link TypeMirror} has sufficient type information, otherwise it may need to be
+     * deferred for another annotation processor to complete.
+     */
+    private boolean isInvalid(
             TypeMirror mirror, List<DeclaredType> allInterfaces, @Nullable List<DeclaredType> minimalInterfacesFinal) {
         if (mirror.getKind() == TypeKind.ERROR) {
             return true;
@@ -182,7 +187,7 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                 minimalInterfaces = null;
             }
         }
-        return getInterfaces(((TypeElement) types.asElement(mirror)).getInterfaces(), allInterfaces, minimalInterfaces);
+        return isInvalid(((TypeElement) types.asElement(mirror)).getInterfaces(), allInterfaces, minimalInterfaces);
     }
 
     @SuppressWarnings("checkstyle:CyclomaticComplexity")
