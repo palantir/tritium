@@ -108,6 +108,9 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> _annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) {
+            if (!invalidElements.isEmpty()) {
+                messager.printMessage(Kind.ERROR, "Processing completed with unresolved elements: " + invalidElements);
+            }
             return false;
         }
         for (Element element : getElementsToProcess(roundEnv)) {
