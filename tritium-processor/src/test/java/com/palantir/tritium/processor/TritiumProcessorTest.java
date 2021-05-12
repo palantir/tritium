@@ -25,9 +25,14 @@ import com.google.common.io.ByteSource;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
+import com.palantir.tritium.examples.AnnotatedAbstractClass;
+import com.palantir.tritium.examples.AnnotatedClass;
 import com.palantir.tritium.examples.BindsParameter;
 import com.palantir.tritium.examples.DelegateToCallable;
 import com.palantir.tritium.examples.DelegateToRunnable;
+import com.palantir.tritium.examples.DeprecatedInterface;
+import com.palantir.tritium.examples.DeprecatedMethod;
+import com.palantir.tritium.examples.Empty;
 import com.palantir.tritium.examples.HasDefaultMethod;
 import com.palantir.tritium.examples.HasToString;
 import com.palantir.tritium.examples.OverlappingNames;
@@ -96,6 +101,35 @@ public final class TritiumProcessorTest {
         assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, OverlappingNames.class);
     }
 
+    @Test
+    public void testDeprecatedMethod() {
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, DeprecatedMethod.class);
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    public void testDeprecatedInterface() {
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, DeprecatedInterface.class);
+    }
+
+    @Test
+    public void testEmptyInterface() {
+        Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, Empty.class);
+        assertThat(compilation).hadErrorContaining("The annotated interface has no methods");
+    }
+
+    @Test
+    public void testAnnotatedAbstractClass() {
+        Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, AnnotatedAbstractClass.class);
+        assertThat(compilation).hadErrorContaining("Only interfaces may be instrumented using @Instrument");
+    }
+
+    @Test
+    public void testAnnotatedClass() {
+        Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, AnnotatedClass.class);
+        assertThat(compilation).hadErrorContaining("Only interfaces may be instrumented using @Instrument");
+    }
+
     private static void assertTestFileCompileAndMatches(Path basePath, Class<?> clazz) {
         Compilation compilation = compileTestClass(basePath, clazz);
         assertThat(compilation).succeededWithoutWarnings();
@@ -113,7 +147,7 @@ public final class TritiumProcessorTest {
                 clazz.getSimpleName() + ".java"));
         try {
             return Compiler.javac()
-                    .withOptions("-source", "1.8")
+                    .withOptions("-source", "1.8", "-Werror", "-Xlint:deprecation", "-Xlint:unchecked")
                     .withProcessors(new TritiumAnnotationProcessor())
                     .compile(JavaFileObjects.forResource(clazzPath.toUri().toURL()));
         } catch (MalformedURLException e) {

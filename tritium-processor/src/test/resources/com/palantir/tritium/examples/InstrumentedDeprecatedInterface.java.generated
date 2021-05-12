@@ -1,0 +1,68 @@
+package com.palantir.tritium.examples;
+
+import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.Handlers;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.Method;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+@Deprecated
+public final class InstrumentedDeprecatedInterface implements DeprecatedInterface {
+    private static final Method FOO;
+
+    static {
+        try {
+            FOO = DeprecatedInterface.class.getMethod("foo");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final DeprecatedInterface delegate;
+
+    private final InvocationEventHandler<InvocationContext> handler;
+
+    private final InstrumentationFilter filter;
+
+    private InstrumentedDeprecatedInterface(DeprecatedInterface delegate,
+            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+        this.delegate = delegate;
+        this.handler = handler;
+        this.filter = filter;
+    }
+
+    @Override
+    public void foo() {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[]{});
+            try {
+                this.delegate.foo();
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.foo();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "InstrumentedDeprecatedInterface{" + delegate + '}';
+    }
+
+    public static InstrumentationBuilder<DeprecatedInterface, DeprecatedInterface> builder(
+            DeprecatedInterface delegate) {
+        return new InstrumentationBuilder<DeprecatedInterface, DeprecatedInterface>(DeprecatedInterface.class, delegate, InstrumentedDeprecatedInterface::new);
+    }
+
+    public static DeprecatedInterface instrument(DeprecatedInterface delegate,
+            TaggedMetricRegistry registry) {
+        return builder(delegate).withTaggedMetrics(registry).withTracing().build();
+    }
+}

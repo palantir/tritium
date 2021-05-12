@@ -217,6 +217,10 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                         .addMember("value", "$S", getClass().getName())
                         .build()));
 
+        if (typeElement.getAnnotation(Deprecated.class) != null) {
+            specBuilder.addAnnotation(Deprecated.class);
+        }
+
         specBuilder
                 .addSuperinterfaces(interfaceNames)
                 .addTypeVariables(typeVarNames)
