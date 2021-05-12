@@ -30,7 +30,6 @@ import com.palantir.tritium.examples.AnnotatedClass;
 import com.palantir.tritium.examples.BindsParameter;
 import com.palantir.tritium.examples.DelegateToCallable;
 import com.palantir.tritium.examples.DelegateToRunnable;
-import com.palantir.tritium.examples.DeprecatedInterface;
 import com.palantir.tritium.examples.DeprecatedMethod;
 import com.palantir.tritium.examples.Empty;
 import com.palantir.tritium.examples.HasDefaultMethod;
@@ -109,7 +108,7 @@ public final class TritiumProcessorTest {
     @Test
     @SuppressWarnings("deprecation")
     public void testDeprecatedInterface() {
-        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, DeprecatedInterface.class);
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, com.palantir.tritium.examples.DeprecatedInterface.class);
     }
 
     @Test
