@@ -106,7 +106,7 @@ public final class TritiumProcessorTest {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("deprecation") // testing deprecation linting
     public void testDeprecatedInterface() {
         assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, com.palantir.tritium.examples.DeprecatedInterface.class);
     }
