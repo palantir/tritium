@@ -329,7 +329,9 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
 
         if (specBuilder.originatingElements.size() != 1) {
             messager.printMessage(
-                    Kind.ERROR, "The generated type must have exactly one originating element", typeElement);
+                    Kind.ERROR,
+                    "The generated type must have exactly one originating element: " + specBuilder.originatingElements,
+                    typeElement);
         }
         return JavaFile.builder(packageName, specBuilder.build())
                 .skipJavaLangImports(true)
