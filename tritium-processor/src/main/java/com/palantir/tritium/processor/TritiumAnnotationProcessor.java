@@ -210,7 +210,9 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
             }
         }
 
-        TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+        TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className)
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addOriginatingElement(typeElement);
 
         GeneratedAnnotations.generatedAnnotation(elements, SourceVersion.latest())
                 .ifPresent(te -> specBuilder.addAnnotation(AnnotationSpec.builder(ClassName.get(te))
