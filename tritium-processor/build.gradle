@@ -14,9 +14,6 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305'
     compile 'com.palantir.safe-logging:preconditions'
 
-    annotationProcessor 'com.google.auto.service:auto-service'
-    compileOnly 'com.google.auto.service:auto-service-annotations'
-
     testImplementation 'com.google.testing.compile:compile-testing'
     testImplementation 'com.google.guava:guava'
     testImplementation 'org.assertj:assertj-core'

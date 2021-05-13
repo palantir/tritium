@@ -17,7 +17,6 @@
 package com.palantir.tritium.processor;
 
 import com.google.auto.common.GeneratedAnnotations;
-import com.google.auto.service.AutoService;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -53,7 +52,6 @@ import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
@@ -72,7 +70,6 @@ import javax.lang.model.util.SimpleElementVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
-@AutoService(Processor.class)
 public final class TritiumAnnotationProcessor extends AbstractProcessor {
 
     private static final String DELEGATE_NAME = "delegate";
@@ -213,7 +210,9 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
             }
         }
 
-        TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className).addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+        TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className)
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addOriginatingElement(typeElement);
 
         GeneratedAnnotations.generatedAnnotation(elements, SourceVersion.latest())
                 .ifPresent(te -> specBuilder.addAnnotation(AnnotationSpec.builder(ClassName.get(te))
@@ -328,6 +327,12 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                         .addStatement("return builder(delegate).withTaggedMetrics(registry).withTracing().build()")
                         .build());
 
+        if (specBuilder.originatingElements.size() != 1) {
+            messager.printMessage(
+                    Kind.ERROR,
+                    "The generated type must have exactly one originating element: " + specBuilder.originatingElements,
+                    typeElement);
+        }
         return JavaFile.builder(packageName, specBuilder.build())
                 .skipJavaLangImports(true)
                 .indent("    ")
