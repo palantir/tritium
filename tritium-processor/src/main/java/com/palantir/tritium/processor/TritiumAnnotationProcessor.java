@@ -327,6 +327,10 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                         .addStatement("return builder(delegate).withTaggedMetrics(registry).withTracing().build()")
                         .build());
 
+        if (specBuilder.originatingElements.size() != 1) {
+            messager.printMessage(
+                    Kind.ERROR, "The generated type must have exactly one originating element", typeElement);
+        }
         return JavaFile.builder(packageName, specBuilder.build())
                 .skipJavaLangImports(true)
                 .indent("    ")
