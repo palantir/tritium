@@ -1,0 +1,69 @@
+package com.palantir.tritium.examples;
+
+import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.Handlers;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.Method;
+import java.util.concurrent.Callable;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+public final class InstrumentedDelegateToCallable<T> implements DelegateToCallable<T> {
+    private static final Method CALL;
+
+    static {
+        try {
+            CALL = DelegateToCallable.class.getMethod("call");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final Callable<T> delegate;
+
+    private final InvocationEventHandler<InvocationContext> handler;
+
+    private final InstrumentationFilter filter;
+
+    private InstrumentedDelegateToCallable(Callable<T> delegate,
+            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+        this.delegate = delegate;
+        this.handler = handler;
+        this.filter = filter;
+    }
+
+    @Override
+    public T call() throws Exception {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CALL, new Object[]{});
+            try {
+                T returnValue = this.delegate.call();
+                Handlers.onSuccess(this.handler, invocationContext, returnValue);
+                return returnValue;
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            return this.delegate.call();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "InstrumentedDelegateToCallable{" + delegate + '}';
+    }
+
+    public static <T> InstrumentationBuilder<Callable<T>, DelegateToCallable<T>> builder(
+            Callable<T> delegate) {
+        return new InstrumentationBuilder<Callable<T>, DelegateToCallable<T>>(Callable.class, delegate, InstrumentedDelegateToCallable::new);
+    }
+
+    public static <T> DelegateToCallable<T> instrument(Callable<T> delegate,
+            TaggedMetricRegistry registry) {
+        return builder(delegate).withTaggedMetrics(registry).withTracing().build();
+    }
+}

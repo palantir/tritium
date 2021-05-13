@@ -1,0 +1,65 @@
+package com.palantir.tritium.examples;
+
+import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.Handlers;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.Method;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+public final class InstrumentedDelegateToRunnable implements DelegateToRunnable {
+    private static final Method RUN;
+
+    static {
+        try {
+            RUN = DelegateToRunnable.class.getMethod("run");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final Runnable delegate;
+
+    private final InvocationEventHandler<InvocationContext> handler;
+
+    private final InstrumentationFilter filter;
+
+    private InstrumentedDelegateToRunnable(Runnable delegate,
+            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+        this.delegate = delegate;
+        this.handler = handler;
+        this.filter = filter;
+    }
+
+    @Override
+    public void run() {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, RUN, new Object[]{});
+            try {
+                this.delegate.run();
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.run();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "InstrumentedDelegateToRunnable{" + delegate + '}';
+    }
+
+    public static InstrumentationBuilder<Runnable, DelegateToRunnable> builder(Runnable delegate) {
+        return new InstrumentationBuilder<Runnable, DelegateToRunnable>(Runnable.class, delegate, InstrumentedDelegateToRunnable::new);
+    }
+
+    public static DelegateToRunnable instrument(Runnable delegate, TaggedMetricRegistry registry) {
+        return builder(delegate).withTaggedMetrics(registry).withTracing().build();
+    }
+}

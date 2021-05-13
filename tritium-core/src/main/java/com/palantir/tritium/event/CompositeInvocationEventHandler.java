@@ -18,19 +18,13 @@ package com.palantir.tritium.event;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
-import com.palantir.logsafe.SafeArg;
-import com.palantir.logsafe.UnsafeArg;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class CompositeInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
-
-    private static final Logger log = LoggerFactory.getLogger(CompositeInvocationEventHandler.class);
 
     private final InvocationEventHandler<InvocationContext>[] handlers;
 
@@ -53,21 +47,13 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
-    @Nullable
-    private InvocationEventHandler<InvocationContext> tryGetEnabledHandler(int index) {
-        InvocationEventHandler<InvocationContext> handler = handlers[index];
-        if (handler.isEnabled()) {
-            return handler;
-        }
-        return null;
-    }
-
     @Override
     public InvocationContext preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
         InvocationContext[] contexts = new InvocationContext[handlers.length];
 
         for (int i = 0; i < handlers.length; i++) {
-            contexts[i] = handlePreInvocation(tryGetEnabledHandler(i), instance, method, args);
+            contexts[i] = Handlers.preWithEnabledCheck(
+                    handlers[i], InstrumentationFilters.INSTRUMENT_ALL, instance, method, args);
         }
 
         return new CompositeInvocationContext(instance, method, args, contexts);
@@ -83,7 +69,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private void success(@Nonnull InvocationContext[] contexts, @Nullable Object result) {
         for (int i = contexts.length - 1; i > -1; i--) {
-            handleSuccess(handlers[i], contexts[i], result);
+            Handlers.onSuccess(handlers[i], contexts[i], result);
         }
     }
 
@@ -97,76 +83,13 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     private void failure(InvocationContext[] contexts, @Nonnull Throwable cause) {
         for (int i = contexts.length - 1; i > -1; i--) {
-            handleFailure(handlers[i], contexts[i], cause);
-        }
-    }
-
-    @Nullable
-    private static InvocationContext handlePreInvocation(
-            @Nullable InvocationEventHandler<? extends InvocationContext> handler,
-            Object instance,
-            Method method,
-            Object[] args) {
-        try {
-            if (handler != null) {
-                return handler.preInvocation(instance, method, args);
-            }
-            return DisabledHandlerSentinel.INSTANCE;
-        } catch (RuntimeException e) {
-            preInvocationFailed(handler, instance, method, e);
-            return null;
+            Handlers.onFailure(handlers[i], contexts[i], cause);
         }
     }
 
     @Override
     public String toString() {
-        return "CompositeInvocationEventHandler{" + "handlers=" + Arrays.toString(handlers) + '}';
-    }
-
-    private static void preInvocationFailed(
-            @Nullable InvocationEventHandler<? extends InvocationContext> handler,
-            @Nullable Object instance,
-            Method method,
-            @Nullable Exception exception) {
-        log.warn(
-                "Exception handling preInvocation({}): invocation of {}.{} on {} threw",
-                UnsafeArg.of("handler", handler),
-                SafeArg.of("class", method.getDeclaringClass().getCanonicalName()),
-                SafeArg.of("method", method.getName()),
-                UnsafeArg.of("instance", instance),
-                exception);
-    }
-
-    private static void handleSuccess(
-            InvocationEventHandler<?> handler, @Nullable InvocationContext context, @Nullable Object result) {
-        if (context != DisabledHandlerSentinel.INSTANCE) {
-            try {
-                handler.onSuccess(context, result);
-            } catch (RuntimeException exception) {
-                eventFailed("onSuccess", context, result, exception);
-            }
-        }
-    }
-
-    private static void handleFailure(
-            InvocationEventHandler<?> handler, @Nullable InvocationContext context, Throwable cause) {
-        if (context != DisabledHandlerSentinel.INSTANCE) {
-            try {
-                handler.onFailure(context, cause);
-            } catch (RuntimeException exception) {
-                eventFailed("onFailure", context, cause, exception);
-            }
-        }
-    }
-
-    private static void eventFailed(
-            String event, @Nullable InvocationContext context, @Nullable Object result, RuntimeException exception) {
-        log.warn(
-                "Exception handling {}({}, {})",
-                SafeArg.of("event", event),
-                UnsafeArg.of("context", context),
-                UnsafeArg.of("result", result),
-                exception);
+        return "CompositeInvocationEventHandler{handlers=" + Arrays.toString(handlers) + '}';
     }
 
     static class CompositeInvocationContext extends DefaultInvocationContext {
@@ -181,37 +104,6 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
         InvocationContext[] getContexts() {
             return contexts;
-        }
-    }
-
-    // A sentinel value is used to differentiate null contexts returned by handlers from
-    // invocations on disabled handlers.
-    private enum DisabledHandlerSentinel implements InvocationContext {
-        INSTANCE;
-
-        @Override
-        public long getStartTimeNanos() {
-            throw fail();
-        }
-
-        @Nullable
-        @Override
-        public Object getInstance() {
-            throw fail();
-        }
-
-        @Override
-        public Method getMethod() {
-            throw fail();
-        }
-
-        @Override
-        public Object[] getArgs() {
-            throw fail();
-        }
-
-        private static RuntimeException fail() {
-            throw new UnsupportedOperationException("methods should not be invoked");
         }
     }
 }

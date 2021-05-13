@@ -14,7 +14,6 @@ dependencies {
 
     implementation 'net.bytebuddy:byte-buddy'
     implementation 'com.google.code.findbugs:jsr305'
-    implementation 'com.google.errorprone:error_prone_annotations'
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
