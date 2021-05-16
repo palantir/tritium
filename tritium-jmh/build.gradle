@@ -5,11 +5,11 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.5.3'
+        classpath 'me.champeau.jmh:jmh-gradle-plugin:0.6.4'
     }
 }
 
-apply plugin: 'me.champeau.gradle.jmh'
+apply plugin: 'me.champeau.jmh'
 
 jmh {
     // Use profilers to collect additional data. Supported profilers:
