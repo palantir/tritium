@@ -29,7 +29,7 @@ com.google.testing.compile:compile-testing = 0.19
 # dependency-upgrader:OFF
 
 # caffeine 3.0 requires JDK 11+ see https://github.com/ben-manes/caffeine/releases/tag/v3.0.0
-com.github.ben-manes.caffeine:caffeine = 2.9.0
+com.github.ben-manes.caffeine:caffeine = 2.9.1
 
 # Explicitly maintaining back-compat with dropwizard metrics
 io.dropwizard.metrics:* = 3.2.5
