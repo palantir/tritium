@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: JMH gradle plugin 0.6.4
+  links:
+  - https://github.com/palantir/tritium/pull/1088
