@@ -88,6 +88,7 @@ public final class Instrumentation {
      * @deprecated use {@link com.palantir.tritium.Tritium#instrument(Class, Object, MetricRegistry)}
      */
     @Deprecated
+    @SuppressWarnings("InlineMeSuggester")
     public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
         return builder(serviceInterface, delegate)
                 .withFilter(InstrumentationFilters.INSTRUMENT_ALL)
@@ -168,7 +169,7 @@ public final class Instrumentation {
          * @deprecated use {@link #withLogging(Logger, LoggingLevel, java.util.function.LongPredicate)}
          */
         @Deprecated
-        @SuppressWarnings("FunctionalInterfaceClash") // back compat
+        @SuppressWarnings({"FunctionalInterfaceClash", "InlineMeSuggester"}) // back compat
         public Builder<T, U> withLogging(
                 Logger logger,
                 LoggingLevel loggingLevel,

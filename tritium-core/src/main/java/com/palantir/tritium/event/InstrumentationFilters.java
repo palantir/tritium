@@ -49,7 +49,7 @@ public enum InstrumentationFilters implements InstrumentationFilter {
      * @deprecated use {@link #from(java.util.function.BooleanSupplier)}
      */
     @Deprecated
-    @SuppressWarnings("FunctionalInterfaceClash") // back compat
+    @SuppressWarnings({"FunctionalInterfaceClash", "InlineMeSuggester"}) // back compat
     public static InstrumentationFilter from(com.palantir.tritium.api.functions.BooleanSupplier isEnabledSupplier) {
         return from((java.util.function.BooleanSupplier) isEnabledSupplier);
     }
