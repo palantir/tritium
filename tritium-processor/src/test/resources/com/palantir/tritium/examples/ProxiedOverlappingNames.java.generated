@@ -7,11 +7,17 @@ import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
 public final class ProxiedOverlappingNames implements OverlappingNames {
+    private static final Method EQUALS;
+
     private static final Method FOO;
+
+    private static final Method TO_STRING;
 
     static {
         try {
+            EQUALS = OverlappingNames.class.getMethod("equals", Object.class);
             FOO = OverlappingNames.class.getMethod("foo", int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class);
+            TO_STRING = OverlappingNames.class.getMethod("toString");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -21,6 +27,19 @@ public final class ProxiedOverlappingNames implements OverlappingNames {
 
     private ProxiedOverlappingNames(InvocationHandler handler) {
         this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean equals(Object obj) {
+        try {
+            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            return (boolean) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     @Override
@@ -38,8 +57,16 @@ public final class ProxiedOverlappingNames implements OverlappingNames {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String toString() {
-        return "ProxiedOverlappingNames{" + handler + '}';
+        try {
+            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            return (String) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     public static OverlappingNames of(InvocationHandler handler) {

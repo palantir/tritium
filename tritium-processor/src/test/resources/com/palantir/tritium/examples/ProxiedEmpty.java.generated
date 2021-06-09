@@ -6,18 +6,15 @@ import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
-public final class ProxiedBindsParameter implements BindsParameter {
+public final class ProxiedEmpty implements Empty {
     private static final Method EQUALS;
-
-    private static final Method GET;
 
     private static final Method TO_STRING;
 
     static {
         try {
-            EQUALS = BindsParameter.class.getMethod("equals", Object.class);
-            GET = BindsParameter.class.getMethod("get");
-            TO_STRING = BindsParameter.class.getMethod("toString");
+            EQUALS = Empty.class.getMethod("equals", Object.class);
+            TO_STRING = Empty.class.getMethod("toString");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -25,7 +22,7 @@ public final class ProxiedBindsParameter implements BindsParameter {
 
     private final InvocationHandler handler;
 
-    private ProxiedBindsParameter(InvocationHandler handler) {
+    private ProxiedEmpty(InvocationHandler handler) {
         this.handler = handler;
     }
 
@@ -35,19 +32,6 @@ public final class ProxiedBindsParameter implements BindsParameter {
         try {
             Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public CharSequence get() {
-        try {
-            Object returned = this.handler.invoke(this, GET, new Object[]{});
-            return (CharSequence) returned;
         } catch (Error | RuntimeException throwable) {
             throw throwable;
         } catch (Throwable throwable) {
@@ -68,7 +52,7 @@ public final class ProxiedBindsParameter implements BindsParameter {
         }
     }
 
-    public static BindsParameter of(InvocationHandler handler) {
-        return new ProxiedBindsParameter(handler);
+    public static Empty of(InvocationHandler handler) {
+        return new ProxiedEmpty(handler);
     }
 }

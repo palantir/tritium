@@ -7,11 +7,17 @@ import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
 public final class ProxiedHasToString implements HasToString {
+    private static final Method EQUALS;
+
     private static final Method FOO;
+
+    private static final Method TO_STRING;
 
     static {
         try {
+            EQUALS = HasToString.class.getMethod("equals", Object.class);
             FOO = HasToString.class.getMethod("foo");
+            TO_STRING = HasToString.class.getMethod("toString");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -21,6 +27,19 @@ public final class ProxiedHasToString implements HasToString {
 
     private ProxiedHasToString(InvocationHandler handler) {
         this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean equals(Object obj) {
+        try {
+            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            return (boolean) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     @Override
@@ -36,8 +55,16 @@ public final class ProxiedHasToString implements HasToString {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String toString() {
-        return "ProxiedHasToString{" + handler + '}';
+        try {
+            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            return (String) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     public static HasToString of(InvocationHandler handler) {

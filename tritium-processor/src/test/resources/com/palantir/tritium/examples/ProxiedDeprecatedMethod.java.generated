@@ -7,11 +7,17 @@ import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
 public final class ProxiedDeprecatedMethod implements DeprecatedMethod {
+    private static final Method EQUALS;
+
     private static final Method FOO;
+
+    private static final Method TO_STRING;
 
     static {
         try {
+            EQUALS = DeprecatedMethod.class.getMethod("equals", Object.class);
             FOO = DeprecatedMethod.class.getMethod("foo");
+            TO_STRING = DeprecatedMethod.class.getMethod("toString");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -21,6 +27,19 @@ public final class ProxiedDeprecatedMethod implements DeprecatedMethod {
 
     private ProxiedDeprecatedMethod(InvocationHandler handler) {
         this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean equals(Object obj) {
+        try {
+            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            return (boolean) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     @Override
@@ -37,8 +56,16 @@ public final class ProxiedDeprecatedMethod implements DeprecatedMethod {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String toString() {
-        return "ProxiedDeprecatedMethod{" + handler + '}';
+        try {
+            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            return (String) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     public static DeprecatedMethod of(InvocationHandler handler) {

@@ -230,6 +230,7 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                         .build());
 
         Map<String, List<MethodElements>> methodsByName = new HashMap<>();
+        allInterfaces.add(types.getDeclaredType(elements.getTypeElement(Object.class.getName())));
         for (DeclaredType mirror : allInterfaces) {
             for (Element methodElement : types.asElement(mirror).getEnclosedElements()) {
                 if (!methodElement.getModifiers().contains(Modifier.STATIC)
@@ -238,7 +239,13 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                             new SimpleElementVisitor8<Void, Void>() {
                                 @Override
                                 public Void visitExecutable(ExecutableElement method, Void _param) {
-                                    if (!Methods.isObjectMethod(elements, method)) {
+                                    if (method.getKind() != ElementKind.CONSTRUCTOR
+                                            && !method.getModifiers().contains(Modifier.FINAL)
+                                            // Let's not override clone
+                                            && !method.getModifiers().contains(Modifier.NATIVE)
+                                            // Overriding finalize impacts the way objects are garbage collected, and
+                                            // can have a dramatic impact on cost.
+                                            && !Methods.isFinalize(elements, method)) {
                                         List<MethodElements> methods = methodsByName.computeIfAbsent(
                                                 method.getSimpleName().toString(), _key -> new ArrayList<>(1));
                                         methods.add(
@@ -271,24 +278,15 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
             createMethod(method, specBuilder, methodStaticFields);
         }
 
-        specBuilder
-                .addMethod(MethodSpec.methodBuilder("toString")
-                        .addAnnotation(Override.class)
-                        .returns(String.class)
-                        .addModifiers(Modifier.PUBLIC)
-                        .addStatement("return $S + $N + '}'", className + "{", HANDLER_NAME)
+        specBuilder.addMethod(MethodSpec.methodBuilder("of")
+                .addTypeVariables(typeVarNames)
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .returns(annotatedType)
+                .addParameter(ParameterSpec.builder(InvocationHandler.class, HANDLER_NAME)
                         .build())
-                .addMethod(MethodSpec.methodBuilder("of")
-                        .addTypeVariables(typeVarNames)
-                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                        .returns(annotatedType)
-                        .addParameter(ParameterSpec.builder(InvocationHandler.class, HANDLER_NAME)
-                                .build())
-                        .addStatement(
-                                typeVarNames.isEmpty() ? "return new $N($N)" : "return new $N<>($N)",
-                                className,
-                                HANDLER_NAME)
-                        .build());
+                .addStatement(
+                        typeVarNames.isEmpty() ? "return new $N($N)" : "return new $N<>($N)", className, HANDLER_NAME)
+                .build());
 
         if (specBuilder.originatingElements.size() != 1) {
             messager.printMessage(

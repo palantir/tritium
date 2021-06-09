@@ -7,10 +7,16 @@ import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
 public final class ProxiedDelegateToRunnable implements DelegateToRunnable {
+    private static final Method EQUALS;
+
+    private static final Method TO_STRING;
+
     private static final Method RUN;
 
     static {
         try {
+            EQUALS = DelegateToRunnable.class.getMethod("equals", Object.class);
+            TO_STRING = DelegateToRunnable.class.getMethod("toString");
             RUN = DelegateToRunnable.class.getMethod("run");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
@@ -24,6 +30,32 @@ public final class ProxiedDelegateToRunnable implements DelegateToRunnable {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public boolean equals(Object obj) {
+        try {
+            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            return (boolean) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public String toString() {
+        try {
+            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            return (String) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
     public void run() {
         try {
             Object returned = this.handler.invoke(this, RUN, new Object[]{});
@@ -33,11 +65,6 @@ public final class ProxiedDelegateToRunnable implements DelegateToRunnable {
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "ProxiedDelegateToRunnable{" + handler + '}';
     }
 
     public static DelegateToRunnable of(InvocationHandler handler) {

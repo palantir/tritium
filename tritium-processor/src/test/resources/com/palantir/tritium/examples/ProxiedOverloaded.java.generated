@@ -7,6 +7,10 @@ import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
 public final class ProxiedOverloaded implements Overloaded {
+    private static final Method EQUALS;
+
+    private static final Method TO_STRING;
+
     private static final Method CONSUME;
 
     private static final Method CONSUME1;
@@ -19,6 +23,8 @@ public final class ProxiedOverloaded implements Overloaded {
 
     static {
         try {
+            EQUALS = Overloaded.class.getMethod("equals", Object.class);
+            TO_STRING = Overloaded.class.getMethod("toString");
             CONSUME = Overloaded.class.getMethod("consume", int.class);
             CONSUME1 = Overloaded.class.getMethod("consume", String.class);
             CONSUME2 = Overloaded.class.getMethod("consume", Object.class);
@@ -33,6 +39,32 @@ public final class ProxiedOverloaded implements Overloaded {
 
     private ProxiedOverloaded(InvocationHandler handler) {
         this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean equals(Object obj) {
+        try {
+            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            return (boolean) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public String toString() {
+        try {
+            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            return (String) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     @Override
@@ -93,11 +125,6 @@ public final class ProxiedOverloaded implements Overloaded {
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "ProxiedOverloaded{" + handler + '}';
     }
 
     public static Overloaded of(InvocationHandler handler) {

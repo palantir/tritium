@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Objects;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -38,12 +39,18 @@ final class Methods {
         for (Element element : object.getEnclosedElements()) {
             if (element instanceof ExecutableElement) {
                 ExecutableElement executableElement = (ExecutableElement) element;
-                if (elements.overrides(methodElement, executableElement, object)) {
+                if (elements.overrides(methodElement, executableElement, object)
+                        || Objects.equals(methodElement, executableElement)) {
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    static boolean isFinalize(Elements elements, ExecutableElement methodElement) {
+        return isObjectMethod(elements, methodElement)
+                && methodElement.getSimpleName().contentEquals("finalize");
     }
 
     static boolean isInstrumentable(Elements elements, Element element) {
