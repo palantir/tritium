@@ -1,0 +1,94 @@
+package com.palantir.tritium.examples;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.util.List;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
+public final class ProxiedParameterized<T> implements Parameterized<T> {
+    private static final Method CONSUME_PARAMETER;
+
+    private static final Method PRODUCE_PARAMETER;
+
+    private static final Method METHOD_PARAMETER;
+
+    private static final Method CONSUME_LIST_OF_PARAMETER;
+
+    static {
+        try {
+            CONSUME_PARAMETER = Parameterized.class.getMethod("consumeParameter", Object.class);
+            PRODUCE_PARAMETER = Parameterized.class.getMethod("produceParameter");
+            METHOD_PARAMETER = Parameterized.class.getMethod("methodParameter", Object.class, Object.class);
+            CONSUME_LIST_OF_PARAMETER = Parameterized.class.getMethod("consumeListOfParameter", List.class);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final InvocationHandler handler;
+
+    private ProxiedParameterized(InvocationHandler handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    public void consumeParameter(T value) {
+        try {
+            Object returned = this.handler.invoke(this, CONSUME_PARAMETER, new Object[]{value});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public T produceParameter() {
+        try {
+            Object returned = this.handler.invoke(this, PRODUCE_PARAMETER, new Object[]{});
+            return (T) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <U extends T> T methodParameter(T first, U second) {
+        try {
+            Object returned = this.handler.invoke(this, METHOD_PARAMETER, new Object[]{first, second});
+            return (T) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public void consumeListOfParameter(List<T> value) {
+        try {
+            Object returned = this.handler.invoke(this, CONSUME_LIST_OF_PARAMETER, new Object[]{value});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ProxiedParameterized{" + handler + '}';
+    }
+
+    public static <T> Parameterized<T> of(InvocationHandler handler) {
+        return new ProxiedParameterized<>(handler);
+    }
+}

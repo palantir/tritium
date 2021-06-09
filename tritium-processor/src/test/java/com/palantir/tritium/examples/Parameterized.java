@@ -17,8 +17,10 @@
 package com.palantir.tritium.examples;
 
 import com.palantir.tritium.annotations.Instrument;
+import com.palantir.tritium.annotations.Proxy;
 import java.util.List;
 
+@Proxy
 @Instrument
 public interface Parameterized<T> {
 

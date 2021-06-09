@@ -1,0 +1,47 @@
+package com.palantir.tritium.examples;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
+public final class ProxiedDeprecatedMethod implements DeprecatedMethod {
+    private static final Method FOO;
+
+    static {
+        try {
+            FOO = DeprecatedMethod.class.getMethod("foo");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final InvocationHandler handler;
+
+    private ProxiedDeprecatedMethod(InvocationHandler handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    @Deprecated
+    public void foo() {
+        try {
+            Object returned = this.handler.invoke(this, FOO, new Object[]{});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ProxiedDeprecatedMethod{" + handler + '}';
+    }
+
+    public static DeprecatedMethod of(InvocationHandler handler) {
+        return new ProxiedDeprecatedMethod(handler);
+    }
+}

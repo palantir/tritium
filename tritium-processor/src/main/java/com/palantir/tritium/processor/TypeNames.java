@@ -17,12 +17,18 @@
 package com.palantir.tritium.processor;
 
 import com.squareup.javapoet.ArrayTypeName;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 
 final class TypeNames {
+
+    static final ClassName ERROR = ClassName.get(Error.class);
+    static final ClassName EXCEPTION = ClassName.get(Exception.class);
+    static final ClassName RUNTIME_EXCEPTION = ClassName.get(RuntimeException.class);
+    static final ClassName THROWABLE = ClassName.get(Throwable.class);
 
     static TypeName erased(TypeName input) {
         if (input instanceof ParameterizedTypeName) {

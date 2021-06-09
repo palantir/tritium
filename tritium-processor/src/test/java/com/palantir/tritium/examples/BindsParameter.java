@@ -17,7 +17,9 @@
 package com.palantir.tritium.examples;
 
 import com.palantir.tritium.annotations.Instrument;
+import com.palantir.tritium.annotations.Proxy;
 import java.util.function.Supplier;
 
+@Proxy
 @Instrument
 public interface BindsParameter extends Supplier<CharSequence> {}

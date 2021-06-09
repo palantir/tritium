@@ -1,0 +1,48 @@
+package com.palantir.tritium.examples;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
+public final class ProxiedOverlappingNames implements OverlappingNames {
+    private static final Method FOO;
+
+    static {
+        try {
+            FOO = OverlappingNames.class.getMethod("foo", int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final InvocationHandler handler;
+
+    private ProxiedOverlappingNames(InvocationHandler handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int foo(int returnValue, int result, int context, int invocationContext, int throwable,
+            int thrown, int filter, int handler, int delegate) {
+        try {
+            Object returned = this.handler.invoke(this, FOO, new Object[]{returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate});
+            return (int) returned;
+        } catch (Error | RuntimeException throwable_) {
+            throw throwable_;
+        } catch (Throwable throwable_) {
+            throw new UndeclaredThrowableException(throwable_);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ProxiedOverlappingNames{" + handler + '}';
+    }
+
+    public static OverlappingNames of(InvocationHandler handler) {
+        return new ProxiedOverlappingNames(handler);
+    }
+}

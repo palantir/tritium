@@ -17,8 +17,10 @@
 package com.palantir.tritium.examples;
 
 import com.palantir.tritium.annotations.Instrument;
+import com.palantir.tritium.annotations.Proxy;
 
 @Instrument
+@Proxy
 public abstract class AnnotatedAbstractClass {
 
     public abstract String getValue();

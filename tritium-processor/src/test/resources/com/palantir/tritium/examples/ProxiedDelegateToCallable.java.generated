@@ -1,0 +1,47 @@
+package com.palantir.tritium.examples;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
+public final class ProxiedDelegateToCallable<T> implements DelegateToCallable<T> {
+    private static final Method CALL;
+
+    static {
+        try {
+            CALL = DelegateToCallable.class.getMethod("call");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final InvocationHandler handler;
+
+    private ProxiedDelegateToCallable(InvocationHandler handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public T call() throws Exception {
+        try {
+            Object returned = this.handler.invoke(this, CALL, new Object[]{});
+            return (T) returned;
+        } catch (Exception | Error throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ProxiedDelegateToCallable{" + handler + '}';
+    }
+
+    public static <T> DelegateToCallable<T> of(InvocationHandler handler) {
+        return new ProxiedDelegateToCallable<>(handler);
+    }
+}

@@ -1,0 +1,47 @@
+package com.palantir.tritium.examples;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
+public final class ProxiedBindsParameter implements BindsParameter {
+    private static final Method GET;
+
+    static {
+        try {
+            GET = BindsParameter.class.getMethod("get");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final InvocationHandler handler;
+
+    private ProxiedBindsParameter(InvocationHandler handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public CharSequence get() {
+        try {
+            Object returned = this.handler.invoke(this, GET, new Object[]{});
+            return (CharSequence) returned;
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ProxiedBindsParameter{" + handler + '}';
+    }
+
+    public static BindsParameter of(InvocationHandler handler) {
+        return new ProxiedBindsParameter(handler);
+    }
+}

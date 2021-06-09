@@ -1,0 +1,46 @@
+package com.palantir.tritium.examples;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
+public final class ProxiedHasToString implements HasToString {
+    private static final Method FOO;
+
+    static {
+        try {
+            FOO = HasToString.class.getMethod("foo");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final InvocationHandler handler;
+
+    private ProxiedHasToString(InvocationHandler handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    public void foo() {
+        try {
+            Object returned = this.handler.invoke(this, FOO, new Object[]{});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException throwable) {
+            throw throwable;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ProxiedHasToString{" + handler + '}';
+    }
+
+    public static HasToString of(InvocationHandler handler) {
+        return new ProxiedHasToString(handler);
+    }
+}

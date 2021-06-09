@@ -17,6 +17,8 @@
 package com.palantir.tritium.examples;
 
 import com.palantir.tritium.annotations.Instrument;
+import com.palantir.tritium.annotations.Proxy;
 
+@Proxy
 @Instrument
 public interface Empty {}
