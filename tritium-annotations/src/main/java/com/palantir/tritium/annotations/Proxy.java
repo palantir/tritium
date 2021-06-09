@@ -24,11 +24,6 @@ import java.lang.annotation.Target;
 /**
  * Interfaces annotated with {@link Proxy} will result in a generated concrete implementation
  * using the same package, and name prefixed with {@code Proxied}.
- * <p/>
- * Externally defined interfaces may be proxied by defining an interface with the requested interface
- * as a supertype. The generator will produce an instrumentation class which can wrap the super-interface.
- * When type parameters are present, the empty interface must define and pass along type parameters which
- * exactly match the target interface.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.CLASS)
