@@ -335,7 +335,7 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                 .map(param -> param.getSimpleName().toString())
                 .collect(ImmutableSet.toImmutableSet());
         String throwableName = Parameters.disambiguate("throwable", parameters);
-        String rethrownName = Parameters.disambiguate("throwable", parameters);
+        String rethrownName = Parameters.disambiguate("rethrown", parameters);
         String returnedName = Parameters.disambiguate("returned", parameters);
         ImmutableList<TypeName> exceptions =
                 method.element().getThrownTypes().stream().map(TypeName::get).collect(ImmutableList.toImmutableList());
