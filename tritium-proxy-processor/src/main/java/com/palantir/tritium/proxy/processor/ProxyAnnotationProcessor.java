@@ -27,7 +27,6 @@ import com.palantir.tritium.proxy.annotations.Proxy;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -44,7 +43,6 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -71,7 +69,8 @@ import javax.tools.Diagnostic.Kind;
 
 public final class ProxyAnnotationProcessor extends AbstractProcessor {
 
-    private static final String HANDLER_NAME = "handler";
+    private static final String HANDLER_NAME = "h";
+    private static final String HANDLER_PARAMETER_NAME = "handler";
     private static final ImmutableSet<String> ANNOTATIONS = ImmutableSet.of(Proxy.class.getName());
 
     private final Set<Name> invalidElements = new HashSet<>();
@@ -204,20 +203,19 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                         .addMember("value", "$S", getClass().getName())
                         .build()));
 
-        if (typeElement.getAnnotation(Deprecated.class) != null) {
+        if (MoreElements.isAnnotationPresent(typeElement, Deprecated.class)) {
             specBuilder.addAnnotation(Deprecated.class);
         }
 
         specBuilder
+                .superclass(java.lang.reflect.Proxy.class)
                 .addSuperinterfaces(interfaceNames)
                 .addTypeVariables(typeVarNames)
-                .addField(FieldSpec.builder(InvocationHandler.class, HANDLER_NAME, Modifier.PRIVATE, Modifier.FINAL)
-                        .build())
                 .addMethod(MethodSpec.constructorBuilder()
                         .addModifiers(Modifier.PRIVATE)
-                        .addParameter(ParameterSpec.builder(InvocationHandler.class, HANDLER_NAME)
+                        .addParameter(ParameterSpec.builder(InvocationHandler.class, HANDLER_PARAMETER_NAME)
                                 .build())
-                        .addStatement("this.$1N = $2T.requireNonNull($1N)", HANDLER_NAME, Objects.class)
+                        .addStatement("super($N)", HANDLER_PARAMETER_NAME)
                         .build());
 
         Map<String, List<MethodElements>> methodsByName = new HashMap<>();
@@ -255,10 +253,12 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                 .addTypeVariables(typeVarNames)
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(annotatedType)
-                .addParameter(ParameterSpec.builder(InvocationHandler.class, HANDLER_NAME)
+                .addParameter(ParameterSpec.builder(InvocationHandler.class, HANDLER_PARAMETER_NAME)
                         .build())
                 .addStatement(
-                        typeVarNames.isEmpty() ? "return new $N($N)" : "return new $N<>($N)", className, HANDLER_NAME)
+                        typeVarNames.isEmpty() ? "return new $N($N)" : "return new $N<>($N)",
+                        className,
+                        HANDLER_PARAMETER_NAME)
                 .build());
 
         if (specBuilder.originatingElements.size() != 1) {

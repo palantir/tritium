@@ -2,12 +2,12 @@ package com.palantir.tritium.examples;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
-public final class OverloadedProxy implements Overloaded {
+public final class OverloadedProxy extends Proxy implements Overloaded {
     private static final Method HASH_CODE;
 
     private static final Method EQUALS;
@@ -39,17 +39,15 @@ public final class OverloadedProxy implements Overloaded {
         }
     }
 
-    private final InvocationHandler handler;
-
     private OverloadedProxy(InvocationHandler handler) {
-        this.handler = Objects.requireNonNull(handler);
+        super(handler);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public int hashCode() {
         try {
-            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            Object returned = this.h.invoke(this, HASH_CODE, new Object[]{});
             return (int) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -62,7 +60,7 @@ public final class OverloadedProxy implements Overloaded {
     @SuppressWarnings("unchecked")
     public boolean equals(Object obj) {
         try {
-            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            Object returned = this.h.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -75,7 +73,7 @@ public final class OverloadedProxy implements Overloaded {
     @SuppressWarnings("unchecked")
     public String toString() {
         try {
-            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            Object returned = this.h.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -87,7 +85,7 @@ public final class OverloadedProxy implements Overloaded {
     @Override
     public void consume(int value) {
         try {
-            Object returned = this.handler.invoke(this, CONSUME, new Object[]{value});
+            Object returned = this.h.invoke(this, CONSUME, new Object[]{value});
             void.class.cast(returned);
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -99,7 +97,7 @@ public final class OverloadedProxy implements Overloaded {
     @Override
     public void consume(String value) {
         try {
-            Object returned = this.handler.invoke(this, CONSUME1, new Object[]{value});
+            Object returned = this.h.invoke(this, CONSUME1, new Object[]{value});
             void.class.cast(returned);
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -111,7 +109,7 @@ public final class OverloadedProxy implements Overloaded {
     @Override
     public void consume(Object value) {
         try {
-            Object returned = this.handler.invoke(this, CONSUME2, new Object[]{value});
+            Object returned = this.h.invoke(this, CONSUME2, new Object[]{value});
             void.class.cast(returned);
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -123,7 +121,7 @@ public final class OverloadedProxy implements Overloaded {
     @Override
     public void consume(double[] value) {
         try {
-            Object returned = this.handler.invoke(this, CONSUME3, new Object[]{value});
+            Object returned = this.h.invoke(this, CONSUME3, new Object[]{value});
             void.class.cast(returned);
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -135,7 +133,7 @@ public final class OverloadedProxy implements Overloaded {
     @Override
     public void consume() {
         try {
-            Object returned = this.handler.invoke(this, CONSUME4, new Object[]{});
+            Object returned = this.h.invoke(this, CONSUME4, new Object[]{});
             void.class.cast(returned);
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;

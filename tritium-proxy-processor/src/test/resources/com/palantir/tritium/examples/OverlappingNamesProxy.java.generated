@@ -2,12 +2,12 @@ package com.palantir.tritium.examples;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
-public final class OverlappingNamesProxy implements OverlappingNames {
+public final class OverlappingNamesProxy extends Proxy implements OverlappingNames {
     private static final Method HASH_CODE;
 
     private static final Method EQUALS;
@@ -27,17 +27,15 @@ public final class OverlappingNamesProxy implements OverlappingNames {
         }
     }
 
-    private final InvocationHandler handler;
-
     private OverlappingNamesProxy(InvocationHandler handler) {
-        this.handler = Objects.requireNonNull(handler);
+        super(handler);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public int hashCode() {
         try {
-            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            Object returned = this.h.invoke(this, HASH_CODE, new Object[]{});
             return (int) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -50,7 +48,7 @@ public final class OverlappingNamesProxy implements OverlappingNames {
     @SuppressWarnings("unchecked")
     public boolean equals(Object obj) {
         try {
-            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            Object returned = this.h.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -64,7 +62,7 @@ public final class OverlappingNamesProxy implements OverlappingNames {
     public int foo(int returnValue, int result, int context, int invocationContext, int throwable,
             int thrown, int filter, int handler, int delegate) {
         try {
-            Object returned = this.handler.invoke(this, FOO, new Object[]{returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate});
+            Object returned = this.h.invoke(this, FOO, new Object[]{returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate});
             return (int) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -77,7 +75,7 @@ public final class OverlappingNamesProxy implements OverlappingNames {
     @SuppressWarnings("unchecked")
     public String toString() {
         try {
-            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            Object returned = this.h.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;

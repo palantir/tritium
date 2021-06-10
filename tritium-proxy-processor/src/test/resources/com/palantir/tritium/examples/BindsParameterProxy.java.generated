@@ -2,12 +2,12 @@ package com.palantir.tritium.examples;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
-public final class BindsParameterProxy implements BindsParameter {
+public final class BindsParameterProxy extends Proxy implements BindsParameter {
     private static final Method HASH_CODE;
 
     private static final Method EQUALS;
@@ -27,17 +27,15 @@ public final class BindsParameterProxy implements BindsParameter {
         }
     }
 
-    private final InvocationHandler handler;
-
     private BindsParameterProxy(InvocationHandler handler) {
-        this.handler = Objects.requireNonNull(handler);
+        super(handler);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public int hashCode() {
         try {
-            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            Object returned = this.h.invoke(this, HASH_CODE, new Object[]{});
             return (int) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -50,7 +48,7 @@ public final class BindsParameterProxy implements BindsParameter {
     @SuppressWarnings("unchecked")
     public boolean equals(Object obj) {
         try {
-            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            Object returned = this.h.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -63,7 +61,7 @@ public final class BindsParameterProxy implements BindsParameter {
     @SuppressWarnings("unchecked")
     public CharSequence get() {
         try {
-            Object returned = this.handler.invoke(this, GET, new Object[]{});
+            Object returned = this.h.invoke(this, GET, new Object[]{});
             return (CharSequence) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -76,7 +74,7 @@ public final class BindsParameterProxy implements BindsParameter {
     @SuppressWarnings("unchecked")
     public String toString() {
         try {
-            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            Object returned = this.h.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;

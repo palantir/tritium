@@ -2,13 +2,13 @@ package com.palantir.tritium.examples;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.List;
-import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
-public final class ParameterizedProxy<T> implements Parameterized<T> {
+public final class ParameterizedProxy<T> extends Proxy implements Parameterized<T> {
     private static final Method CONSUME_PARAMETER;
 
     private static final Method PRODUCE_PARAMETER;
@@ -37,16 +37,14 @@ public final class ParameterizedProxy<T> implements Parameterized<T> {
         }
     }
 
-    private final InvocationHandler handler;
-
     private ParameterizedProxy(InvocationHandler handler) {
-        this.handler = Objects.requireNonNull(handler);
+        super(handler);
     }
 
     @Override
     public void consumeParameter(T value) {
         try {
-            Object returned = this.handler.invoke(this, CONSUME_PARAMETER, new Object[]{value});
+            Object returned = this.h.invoke(this, CONSUME_PARAMETER, new Object[]{value});
             void.class.cast(returned);
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -59,7 +57,7 @@ public final class ParameterizedProxy<T> implements Parameterized<T> {
     @SuppressWarnings("unchecked")
     public T produceParameter() {
         try {
-            Object returned = this.handler.invoke(this, PRODUCE_PARAMETER, new Object[]{});
+            Object returned = this.h.invoke(this, PRODUCE_PARAMETER, new Object[]{});
             return (T) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -72,7 +70,7 @@ public final class ParameterizedProxy<T> implements Parameterized<T> {
     @SuppressWarnings("unchecked")
     public int hashCode() {
         try {
-            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            Object returned = this.h.invoke(this, HASH_CODE, new Object[]{});
             return (int) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -85,7 +83,7 @@ public final class ParameterizedProxy<T> implements Parameterized<T> {
     @SuppressWarnings("unchecked")
     public boolean equals(Object obj) {
         try {
-            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            Object returned = this.h.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -98,7 +96,7 @@ public final class ParameterizedProxy<T> implements Parameterized<T> {
     @SuppressWarnings("unchecked")
     public <U extends T> T methodParameter(T first, U second) {
         try {
-            Object returned = this.handler.invoke(this, METHOD_PARAMETER, new Object[]{first, second});
+            Object returned = this.h.invoke(this, METHOD_PARAMETER, new Object[]{first, second});
             return (T) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -111,7 +109,7 @@ public final class ParameterizedProxy<T> implements Parameterized<T> {
     @SuppressWarnings("unchecked")
     public String toString() {
         try {
-            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            Object returned = this.h.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
@@ -123,7 +121,7 @@ public final class ParameterizedProxy<T> implements Parameterized<T> {
     @Override
     public void consumeListOfParameter(List<T> value) {
         try {
-            Object returned = this.handler.invoke(this, CONSUME_LIST_OF_PARAMETER, new Object[]{value});
+            Object returned = this.h.invoke(this, CONSUME_LIST_OF_PARAMETER, new Object[]{value});
             void.class.cast(returned);
         } catch (Error | RuntimeException rethrown) {
             throw rethrown;
