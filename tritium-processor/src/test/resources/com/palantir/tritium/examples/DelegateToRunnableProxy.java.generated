@@ -6,7 +6,9 @@ import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
-public final class ProxiedDelegateToRunnable implements DelegateToRunnable {
+public final class DelegateToRunnableProxy implements DelegateToRunnable {
+    private static final Method HASH_CODE;
+
     private static final Method EQUALS;
 
     private static final Method TO_STRING;
@@ -15,6 +17,7 @@ public final class ProxiedDelegateToRunnable implements DelegateToRunnable {
 
     static {
         try {
+            HASH_CODE = DelegateToRunnable.class.getMethod("hashCode");
             EQUALS = DelegateToRunnable.class.getMethod("equals", Object.class);
             TO_STRING = DelegateToRunnable.class.getMethod("toString");
             RUN = DelegateToRunnable.class.getMethod("run");
@@ -25,8 +28,21 @@ public final class ProxiedDelegateToRunnable implements DelegateToRunnable {
 
     private final InvocationHandler handler;
 
-    private ProxiedDelegateToRunnable(InvocationHandler handler) {
+    private DelegateToRunnableProxy(InvocationHandler handler) {
         this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int hashCode() {
+        try {
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     @Override
@@ -35,8 +51,8 @@ public final class ProxiedDelegateToRunnable implements DelegateToRunnable {
         try {
             Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -48,8 +64,8 @@ public final class ProxiedDelegateToRunnable implements DelegateToRunnable {
         try {
             Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -60,14 +76,14 @@ public final class ProxiedDelegateToRunnable implements DelegateToRunnable {
         try {
             Object returned = this.handler.invoke(this, RUN, new Object[]{});
             void.class.cast(returned);
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
     }
 
     public static DelegateToRunnable of(InvocationHandler handler) {
-        return new ProxiedDelegateToRunnable(handler);
+        return new DelegateToRunnableProxy(handler);
     }
 }

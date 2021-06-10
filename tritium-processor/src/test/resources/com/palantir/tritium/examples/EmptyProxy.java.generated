@@ -6,13 +6,16 @@ import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
-public final class ProxiedEmpty implements Empty {
+public final class EmptyProxy implements Empty {
+    private static final Method HASH_CODE;
+
     private static final Method EQUALS;
 
     private static final Method TO_STRING;
 
     static {
         try {
+            HASH_CODE = Empty.class.getMethod("hashCode");
             EQUALS = Empty.class.getMethod("equals", Object.class);
             TO_STRING = Empty.class.getMethod("toString");
         } catch (NoSuchMethodException e) {
@@ -22,8 +25,21 @@ public final class ProxiedEmpty implements Empty {
 
     private final InvocationHandler handler;
 
-    private ProxiedEmpty(InvocationHandler handler) {
+    private EmptyProxy(InvocationHandler handler) {
         this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int hashCode() {
+        try {
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     @Override
@@ -32,8 +48,8 @@ public final class ProxiedEmpty implements Empty {
         try {
             Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -45,14 +61,14 @@ public final class ProxiedEmpty implements Empty {
         try {
             Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
     }
 
     public static Empty of(InvocationHandler handler) {
-        return new ProxiedEmpty(handler);
+        return new EmptyProxy(handler);
     }
 }

@@ -6,8 +6,10 @@ import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
-public final class ProxiedSimple implements Simple {
+public final class SimpleProxy implements Simple {
     private static final Method BAR;
+
+    private static final Method HASH_CODE;
 
     private static final Method EQUALS;
 
@@ -18,6 +20,7 @@ public final class ProxiedSimple implements Simple {
     static {
         try {
             BAR = Simple.class.getMethod("bar", double.class);
+            HASH_CODE = Simple.class.getMethod("hashCode");
             EQUALS = Simple.class.getMethod("equals", Object.class);
             FOO = Simple.class.getMethod("foo");
             TO_STRING = Simple.class.getMethod("toString");
@@ -28,7 +31,7 @@ public final class ProxiedSimple implements Simple {
 
     private final InvocationHandler handler;
 
-    private ProxiedSimple(InvocationHandler handler) {
+    private SimpleProxy(InvocationHandler handler) {
         this.handler = handler;
     }
 
@@ -38,8 +41,21 @@ public final class ProxiedSimple implements Simple {
         try {
             Object returned = this.handler.invoke(this, BAR, new Object[]{baz});
             return (short) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int hashCode() {
+        try {
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -51,8 +67,8 @@ public final class ProxiedSimple implements Simple {
         try {
             Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -63,8 +79,8 @@ public final class ProxiedSimple implements Simple {
         try {
             Object returned = this.handler.invoke(this, FOO, new Object[]{});
             void.class.cast(returned);
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -76,14 +92,14 @@ public final class ProxiedSimple implements Simple {
         try {
             Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
     }
 
     public static Simple of(InvocationHandler handler) {
-        return new ProxiedSimple(handler);
+        return new SimpleProxy(handler);
     }
 }

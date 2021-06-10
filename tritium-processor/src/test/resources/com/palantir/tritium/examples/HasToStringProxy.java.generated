@@ -6,18 +6,21 @@ import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
-public final class ProxiedDelegateToCallable<T> implements DelegateToCallable<T> {
-    private static final Method CALL;
+public final class HasToStringProxy implements HasToString {
+    private static final Method HASH_CODE;
 
     private static final Method EQUALS;
+
+    private static final Method FOO;
 
     private static final Method TO_STRING;
 
     static {
         try {
-            CALL = DelegateToCallable.class.getMethod("call");
-            EQUALS = DelegateToCallable.class.getMethod("equals", Object.class);
-            TO_STRING = DelegateToCallable.class.getMethod("toString");
+            HASH_CODE = HasToString.class.getMethod("hashCode");
+            EQUALS = HasToString.class.getMethod("equals", Object.class);
+            FOO = HasToString.class.getMethod("foo");
+            TO_STRING = HasToString.class.getMethod("toString");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -25,18 +28,18 @@ public final class ProxiedDelegateToCallable<T> implements DelegateToCallable<T>
 
     private final InvocationHandler handler;
 
-    private ProxiedDelegateToCallable(InvocationHandler handler) {
+    private HasToStringProxy(InvocationHandler handler) {
         this.handler = handler;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public T call() throws Exception {
+    public int hashCode() {
         try {
-            Object returned = this.handler.invoke(this, CALL, new Object[]{});
-            return (T) returned;
-        } catch (Exception | Error throwable) {
-            throw throwable;
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -48,8 +51,20 @@ public final class ProxiedDelegateToCallable<T> implements DelegateToCallable<T>
         try {
             Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public void foo() {
+        try {
+            Object returned = this.handler.invoke(this, FOO, new Object[]{});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -61,14 +76,14 @@ public final class ProxiedDelegateToCallable<T> implements DelegateToCallable<T>
         try {
             Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
     }
 
-    public static <T> DelegateToCallable<T> of(InvocationHandler handler) {
-        return new ProxiedDelegateToCallable<>(handler);
+    public static HasToString of(InvocationHandler handler) {
+        return new HasToStringProxy(handler);
     }
 }

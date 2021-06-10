@@ -6,7 +6,9 @@ import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
-public final class ProxiedBindsParameter implements BindsParameter {
+public final class BindsParameterProxy implements BindsParameter {
+    private static final Method HASH_CODE;
+
     private static final Method EQUALS;
 
     private static final Method GET;
@@ -15,6 +17,7 @@ public final class ProxiedBindsParameter implements BindsParameter {
 
     static {
         try {
+            HASH_CODE = BindsParameter.class.getMethod("hashCode");
             EQUALS = BindsParameter.class.getMethod("equals", Object.class);
             GET = BindsParameter.class.getMethod("get");
             TO_STRING = BindsParameter.class.getMethod("toString");
@@ -25,8 +28,21 @@ public final class ProxiedBindsParameter implements BindsParameter {
 
     private final InvocationHandler handler;
 
-    private ProxiedBindsParameter(InvocationHandler handler) {
+    private BindsParameterProxy(InvocationHandler handler) {
         this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int hashCode() {
+        try {
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     @Override
@@ -35,8 +51,8 @@ public final class ProxiedBindsParameter implements BindsParameter {
         try {
             Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -48,8 +64,8 @@ public final class ProxiedBindsParameter implements BindsParameter {
         try {
             Object returned = this.handler.invoke(this, GET, new Object[]{});
             return (CharSequence) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -61,14 +77,14 @@ public final class ProxiedBindsParameter implements BindsParameter {
         try {
             Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
     }
 
     public static BindsParameter of(InvocationHandler handler) {
-        return new ProxiedBindsParameter(handler);
+        return new BindsParameterProxy(handler);
     }
 }

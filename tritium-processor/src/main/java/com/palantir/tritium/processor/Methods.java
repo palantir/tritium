@@ -48,11 +48,6 @@ final class Methods {
         return false;
     }
 
-    static boolean isFinalize(Elements elements, ExecutableElement methodElement) {
-        return isObjectMethod(elements, methodElement)
-                && methodElement.getSimpleName().contentEquals("finalize");
-    }
-
     static boolean isInstrumentable(Elements elements, Element element) {
         if (element instanceof ExecutableElement) {
             ExecutableElement executable = (ExecutableElement) element;

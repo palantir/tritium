@@ -109,9 +109,7 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
         for (Element element : getElementsToProcess(roundEnv)) {
             if (element.getKind() != ElementKind.INTERFACE) {
                 messager.printMessage(
-                        Kind.ERROR,
-                        "Only interfaces may be instrumented using @" + Proxy.class.getSimpleName(),
-                        element);
+                        Kind.ERROR, "Only interfaces may be proxied using @" + Proxy.class.getSimpleName(), element);
                 continue;
             }
             TypeElement typeElement = (TypeElement) element;
@@ -119,14 +117,6 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
             List<DeclaredType> minimalInterfaces = new ArrayList<>();
             if (isInvalid(element.asType(), allInterfaces, minimalInterfaces)) {
                 invalidElements.add(typeElement.getQualifiedName());
-                continue;
-            }
-            if (allInterfaces.isEmpty()) {
-                messager.printMessage(
-                        Kind.ERROR,
-                        "Cannot generate a instrumented implementation. "
-                                + "The annotated class implements no interfaces.",
-                        typeElement);
                 continue;
             }
             try {
@@ -192,7 +182,7 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
         TypeName annotatedType = TypeName.get(typeElement.asType());
         String packageName =
                 elements.getPackageOf(typeElement).getQualifiedName().toString();
-        String className = "Proxied" + typeElement.getSimpleName();
+        String className = typeElement.getSimpleName() + "Proxy";
         List<TypeName> interfaceNames = new ArrayList<>(minimalInterfaces.size());
         List<TypeVariableName> typeVarNames = new ArrayList<>();
         for (DeclaredType type : minimalInterfaces) {
@@ -240,12 +230,12 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                                 @Override
                                 public Void visitExecutable(ExecutableElement method, Void _param) {
                                     if (method.getKind() != ElementKind.CONSTRUCTOR
+                                            // Avoid attempting to override final methods from Object e.g. wait/notify
                                             && !method.getModifiers().contains(Modifier.FINAL)
-                                            // Let's not override clone
-                                            && !method.getModifiers().contains(Modifier.NATIVE)
+                                            // Only pubic methods (avoid clone, finalize)
                                             // Overriding finalize impacts the way objects are garbage collected, and
                                             // can have a dramatic impact on cost.
-                                            && !Methods.isFinalize(elements, method)) {
+                                            && method.getModifiers().contains(Modifier.PUBLIC)) {
                                         List<MethodElements> methods = methodsByName.computeIfAbsent(
                                                 method.getSimpleName().toString(), _key -> new ArrayList<>(1));
                                         methods.add(
@@ -265,12 +255,6 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                     instrumentedMethods.add(methods.get(i));
                 }
             }
-        }
-        if (instrumentedMethods.isEmpty()) {
-            messager.printMessage(
-                    Kind.ERROR,
-                    "Cannot generate an instrumented implementation. The annotated interface has no methods",
-                    typeElement);
         }
         IdentityHashMap<MethodElements, String> methodStaticFields =
                 Methods.methodStaticFieldName(instrumentedMethods, specBuilder, annotatedType);

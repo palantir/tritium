@@ -6,7 +6,9 @@ import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
-public final class ProxiedOverloaded implements Overloaded {
+public final class OverloadedProxy implements Overloaded {
+    private static final Method HASH_CODE;
+
     private static final Method EQUALS;
 
     private static final Method TO_STRING;
@@ -23,6 +25,7 @@ public final class ProxiedOverloaded implements Overloaded {
 
     static {
         try {
+            HASH_CODE = Overloaded.class.getMethod("hashCode");
             EQUALS = Overloaded.class.getMethod("equals", Object.class);
             TO_STRING = Overloaded.class.getMethod("toString");
             CONSUME = Overloaded.class.getMethod("consume", int.class);
@@ -37,8 +40,21 @@ public final class ProxiedOverloaded implements Overloaded {
 
     private final InvocationHandler handler;
 
-    private ProxiedOverloaded(InvocationHandler handler) {
+    private OverloadedProxy(InvocationHandler handler) {
         this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int hashCode() {
+        try {
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     @Override
@@ -47,8 +63,8 @@ public final class ProxiedOverloaded implements Overloaded {
         try {
             Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -60,8 +76,8 @@ public final class ProxiedOverloaded implements Overloaded {
         try {
             Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -72,8 +88,8 @@ public final class ProxiedOverloaded implements Overloaded {
         try {
             Object returned = this.handler.invoke(this, CONSUME, new Object[]{value});
             void.class.cast(returned);
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -84,8 +100,8 @@ public final class ProxiedOverloaded implements Overloaded {
         try {
             Object returned = this.handler.invoke(this, CONSUME1, new Object[]{value});
             void.class.cast(returned);
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -96,8 +112,8 @@ public final class ProxiedOverloaded implements Overloaded {
         try {
             Object returned = this.handler.invoke(this, CONSUME2, new Object[]{value});
             void.class.cast(returned);
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -108,8 +124,8 @@ public final class ProxiedOverloaded implements Overloaded {
         try {
             Object returned = this.handler.invoke(this, CONSUME3, new Object[]{value});
             void.class.cast(returned);
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -120,14 +136,14 @@ public final class ProxiedOverloaded implements Overloaded {
         try {
             Object returned = this.handler.invoke(this, CONSUME4, new Object[]{});
             void.class.cast(returned);
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
     }
 
     public static Overloaded of(InvocationHandler handler) {
-        return new ProxiedOverloaded(handler);
+        return new OverloadedProxy(handler);
     }
 }

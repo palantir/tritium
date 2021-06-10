@@ -119,19 +119,19 @@ public final class ProxyProcessorTest {
     @Test
     public void testAnnotatedAbstractClass() {
         Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, AnnotatedAbstractClass.class);
-        assertThat(compilation).hadErrorContaining("Only interfaces may be instrumented using @Proxy");
+        assertThat(compilation).hadErrorContaining("Only interfaces may be proxied using @Proxy");
     }
 
     @Test
     public void testAnnotatedClass() {
         Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, AnnotatedClass.class);
-        assertThat(compilation).hadErrorContaining("Only interfaces may be instrumented using @Proxy");
+        assertThat(compilation).hadErrorContaining("Only interfaces may be proxied using @Proxy");
     }
 
     private static void assertTestFileCompileAndMatches(Path basePath, Class<?> clazz) {
         Compilation compilation = compileTestClass(basePath, clazz);
         assertThat(compilation).succeededWithoutWarnings();
-        String generatedClassName = "Proxied" + clazz.getSimpleName();
+        String generatedClassName = clazz.getSimpleName() + "Proxy";
         String generatedFqnClassName = clazz.getPackage().getName() + "." + generatedClassName;
         String generatedClassFileRelativePath = generatedFqnClassName.replaceAll("\\.", "/") + ".java";
         assertThat(compilation.generatedFile(StandardLocation.SOURCE_OUTPUT, generatedClassFileRelativePath))

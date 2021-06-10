@@ -6,7 +6,9 @@ import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
-public final class ProxiedOverlappingNames implements OverlappingNames {
+public final class OverlappingNamesProxy implements OverlappingNames {
+    private static final Method HASH_CODE;
+
     private static final Method EQUALS;
 
     private static final Method FOO;
@@ -15,6 +17,7 @@ public final class ProxiedOverlappingNames implements OverlappingNames {
 
     static {
         try {
+            HASH_CODE = OverlappingNames.class.getMethod("hashCode");
             EQUALS = OverlappingNames.class.getMethod("equals", Object.class);
             FOO = OverlappingNames.class.getMethod("foo", int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class);
             TO_STRING = OverlappingNames.class.getMethod("toString");
@@ -25,8 +28,21 @@ public final class ProxiedOverlappingNames implements OverlappingNames {
 
     private final InvocationHandler handler;
 
-    private ProxiedOverlappingNames(InvocationHandler handler) {
+    private OverlappingNamesProxy(InvocationHandler handler) {
         this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int hashCode() {
+        try {
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
     }
 
     @Override
@@ -35,8 +51,8 @@ public final class ProxiedOverlappingNames implements OverlappingNames {
         try {
             Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -49,8 +65,8 @@ public final class ProxiedOverlappingNames implements OverlappingNames {
         try {
             Object returned = this.handler.invoke(this, FOO, new Object[]{returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate});
             return (int) returned;
-        } catch (Error | RuntimeException throwable_) {
-            throw throwable_;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable_) {
             throw new UndeclaredThrowableException(throwable_);
         }
@@ -62,14 +78,14 @@ public final class ProxiedOverlappingNames implements OverlappingNames {
         try {
             Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
     }
 
     public static OverlappingNames of(InvocationHandler handler) {
-        return new ProxiedOverlappingNames(handler);
+        return new OverlappingNamesProxy(handler);
     }
 }

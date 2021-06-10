@@ -6,8 +6,9 @@ import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.ProxyAnnotationProcessor")
-public final class ProxiedHasDefaultMethod implements HasDefaultMethod {
-    private static final Method BAR;
+@Deprecated
+public final class DeprecatedInterfaceProxy implements DeprecatedInterface {
+    private static final Method HASH_CODE;
 
     private static final Method EQUALS;
 
@@ -17,10 +18,10 @@ public final class ProxiedHasDefaultMethod implements HasDefaultMethod {
 
     static {
         try {
-            BAR = HasDefaultMethod.class.getMethod("bar");
-            EQUALS = HasDefaultMethod.class.getMethod("equals", Object.class);
-            FOO = HasDefaultMethod.class.getMethod("foo");
-            TO_STRING = HasDefaultMethod.class.getMethod("toString");
+            HASH_CODE = DeprecatedInterface.class.getMethod("hashCode");
+            EQUALS = DeprecatedInterface.class.getMethod("equals", Object.class);
+            FOO = DeprecatedInterface.class.getMethod("foo");
+            TO_STRING = DeprecatedInterface.class.getMethod("toString");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -28,18 +29,18 @@ public final class ProxiedHasDefaultMethod implements HasDefaultMethod {
 
     private final InvocationHandler handler;
 
-    private ProxiedHasDefaultMethod(InvocationHandler handler) {
+    private DeprecatedInterfaceProxy(InvocationHandler handler) {
         this.handler = handler;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public String bar() {
+    public int hashCode() {
         try {
-            Object returned = this.handler.invoke(this, BAR, new Object[]{});
-            return (String) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -51,8 +52,8 @@ public final class ProxiedHasDefaultMethod implements HasDefaultMethod {
         try {
             Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
             return (boolean) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -63,8 +64,8 @@ public final class ProxiedHasDefaultMethod implements HasDefaultMethod {
         try {
             Object returned = this.handler.invoke(this, FOO, new Object[]{});
             void.class.cast(returned);
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
@@ -76,14 +77,14 @@ public final class ProxiedHasDefaultMethod implements HasDefaultMethod {
         try {
             Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
             return (String) returned;
-        } catch (Error | RuntimeException throwable) {
-            throw throwable;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
         } catch (Throwable throwable) {
             throw new UndeclaredThrowableException(throwable);
         }
     }
 
-    public static HasDefaultMethod of(InvocationHandler handler) {
-        return new ProxiedHasDefaultMethod(handler);
+    public static DeprecatedInterface of(InvocationHandler handler) {
+        return new DeprecatedInterfaceProxy(handler);
     }
 }
