@@ -1,0 +1,149 @@
+package com.palantir.tritium.examples;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
+public final class OverloadedProxy implements Overloaded {
+    private static final Method HASH_CODE;
+
+    private static final Method EQUALS;
+
+    private static final Method TO_STRING;
+
+    private static final Method CONSUME;
+
+    private static final Method CONSUME1;
+
+    private static final Method CONSUME2;
+
+    private static final Method CONSUME3;
+
+    private static final Method CONSUME4;
+
+    static {
+        try {
+            HASH_CODE = Overloaded.class.getMethod("hashCode");
+            EQUALS = Overloaded.class.getMethod("equals", Object.class);
+            TO_STRING = Overloaded.class.getMethod("toString");
+            CONSUME = Overloaded.class.getMethod("consume", int.class);
+            CONSUME1 = Overloaded.class.getMethod("consume", String.class);
+            CONSUME2 = Overloaded.class.getMethod("consume", Object.class);
+            CONSUME3 = Overloaded.class.getMethod("consume", double[].class);
+            CONSUME4 = Overloaded.class.getMethod("consume");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final InvocationHandler handler;
+
+    private OverloadedProxy(InvocationHandler handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int hashCode() {
+        try {
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean equals(Object obj) {
+        try {
+            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            return (boolean) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public String toString() {
+        try {
+            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            return (String) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public void consume(int value) {
+        try {
+            Object returned = this.handler.invoke(this, CONSUME, new Object[]{value});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public void consume(String value) {
+        try {
+            Object returned = this.handler.invoke(this, CONSUME1, new Object[]{value});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public void consume(Object value) {
+        try {
+            Object returned = this.handler.invoke(this, CONSUME2, new Object[]{value});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public void consume(double[] value) {
+        try {
+            Object returned = this.handler.invoke(this, CONSUME3, new Object[]{value});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    public void consume() {
+        try {
+            Object returned = this.handler.invoke(this, CONSUME4, new Object[]{});
+            void.class.cast(returned);
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    public static Overloaded of(InvocationHandler handler) {
+        return new OverloadedProxy(handler);
+    }
+}

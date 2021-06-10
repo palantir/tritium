@@ -17,9 +17,7 @@
 package com.palantir.tritium.examples;
 
 import com.palantir.tritium.annotations.Instrument;
-import com.palantir.tritium.annotations.Proxy;
 import java.util.concurrent.Callable;
 
-@Proxy
 @Instrument
 public interface DelegateToCallable<T> extends Callable<T> {}

@@ -1,0 +1,5 @@
+apply plugin: 'com.palantir.external-publish-jar'
+
+dependencies {
+    // No dependencies
+}

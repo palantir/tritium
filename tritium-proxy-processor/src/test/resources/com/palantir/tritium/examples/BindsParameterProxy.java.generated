@@ -1,0 +1,90 @@
+package com.palantir.tritium.examples;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
+public final class BindsParameterProxy implements BindsParameter {
+    private static final Method HASH_CODE;
+
+    private static final Method EQUALS;
+
+    private static final Method GET;
+
+    private static final Method TO_STRING;
+
+    static {
+        try {
+            HASH_CODE = BindsParameter.class.getMethod("hashCode");
+            EQUALS = BindsParameter.class.getMethod("equals", Object.class);
+            GET = BindsParameter.class.getMethod("get");
+            TO_STRING = BindsParameter.class.getMethod("toString");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final InvocationHandler handler;
+
+    private BindsParameterProxy(InvocationHandler handler) {
+        this.handler = handler;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int hashCode() {
+        try {
+            Object returned = this.handler.invoke(this, HASH_CODE, new Object[]{});
+            return (int) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public boolean equals(Object obj) {
+        try {
+            Object returned = this.handler.invoke(this, EQUALS, new Object[]{obj});
+            return (boolean) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public CharSequence get() {
+        try {
+            Object returned = this.handler.invoke(this, GET, new Object[]{});
+            return (CharSequence) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public String toString() {
+        try {
+            Object returned = this.handler.invoke(this, TO_STRING, new Object[]{});
+            return (String) returned;
+        } catch (Error | RuntimeException rethrown) {
+            throw rethrown;
+        } catch (Throwable throwable) {
+            throw new UndeclaredThrowableException(throwable);
+        }
+    }
+
+    public static BindsParameter of(InvocationHandler handler) {
+        return new BindsParameterProxy(handler);
+    }
+}

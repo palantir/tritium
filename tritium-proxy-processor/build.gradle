@@ -1,0 +1,18 @@
+apply plugin: 'com.palantir.external-publish-jar'
+
+dependencies {
+    compile project(':tritium-proxy-annotations')
+
+    compile 'com.squareup:javapoet'
+    compile 'com.google.guava:guava'
+    // Used for 'GeneratedAnnotations.generatedAnnotation' to select the correct annotation
+    // based on source compatibility. This can be simplified once java 8 support is removed.
+    compile 'com.google.auto:auto-common'
+    compile 'com.google.code.findbugs:jsr305'
+
+    testImplementation 'com.google.testing.compile:compile-testing'
+    testImplementation 'com.google.guava:guava'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+}

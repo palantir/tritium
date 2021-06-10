@@ -1,2 +1,1 @@
 com.palantir.tritium.processor.TritiumAnnotationProcessor,ISOLATING
-com.palantir.tritium.processor.ProxyAnnotationProcessor,ISOLATING
