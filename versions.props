@@ -31,6 +31,6 @@ com.google.testing.compile:compile-testing = 0.19
 
 
 # Explicitly maintaining back-compat with dropwizard metrics
-io.dropwizard.metrics:* = 3.2.5
+io.dropwizard.metrics:* = 3.2.6
 
 # dependency-upgrader:ON
