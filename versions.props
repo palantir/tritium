@@ -1,14 +1,17 @@
 com.fasterxml.jackson.*:* = 2.11.3
+com.github.ben-manes.caffeine:caffeine = 3.0.2
 com.google.auto.service:* = 1.0
 com.google.auto:* = 1.0.1
 com.google.code.findbugs:jFormatString = 3.0.0
 com.google.code.findbugs:jsr305 = 3.0.2
 com.google.errorprone:* = 2.7.1
 com.google.guava:guava = 30.1.1-jre
+com.google.testing.compile:compile-testing = 0.19
 com.palantir.jvm.diagnostics:* = 0.0.2
 com.palantir.safe-logging:* = 1.14.0
 com.palantir.tracing:* = 4.22.0
 com.squareup.okhttp3:okhttp = 4.0.0
+com.squareup:javapoet = 1.13.0
 com.uber.nullaway:nullaway = 0.9.1
 io.undertow:undertow-core = 2.2.8.Final
 net.bytebuddy:byte-buddy = 1.11.1
@@ -23,15 +26,9 @@ org.mockito:* = 3.11.0
 org.mpierce.metrics.reservoir:* = 1.1.3
 org.openjdk.jmh:* = 1.32
 org.slf4j:* = 1.7.30
-com.squareup:javapoet = 1.13.0
-com.google.testing.compile:compile-testing = 0.19
+
 
 # dependency-upgrader:OFF
-
-# caffeine 3.0 requires JDK 11+ see https://github.com/ben-manes/caffeine/releases/tag/v3.0.0
-com.github.ben-manes.caffeine:caffeine = 2.9.1
-
 # Explicitly maintaining back-compat with dropwizard metrics
-io.dropwizard.metrics:* = 3.2.5
-
+io.dropwizard.metrics:* = 3.2.6
 # dependency-upgrader:ON
