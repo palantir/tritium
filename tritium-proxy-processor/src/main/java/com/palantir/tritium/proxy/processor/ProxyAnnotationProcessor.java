@@ -66,7 +66,6 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.SimpleElementVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
@@ -224,29 +223,17 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
         Map<String, List<MethodElements>> methodsByName = new HashMap<>();
         allInterfaces.add(types.getDeclaredType(elements.getTypeElement(Object.class.getName())));
         for (DeclaredType mirror : allInterfaces) {
-            for (Element methodElement : types.asElement(mirror).getEnclosedElements()) {
-                if (!methodElement.getModifiers().contains(Modifier.STATIC)
-                        && !methodElement.getModifiers().contains(Modifier.PRIVATE)) {
-                    methodElement.accept(
-                            new SimpleElementVisitor8<Void, Void>() {
-                                @Override
-                                public Void visitExecutable(ExecutableElement method, Void _param) {
-                                    if (method.getKind() != ElementKind.CONSTRUCTOR
-                                            // Avoid attempting to override final methods from Object e.g. wait/notify
-                                            && !method.getModifiers().contains(Modifier.FINAL)
-                                            // Only pubic methods (avoid clone, finalize)
-                                            // Overriding finalize impacts the way objects are garbage collected, and
-                                            // can have a dramatic impact on cost.
-                                            && method.getModifiers().contains(Modifier.PUBLIC)) {
-                                        List<MethodElements> methods = methodsByName.computeIfAbsent(
-                                                method.getSimpleName().toString(), _key -> new ArrayList<>(1));
-                                        methods.add(
-                                                new MethodElements(asMemberOf(typeElement, mirror, method), method));
-                                    }
-                                    return null;
-                                }
-                            },
-                            null);
+            for (ExecutableElement method :
+                    MoreElements.getLocalAndInheritedMethods((TypeElement) mirror.asElement(), types, elements)) {
+                // Avoid attempting to override final methods from Object e.g. wait/notify
+                if (!method.getModifiers().contains(Modifier.FINAL)
+                        // Only pubic methods (avoid clone, finalize)
+                        // Overriding finalize impacts the way objects are garbage collected, and
+                        // can have a dramatic impact on cost.
+                        && method.getModifiers().contains(Modifier.PUBLIC)) {
+                    List<MethodElements> methods = methodsByName.computeIfAbsent(
+                            method.getSimpleName().toString(), _key -> new ArrayList<>(1));
+                    methods.add(new MethodElements(asMemberOf(typeElement, mirror, method), method));
                 }
             }
         }
