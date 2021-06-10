@@ -69,9 +69,7 @@ public final class MetricRegistries {
 
     static final String RESERVOIR_TYPE_METRIC_NAME = MetricRegistry.name(MetricRegistries.class, "reservoir.type");
 
-    private MetricRegistries() {
-        throw new UnsupportedOperationException();
-    }
+    private MetricRegistries() {}
 
     /**
      * Create metric registry which produces timers and histograms backed by high dynamic range histograms and timers,

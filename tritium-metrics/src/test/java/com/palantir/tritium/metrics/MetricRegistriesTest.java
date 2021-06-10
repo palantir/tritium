@@ -42,8 +42,6 @@ import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -395,16 +393,6 @@ final class MetricRegistriesTest {
                 .hasMessageStartingWith(
                         "Metric already registered at this name that implements a different set of interfaces: "
                                 + "{name=test, existingMetric=com.codahale.metrics.Counter");
-    }
-
-    @Test
-    void testInaccessibleConstructor() throws Exception {
-        Constructor<?> constructor = MetricRegistries.class.getDeclaredConstructor();
-        assertThat(constructor.isAccessible()).isFalse();
-        constructor.setAccessible(true);
-        assertThatThrownBy(constructor::newInstance)
-                .isInstanceOf(InvocationTargetException.class)
-                .hasCauseInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test

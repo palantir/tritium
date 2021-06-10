@@ -40,9 +40,7 @@ import org.slf4j.LoggerFactory;
 /** Instrument arbitrary service interfaces with optional metrics and invocation logging. */
 public final class Instrumentation {
 
-    private Instrumentation() {
-        throw new UnsupportedOperationException();
-    }
+    private Instrumentation() {}
 
     static <T, U extends T> T wrap(
             Class<T> interfaceClass,

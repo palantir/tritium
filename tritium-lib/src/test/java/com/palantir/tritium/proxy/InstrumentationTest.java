@@ -57,8 +57,6 @@ import com.palantir.tritium.test.LessSpecificReturn;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import com.palantir.tritium.tracing.TracingInvocationEventHandler;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
@@ -397,16 +395,6 @@ public abstract class InstrumentationTest {
                 .isInstanceOf(Timer.class)
                 .extracting(m -> ((Timer) m).getCount())
                 .isEqualTo(1L);
-    }
-
-    @Test
-    void testInaccessibleConstructor() throws NoSuchMethodException {
-        Constructor<Instrumentation> constructor = Instrumentation.class.getDeclaredConstructor();
-        assertThat(constructor.isAccessible()).isFalse();
-        constructor.setAccessible(true);
-        assertThatThrownBy(constructor::newInstance)
-                .isInstanceOf(InvocationTargetException.class)
-                .hasRootCauseExactlyInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test

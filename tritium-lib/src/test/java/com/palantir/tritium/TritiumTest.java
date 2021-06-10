@@ -32,8 +32,6 @@ import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.SortedMap;
 import javax.annotation.Nullable;
@@ -181,15 +179,5 @@ public class TritiumTest {
         assertThat(Tritium.instrument(TestInterface.class, instrumentedService, metricRegistry)
                         .toString())
                 .isEqualTo(TestImplementation.class.getName());
-    }
-
-    @Test
-    public void testInaccessibleConstructor() throws NoSuchMethodException {
-        Constructor<Tritium> constructor = Tritium.class.getDeclaredConstructor();
-        assertThat(constructor.isAccessible()).isFalse();
-        constructor.setAccessible(true);
-        assertThatThrownBy(constructor::newInstance)
-                .isInstanceOf(InvocationTargetException.class)
-                .hasRootCauseExactlyInstanceOf(UnsupportedOperationException.class);
     }
 }
