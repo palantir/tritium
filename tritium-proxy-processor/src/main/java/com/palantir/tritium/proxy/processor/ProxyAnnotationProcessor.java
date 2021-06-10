@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -216,7 +217,7 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                         .addModifiers(Modifier.PRIVATE)
                         .addParameter(ParameterSpec.builder(InvocationHandler.class, HANDLER_NAME)
                                 .build())
-                        .addStatement("this.$1N = $1N", HANDLER_NAME)
+                        .addStatement("this.$1N = $2T.requireNonNull($1N)", HANDLER_NAME, Objects.class)
                         .build());
 
         Map<String, List<MethodElements>> methodsByName = new HashMap<>();

@@ -3,6 +3,7 @@ package com.palantir.tritium.examples;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
@@ -26,7 +27,7 @@ public final class EmptyProxy implements Empty {
     private final InvocationHandler handler;
 
     private EmptyProxy(InvocationHandler handler) {
-        this.handler = handler;
+        this.handler = Objects.requireNonNull(handler);
     }
 
     @Override
