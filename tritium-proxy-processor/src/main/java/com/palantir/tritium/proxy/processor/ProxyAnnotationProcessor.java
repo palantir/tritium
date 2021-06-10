@@ -125,11 +125,11 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                     generatedFile.writeTo(filer);
                 } catch (IOException e) {
                     messager.printMessage(
-                            Kind.ERROR, "Failed to write instrumented class: " + Throwables.getStackTraceAsString(e));
+                            Kind.ERROR, "Failed to write proxied class: " + Throwables.getStackTraceAsString(e));
                 }
             } catch (RuntimeException e) {
                 messager.printMessage(
-                        Kind.ERROR, "Failed to generate instrumented class: " + Throwables.getStackTraceAsString(e));
+                        Kind.ERROR, "Failed to generate proxied class: " + Throwables.getStackTraceAsString(e));
             }
         }
         return false;
@@ -248,17 +248,17 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                 }
             }
         }
-        List<MethodElements> instrumentedMethods = new ArrayList<>();
+        List<MethodElements> proxiedMethods = new ArrayList<>();
         for (List<MethodElements> methods : methodsByName.values()) {
             for (int i = 0; i < methods.size(); i++) {
                 if (isMostSpecific(i, methods)) {
-                    instrumentedMethods.add(methods.get(i));
+                    proxiedMethods.add(methods.get(i));
                 }
             }
         }
         IdentityHashMap<MethodElements, String> methodStaticFields =
-                Methods.methodStaticFieldName(instrumentedMethods, specBuilder, annotatedType);
-        for (MethodElements method : instrumentedMethods) {
+                Methods.methodStaticFieldName(proxiedMethods, specBuilder, annotatedType);
+        for (MethodElements method : proxiedMethods) {
             createMethod(method, specBuilder, methodStaticFields);
         }
 
