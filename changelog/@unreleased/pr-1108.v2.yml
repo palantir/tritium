@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Simplify TritiumAnnotationProcessor `@Generated` annotation selection
+  links:
+  - https://github.com/palantir/tritium/pull/1108
