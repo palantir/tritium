@@ -32,6 +32,7 @@ import com.palantir.tritium.examples.DelegateToCallable;
 import com.palantir.tritium.examples.DelegateToRunnable;
 import com.palantir.tritium.examples.DeprecatedMethod;
 import com.palantir.tritium.examples.Empty;
+import com.palantir.tritium.examples.ExtendsMultipleInterfaces;
 import com.palantir.tritium.examples.HasDefaultMethod;
 import com.palantir.tritium.examples.HasToString;
 import com.palantir.tritium.examples.OverlappingNames;
@@ -126,6 +127,11 @@ public final class ProxyProcessorTest {
     public void testAnnotatedClass() {
         Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, AnnotatedClass.class);
         assertThat(compilation).hadErrorContaining("Only interfaces may be proxied using @Proxy");
+    }
+
+    @Test
+    public void testExtendsMultiple() {
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, ExtendsMultipleInterfaces.class);
     }
 
     private static void assertTestFileCompileAndMatches(Path basePath, Class<?> clazz) {

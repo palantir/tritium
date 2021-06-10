@@ -17,6 +17,7 @@
 package com.palantir.tritium.proxy.processor;
 
 import com.google.auto.common.GeneratedAnnotations;
+import com.google.auto.common.MoreElements;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -331,7 +332,7 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                 .addExceptions(exceptions)
                 .returns(returnType);
 
-        if (method.element().getAnnotation(Deprecated.class) != null) {
+        if (MoreElements.isAnnotationPresent(method.element(), Deprecated.class)) {
             methodBuilder = methodBuilder.addAnnotation(Deprecated.class);
         }
 
