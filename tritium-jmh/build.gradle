@@ -1,14 +1,3 @@
-buildscript {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-        jcenter()
-    }
-    dependencies {
-        classpath 'me.champeau.jmh:jmh-gradle-plugin:0.6.4'
-    }
-}
-
 apply plugin: 'me.champeau.jmh'
 
 jmh {
