@@ -1,4 +1,5 @@
 com.fasterxml.jackson.*:* = 2.11.3
+com.github.ben-manes.caffeine:caffeine = 3.0.2
 com.google.auto.service:* = 1.0
 com.google.auto:* = 1.0.1
 com.google.code.findbugs:jFormatString = 3.0.0
@@ -28,8 +29,6 @@ com.google.testing.compile:compile-testing = 0.19
 
 # dependency-upgrader:OFF
 
-# caffeine 3.0 requires JDK 11+ see https://github.com/ben-manes/caffeine/releases/tag/v3.0.0
-com.github.ben-manes.caffeine:caffeine = 2.9.1
 
 # Explicitly maintaining back-compat with dropwizard metrics
 io.dropwizard.metrics:* = 3.2.5
