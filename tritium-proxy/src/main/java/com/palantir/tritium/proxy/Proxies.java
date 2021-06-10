@@ -26,9 +26,7 @@ import java.util.Set;
 @SuppressWarnings("PreferSafeLoggingPreconditions") // this module depends only on JDK
 public final class Proxies {
 
-    private Proxies() {
-        throw new UnsupportedOperationException();
-    }
+    private Proxies() {}
 
     /**
      * Creates a new proxy instance for the specified delegate bound to the given invocation handler.

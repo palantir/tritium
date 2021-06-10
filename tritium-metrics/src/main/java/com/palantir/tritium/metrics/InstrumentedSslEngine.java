@@ -281,7 +281,7 @@ final class InstrumentedSslEngine extends SSLEngine {
 
     private SSLEngineResult check(SSLEngineResult result) {
         if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED
-                && handshaking.compareAndSet(true, false)) {
+                && handshaking.compareAndSet(/* expectedValue= */ true, /* newValue= */ false)) {
             try {
                 SSLSession session = engine.getSession();
                 if (session != null) {

@@ -1,0 +1,5 @@
+type: break
+break:
+  description: Source compatibility JDK 11
+  links:
+  - https://github.com/palantir/tritium/pull/1105

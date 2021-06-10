@@ -18,14 +18,11 @@ package com.palantir.tritium.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.test.MoreSpecificReturn;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.Callable;
 import org.junit.jupiter.api.Test;
@@ -70,15 +67,5 @@ final class ProxiesTest {
                 ImmutableSet.of(TestInterface.class, String.class, Runnable.class, Callable.class, List.class);
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> Proxies.checkAreAllInterfaces(interfaces));
-    }
-
-    @Test
-    void testInaccessibleConstructor() throws NoSuchMethodException {
-        Constructor<Proxies> constructor = Proxies.class.getDeclaredConstructor();
-        assertThat(constructor.isAccessible()).isFalse();
-        constructor.setAccessible(true);
-        assertThatThrownBy(constructor::newInstance)
-                .isInstanceOf(InvocationTargetException.class)
-                .hasRootCauseExactlyInstanceOf(UnsupportedOperationException.class);
     }
 }

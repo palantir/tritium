@@ -24,9 +24,7 @@ import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 /** Provides static methods for Tritium instrumentation. */
 public final class Tritium {
 
-    private Tritium() {
-        throw new UnsupportedOperationException();
-    }
+    private Tritium() {}
 
     /**
      * Return an instrumented proxy of the specified service interface and delegate that records aggregated invocation
