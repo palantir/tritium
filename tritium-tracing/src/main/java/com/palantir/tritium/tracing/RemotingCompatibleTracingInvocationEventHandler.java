@@ -156,7 +156,7 @@ public final class RemotingCompatibleTracingInvocationEventHandler
                 String actualTracingPackage =
                         wrappedTrace.getClass().getPackage().getName();
                 if (!Objects.equals(expectedTracingPackage, actualTracingPackage)) {
-                    if (shouldLogFallbackError.compareAndSet(false, true)) {
+                    if (shouldLogFallbackError.compareAndSet(/* expectedValue= */ false, /* newValue= */ true)) {
                         log.error(
                                 "Multiple tracing implementations detected, expected '{}' but found '{}',"
                                         + " using legacy remoting3 tracing for backward compatibility",
