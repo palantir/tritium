@@ -1,89 +1,16 @@
 package com.palantir.tritium.examples;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
-public final class DelegateToCallableProxy<T> extends Proxy implements DelegateToCallable<T> {
-    private static final Method CALL;
-
-    private static final Method HASH_CODE;
-
-    private static final Method EQUALS;
-
-    private static final Method TO_STRING;
-
-    static {
-        try {
-            CALL = DelegateToCallable.class.getMethod("call");
-            HASH_CODE = DelegateToCallable.class.getMethod("hashCode");
-            EQUALS = DelegateToCallable.class.getMethod("equals", Object.class);
-            TO_STRING = DelegateToCallable.class.getMethod("toString");
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
+public final class DelegateToCallableProxy {
+    private DelegateToCallableProxy() {
     }
 
-    private DelegateToCallableProxy(InvocationHandler handler) {
-        super(handler);
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
-    public T call() throws Exception {
-        try {
-            Object returned = this.h.invoke(this, CALL, new Object[]{});
-            return (T) returned;
-        } catch (Exception | Error rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public int hashCode() {
-        try {
-            Object returned = this.h.invoke(this, HASH_CODE, new Object[]{});
-            return (int) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public boolean equals(Object obj) {
-        try {
-            Object returned = this.h.invoke(this, EQUALS, new Object[]{obj});
-            return (boolean) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public String toString() {
-        try {
-            Object returned = this.h.invoke(this, TO_STRING, new Object[]{});
-            return (String) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
     public static <T> DelegateToCallable<T> of(InvocationHandler handler) {
-        return new DelegateToCallableProxy<>(handler);
+        return (DelegateToCallable<T>) Proxy.newProxyInstance(DelegateToCallableProxy.class.getClassLoader(), new Class<?>[] {DelegateToCallable.class}, handler);
     }
 }

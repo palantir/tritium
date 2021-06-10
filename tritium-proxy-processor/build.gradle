@@ -8,7 +8,6 @@ dependencies {
     // Used for 'GeneratedAnnotations.generatedAnnotation' to select the correct annotation
     // based on source compatibility. This can be simplified once java 8 support is removed.
     compile 'com.google.auto:auto-common'
-    compile 'com.google.code.findbugs:jsr305'
 
     testImplementation 'com.google.testing.compile:compile-testing'
     testImplementation 'com.google.guava:guava'

@@ -1,89 +1,16 @@
 package com.palantir.tritium.examples;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
 @Deprecated
-public final class DeprecatedInterfaceProxy extends Proxy implements DeprecatedInterface {
-    private static final Method HASH_CODE;
-
-    private static final Method EQUALS;
-
-    private static final Method FOO;
-
-    private static final Method TO_STRING;
-
-    static {
-        try {
-            HASH_CODE = DeprecatedInterface.class.getMethod("hashCode");
-            EQUALS = DeprecatedInterface.class.getMethod("equals", Object.class);
-            FOO = DeprecatedInterface.class.getMethod("foo");
-            TO_STRING = DeprecatedInterface.class.getMethod("toString");
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private DeprecatedInterfaceProxy(InvocationHandler handler) {
-        super(handler);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public int hashCode() {
-        try {
-            Object returned = this.h.invoke(this, HASH_CODE, new Object[]{});
-            return (int) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public boolean equals(Object obj) {
-        try {
-            Object returned = this.h.invoke(this, EQUALS, new Object[]{obj});
-            return (boolean) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    public void foo() {
-        try {
-            Object returned = this.h.invoke(this, FOO, new Object[]{});
-            void.class.cast(returned);
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public String toString() {
-        try {
-            Object returned = this.h.invoke(this, TO_STRING, new Object[]{});
-            return (String) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
+public final class DeprecatedInterfaceProxy {
+    private DeprecatedInterfaceProxy() {
     }
 
     public static DeprecatedInterface of(InvocationHandler handler) {
-        return new DeprecatedInterfaceProxy(handler);
+        return (DeprecatedInterface) Proxy.newProxyInstance(DeprecatedInterfaceProxy.class.getClassLoader(), new Class<?>[] {DeprecatedInterface.class}, handler);
     }
 }

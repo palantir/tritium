@@ -1,135 +1,15 @@
 package com.palantir.tritium.examples;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
-public final class ExtendsMultipleInterfacesProxy extends Proxy implements ExtendsMultipleInterfaces {
-    private static final Method BAR;
-
-    private static final Method TEST;
-
-    private static final Method HASH_CODE;
-
-    private static final Method EQUALS;
-
-    private static final Method GET;
-
-    private static final Method FOO;
-
-    private static final Method TO_STRING;
-
-    static {
-        try {
-            BAR = ExtendsMultipleInterfaces.class.getMethod("bar");
-            TEST = ExtendsMultipleInterfaces.class.getMethod("test");
-            HASH_CODE = ExtendsMultipleInterfaces.class.getMethod("hashCode");
-            EQUALS = ExtendsMultipleInterfaces.class.getMethod("equals", Object.class);
-            GET = ExtendsMultipleInterfaces.class.getMethod("get");
-            FOO = ExtendsMultipleInterfaces.class.getMethod("foo");
-            TO_STRING = ExtendsMultipleInterfaces.class.getMethod("toString");
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private ExtendsMultipleInterfacesProxy(InvocationHandler handler) {
-        super(handler);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public String bar() {
-        try {
-            Object returned = this.h.invoke(this, BAR, new Object[]{});
-            return (String) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    public void test() {
-        try {
-            Object returned = this.h.invoke(this, TEST, new Object[]{});
-            void.class.cast(returned);
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public int hashCode() {
-        try {
-            Object returned = this.h.invoke(this, HASH_CODE, new Object[]{});
-            return (int) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public boolean equals(Object obj) {
-        try {
-            Object returned = this.h.invoke(this, EQUALS, new Object[]{obj});
-            return (boolean) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public CharSequence get() {
-        try {
-            Object returned = this.h.invoke(this, GET, new Object[]{});
-            return (CharSequence) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    public void foo() {
-        try {
-            Object returned = this.h.invoke(this, FOO, new Object[]{});
-            void.class.cast(returned);
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public String toString() {
-        try {
-            Object returned = this.h.invoke(this, TO_STRING, new Object[]{});
-            return (String) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
+public final class ExtendsMultipleInterfacesProxy {
+    private ExtendsMultipleInterfacesProxy() {
     }
 
     public static ExtendsMultipleInterfaces of(InvocationHandler handler) {
-        return new ExtendsMultipleInterfacesProxy(handler);
+        return (ExtendsMultipleInterfaces) Proxy.newProxyInstance(ExtendsMultipleInterfacesProxy.class.getClassLoader(), new Class<?>[] {ExtendsMultipleInterfaces.class}, handler);
     }
 }

@@ -1,90 +1,15 @@
 package com.palantir.tritium.examples;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.UndeclaredThrowableException;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.proxy.processor.ProxyAnnotationProcessor")
-public final class OverlappingNamesProxy extends Proxy implements OverlappingNames {
-    private static final Method HASH_CODE;
-
-    private static final Method EQUALS;
-
-    private static final Method FOO;
-
-    private static final Method TO_STRING;
-
-    static {
-        try {
-            HASH_CODE = OverlappingNames.class.getMethod("hashCode");
-            EQUALS = OverlappingNames.class.getMethod("equals", Object.class);
-            FOO = OverlappingNames.class.getMethod("foo", int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class);
-            TO_STRING = OverlappingNames.class.getMethod("toString");
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private OverlappingNamesProxy(InvocationHandler handler) {
-        super(handler);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public int hashCode() {
-        try {
-            Object returned = this.h.invoke(this, HASH_CODE, new Object[]{});
-            return (int) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public boolean equals(Object obj) {
-        try {
-            Object returned = this.h.invoke(this, EQUALS, new Object[]{obj});
-            return (boolean) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public int foo(int returnValue, int result, int context, int invocationContext, int throwable,
-            int thrown, int filter, int handler, int delegate) {
-        try {
-            Object returned = this.h.invoke(this, FOO, new Object[]{returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate});
-            return (int) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable_) {
-            throw new UndeclaredThrowableException(throwable_);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public String toString() {
-        try {
-            Object returned = this.h.invoke(this, TO_STRING, new Object[]{});
-            return (String) returned;
-        } catch (Error | RuntimeException rethrown) {
-            throw rethrown;
-        } catch (Throwable throwable) {
-            throw new UndeclaredThrowableException(throwable);
-        }
+public final class OverlappingNamesProxy {
+    private OverlappingNamesProxy() {
     }
 
     public static OverlappingNames of(InvocationHandler handler) {
-        return new OverlappingNamesProxy(handler);
+        return (OverlappingNames) Proxy.newProxyInstance(OverlappingNamesProxy.class.getClassLoader(), new Class<?>[] {OverlappingNames.class}, handler);
     }
 }
