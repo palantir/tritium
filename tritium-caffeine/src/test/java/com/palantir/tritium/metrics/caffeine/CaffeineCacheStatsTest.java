@@ -25,8 +25,12 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
+import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -209,5 +213,62 @@ final class CaffeineCacheStatsTest {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("No such metric " + name))
                 .getValue());
+    }
+
+    @Test
+    void statsCounter() {
+        StatsCounter statsCounter = CaffeineCacheStats.record(taggedMetricRegistry, "test");
+        LoadingCache<String, Integer> cache = Caffeine.newBuilder()
+                .maximumSize(2)
+                .recordStats(() -> statsCounter)
+                .build(String::length);
+
+        assertThat(cache.get("hello")).isEqualTo(5);
+        assertThat(cache.get("world")).isEqualTo(5);
+        assertThat(cache.get("tritium")).isEqualTo(7);
+        assertThat(cache.get("world")).isEqualTo(5);
+        cache.cleanUp();
+        CacheStats stats = cache.stats();
+        assertThat(cache.get("")).isEqualTo(0);
+        assertThat(stats.evictionCount()).isEqualTo(1);
+        Map<MetricName, Metric> metrics = taggedMetricRegistry.getMetrics();
+        assertThat(metrics).hasSize(10);
+        assertThat(metrics.keySet())
+                .extracting(MetricName::safeName)
+                .containsOnly(
+                        "cache.eviction.count",
+                        "cache.hit.count",
+                        "cache.load.failure",
+                        "cache.load.success",
+                        "cache.miss.count");
+        assertThat(metrics.keySet()).allSatisfy(metricName -> assertThat(metricName.safeTags())
+                .extractingByKey("cache")
+                .isEqualTo("test"));
+        assertThat(metrics.keySet())
+                .filteredOn(metricName -> metricName.safeName().equals("cache.eviction.count"))
+                .hasSize(6);
+
+        assertThat(metrics.values()).filteredOn(m -> m instanceof Counter).hasSize(8);
+        assertThat(metrics.values()).filteredOn(m -> m instanceof Timer).hasSize(2);
+
+        MetricName key = metricName("cache.hit.count");
+        Metric metric = metrics.get(key);
+        assertThat(metric)
+                .isInstanceOf(Counter.class)
+                .extracting(counter -> ((Counter) counter).getCount())
+                .isEqualTo(1L);
+
+        CacheStats snapshot = statsCounter.snapshot();
+        assertThat(snapshot.hitCount()).isOne();
+        assertThat(snapshot.missCount()).isEqualTo(4);
+        assertThat(snapshot.evictionCount()).isEqualTo(2);
+        assertThat(snapshot.evictionWeight()).isEqualTo(2);
+        assertThat(snapshot.loadSuccessCount()).isEqualTo(4);
+        assertThat(snapshot.loadFailureCount()).isZero();
+        assertThat(snapshot.totalLoadTime()).isGreaterThan(0);
+    }
+
+    private static MetricName metricName(String name) {
+        return MetricName.builder().safeName(name).putSafeTags("cache", "test").build();
     }
 }
