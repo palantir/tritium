@@ -5,9 +5,6 @@ dependencies {
 
     compile 'com.squareup:javapoet'
     compile 'com.google.guava:guava'
-    // Used for 'GeneratedAnnotations.generatedAnnotation' to select the correct annotation
-    // based on source compatibility. This can be simplified once java 8 support is removed.
-    compile 'com.google.auto:auto-common'
 
     testImplementation 'com.google.testing.compile:compile-testing'
     testImplementation 'com.google.guava:guava'

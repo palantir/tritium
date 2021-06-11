@@ -16,15 +16,12 @@
 
 package com.palantir.tritium.proxy.processor;
 
-import com.google.auto.common.GeneratedAnnotations;
-import com.google.auto.common.MoreElements;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.palantir.tritium.proxy.annotations.Proxy;
 import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -36,6 +33,7 @@ import java.lang.reflect.InvocationHandler;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.Generated;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -113,6 +111,9 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
         TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className)
                 .addOriginatingElement(typeElement)
                 .addModifiers(visibility.modifiers(Modifier.FINAL))
+                .addAnnotation(AnnotationSpec.builder(Generated.class)
+                        .addMember("value", "$S", getClass().getName())
+                        .build())
                 .addMethod(MethodSpec.constructorBuilder()
                         .addModifiers(Modifier.PRIVATE)
                         .build())
@@ -140,12 +141,7 @@ public final class ProxyAnnotationProcessor extends AbstractProcessor {
                                 HANDLER_PARAMETER_NAME)
                         .build());
 
-        GeneratedAnnotations.generatedAnnotation(elements, SourceVersion.latest())
-                .ifPresent(te -> specBuilder.addAnnotation(AnnotationSpec.builder(ClassName.get(te))
-                        .addMember("value", "$S", getClass().getName())
-                        .build()));
-
-        if (MoreElements.isAnnotationPresent(typeElement, Deprecated.class)) {
+        if (typeElement.getAnnotation(Deprecated.class) != null) {
             specBuilder.addAnnotation(Deprecated.class);
         }
 
