@@ -31,5 +31,5 @@ import java.lang.annotation.Target;
  * exactly match the target interface.
  */
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.SOURCE)
 public @interface Instrument {}

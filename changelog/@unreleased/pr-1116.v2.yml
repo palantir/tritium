@@ -1,0 +1,6 @@
+type: improvement
+improvement:
+  description: The `@Instrument` annotation uses source retention (down from class
+    retention)
+  links:
+  - https://github.com/palantir/tritium/pull/1116
