@@ -20,7 +20,36 @@ These metrics can be exposed at the Dropwizard ``MetricsServlet`` and can be exp
 
 ## Basic Usage
 
+### Instrumenting a service using the Tritium annotation processor
+
+The `tritium-processor` annotation processor must be applied to the annotation processor scope, and `tritium-annotations` must be available at both build and runtime.
+
+Example using gradle, however all modern build systems are capable of registering annotation processors:
+```gradle
+dependencies {
+    implementation 'com.palantir.tritium:tritium-annotations'
+    annotationProcessor 'com.palantir.tritium:tritium-processor'
+}
+```
+
+Apply the `@Instrument` annotation to an interface. If the interface is defined externally, a new interface may be defined which extends the target interface, and that interface may be annotated.
+```java
+@Instrument
+interface Service {
+    String getGreeting();
+}
+```
+
+This generates the `InstrumentedService` wrapper implementation equivalent to the legacy dynamic proxy, with less overhead.
+```java
+Service interestingService = ...
+Service instrumentedService =
+        InstrumentedService.instrument(interestingService, environment.metrics());
+```
+
 ### Instrumenting a service interface of a dropwizard application with default metrics timers and optional trace logging.
+
+_Prefer using the annotation processor whenever possible_
 
 ```java
 import com.palantir.tritium.Tritium;
