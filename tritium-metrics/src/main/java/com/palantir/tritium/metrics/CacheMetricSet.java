@@ -55,7 +55,7 @@ final class CacheMetricSet implements MetricSet {
                 GuavaStats.create(cache, 1, TimeUnit.SECONDS), metricName -> cacheName + '.' + metricName));
     }
 
-    static class GuavaStats implements InternalCacheMetrics.Stats {
+    static class GuavaStats implements CacheMetrics.Stats {
         private final Cache<?, ?> cache;
         private final Supplier<CacheStats> stats;
 
@@ -65,7 +65,7 @@ final class CacheMetricSet implements MetricSet {
             this.stats = stats;
         }
 
-        static InternalCacheMetrics.Stats create(Cache<?, ?> cache, long duration, TimeUnit timeUnit) {
+        static CacheMetrics.Stats create(Cache<?, ?> cache, long duration, TimeUnit timeUnit) {
             Supplier<CacheStats> statsSupplier = Suppliers.memoizeWithExpiration(cache::stats, duration, timeUnit);
             return new GuavaStats(cache, statsSupplier);
         }

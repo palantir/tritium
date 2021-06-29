@@ -34,7 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 final class InternalCacheMetricsTest {
 
     @Mock
-    InternalCacheMetrics.Stats stats;
+    CacheMetrics.Stats stats;
 
     @Test
     void createMetrics() {
@@ -84,8 +84,8 @@ final class InternalCacheMetricsTest {
                         .build());
     }
 
-    private static InternalCacheMetrics.Stats emptyStats() {
-        return new InternalCacheMetrics.Stats() {
+    private static CacheMetrics.Stats emptyStats() {
+        return new CacheMetrics.Stats() {
             @Override
             public Gauge<Long> estimatedSize() {
                 return () -> 0L;

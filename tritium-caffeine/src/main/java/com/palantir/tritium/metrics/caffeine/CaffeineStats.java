@@ -23,12 +23,12 @@ import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Streams;
-import com.palantir.tritium.metrics.InternalCacheMetrics;
+import com.palantir.tritium.metrics.CacheMetrics;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-final class CaffeineStats implements InternalCacheMetrics.Stats {
+final class CaffeineStats implements CacheMetrics.Stats {
 
     private final Cache<?, ?> cache;
     private final Supplier<CacheStats> stats;
@@ -39,7 +39,7 @@ final class CaffeineStats implements InternalCacheMetrics.Stats {
         this.stats = stats;
     }
 
-    static InternalCacheMetrics.Stats create(Cache<?, ?> cache, long duration, TimeUnit timeUnit) {
+    static CacheMetrics.Stats create(Cache<?, ?> cache, long duration, TimeUnit timeUnit) {
         Supplier<CacheStats> statsSupplier = Suppliers.memoizeWithExpiration(cache::stats, duration, timeUnit);
         return new CaffeineStats(cache, statsSupplier);
     }
