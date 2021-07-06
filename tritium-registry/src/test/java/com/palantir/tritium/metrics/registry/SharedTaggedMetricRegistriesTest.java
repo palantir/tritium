@@ -27,6 +27,6 @@ final class SharedTaggedMetricRegistriesTest {
         TaggedMetricRegistry defaultRegistry = SharedTaggedMetricRegistries.getSingleton();
         assertThat(DefaultTaggedMetricRegistry.getDefault()).isSameAs(defaultRegistry);
         assertThat(SharedTaggedMetricRegistries.getSingleton()).isSameAs(defaultRegistry);
-        assertThat(defaultRegistry).isInstanceOf(SlidingWindowTaggedMetricRegistry.class);
+        assertThat(defaultRegistry).isInstanceOf(DefaultTaggedMetricRegistry.class);
     }
 }

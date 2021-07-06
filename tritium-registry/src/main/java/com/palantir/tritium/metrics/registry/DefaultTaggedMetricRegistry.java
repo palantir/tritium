@@ -20,6 +20,7 @@ import com.google.auto.service.AutoService;
 
 @AutoService(TaggedMetricRegistry.class)
 public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegistry {
+    private static final TaggedMetricRegistry DEFAULT = new DefaultTaggedMetricRegistry();
 
     public DefaultTaggedMetricRegistry() {
         super(() -> LockFreeExponentiallyDecayingReservoir.builder().build());
@@ -33,6 +34,6 @@ public final class DefaultTaggedMetricRegistry extends AbstractTaggedMetricRegis
     @SuppressWarnings("unused") // public API
     @Deprecated
     public static TaggedMetricRegistry getDefault() {
-        return SharedTaggedMetricRegistries.getSingleton();
+        return DEFAULT;
     }
 }
