@@ -96,8 +96,8 @@ final class InstrumentedSslEngine extends SSLEngine {
     }
 
     @Override
-    public SSLEngineResult unwrap(ByteBuffer byteBuffer, ByteBuffer byteBuffer1) throws SSLException {
-        return check(engine.unwrap(byteBuffer, byteBuffer1));
+    public SSLEngineResult unwrap(ByteBuffer src, ByteBuffer dst) throws SSLException {
+        return check(engine.unwrap(src, dst));
     }
 
     @Override
