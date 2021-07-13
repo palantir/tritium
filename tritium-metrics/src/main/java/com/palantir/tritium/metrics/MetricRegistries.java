@@ -230,12 +230,12 @@ public final class MetricRegistries {
      * Callers should ensure that they have {@link CacheBuilder#recordStats() enabled stats recording}
      * {@code CacheBuilder.newBuilder().recordStats()} otherwise there are no cache metrics to register.
      *
-     * @deprecated use {@link #registerCache(TaggedMetricRegistry, Cache, String)}
-     *
      * @param registry metric registry
      * @param cache cache to instrument
      * @param name cache name
      * @throws IllegalArgumentException if name is blank
+     *
+     * @deprecated use {@link #registerCache(TaggedMetricRegistry, Cache, String)}
      */
     @Deprecated
     @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
