@@ -47,11 +47,11 @@ public final class CaffeineCacheStats {
      * Callers should ensure that they have {@link Caffeine#recordStats() enabled stats recording}
      * {@code Caffeine.newBuilder().recordStats()} otherwise there are no cache metrics to register.
      *
-     * @deprecated use {@link #registerCache(TaggedMetricRegistry, Cache, String)}
-     *
      * @param registry metric registry
      * @param cache cache to instrument
      * @param name cache name
+     *
+     * @deprecated use {@link #registerCache(TaggedMetricRegistry, Cache, String)}
      */
     @Deprecated
     public static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
