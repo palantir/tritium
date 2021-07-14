@@ -19,6 +19,8 @@ package com.palantir.tritium.processor;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.palantir.goethe.Goethe;
+import com.palantir.goethe.GoetheException;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.tritium.annotations.Instrument;
 import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
@@ -37,7 +39,6 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -136,8 +137,8 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
             try {
                 JavaFile generatedFile = generate(typeElement, allInterfaces, minimalInterfaces);
                 try {
-                    generatedFile.writeTo(filer);
-                } catch (IOException e) {
+                    Goethe.formatAndEmit(generatedFile, filer);
+                } catch (GoetheException e) {
                     messager.printMessage(
                             Kind.ERROR, "Failed to write instrumented class: " + Throwables.getStackTraceAsString(e));
                 }

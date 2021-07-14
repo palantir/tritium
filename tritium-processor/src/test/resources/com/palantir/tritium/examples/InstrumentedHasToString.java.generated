@@ -27,8 +27,8 @@ public final class InstrumentedHasToString implements HasToString {
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedHasToString(HasToString delegate,
-            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedHasToString(
+            HasToString delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
         this.delegate = delegate;
         this.handler = handler;
         this.filter = filter;
@@ -37,7 +37,7 @@ public final class InstrumentedHasToString implements HasToString {
     @Override
     public void foo() {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[]{});
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {});
             try {
                 this.delegate.foo();
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -56,7 +56,8 @@ public final class InstrumentedHasToString implements HasToString {
     }
 
     public static InstrumentationBuilder<HasToString, HasToString> builder(HasToString delegate) {
-        return new InstrumentationBuilder<HasToString, HasToString>(HasToString.class, delegate, InstrumentedHasToString::new);
+        return new InstrumentationBuilder<HasToString, HasToString>(
+                HasToString.class, delegate, InstrumentedHasToString::new);
     }
 
     public static HasToString instrument(HasToString delegate, TaggedMetricRegistry registry) {

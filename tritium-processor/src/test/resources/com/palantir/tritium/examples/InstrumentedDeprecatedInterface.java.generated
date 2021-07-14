@@ -28,8 +28,10 @@ public final class InstrumentedDeprecatedInterface implements DeprecatedInterfac
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedDeprecatedInterface(DeprecatedInterface delegate,
-            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedDeprecatedInterface(
+            DeprecatedInterface delegate,
+            InvocationEventHandler<InvocationContext> handler,
+            InstrumentationFilter filter) {
         this.delegate = delegate;
         this.handler = handler;
         this.filter = filter;
@@ -38,7 +40,7 @@ public final class InstrumentedDeprecatedInterface implements DeprecatedInterfac
     @Override
     public void foo() {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[]{});
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {});
             try {
                 this.delegate.foo();
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -58,11 +60,11 @@ public final class InstrumentedDeprecatedInterface implements DeprecatedInterfac
 
     public static InstrumentationBuilder<DeprecatedInterface, DeprecatedInterface> builder(
             DeprecatedInterface delegate) {
-        return new InstrumentationBuilder<DeprecatedInterface, DeprecatedInterface>(DeprecatedInterface.class, delegate, InstrumentedDeprecatedInterface::new);
+        return new InstrumentationBuilder<DeprecatedInterface, DeprecatedInterface>(
+                DeprecatedInterface.class, delegate, InstrumentedDeprecatedInterface::new);
     }
 
-    public static DeprecatedInterface instrument(DeprecatedInterface delegate,
-            TaggedMetricRegistry registry) {
+    public static DeprecatedInterface instrument(DeprecatedInterface delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }

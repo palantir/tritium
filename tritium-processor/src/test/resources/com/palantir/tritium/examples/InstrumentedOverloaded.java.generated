@@ -39,8 +39,8 @@ public final class InstrumentedOverloaded implements Overloaded {
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedOverloaded(Overloaded delegate,
-            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedOverloaded(
+            Overloaded delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
         this.delegate = delegate;
         this.handler = handler;
         this.filter = filter;
@@ -49,7 +49,8 @@ public final class InstrumentedOverloaded implements Overloaded {
     @Override
     public void consume(int value) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME, new Object[]{value});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, CONSUME, new Object[] {value});
             try {
                 this.delegate.consume(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -65,7 +66,8 @@ public final class InstrumentedOverloaded implements Overloaded {
     @Override
     public void consume(String value) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME1, new Object[]{value});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, CONSUME1, new Object[] {value});
             try {
                 this.delegate.consume(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -81,7 +83,8 @@ public final class InstrumentedOverloaded implements Overloaded {
     @Override
     public void consume(Object value) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME2, new Object[]{value});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, CONSUME2, new Object[] {value});
             try {
                 this.delegate.consume(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -97,7 +100,8 @@ public final class InstrumentedOverloaded implements Overloaded {
     @Override
     public void consume(double[] value) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME3, new Object[]{value});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, CONSUME3, new Object[] {value});
             try {
                 this.delegate.consume(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -113,7 +117,8 @@ public final class InstrumentedOverloaded implements Overloaded {
     @Override
     public void consume() {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME4, new Object[]{});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, CONSUME4, new Object[] {});
             try {
                 this.delegate.consume();
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -132,7 +137,8 @@ public final class InstrumentedOverloaded implements Overloaded {
     }
 
     public static InstrumentationBuilder<Overloaded, Overloaded> builder(Overloaded delegate) {
-        return new InstrumentationBuilder<Overloaded, Overloaded>(Overloaded.class, delegate, InstrumentedOverloaded::new);
+        return new InstrumentationBuilder<Overloaded, Overloaded>(
+                Overloaded.class, delegate, InstrumentedOverloaded::new);
     }
 
     public static Overloaded instrument(Overloaded delegate, TaggedMetricRegistry registry) {

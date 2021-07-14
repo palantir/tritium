@@ -28,8 +28,8 @@ public final class InstrumentedDelegateToCallable<T> implements DelegateToCallab
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedDelegateToCallable(Callable<T> delegate,
-            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedDelegateToCallable(
+            Callable<T> delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
         this.delegate = delegate;
         this.handler = handler;
         this.filter = filter;
@@ -38,7 +38,7 @@ public final class InstrumentedDelegateToCallable<T> implements DelegateToCallab
     @Override
     public T call() throws Exception {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CALL, new Object[]{});
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CALL, new Object[] {});
             try {
                 T returnValue = this.delegate.call();
                 Handlers.onSuccess(this.handler, invocationContext, returnValue);
@@ -57,13 +57,12 @@ public final class InstrumentedDelegateToCallable<T> implements DelegateToCallab
         return "InstrumentedDelegateToCallable{" + delegate + '}';
     }
 
-    public static <T> InstrumentationBuilder<Callable<T>, DelegateToCallable<T>> builder(
-            Callable<T> delegate) {
-        return new InstrumentationBuilder<Callable<T>, DelegateToCallable<T>>(Callable.class, delegate, InstrumentedDelegateToCallable::new);
+    public static <T> InstrumentationBuilder<Callable<T>, DelegateToCallable<T>> builder(Callable<T> delegate) {
+        return new InstrumentationBuilder<Callable<T>, DelegateToCallable<T>>(
+                Callable.class, delegate, InstrumentedDelegateToCallable::new);
     }
 
-    public static <T> DelegateToCallable<T> instrument(Callable<T> delegate,
-            TaggedMetricRegistry registry) {
+    public static <T> DelegateToCallable<T> instrument(Callable<T> delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }

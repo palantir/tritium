@@ -37,8 +37,10 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedParameterized(Parameterized<T> delegate,
-            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedParameterized(
+            Parameterized<T> delegate,
+            InvocationEventHandler<InvocationContext> handler,
+            InstrumentationFilter filter) {
         this.delegate = delegate;
         this.handler = handler;
         this.filter = filter;
@@ -47,7 +49,8 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
     @Override
     public void consumeParameter(T value) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME_PARAMETER, new Object[]{value});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, CONSUME_PARAMETER, new Object[] {value});
             try {
                 this.delegate.consumeParameter(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -63,7 +66,8 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
     @Override
     public T produceParameter() {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, PRODUCE_PARAMETER, new Object[]{});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, PRODUCE_PARAMETER, new Object[] {});
             try {
                 T returnValue = this.delegate.produceParameter();
                 Handlers.onSuccess(this.handler, invocationContext, returnValue);
@@ -80,7 +84,8 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
     @Override
     public <U extends T> T methodParameter(T first, U second) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, METHOD_PARAMETER, new Object[]{first, second});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, METHOD_PARAMETER, new Object[] {first, second});
             try {
                 T returnValue = this.delegate.methodParameter(first, second);
                 Handlers.onSuccess(this.handler, invocationContext, returnValue);
@@ -97,7 +102,8 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
     @Override
     public void consumeListOfParameter(List<T> value) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CONSUME_LIST_OF_PARAMETER, new Object[]{value});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, CONSUME_LIST_OF_PARAMETER, new Object[] {value});
             try {
                 this.delegate.consumeListOfParameter(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -115,13 +121,12 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
         return "InstrumentedParameterized{" + delegate + '}';
     }
 
-    public static <T> InstrumentationBuilder<Parameterized<T>, Parameterized<T>> builder(
-            Parameterized<T> delegate) {
-        return new InstrumentationBuilder<Parameterized<T>, Parameterized<T>>(Parameterized.class, delegate, InstrumentedParameterized::new);
+    public static <T> InstrumentationBuilder<Parameterized<T>, Parameterized<T>> builder(Parameterized<T> delegate) {
+        return new InstrumentationBuilder<Parameterized<T>, Parameterized<T>>(
+                Parameterized.class, delegate, InstrumentedParameterized::new);
     }
 
-    public static <T> Parameterized<T> instrument(Parameterized<T> delegate,
-            TaggedMetricRegistry registry) {
+    public static <T> Parameterized<T> instrument(Parameterized<T> delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }
