@@ -1,0 +1,6 @@
+type: improvement
+improvement:
+  description: Tritium annotation processor generated sources are formatted using
+    palantir-java-format
+  links:
+  - https://github.com/palantir/tritium/pull/1143
