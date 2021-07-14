@@ -27,8 +27,8 @@ public final class InstrumentedBindsParameter implements BindsParameter {
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedBindsParameter(BindsParameter delegate,
-            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedBindsParameter(
+            BindsParameter delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
         this.delegate = delegate;
         this.handler = handler;
         this.filter = filter;
@@ -37,7 +37,7 @@ public final class InstrumentedBindsParameter implements BindsParameter {
     @Override
     public CharSequence get() {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, GET, new Object[]{});
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, GET, new Object[] {});
             try {
                 CharSequence returnValue = this.delegate.get();
                 Handlers.onSuccess(this.handler, invocationContext, returnValue);
@@ -56,13 +56,12 @@ public final class InstrumentedBindsParameter implements BindsParameter {
         return "InstrumentedBindsParameter{" + delegate + '}';
     }
 
-    public static InstrumentationBuilder<BindsParameter, BindsParameter> builder(
-            BindsParameter delegate) {
-        return new InstrumentationBuilder<BindsParameter, BindsParameter>(BindsParameter.class, delegate, InstrumentedBindsParameter::new);
+    public static InstrumentationBuilder<BindsParameter, BindsParameter> builder(BindsParameter delegate) {
+        return new InstrumentationBuilder<BindsParameter, BindsParameter>(
+                BindsParameter.class, delegate, InstrumentedBindsParameter::new);
     }
 
-    public static BindsParameter instrument(BindsParameter delegate,
-            TaggedMetricRegistry registry) {
+    public static BindsParameter instrument(BindsParameter delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }

@@ -27,8 +27,8 @@ public final class InstrumentedDelegateToRunnable implements DelegateToRunnable 
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedDelegateToRunnable(Runnable delegate,
-            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedDelegateToRunnable(
+            Runnable delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
         this.delegate = delegate;
         this.handler = handler;
         this.filter = filter;
@@ -37,7 +37,7 @@ public final class InstrumentedDelegateToRunnable implements DelegateToRunnable 
     @Override
     public void run() {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, RUN, new Object[]{});
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, RUN, new Object[] {});
             try {
                 this.delegate.run();
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -56,7 +56,8 @@ public final class InstrumentedDelegateToRunnable implements DelegateToRunnable 
     }
 
     public static InstrumentationBuilder<Runnable, DelegateToRunnable> builder(Runnable delegate) {
-        return new InstrumentationBuilder<Runnable, DelegateToRunnable>(Runnable.class, delegate, InstrumentedDelegateToRunnable::new);
+        return new InstrumentationBuilder<Runnable, DelegateToRunnable>(
+                Runnable.class, delegate, InstrumentedDelegateToRunnable::new);
     }
 
     public static DelegateToRunnable instrument(Runnable delegate, TaggedMetricRegistry registry) {
