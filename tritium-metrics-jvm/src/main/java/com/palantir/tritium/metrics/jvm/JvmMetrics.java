@@ -82,6 +82,7 @@ public final class JvmMetrics {
     private static void registerClassLoading(InternalJvmMetrics metrics) {
         ClassLoadingMXBean classLoadingBean = ManagementFactory.getClassLoadingMXBean();
         metrics.classloaderLoaded(classLoadingBean::getTotalLoadedClassCount);
+        metrics.classloaderLoadedCurrent(classLoadingBean::getLoadedClassCount);
         metrics.classloaderUnloaded(classLoadingBean::getUnloadedClassCount);
     }
 
