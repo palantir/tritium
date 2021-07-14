@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Report the number of loaded classes as an isolated metric
+  links:
+  - https://github.com/palantir/tritium/pull/1142

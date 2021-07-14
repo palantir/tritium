@@ -43,10 +43,13 @@ namespaces:
         - javaVmVendor
       classloader.loaded:
         type: gauge
-        docs: Total number of classes that have been loaded.
+        docs: Total number of classes that have been loaded since the jvm started.
       classloader.unloaded:
         type: gauge
-        docs: Total number of classes that have been unloaded.
+        docs: Total number of classes that have been unloaded since the jvm started.
+      classloader.loaded.current:
+        type: gauge
+        docs: Number of classes that are currently loaded.
       threads.count:
         type: gauge
         docs: Total number of live threads.
