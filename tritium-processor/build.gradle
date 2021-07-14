@@ -10,6 +10,7 @@ dependencies {
     compile 'com.google.guava:guava'
     compile 'com.google.code.findbugs:jsr305'
     compile 'com.palantir.safe-logging:preconditions'
+    compile 'com.palantir.goethe:goethe'
 
     testImplementation 'com.google.testing.compile:compile-testing'
     testImplementation 'com.google.guava:guava'

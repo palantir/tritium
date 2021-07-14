@@ -30,8 +30,8 @@ public final class InstrumentedSimple implements Simple {
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedSimple(Simple delegate, InvocationEventHandler<InvocationContext> handler,
-            InstrumentationFilter filter) {
+    private InstrumentedSimple(
+            Simple delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
         this.delegate = delegate;
         this.handler = handler;
         this.filter = filter;
@@ -40,7 +40,8 @@ public final class InstrumentedSimple implements Simple {
     @Override
     public short bar(double baz) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, BAR, new Object[]{baz});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, BAR, new Object[] {baz});
             try {
                 short returnValue = this.delegate.bar(baz);
                 Handlers.onSuccess(this.handler, invocationContext, returnValue);
@@ -57,7 +58,7 @@ public final class InstrumentedSimple implements Simple {
     @Override
     public void foo() {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[]{});
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {});
             try {
                 this.delegate.foo();
                 Handlers.onSuccess(this.handler, invocationContext);
