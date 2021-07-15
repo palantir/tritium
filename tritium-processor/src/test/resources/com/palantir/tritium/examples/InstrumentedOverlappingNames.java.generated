@@ -15,7 +15,9 @@ public final class InstrumentedOverlappingNames implements OverlappingNames {
 
     static {
         try {
-            FOO = OverlappingNames.class.getMethod("foo", int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class);
+            FOO = OverlappingNames.class.getMethod(
+                    "foo", int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class,
+                    int.class);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -27,20 +29,33 @@ public final class InstrumentedOverlappingNames implements OverlappingNames {
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedOverlappingNames(OverlappingNames delegate,
-            InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedOverlappingNames(
+            OverlappingNames delegate,
+            InvocationEventHandler<InvocationContext> handler,
+            InstrumentationFilter filter) {
         this.delegate = delegate;
         this.handler = handler;
         this.filter = filter;
     }
 
     @Override
-    public int foo(int returnValue, int result, int context, int invocationContext, int throwable,
-            int thrown, int filter, int handler, int delegate) {
+    public int foo(
+            int returnValue,
+            int result,
+            int context,
+            int invocationContext,
+            int throwable,
+            int thrown,
+            int filter,
+            int handler,
+            int delegate) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext_ = Handlers.pre(this.handler, this.filter, this, FOO, new Object[]{returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate});
+            InvocationContext invocationContext_ = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {
+                returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate
+            });
             try {
-                int returnValue_ = this.delegate.foo(returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate);
+                int returnValue_ = this.delegate.foo(
+                        returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate);
                 Handlers.onSuccess(this.handler, invocationContext_, returnValue);
                 return returnValue_;
             } catch (Throwable throwable_) {
@@ -48,7 +63,8 @@ public final class InstrumentedOverlappingNames implements OverlappingNames {
                 throw throwable_;
             }
         } else {
-            return this.delegate.foo(returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate);
+            return this.delegate.foo(
+                    returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate);
         }
     }
 
@@ -57,13 +73,12 @@ public final class InstrumentedOverlappingNames implements OverlappingNames {
         return "InstrumentedOverlappingNames{" + delegate + '}';
     }
 
-    public static InstrumentationBuilder<OverlappingNames, OverlappingNames> builder(
-            OverlappingNames delegate) {
-        return new InstrumentationBuilder<OverlappingNames, OverlappingNames>(OverlappingNames.class, delegate, InstrumentedOverlappingNames::new);
+    public static InstrumentationBuilder<OverlappingNames, OverlappingNames> builder(OverlappingNames delegate) {
+        return new InstrumentationBuilder<OverlappingNames, OverlappingNames>(
+                OverlappingNames.class, delegate, InstrumentedOverlappingNames::new);
     }
 
-    public static OverlappingNames instrument(OverlappingNames delegate,
-            TaggedMetricRegistry registry) {
+    public static OverlappingNames instrument(OverlappingNames delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }
