@@ -7,7 +7,7 @@ buildscript {
 
     dependencies {
         classpath 'com.google.errorprone:error_prone_core:2.7.1'
-        classpath 'com.palantir.baseline:gradle-baseline-java:3.98.0'
+        classpath 'com.palantir.baseline:gradle-baseline-java:4.0.0'
         classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.0.0'
         classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.2.1'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.3'
@@ -33,7 +33,6 @@ allprojects {
     apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
     apply plugin: 'com.palantir.baseline-exact-dependencies'
-    apply plugin: 'com.palantir.baseline-fix-gradle-java'
     apply plugin: 'com.palantir.java-format'
 
     java {
