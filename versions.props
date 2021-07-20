@@ -14,7 +14,7 @@ com.palantir.tracing:* = 4.23.0
 com.squareup:javapoet = 1.13.0
 com.squareup.okhttp3:okhttp = 4.0.0
 com.uber.nullaway:nullaway = 0.9.1
-io.undertow:undertow-core = 2.2.8.Final
+io.undertow:undertow-core = 2.2.9.Final
 net.bytebuddy:byte-buddy = 1.11.8
 net.jqwik:* = 1.5.3
 org.assertj:assertj-core = 3.20.2
@@ -26,7 +26,7 @@ org.junit.jupiter:* = 5.7.2
 org.mockito:* = 3.11.2
 org.mpierce.metrics.reservoir:* = 1.1.3
 org.openjdk.jmh:* = 1.32
-org.slf4j:* = 1.7.31
+org.slf4j:* = 1.7.32
 
 # dependency-upgrader:OFF
 # Explicitly maintaining back-compat with dropwizard metrics
