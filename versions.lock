@@ -6,7 +6,7 @@ com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.11.3 (1 constraints: cf0c
 com.github.ben-manes.caffeine:caffeine:3.0.3 (1 constraints: 0805fd35)
 com.google.auto.service:auto-service-annotations:1.0 (1 constraints: a5041a2c)
 com.google.code.findbugs:jsr305:3.0.2 (4 constraints: 5c3586ed)
-com.google.errorprone:error_prone_annotations:2.7.1 (6 constraints: 2447e689)
+com.google.errorprone:error_prone_annotations:2.8.0 (6 constraints: 2447e889)
 com.google.guava:failureaccess:1.0.1 (1 constraints: 140ae1b4)
 com.google.guava:guava:30.1.1-jre (5 constraints: cb427e81)
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
