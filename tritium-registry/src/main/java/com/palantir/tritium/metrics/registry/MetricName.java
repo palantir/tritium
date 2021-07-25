@@ -32,7 +32,7 @@ public interface MetricName {
     String safeName();
 
     /**
-     * Metadata/coordinates for where a particular measure came from. Used for filtering & grouping.
+     * Metadata/coordinates for where a particular measure came from. Used for filtering and grouping.
      *
      * <p>All tags and keys must be {@link Safe} to log.
      */

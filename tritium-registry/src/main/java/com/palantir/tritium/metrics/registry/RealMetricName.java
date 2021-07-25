@@ -20,6 +20,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableSortedMap;
 import java.util.SortedMap;
+import javax.annotation.Nullable;
 
 final class RealMetricName implements MetricName {
     private static final SortedMap<String, String> EMPTY = prehash(ImmutableSortedMap.of());
@@ -63,7 +64,7 @@ final class RealMetricName implements MetricName {
 
     @Override
     @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
-    public boolean equals(Object other) {
+    public boolean equals(@Nullable Object other) {
         if (!(other instanceof MetricName)) {
             return false;
         }
