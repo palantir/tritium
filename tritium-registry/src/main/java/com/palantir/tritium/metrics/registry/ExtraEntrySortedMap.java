@@ -197,7 +197,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(@Nullable Object other) {
         if (other instanceof ExtraEntrySortedMap) {
             ExtraEntrySortedMap<?, ?> otherMap = (ExtraEntrySortedMap<?, ?>) other;
             if (extraKey.equals(otherMap.extraKey) && extraValue.equals(otherMap.extraValue)) {
