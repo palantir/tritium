@@ -19,6 +19,7 @@ package com.palantir.tritium.metrics;
 import java.security.KeyManagementException;
 import java.security.SecureRandom;
 import java.util.Objects;
+import javax.annotation.Nullable;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLContextSpi;
@@ -46,7 +47,7 @@ final class InstrumentedSslContext extends SSLContext {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(@Nullable Object other) {
         if (this == other) {
             return true;
         }
