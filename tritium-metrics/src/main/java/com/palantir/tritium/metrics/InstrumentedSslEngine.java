@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.metrics;
 
+import com.palantir.logsafe.logger.SafeLogger;
+import com.palantir.logsafe.logger.SafeLoggerFactory;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Objects;
@@ -27,12 +29,10 @@ import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class InstrumentedSslEngine extends SSLEngine {
 
-    private static final Logger log = LoggerFactory.getLogger(InstrumentedSslEngine.class);
+    private static final SafeLogger log = SafeLoggerFactory.get(InstrumentedSslEngine.class);
 
     // n.b. This value is set using 'beginHandshake' for renegotiation. We instrument both because ciphers may change.
     private final AtomicBoolean handshaking = new AtomicBoolean(true);

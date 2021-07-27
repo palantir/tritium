@@ -26,6 +26,8 @@ import com.google.common.collect.Lists;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
+import com.palantir.logsafe.logger.SafeLogger;
+import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InvocationContext;
@@ -48,12 +50,10 @@ import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.matcher.ElementMatchers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class ByteBuddyInstrumentation {
 
-    private static final Logger log = LoggerFactory.getLogger(ByteBuddyInstrumentation.class);
+    private static final SafeLogger log = SafeLoggerFactory.get(ByteBuddyInstrumentation.class);
     // Offset to avoid duplicate fqcns
     private static final AtomicInteger offset = new AtomicInteger();
     // Reuse generated classes when possible

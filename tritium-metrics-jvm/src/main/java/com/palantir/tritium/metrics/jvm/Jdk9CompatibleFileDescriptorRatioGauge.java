@@ -18,11 +18,11 @@ package com.palantir.tritium.metrics.jvm;
 
 import com.codahale.metrics.RatioGauge;
 import com.palantir.logsafe.SafeArg;
+import com.palantir.logsafe.logger.SafeLogger;
+import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.sun.management.UnixOperatingSystemMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A gauge to report the ratio of open file descriptors.
@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 final class Jdk9CompatibleFileDescriptorRatioGauge {
 
-    private static final Logger log = LoggerFactory.getLogger(Jdk9CompatibleFileDescriptorRatioGauge.class);
+    private static final SafeLogger log = SafeLoggerFactory.get(Jdk9CompatibleFileDescriptorRatioGauge.class);
 
     static void register(InternalJvmMetrics metrics) {
         OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();

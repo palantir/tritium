@@ -18,10 +18,10 @@ package com.palantir.tritium.metrics.jvm;
 
 import com.palantir.jvm.diagnostics.JvmDiagnostics;
 import com.palantir.jvm.diagnostics.SafepointTimeAccessor;
+import com.palantir.logsafe.logger.SafeLogger;
+import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Report duration spent waiting at safepoints. This could indicate badness in terms of STW GCing, or biased locking
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * essentially provides the information of '+PrintGCApplicationStoppedTime' programmatically.
  */
 final class SafepointMetrics {
-    private static final Logger log = LoggerFactory.getLogger(SafepointMetrics.class);
+    private static final SafeLogger log = SafeLoggerFactory.get(SafepointMetrics.class);
 
     static void register(TaggedMetricRegistry registry) {
         Optional<SafepointTimeAccessor> safepointTimeAccessor = JvmDiagnostics.totalSafepointTime();

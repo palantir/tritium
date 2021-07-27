@@ -27,5 +27,6 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'org.slf4j:slf4j-simple'
+    implementation 'com.palantir.safe-logging:logger'
 }
 
