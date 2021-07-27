@@ -7,6 +7,7 @@ dependencies {
 
     implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:logger'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'org.slf4j:slf4j-api'

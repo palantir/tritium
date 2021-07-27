@@ -22,6 +22,8 @@ import com.google.common.base.Strings;
 import com.google.common.base.Suppliers;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
+import com.palantir.logsafe.logger.SafeLogger;
+import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -35,14 +37,12 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("TryFailRefactoring") // work-around https://github.com/google/error-prone/issues/1447
 public final class RemotingCompatibleTracingInvocationEventHandler
         extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final Logger log = LoggerFactory.getLogger(RemotingCompatibleTracingInvocationEventHandler.class);
+    private static final SafeLogger log = SafeLoggerFactory.get(RemotingCompatibleTracingInvocationEventHandler.class);
 
     private static final AtomicBoolean shouldLogFallbackError = new AtomicBoolean();
 
