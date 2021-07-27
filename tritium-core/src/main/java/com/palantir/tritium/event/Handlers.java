@@ -18,16 +18,16 @@ package com.palantir.tritium.event;
 
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.UnsafeArg;
+import com.palantir.logsafe.logger.SafeLogger;
+import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class Handlers {
 
-    private static final Logger log = LoggerFactory.getLogger(Handlers.class);
+    private static final SafeLogger log = SafeLoggerFactory.get(Handlers.class);
 
     /**
      * The caller is expected to check {@link InvocationEventHandler#isEnabled()} prior to calling this method,

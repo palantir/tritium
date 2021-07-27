@@ -12,9 +12,9 @@ dependencies {
     implementation 'io.dropwizard.metrics:metrics-core'
     implementation 'io.dropwizard.metrics:metrics-jvm'
     implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:logger'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
-    implementation 'org.slf4j:slf4j-api'
 
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
