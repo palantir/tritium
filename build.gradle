@@ -80,7 +80,8 @@ allprojects {
                         'PreferCollectionTransform',
                         'PreferListsPartition',
                         'PreferSafeLoggingPreconditions',
-                        'PreferSafeLoggableExceptions'
+                        'PreferSafeLoggableExceptions',
+                        'PreferSafeLogger'
 
                 // increase strictness for built-in error-prone checks
                 error((com.google.errorprone.scanner.BuiltInCheckerSuppliers.ENABLED_WARNINGS +
