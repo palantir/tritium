@@ -22,9 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.palantir.tracing.AlwaysSampler;
-import com.palantir.tracing.AsyncSlf4jSpanObserver;
 import com.palantir.tracing.Tracer;
 import com.palantir.tracing.api.Span;
 import com.palantir.tracing.api.SpanObserver;
@@ -34,7 +32,6 @@ import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,7 +49,6 @@ public class TracingInvocationEventHandlerTest {
     private TestInterface instance;
     private Method method;
     private Object[] args;
-    private ExecutorService executor;
 
     @Mock
     private SpanObserver mockSpanObserver;
@@ -62,13 +58,11 @@ public class TracingInvocationEventHandlerTest {
     public void before() throws Exception {
         Tracer.getAndClearTrace();
         MDC.clear();
-        executor = MoreExecutors.newDirectExecutorService();
         handler = TracingInvocationEventHandler.create("testComponent");
         assertThat(handler).isInstanceOf(TracingInvocationEventHandler.class);
         Tracer.setSampler(AlwaysSampler.INSTANCE);
         Tracer.subscribe("sysout", System.out::println);
         Tracer.subscribe("mock", mockSpanObserver);
-        Tracer.subscribe("slf4j", AsyncSlf4jSpanObserver.of("test", executor));
 
         instance = new TestImplementation();
         method = instance.getClass().getDeclaredMethod("bulk", Set.class);
@@ -79,8 +73,6 @@ public class TracingInvocationEventHandlerTest {
     public void after() {
         Tracer.unsubscribe("sysout");
         Tracer.unsubscribe("mock");
-        Tracer.unsubscribe("slf4j");
-        executor.shutdownNow();
         Tracer.getAndClearTrace();
         MDC.clear();
     }
