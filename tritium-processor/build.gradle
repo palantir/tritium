@@ -1,16 +1,16 @@
 apply plugin: 'com.palantir.external-publish-jar'
 
 dependencies {
-    compile project(':tritium-annotations')
-    compile project(':tritium-api')
-    compile project(':tritium-registry')
-    compile project(':tritium-core')
+    api project(':tritium-annotations')
+    api project(':tritium-api')
+    api project(':tritium-registry')
+    api project(':tritium-core')
 
-    compile 'com.squareup:javapoet'
-    compile 'com.google.guava:guava'
-    compile 'com.google.code.findbugs:jsr305'
-    compile 'com.palantir.safe-logging:preconditions'
-    compile 'com.palantir.goethe:goethe'
+    api 'com.squareup:javapoet'
+    api 'com.google.guava:guava'
+    api 'com.google.code.findbugs:jsr305'
+    api 'com.palantir.safe-logging:preconditions'
+    api 'com.palantir.goethe:goethe'
 
     testImplementation 'com.google.testing.compile:compile-testing'
     testImplementation 'com.google.guava:guava'
