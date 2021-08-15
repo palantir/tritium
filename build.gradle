@@ -112,6 +112,7 @@ allprojects {
     }
 
     tasks.withType(Javadoc) {
+        options.addStringOption('encoding', 'UTF-8')
         // suppress Javadoc doclint warnings in Java 8+
         if (!System.getProperty("java.version").startsWith("1.7")) {
             options.addStringOption('Xdoclint:none', '-quiet')
