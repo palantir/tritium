@@ -43,7 +43,7 @@ public interface MetricName {
         return new Builder();
     }
 
-    class Builder extends ImmutableMetricName.Builder {
+    final class Builder extends ImmutableMetricName.Builder {
         // We cannot use the immutables implementation because it causes too much hashcode pain.
         @Override
         public MetricName build() {
