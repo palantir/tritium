@@ -1,0 +1,7 @@
+acceptedBreaks:
+  "0.27.0":
+    com.palantir.tritium:tritium-registry:
+    - code: "java.class.nowFinal"
+      old: "class com.palantir.tritium.metrics.registry.MetricName.Builder"
+      new: "class com.palantir.tritium.metrics.registry.MetricName.Builder"
+      justification: "MetricName.Builder is final"
