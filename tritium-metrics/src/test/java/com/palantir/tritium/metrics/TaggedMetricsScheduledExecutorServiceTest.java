@@ -17,15 +17,18 @@
 package com.palantir.tritium.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -133,5 +136,21 @@ final class TaggedMetricsScheduledExecutorServiceTest {
 
         assertThat(metrics.scheduledOverrun(NAME).getCount()).isOne();
         assertThat(metrics.scheduledPercentOfPeriod(NAME).getCount()).isEqualTo(2);
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testRejection(TaggedMetricRegistry registry) {
+        ScheduledExecutorService rejecting = Executors.newSingleThreadScheduledExecutor();
+        rejecting.shutdown();
+        ScheduledExecutorService executorService = MetricRegistries.instrument(registry, rejecting, NAME);
+        ExecutorMetrics metrics = ExecutorMetrics.of(registry);
+
+        assertThat(metrics.submitted(NAME).getCount()).isZero();
+        AtomicInteger calls = new AtomicInteger();
+        assertThatThrownBy(() -> executorService.schedule(calls::incrementAndGet, 1, TimeUnit.MILLISECONDS))
+                .isInstanceOf(RejectedExecutionException.class);
+        assertThat(metrics.submitted(NAME).getCount()).isZero();
+        assertThat(calls).hasValue(0);
     }
 }

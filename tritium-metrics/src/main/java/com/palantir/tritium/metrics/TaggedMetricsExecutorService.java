@@ -19,20 +19,18 @@ package com.palantir.tritium.metrics;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 
-final class TaggedMetricsExecutorService implements ExecutorService {
+final class TaggedMetricsExecutorService extends AbstractExecutorService {
 
     private final ExecutorService delegate;
+    private final String name;
 
     private final Meter submitted;
     private final Counter running;
@@ -45,7 +43,7 @@ final class TaggedMetricsExecutorService implements ExecutorService {
     TaggedMetricsExecutorService(
             ExecutorService delegate, ExecutorMetrics metrics, String name, boolean reportQueuedDuration) {
         this.delegate = delegate;
-
+        this.name = name;
         this.submitted = metrics.submitted(name);
         this.running = metrics.running(name);
         this.completed = metrics.completed(name);
@@ -55,65 +53,38 @@ final class TaggedMetricsExecutorService implements ExecutorService {
 
     @Override
     public void execute(Runnable task) {
-        submitted.mark();
         delegate.execute(new TaggedMetricsRunnable(task));
+        // RejectedExecutionException should prevent 'submitted' from being incremented.
+        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
+        // however the results will work as expected for the more common cases in which
+        // either a queue is full, or the delegate has shut down.
+        submitted.mark();
     }
 
     @Override
     public Future<?> submit(Runnable task) {
+        Future<?> future = delegate.submit(new TaggedMetricsRunnable(task));
         submitted.mark();
-        return delegate.submit(new TaggedMetricsRunnable(task));
+        return future;
     }
 
     @Override
     public <T> Future<T> submit(Runnable task, T result) {
+        Future<T> future = delegate.submit(new TaggedMetricsRunnable(task), result);
         submitted.mark();
-        return delegate.submit(new TaggedMetricsRunnable(task), result);
+        return future;
     }
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
+        Future<T> future = delegate.submit(new TaggedMetricsCallable<>(task));
         submitted.mark();
-        return delegate.submit(new TaggedMetricsCallable<>(task));
+        return future;
     }
 
-    @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
-        submitted.mark(tasks.size());
-        Collection<TaggedMetricsCallable<T>> instrumented = instrument(tasks);
-        return delegate.invokeAll(instrumented);
-    }
-
-    @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        submitted.mark(tasks.size());
-        Collection<TaggedMetricsCallable<T>> instrumented = instrument(tasks);
-        return delegate.invokeAll(instrumented, timeout, unit);
-    }
-
-    @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws ExecutionException, InterruptedException {
-        submitted.mark(tasks.size());
-        Collection<TaggedMetricsCallable<T>> instrumented = instrument(tasks);
-        return delegate.invokeAny(instrumented);
-    }
-
-    @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-            throws ExecutionException, InterruptedException, TimeoutException {
-        submitted.mark(tasks.size());
-        Collection<TaggedMetricsCallable<T>> instrumented = instrument(tasks);
-        return delegate.invokeAny(instrumented, timeout, unit);
-    }
-
-    private <T> Collection<TaggedMetricsCallable<T>> instrument(Collection<? extends Callable<T>> tasks) {
-        List<TaggedMetricsCallable<T>> instrumented = new ArrayList<>(tasks.size());
-        for (Callable<T> task : tasks) {
-            instrumented.add(new TaggedMetricsCallable<>(task));
-        }
-        return instrumented;
-    }
+    // n.b. We don't override invokeAny/invokeAll because the default AbstractExecutorService implementation will
+    // produce more accurate metrics. When we call the delegate with N tasks, we don't know how many have been
+    // submitted. It's difficult to tell if a task has been rejected as opposed to failing.
 
     @Override
     public void shutdown() {
@@ -144,6 +115,11 @@ final class TaggedMetricsExecutorService implements ExecutorService {
     private Timer.Context startQueueTimerIfEnabled() {
         Timer queuedDurationTimer = queuedDuration;
         return queuedDurationTimer == null ? null : queuedDurationTimer.time();
+    }
+
+    @Override
+    public String toString() {
+        return "TaggedMetricsExecutorService{name=" + name + ", delegate='" + delegate + "'}";
     }
 
     private final class TaggedMetricsRunnable implements Runnable {
