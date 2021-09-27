@@ -17,7 +17,6 @@
 package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import java.util.List;
@@ -35,13 +34,10 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
 
     private final Meter submitted;
     private final Counter running;
-    private final Meter completed;
     private final Timer duration;
 
-    private final Meter scheduledOnce;
     private final Meter scheduledRepetitively;
     private final Counter scheduledOverrun;
-    private final Histogram scheduledPercentOfPeriod;
 
     TaggedMetricsScheduledExecutorService(ScheduledExecutorService delegate, ExecutorMetrics metrics, String name) {
         this.delegate = delegate;
@@ -49,25 +45,32 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
 
         this.submitted = metrics.submitted(name);
         this.running = metrics.running(name);
-        this.completed = metrics.completed(name);
         this.duration = metrics.duration(name);
 
-        this.scheduledOnce = metrics.scheduledOnce(name);
         this.scheduledRepetitively = metrics.scheduledRepetitively(name);
         this.scheduledOverrun = metrics.scheduledOverrun(name);
-        this.scheduledPercentOfPeriod = metrics.scheduledPercentOfPeriod(name);
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable task, long delay, TimeUnit unit) {
-        scheduledOnce.mark();
-        return delegate.schedule(new TaggedMetricsRunnable(task), delay, unit);
+        ScheduledFuture<?> future = delegate.schedule(new TaggedMetricsRunnable(task), delay, unit);
+        // RejectedExecutionException should prevent 'submitted' from being incremented.
+        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
+        // however the results will work as expected for the more common cases in which
+        // either a queue is full, or the delegate has shut down.
+        submitted.mark();
+        return future;
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        scheduledOnce.mark();
-        return delegate.schedule(new TaggedMetricsCallable<>(callable), delay, unit);
+        ScheduledFuture<V> future = delegate.schedule(new TaggedMetricsCallable<>(callable), delay, unit);
+        // RejectedExecutionException should prevent 'submitted' from being incremented.
+        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
+        // however the results will work as expected for the more common cases in which
+        // either a queue is full, or the delegate has shut down.
+        submitted.mark();
+        return future;
     }
 
     @Override
@@ -163,7 +166,6 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
                 task.run();
             } finally {
                 running.dec();
-                completed.mark();
             }
         }
     }
@@ -187,11 +189,9 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
             } finally {
                 long elapsed = context.stop();
                 running.dec();
-                completed.mark();
                 if (elapsed > periodInNanos) {
                     scheduledOverrun.inc();
                 }
-                scheduledPercentOfPeriod.update((100L * elapsed) / periodInNanos);
             }
         }
     }
@@ -211,7 +211,6 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
                 return task.call();
             } finally {
                 running.dec();
-                completed.mark();
             }
         }
     }

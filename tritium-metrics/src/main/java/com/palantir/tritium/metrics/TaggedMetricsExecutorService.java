@@ -34,7 +34,6 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
 
     private final Meter submitted;
     private final Counter running;
-    private final Meter completed;
     private final Timer duration;
 
     @Nullable
@@ -46,7 +45,6 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
         this.name = name;
         this.submitted = metrics.submitted(name);
         this.running = metrics.running(name);
-        this.completed = metrics.completed(name);
         this.duration = metrics.duration(name);
         this.queuedDuration = reportQueuedDuration ? metrics.queuedDuration(name) : null;
     }
@@ -141,7 +139,6 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
                 task.run();
             } finally {
                 running.dec();
-                completed.mark();
             }
         }
 
@@ -172,7 +169,6 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
                 return task.call();
             } finally {
                 running.dec();
-                completed.mark();
             }
         }
 

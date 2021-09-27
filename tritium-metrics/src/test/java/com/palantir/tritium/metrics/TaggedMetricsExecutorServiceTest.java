@@ -43,7 +43,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isZero();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
         assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
 
@@ -60,7 +59,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isOne();
         assertThat(metrics.running(NAME).getCount()).isOne();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
         assertThat(metrics.queuedDuration(NAME).getCount()).isOne();
 
@@ -69,7 +67,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isOne();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isOne();
         assertThat(metrics.duration(NAME).getCount()).isOne();
         assertThat(metrics.queuedDuration(NAME).getCount()).isOne();
     }
@@ -87,7 +84,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isZero();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
         assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
 
@@ -104,7 +100,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isOne();
         assertThat(metrics.running(NAME).getCount()).isOne();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
         assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
 
@@ -113,7 +108,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isOne();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isOne();
         assertThat(metrics.duration(NAME).getCount()).isOne();
         assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
     }
