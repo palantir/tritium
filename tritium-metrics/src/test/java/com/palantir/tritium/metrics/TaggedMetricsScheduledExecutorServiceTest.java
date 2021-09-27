@@ -78,25 +78,21 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         ExecutorMetrics metrics = ExecutorMetrics.of(registry);
 
         assertThat(metrics.submitted(NAME).getCount()).isZero();
-        assertThat(metrics.scheduledRepetitively(NAME).getCount()).isZero();
 
         assertThat((Future<?>) executorService.schedule(() -> {}, 1L, TimeUnit.DAYS))
                 .isNotNull();
 
         assertThat(metrics.submitted(NAME).getCount()).isOne();
-        assertThat(metrics.scheduledRepetitively(NAME).getCount()).isZero();
 
         assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> {}, 1L, 1L, TimeUnit.DAYS))
                 .isNotNull();
 
-        assertThat(metrics.submitted(NAME).getCount()).isOne();
-        assertThat(metrics.scheduledRepetitively(NAME).getCount()).isOne();
+        assertThat(metrics.submitted(NAME).getCount()).isEqualTo(2);
 
         assertThat((Future<?>) executorService.scheduleWithFixedDelay(() -> {}, 1L, 1L, TimeUnit.DAYS))
                 .isNotNull();
 
-        assertThat(metrics.submitted(NAME).getCount()).isOne();
-        assertThat(metrics.scheduledRepetitively(NAME).getCount()).isEqualTo(2);
+        assertThat(metrics.submitted(NAME).getCount()).isEqualTo(3);
     }
 
     @ParameterizedTest

@@ -72,10 +72,6 @@ namespaces:
         type: timer
         tags: [executor]
         docs: A timer of the time it took a task to start running after it was submitted.
-      scheduled.repetitively:
-        type: meter
-        tags: [executor]
-        docs: A meter of the number of repetitive scheduled tasks. Applies only to scheduled executors.
       scheduled.overrun:
         type: counter
         tags: [executor]

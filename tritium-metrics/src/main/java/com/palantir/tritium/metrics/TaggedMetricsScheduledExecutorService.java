@@ -36,7 +36,6 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
     private final Counter running;
     private final Timer duration;
 
-    private final Meter scheduledRepetitively;
     private final Counter scheduledOverrun;
 
     TaggedMetricsScheduledExecutorService(ScheduledExecutorService delegate, ExecutorMetrics metrics, String name) {
@@ -47,7 +46,6 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         this.running = metrics.running(name);
         this.duration = metrics.duration(name);
 
-        this.scheduledRepetitively = metrics.scheduledRepetitively(name);
         this.scheduledOverrun = metrics.scheduledOverrun(name);
     }
 
@@ -75,15 +73,26 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long initialDelay, long period, TimeUnit unit) {
-        scheduledRepetitively.mark();
-        return delegate.scheduleAtFixedRate(
+        ScheduledFuture<?> future = delegate.scheduleAtFixedRate(
                 new TaggedMetricsScheduledRunnable(task, period, unit), initialDelay, period, unit);
+        // RejectedExecutionException should prevent 'submitted' from being incremented.
+        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
+        // however the results will work as expected for the more common cases in which
+        // either a queue is full, or the delegate has shut down.
+        submitted.mark();
+        return future;
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long initialDelay, long delay, TimeUnit unit) {
-        scheduledRepetitively.mark();
-        return delegate.scheduleWithFixedDelay(new TaggedMetricsRunnable(task), initialDelay, delay, unit);
+        ScheduledFuture<?> future =
+                delegate.scheduleWithFixedDelay(new TaggedMetricsRunnable(task), initialDelay, delay, unit);
+        // RejectedExecutionException should prevent 'submitted' from being incremented.
+        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
+        // however the results will work as expected for the more common cases in which
+        // either a queue is full, or the delegate has shut down.
+        submitted.mark();
+        return future;
     }
 
     @Override
