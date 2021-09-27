@@ -63,7 +63,7 @@ namespaces:
       running:
         type: counter
         tags: [executor]
-        docs: A gauge of the number of running tasks.
+        docs: The number of running tasks.
       duration:
         type: timer
         tags: [executor]
