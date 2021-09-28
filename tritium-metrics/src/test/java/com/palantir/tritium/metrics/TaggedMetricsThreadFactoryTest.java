@@ -46,28 +46,23 @@ class TaggedMetricsThreadFactoryTest {
         ExecutorMetrics metrics = ExecutorMetrics.of(registry);
         Counter running = metrics.threadsRunning(name);
         Meter created = metrics.threadsCreated(name);
-        Meter terminated = metrics.threadsTerminated(name);
         assertThat(running.getCount()).isZero();
         assertThat(created.getCount()).isZero();
-        assertThat(terminated.getCount()).isZero();
         CountDownLatch latch = new CountDownLatch(1);
         Thread thread = instrumented.newThread(() -> Uninterruptibles.awaitUninterruptibly(latch));
         assertThat(created.getCount()).isOne();
         // thread has not started yet
         assertThat(running.getCount()).isZero();
-        assertThat(terminated.getCount()).isZero();
         thread.start();
         // Allow the thread to start in the background
         Awaitility.waitAtMost(Duration.ofSeconds(3)).untilAsserted(() -> {
             assertThat(created.getCount()).isOne();
             assertThat(running.getCount()).isOne();
-            assertThat(terminated.getCount()).isZero();
         });
         latch.countDown();
         Awaitility.waitAtMost(Duration.ofSeconds(3)).untilAsserted(() -> {
             assertThat(created.getCount()).isOne();
             assertThat(running.getCount()).isZero();
-            assertThat(terminated.getCount()).isOne();
         });
         Awaitility.waitAtMost(Duration.ofSeconds(1))
                 .untilAsserted(() -> assertThat(thread.isAlive()).isFalse());

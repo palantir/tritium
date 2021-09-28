@@ -81,10 +81,6 @@ namespaces:
         type: meter
         tags: [executor]
         docs: Rate that new threads are created for this executor.
-      threads.terminated:
-        type: meter
-        tags: [executor]
-        docs: Rate that executor threads are terminated.
       threads.running:
         type: counter
         tags: [executor]

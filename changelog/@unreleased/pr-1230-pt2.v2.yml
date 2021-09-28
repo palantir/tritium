@@ -1,0 +1,9 @@
+type: break
+break:
+  description: >
+    Remove unnecessary `executor.threads.terminated` metric which can be estimated by subtracting
+    running threads from created threads. The rate that threads terminate is generally less
+    interesting than the rate that they're created because termination most often occurs after
+    some timeout.
+  links:
+  - https://github.com/palantir/tritium/pull/1230
