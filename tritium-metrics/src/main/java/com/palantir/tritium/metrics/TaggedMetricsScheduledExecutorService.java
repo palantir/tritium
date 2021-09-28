@@ -17,7 +17,6 @@
 package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
@@ -32,7 +31,6 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
     private final ScheduledExecutorService delegate;
     private final String name;
 
-    private final Meter submitted;
     private final Counter running;
     private final Timer duration;
 
@@ -42,7 +40,6 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         this.delegate = delegate;
         this.name = name;
 
-        this.submitted = metrics.submitted(name);
         this.running = metrics.running(name);
         this.duration = metrics.duration(name);
 
@@ -51,79 +48,43 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
 
     @Override
     public ScheduledFuture<?> schedule(Runnable task, long delay, TimeUnit unit) {
-        ScheduledFuture<?> future = delegate.schedule(new TaggedMetricsRunnable(task), delay, unit);
-        // RejectedExecutionException should prevent 'submitted' from being incremented.
-        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
-        // however the results will work as expected for the more common cases in which
-        // either a queue is full, or the delegate has shut down.
-        submitted.mark();
-        return future;
+        return delegate.schedule(new TaggedMetricsRunnable(task), delay, unit);
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        ScheduledFuture<V> future = delegate.schedule(new TaggedMetricsCallable<>(callable), delay, unit);
-        // RejectedExecutionException should prevent 'submitted' from being incremented.
-        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
-        // however the results will work as expected for the more common cases in which
-        // either a queue is full, or the delegate has shut down.
-        submitted.mark();
-        return future;
+        return delegate.schedule(new TaggedMetricsCallable<>(callable), delay, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long initialDelay, long period, TimeUnit unit) {
-        ScheduledFuture<?> future = delegate.scheduleAtFixedRate(
+        return delegate.scheduleAtFixedRate(
                 new TaggedMetricsScheduledRunnable(task, period, unit), initialDelay, period, unit);
-        // RejectedExecutionException should prevent 'submitted' from being incremented.
-        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
-        // however the results will work as expected for the more common cases in which
-        // either a queue is full, or the delegate has shut down.
-        submitted.mark();
-        return future;
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long initialDelay, long delay, TimeUnit unit) {
-        ScheduledFuture<?> future =
-                delegate.scheduleWithFixedDelay(new TaggedMetricsRunnable(task), initialDelay, delay, unit);
-        // RejectedExecutionException should prevent 'submitted' from being incremented.
-        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
-        // however the results will work as expected for the more common cases in which
-        // either a queue is full, or the delegate has shut down.
-        submitted.mark();
-        return future;
+        return delegate.scheduleWithFixedDelay(new TaggedMetricsRunnable(task), initialDelay, delay, unit);
     }
 
     @Override
     public void execute(Runnable task) {
         delegate.execute(new TaggedMetricsRunnable(task));
-        // RejectedExecutionException should prevent 'submitted' from being incremented.
-        // This means a wrapped same-thread executor will produce delayed 'submitted' values,
-        // however the results will work as expected for the more common cases in which
-        // either a queue is full, or the delegate has shut down.
-        submitted.mark();
     }
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-        Future<T> future = delegate.submit(new TaggedMetricsCallable<>(task));
-        submitted.mark();
-        return future;
+        return delegate.submit(new TaggedMetricsCallable<>(task));
     }
 
     @Override
     public <T> Future<T> submit(Runnable task, T result) {
-        Future<T> future = delegate.submit(new TaggedMetricsRunnable(task), result);
-        submitted.mark();
-        return future;
+        return delegate.submit(new TaggedMetricsRunnable(task), result);
     }
 
     @Override
     public Future<?> submit(Runnable task) {
-        Future<?> future = delegate.submit(new TaggedMetricsRunnable(task));
-        submitted.mark();
-        return future;
+        return delegate.submit(new TaggedMetricsRunnable(task));
     }
 
     // n.b. We don't override invokeAny/invokeAll because the default AbstractExecutorService implementation will
