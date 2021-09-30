@@ -19,13 +19,18 @@ package com.palantir.tritium.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -37,13 +42,49 @@ final class TaggedMetricsExecutorServiceTest {
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     void testMetrics(TaggedMetricRegistry registry) throws Exception {
-        ExecutorService executorService =
-                MetricRegistries.instrument(registry, Executors.newSingleThreadExecutor(), NAME);
+        ExecutorService rawExecutor = Executors.newSingleThreadExecutor();
+        ExecutorService executorService = MetricRegistries.instrument(
+                registry,
+                new AbstractExecutorService() {
+                    @Override
+                    public void shutdown() {
+                        rawExecutor.shutdown();
+                    }
+
+                    @Override
+                    public List<Runnable> shutdownNow() {
+                        return rawExecutor.shutdownNow();
+                    }
+
+                    @Override
+                    public boolean isShutdown() {
+                        return rawExecutor.isShutdown();
+                    }
+
+                    @Override
+                    public boolean isTerminated() {
+                        return rawExecutor.isTerminated();
+                    }
+
+                    @Override
+                    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+                        return rawExecutor.awaitTermination(timeout, unit);
+                    }
+
+                    @Override
+                    public void execute(Runnable command) {
+                        rawExecutor.execute(() -> {
+                            // Simulate a queue
+                            Uninterruptibles.sleepUninterruptibly(Duration.ofMillis(300));
+                            command.run();
+                        });
+                    }
+                },
+                NAME);
         ExecutorMetrics metrics = ExecutorMetrics.of(registry);
 
         assertThat(metrics.submitted(NAME).getCount()).isZero();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
         assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
 
@@ -60,7 +101,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isOne();
         assertThat(metrics.running(NAME).getCount()).isOne();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
         assertThat(metrics.queuedDuration(NAME).getCount()).isOne();
 
@@ -69,7 +109,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isOne();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isOne();
         assertThat(metrics.duration(NAME).getCount()).isOne();
         assertThat(metrics.queuedDuration(NAME).getCount()).isOne();
     }
@@ -87,7 +126,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isZero();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
         assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
 
@@ -104,7 +142,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isOne();
         assertThat(metrics.running(NAME).getCount()).isOne();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
         assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
 
@@ -113,7 +150,6 @@ final class TaggedMetricsExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isOne();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isOne();
         assertThat(metrics.duration(NAME).getCount()).isOne();
         assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
     }

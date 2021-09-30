@@ -29,12 +29,19 @@ import javax.annotation.Nullable;
 
 final class TaggedMetricsExecutorService extends AbstractExecutorService {
 
+    // 250ms minimum threshold is required to update the queued duration timer.
+    // The queued duration is an estimate based on time between a task being submitted
+    // and beginning to execute, there is always a delta between these operations, but
+    // it doesn't necessarily mean there's a queue at all. We assume anything longer than
+    // this threshold, which should be longer than pauses in most cases, is the result
+    // of queueing.
+    private static final long QUEUED_DURATION_MINIMUM_THRESHOLD_NANOS = 250_000_000L;
+
     private final ExecutorService delegate;
     private final String name;
 
     private final Meter submitted;
     private final Counter running;
-    private final Meter completed;
     private final Timer duration;
 
     @Nullable
@@ -46,7 +53,6 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
         this.name = name;
         this.submitted = metrics.submitted(name);
         this.running = metrics.running(name);
-        this.completed = metrics.completed(name);
         this.duration = metrics.duration(name);
         this.queuedDuration = reportQueuedDuration ? metrics.queuedDuration(name) : null;
     }
@@ -111,12 +117,6 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
         return delegate.awaitTermination(timeout, unit);
     }
 
-    @Nullable
-    private Timer.Context startQueueTimerIfEnabled() {
-        Timer queuedDurationTimer = queuedDuration;
-        return queuedDurationTimer == null ? null : queuedDurationTimer.time();
-    }
-
     @Override
     public String toString() {
         return "TaggedMetricsExecutorService{name=" + name + ", delegate='" + delegate + "'}";
@@ -126,8 +126,7 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
 
         private final Runnable task;
 
-        @Nullable
-        private final Timer.Context queuedContext = startQueueTimerIfEnabled();
+        private final long created = queuedDuration == null ? 0L : System.nanoTime();
 
         TaggedMetricsRunnable(Runnable task) {
             this.task = task;
@@ -141,14 +140,16 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
                 task.run();
             } finally {
                 running.dec();
-                completed.mark();
             }
         }
 
         void stopQueueTimer() {
-            Timer.Context queuedContextSnapshot = queuedContext;
-            if (queuedContextSnapshot != null) {
-                queuedContextSnapshot.stop();
+            Timer queuedDurationTimer = queuedDuration;
+            if (queuedDurationTimer != null) {
+                long queuedDurationNanos = System.nanoTime() - created;
+                if (queuedDurationNanos > QUEUED_DURATION_MINIMUM_THRESHOLD_NANOS) {
+                    queuedDurationTimer.update(queuedDurationNanos, TimeUnit.NANOSECONDS);
+                }
             }
         }
     }
@@ -157,8 +158,7 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
 
         private final Callable<T> task;
 
-        @Nullable
-        private final Timer.Context queuedContext = startQueueTimerIfEnabled();
+        private final long created = queuedDuration == null ? 0L : System.nanoTime();
 
         TaggedMetricsCallable(Callable<T> task) {
             this.task = task;
@@ -172,14 +172,16 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
                 return task.call();
             } finally {
                 running.dec();
-                completed.mark();
             }
         }
 
         void stopQueueTimer() {
-            Timer.Context queuedContextSnapshot = queuedContext;
-            if (queuedContextSnapshot != null) {
-                queuedContextSnapshot.stop();
+            Timer queuedDurationTimer = queuedDuration;
+            if (queuedDurationTimer != null) {
+                long queuedDurationNanos = System.nanoTime() - created;
+                if (queuedDurationNanos > QUEUED_DURATION_MINIMUM_THRESHOLD_NANOS) {
+                    queuedDurationTimer.update(queuedDurationNanos, TimeUnit.NANOSECONDS);
+                }
             }
         }
     }

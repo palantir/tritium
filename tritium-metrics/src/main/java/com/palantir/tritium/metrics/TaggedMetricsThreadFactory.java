@@ -28,7 +28,6 @@ final class TaggedMetricsThreadFactory implements ThreadFactory {
 
     private final ThreadFactory delegate;
     private final Meter created;
-    private final Meter terminated;
     private final Counter running;
 
     TaggedMetricsThreadFactory(ThreadFactory delegate, ExecutorMetrics metrics, String name) {
@@ -36,14 +35,13 @@ final class TaggedMetricsThreadFactory implements ThreadFactory {
         Preconditions.checkNotNull(name, "Name is required");
         Preconditions.checkNotNull(metrics, "ExecutorMetrics is required");
         this.created = metrics.threadsCreated(name);
-        this.terminated = metrics.threadsTerminated(name);
         this.running = metrics.threadsRunning(name);
     }
 
     @Override
     public Thread newThread(Runnable runnable) {
-        Thread result = delegate.newThread(new InstrumentedTask(
-                Preconditions.checkNotNull(runnable, "Runnable is required"), running, terminated));
+        Thread result = delegate.newThread(
+                new InstrumentedTask(Preconditions.checkNotNull(runnable, "Runnable is required"), running));
         created.mark();
         return result;
     }
@@ -56,13 +54,11 @@ final class TaggedMetricsThreadFactory implements ThreadFactory {
     private static final class InstrumentedTask implements Runnable {
 
         private final Runnable delegate;
-        private final Meter terminated;
         private final Counter running;
 
-        InstrumentedTask(Runnable delegate, Counter running, Meter terminated) {
+        InstrumentedTask(Runnable delegate, Counter running) {
             this.delegate = delegate;
             this.running = running;
-            this.terminated = terminated;
         }
 
         @Override
@@ -72,7 +68,6 @@ final class TaggedMetricsThreadFactory implements ThreadFactory {
                 delegate.run();
             } finally {
                 running.dec();
-                terminated.mark();
             }
         }
 

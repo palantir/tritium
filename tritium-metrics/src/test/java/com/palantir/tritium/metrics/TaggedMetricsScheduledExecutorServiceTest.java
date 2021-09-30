@@ -17,18 +17,15 @@
 package com.palantir.tritium.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -45,7 +42,6 @@ final class TaggedMetricsScheduledExecutorServiceTest {
 
         assertThat(metrics.submitted(NAME).getCount()).isZero();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
 
         CountDownLatch startLatch = new CountDownLatch(1);
@@ -59,47 +55,20 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         executorService.shutdown();
         startLatch.await();
 
-        assertThat(metrics.submitted(NAME).getCount()).isOne();
+        assertThat(metrics.submitted(NAME).getCount())
+                .as("Scheduled executors don't produce 'submitted'")
+                .isZero();
         assertThat(metrics.running(NAME).getCount()).isOne();
-        assertThat(metrics.completed(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isZero();
 
         finishLatch.countDown();
         future.get();
 
-        assertThat(metrics.submitted(NAME).getCount()).isOne();
+        assertThat(metrics.submitted(NAME).getCount())
+                .as("Scheduled executors don't produce 'submitted'")
+                .isZero();
         assertThat(metrics.running(NAME).getCount()).isZero();
-        assertThat(metrics.completed(NAME).getCount()).isOne();
         assertThat(metrics.duration(NAME).getCount()).isOne();
-    }
-
-    @ParameterizedTest
-    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
-    void testScheduledMetrics(TaggedMetricRegistry registry) {
-        ScheduledExecutorService executorService =
-                MetricRegistries.instrument(registry, Executors.newSingleThreadScheduledExecutor(), NAME);
-        ExecutorMetrics metrics = ExecutorMetrics.of(registry);
-
-        assertThat(metrics.scheduledOnce(NAME).getCount()).isZero();
-        assertThat(metrics.scheduledRepetitively(NAME).getCount()).isZero();
-
-        assertThat((Future<?>) executorService.schedule(() -> {}, 1L, TimeUnit.DAYS))
-                .isNotNull();
-
-        assertThat(metrics.scheduledOnce(NAME).getCount()).isOne();
-        assertThat(metrics.scheduledRepetitively(NAME).getCount()).isZero();
-
-        assertThat((Future<?>) executorService.scheduleAtFixedRate(() -> {}, 1L, 1L, TimeUnit.DAYS))
-                .isNotNull();
-
-        assertThat(metrics.scheduledOnce(NAME).getCount()).isOne();
-        assertThat(metrics.scheduledRepetitively(NAME).getCount()).isOne();
-
-        assertThat((Future<?>) executorService.scheduleWithFixedDelay(() -> {}, 1L, 1L, TimeUnit.DAYS))
-                .isNotNull();
-
-        assertThat(metrics.scheduledOnce(NAME).getCount()).isOne();
-        assertThat(metrics.scheduledRepetitively(NAME).getCount()).isEqualTo(2);
     }
 
     @ParameterizedTest
@@ -110,7 +79,6 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         ExecutorMetrics metrics = ExecutorMetrics.of(registry);
 
         assertThat(metrics.scheduledOverrun(NAME).getCount()).isZero();
-        assertThat(metrics.scheduledPercentOfPeriod(NAME).getCount()).isZero();
 
         Semaphore startSemaphore = new Semaphore(0);
         Semaphore finishSemaphore = new Semaphore(1);
@@ -128,29 +96,11 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         startSemaphore.acquire(2);
 
         assertThat(metrics.scheduledOverrun(NAME).getCount()).isZero();
-        assertThat(metrics.scheduledPercentOfPeriod(NAME).getCount()).isOne();
 
         TimeUnit.MILLISECONDS.sleep(2);
         finishSemaphore.release();
         startSemaphore.acquire();
 
         assertThat(metrics.scheduledOverrun(NAME).getCount()).isOne();
-        assertThat(metrics.scheduledPercentOfPeriod(NAME).getCount()).isEqualTo(2);
-    }
-
-    @ParameterizedTest
-    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
-    void testRejection(TaggedMetricRegistry registry) {
-        ScheduledExecutorService rejecting = Executors.newSingleThreadScheduledExecutor();
-        rejecting.shutdown();
-        ScheduledExecutorService executorService = MetricRegistries.instrument(registry, rejecting, NAME);
-        ExecutorMetrics metrics = ExecutorMetrics.of(registry);
-
-        assertThat(metrics.submitted(NAME).getCount()).isZero();
-        AtomicInteger calls = new AtomicInteger();
-        assertThatThrownBy(() -> executorService.schedule(calls::incrementAndGet, 1, TimeUnit.MILLISECONDS))
-                .isInstanceOf(RejectedExecutionException.class);
-        assertThat(metrics.submitted(NAME).getCount()).isZero();
-        assertThat(calls).hasValue(0);
     }
 }

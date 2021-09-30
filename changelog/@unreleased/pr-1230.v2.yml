@@ -1,0 +1,11 @@
+type: break
+break:
+  description: "Remove unnecessary executor metrics. \n\n* `executor.completed` is
+    identical to the `count` value of the `executor.duration` timer. Dashboards will
+    need to replace the former with the latter.\n* `executor.scheduled.percent-of-period`
+    is unused, our pipeline has filtered out the metric for a while now to reduce
+    bloat.\n*  Scheduled executors no longer produce `executor.scheduled.once`,
+    `executor.scheduled.repetitively`, or `executor.submitted` because they are not
+    meaningful when some tasks recur."
+  links:
+  - https://github.com/palantir/tritium/pull/1230

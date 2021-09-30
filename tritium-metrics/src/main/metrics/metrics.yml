@@ -63,11 +63,7 @@ namespaces:
       running:
         type: counter
         tags: [executor]
-        docs: A gauge of the number of running tasks.
-      completed:
-        type: meter
-        tags: [executor]
-        docs: A meter of the number of completed tasks.
+        docs: The number of running tasks.
       duration:
         type: timer
         tags: [executor]
@@ -76,31 +72,15 @@ namespaces:
         type: timer
         tags: [executor]
         docs: A timer of the time it took a task to start running after it was submitted.
-      scheduled.once:
-        type: meter
-        tags: [executor]
-        docs: A meter of the number of one-shot scheduled tasks. Applies only to scheduled executors.
-      scheduled.repetitively:
-        type: meter
-        tags: [executor]
-        docs: A meter of the number of repetitive scheduled tasks. Applies only to scheduled executors.
       scheduled.overrun:
         type: counter
         tags: [executor]
         docs: A gauge of the number of fixed-rate scheduled tasks that overran the scheduled rate. Applies only to scheduled executors.
-      scheduled.percent-of-period:
-        type: histogram
-        tags: [executor]
-        docs: A histogram of the time it took to run a fixed-rate scheduled task as a percentage of the scheduled rate. Applies only to scheduled executors.
       # ThreadFactory metrics
       threads.created:
         type: meter
         tags: [executor]
         docs: Rate that new threads are created for this executor.
-      threads.terminated:
-        type: meter
-        tags: [executor]
-        docs: Rate that executor threads are terminated.
       threads.running:
         type: counter
         tags: [executor]
