@@ -22,7 +22,6 @@ import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.Streams;
 import com.palantir.tritium.metrics.InternalCacheMetrics;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +56,7 @@ final class CaffeineStats implements InternalCacheMetrics.Stats {
     public Optional<Gauge<Long>> weightedSize() {
         return Optional.of(() -> cache.policy()
                 .eviction()
-                .flatMap(e -> Streams.stream(e.weightedSize()).boxed().findFirst())
+                .flatMap(e -> e.weightedSize().stream().boxed().findFirst())
                 .orElse(0L));
     }
 
