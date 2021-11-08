@@ -23,6 +23,12 @@ apply plugin: 'java'
 apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'com.palantir.git-version'
+apply plugin: 'com.palantir.baseline-java-versions'
+
+javaVersions {
+    libraryTarget = 11
+    runtime = 17
+}
 
 allprojects {
     group 'com.palantir.tritium'
@@ -33,11 +39,6 @@ allprojects {
     apply plugin: 'com.palantir.baseline-class-uniqueness'
     apply plugin: 'com.palantir.baseline-exact-dependencies'
     apply plugin: 'com.palantir.java-format'
-
-    java {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
 
     configurations {
         testImplementationClasspath {
@@ -122,6 +123,10 @@ allprojects {
     checkImplicitDependencies {
         // avoid spurious flags on dropwizard metrics
         ignore 'io.dropwizard.metrics', 'metrics-core'
+    }
+    checkUnusedDependencies {
+        // avoid spurious flags on junit-jupiter
+        ignore 'org.junit.jupiter', 'junit-jupiter'
     }
     tasks.check.dependsOn(checkImplicitDependencies)
     tasks.check.dependsOn(checkUnusedDependencies)
