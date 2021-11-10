@@ -18,6 +18,7 @@ package com.palantir.tritium.event;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.google.errorprone.annotations.InlineMe;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.logger.SafeLogger;
 import com.palantir.logsafe.logger.SafeLoggerFactory;
@@ -46,6 +47,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      *
      * @deprecated Use {@link #AbstractInvocationEventHandler(java.util.function.BooleanSupplier)}
      */
+    @InlineMe(replacement = "this((java.util.function.BooleanSupplier) isEnabledSupplier)")
     @Deprecated
     @SuppressWarnings("FunctionalInterfaceClash") // back compat
     protected AbstractInvocationEventHandler(com.palantir.tritium.api.functions.BooleanSupplier isEnabledSupplier) {

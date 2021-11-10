@@ -21,6 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.InlineMe;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.InstrumentationFilters;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -69,6 +70,11 @@ public final class Instrumentation {
      *
      * @deprecated Use {@link #wrap(Class, Object, List, InstrumentationFilter)}
      */
+    @InlineMe(
+            replacement =
+                    "Instrumentation.wrap(interfaceClass, delegate, handlers, InstrumentationFilters.INSTRUMENT_ALL)",
+            imports = {"com.palantir.tritium.event.InstrumentationFilters", "com.palantir.tritium.proxy.Instrumentation"
+            })
     @Deprecated
     static <T, U extends T> T wrap(
             Class<T> interfaceClass, U delegate, List<InvocationEventHandler<InvocationContext>> handlers) {
