@@ -132,7 +132,7 @@ public abstract class InstrumentationTest {
     @Test
     void testDeprecatedEmptyHandlers() {
         TestInterface delegate = new TestImplementation();
-        @SuppressWarnings("deprecation") // explicitly testing
+        @SuppressWarnings({"deprecation", "InlineMeInliner"}) // explicitly testing
         TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate, Collections.emptyList());
         assertThat(instrumented).isEqualTo(delegate);
         assertThat(Proxy.isProxyClass(instrumented.getClass())).isFalse();
