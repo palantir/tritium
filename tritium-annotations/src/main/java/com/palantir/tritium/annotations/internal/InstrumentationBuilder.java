@@ -31,6 +31,7 @@ import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongPredicate;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +59,8 @@ public final class InstrumentationBuilder<T, U extends T> {
      * @param prefix - Metrics name prefix to be used
      * @return - InstrumentationBuilder
      */
-    public InstrumentationBuilder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String prefix) {
+    public InstrumentationBuilder<T, U> withTaggedMetrics(
+            TaggedMetricRegistry metricRegistry, @Nullable String prefix) {
         checkNotNull(metricRegistry, "metricRegistry");
         String serviceName = prefix == null || prefix.isEmpty() ? interfaceClass.getName() : prefix;
         return withHandler(new TaggedMetricsServiceInvocationEventHandler(metricRegistry, serviceName));

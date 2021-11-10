@@ -90,7 +90,8 @@ allprojects {
                         ).collect { it.canonicalName() } as String[])
 
                 disable 'AndroidJdkLibsChecker', // ignore Android
-                        'Java7ApiChecker', // tritium requires JDK8+
+                        'Java7ApiChecker', // tritium requires JDK 11+
+                        'Java8ApiChecker', // tritium requires JDK 11+
                         'MemberName', // false positives on ignored lambda args
                         'StaticOrDefaultInterfaceMethod', // Android specific
                         'Var' // high noise, low signal

@@ -73,7 +73,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     @SuppressWarnings("NoFunctionalReturnType") // helper
-    private static BooleanSupplier getEnabledSupplier(final String serviceName) {
+    private static BooleanSupplier getEnabledSupplier(String serviceName) {
         return InstrumentationProperties.getSystemPropertySupplier(serviceName);
     }
 

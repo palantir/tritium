@@ -8,6 +8,7 @@ dependencies {
     implementation project(':tritium-registry')
     implementation project(':tritium-slf4j')
     implementation project(':tritium-tracing')
-    implementation 'org.slf4j:slf4j-api'
+    implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.palantir.safe-logging:preconditions'
+    implementation 'org.slf4j:slf4j-api'
 }

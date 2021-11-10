@@ -133,8 +133,8 @@ final class MetricRegistriesTest {
 
     @Test
     void testSlidingTimeWindowHistogramExpiery() {
-        final long window = 60;
-        final TimeUnit windowUnit = TimeUnit.SECONDS;
+        long window = 60;
+        TimeUnit windowUnit = TimeUnit.SECONDS;
 
         Reservoirs.slidingTimeWindowArrayReservoir(window, windowUnit, clock);
         metrics = MetricRegistries.createWithReservoirType(
