@@ -106,7 +106,7 @@ public final class AnnotationHelper {
 
         private static final Class<?>[] NO_ARGS = new Class<?>[0];
 
-        private MethodSignature(String methodName, Class<?>... parameterTypes) {
+        private MethodSignature(String methodName, @Nullable Class<?>... parameterTypes) {
             this.methodName = checkNotNull(methodName);
             this.parameterTypes =
                     (parameterTypes == null || parameterTypes.length == 0) ? NO_ARGS : parameterTypes.clone();

@@ -5,7 +5,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.google.errorprone:error_prone_core:2.9.0'
+        classpath 'com.google.errorprone:error_prone_core:2.10.0'
         classpath 'com.palantir.baseline:gradle-baseline-java:4.42.0'
         classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.0.0'
         classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.5.0'
@@ -90,7 +90,8 @@ allprojects {
                         ).collect { it.canonicalName() } as String[])
 
                 disable 'AndroidJdkLibsChecker', // ignore Android
-                        'Java7ApiChecker', // tritium requires JDK8+
+                        'Java7ApiChecker', // tritium requires JDK 11+
+                        'Java8ApiChecker', // tritium requires JDK 11+
                         'MemberName', // false positives on ignored lambda args
                         'StaticOrDefaultInterfaceMethod', // Android specific
                         'Var' // high noise, low signal

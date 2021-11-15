@@ -147,7 +147,7 @@ final class InstrumentationPropertiesTest {
                     return "isGloballyEnabled: " + InstrumentationProperties.isGloballyEnabled();
                 });
 
-        final int expectedTaskCount = tasks.size();
+        int expectedTaskCount = tasks.size();
         assertThat(barrier.getParties()).isEqualTo(expectedTaskCount);
         assertThat(barrier.getNumberWaiting()).isZero();
 

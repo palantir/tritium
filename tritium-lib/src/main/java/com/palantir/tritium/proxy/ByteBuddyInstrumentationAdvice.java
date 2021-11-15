@@ -56,7 +56,7 @@ final class ByteBuddyInstrumentationAdvice {
     @Advice.OnMethodExit(onThrowable = Throwable.class, backupArguments = false)
     static void exit(
             @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object result,
-            @Advice.Thrown Throwable thrown,
+            @Advice.Thrown @Nullable Throwable thrown,
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
             @Advice.Enter InvocationContext context) {
         if (thrown != null) {

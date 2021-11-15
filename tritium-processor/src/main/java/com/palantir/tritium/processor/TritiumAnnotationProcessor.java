@@ -253,23 +253,12 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
 
         Map<String, List<MethodElements>> methodsByName = new HashMap<>();
         for (DeclaredType mirror : allInterfaces) {
+            @SuppressWarnings("VoidMissingNullable") // noisy
+            SimpleElementVisitor8<Void, Void> visitor = createVisitor(typeElement, methodsByName, mirror);
             for (Element methodElement : types.asElement(mirror).getEnclosedElements()) {
                 if (!methodElement.getModifiers().contains(Modifier.STATIC)
                         && !methodElement.getModifiers().contains(Modifier.PRIVATE)) {
-                    methodElement.accept(
-                            new SimpleElementVisitor8<Void, Void>() {
-                                @Override
-                                public Void visitExecutable(ExecutableElement method, Void _param) {
-                                    if (!Methods.isObjectMethod(elements, method)) {
-                                        List<MethodElements> methods = methodsByName.computeIfAbsent(
-                                                method.getSimpleName().toString(), _key -> new ArrayList<>(1));
-                                        methods.add(
-                                                new MethodElements(asMemberOf(typeElement, mirror, method), method));
-                                    }
-                                    return null;
-                                }
-                            },
-                            null);
+                    methodElement.accept(visitor, null);
                 }
             }
         }
@@ -336,6 +325,23 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                 .skipJavaLangImports(true)
                 .indent("    ")
                 .build();
+    }
+
+    @SuppressWarnings("VoidMissingNullable") // noisy
+    private SimpleElementVisitor8<Void, Void> createVisitor(
+            TypeElement typeElement, Map<String, List<MethodElements>> methodsByName, DeclaredType mirror) {
+        return new SimpleElementVisitor8<>() {
+            @Nullable
+            @Override
+            public Void visitExecutable(ExecutableElement method, Void _param) {
+                if (!Methods.isObjectMethod(elements, method)) {
+                    List<MethodElements> methods = methodsByName.computeIfAbsent(
+                            method.getSimpleName().toString(), _key -> new ArrayList<>(1));
+                    methods.add(new MethodElements(asMemberOf(typeElement, mirror, method), method));
+                }
+                return null;
+            }
+        };
     }
 
     private boolean isMostSpecific(int index, List<MethodElements> methods) {
@@ -433,7 +439,7 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
         typeBuilder.addMethod(methodBuilder.build());
     }
 
-    private ExecutableType asMemberOf(TypeElement typeElement, final DeclaredType mirror, ExecutableElement method) {
+    private ExecutableType asMemberOf(TypeElement typeElement, DeclaredType mirror, ExecutableElement method) {
         try {
             return (ExecutableType) types.asMemberOf(mirror, method);
         } catch (IllegalArgumentException e) {
