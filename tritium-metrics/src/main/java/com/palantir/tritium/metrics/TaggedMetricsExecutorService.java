@@ -143,6 +143,7 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
             }
         }
 
+        @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         void stopQueueTimer() {
             Timer queuedDurationTimer = queuedDuration;
             if (queuedDurationTimer != null) {
@@ -175,6 +176,7 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
             }
         }
 
+        @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         void stopQueueTimer() {
             Timer queuedDurationTimer = queuedDuration;
             if (queuedDurationTimer != null) {

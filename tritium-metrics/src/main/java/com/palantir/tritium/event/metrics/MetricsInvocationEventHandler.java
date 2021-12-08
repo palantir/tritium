@@ -130,6 +130,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         }
     }
 
+    @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
     private long updateTimer(InvocationContext context) {
         long nanos = System.nanoTime() - context.getStartTimeNanos();
         metricRegistry.timer(getBaseMetricName(context)).update(nanos, TimeUnit.NANOSECONDS);
@@ -144,6 +145,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         metricRegistry.meter(FAILURES).mark();
     }
 
+    @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
     private void handleSuccessAnnotations(InvocationContext context, long nanos) {
         String metricName = getAnnotatedMetricName(context);
         if (metricName != null) {
@@ -155,6 +157,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         }
     }
 
+    @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
     private void handleFailureAnnotations(InvocationContext context, long nanos) {
         String metricName = getAnnotatedMetricName(context);
         if (metricName != null) {
