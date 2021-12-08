@@ -29,6 +29,6 @@ org.openjdk.jmh:* = 1.33
 org.slf4j:* = 1.7.32
 
 # dependency-upgrader:OFF
-# Explicitly maintaining back-compat with dropwizard metrics
-io.dropwizard.metrics:* = 3.2.6
+# Explicitly pinning to minimum dropwizard metrics version defined by Apache Spark
+io.dropwizard.metrics:* = 4.1.1
 # dependency-upgrader:ON

@@ -1,0 +1,5 @@
+type: break
+break:
+  description: Upgrade dropwizard-metrics to 4.x
+  links:
+  - https://github.com/palantir/tritium/pull/1294

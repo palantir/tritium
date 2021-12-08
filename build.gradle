@@ -50,16 +50,6 @@ allprojects {
         mavenCentral()
     }
 
-    dependencies {
-        constraints {
-            rootConfiguration 'io.dropwizard.metrics:metrics-core', {
-                version { strictly '[3, 4[' }
-                because "Spark still uses 3.X, which can't co-exist with 4.X"
-            }
-        }
-
-    }
-
     plugins.withId('com.palantir.baseline-error-prone', {
         dependencies {
             errorprone 'com.uber.nullaway:nullaway'
