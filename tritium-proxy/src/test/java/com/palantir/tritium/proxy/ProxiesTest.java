@@ -19,7 +19,7 @@ package com.palantir.tritium.proxy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.test.MoreSpecificReturn;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
@@ -58,13 +58,14 @@ final class ProxiesTest {
 
     @Test
     void testCheckAreAllInterfaces() {
-        Proxies.checkAreAllInterfaces(ImmutableSet.of(TestInterface.class, Runnable.class, Callable.class, List.class));
+        Proxies.checkAreAllInterfaces(
+                ImmutableList.of(TestInterface.class, Runnable.class, Callable.class, List.class));
     }
 
     @Test
     void testCheckAreAllInterfacesWithClass() {
-        ImmutableSet<Class<?>> interfaces =
-                ImmutableSet.of(TestInterface.class, String.class, Runnable.class, Callable.class, List.class);
+        List<Class<?>> interfaces =
+                ImmutableList.of(TestInterface.class, String.class, Runnable.class, Callable.class, List.class);
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> Proxies.checkAreAllInterfaces(interfaces));
     }
