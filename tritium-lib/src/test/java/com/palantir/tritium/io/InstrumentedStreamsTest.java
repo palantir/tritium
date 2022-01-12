@@ -33,8 +33,8 @@ import org.junit.jupiter.api.Test;
 
 class InstrumentedStreamsTest {
 
-    @SuppressWarnings("SystemOut")
     @Test
+    @SuppressWarnings("SystemOut")
     void copy() throws IOException {
         byte[] bytes = new byte[100 * 1024 * 1024];
         MetricRegistry registry = MetricRegistries.createWithHdrHistogramReservoirs();
