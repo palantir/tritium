@@ -34,7 +34,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableSet;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
 import com.palantir.logsafe.SafeArg;
@@ -47,6 +46,9 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -444,10 +446,11 @@ public final class MetricRegistries {
             if (existingMetric == null) {
                 return registry.register(name, metric);
             } else {
-                Set<Class<?>> existingMetricInterfaces =
-                        ImmutableSet.copyOf(existingMetric.getClass().getInterfaces());
-                Set<Class<?>> newMetricInterfaces =
-                        ImmutableSet.copyOf(metric.getClass().getInterfaces());
+                Set<Class<?>> existingMetricInterfaces = Collections.newSetFromMap(new IdentityHashMap<>());
+                existingMetricInterfaces.addAll(
+                        Arrays.asList(existingMetric.getClass().getInterfaces()));
+                Set<Class<?>> newMetricInterfaces = Collections.newSetFromMap(new IdentityHashMap<>());
+                newMetricInterfaces.addAll(Arrays.asList(metric.getClass().getInterfaces()));
                 if (!existingMetricInterfaces.equals(newMetricInterfaces)) {
                     throw new SafeIllegalArgumentException(
                             "Metric already registered at this name that implements a different set of interfaces",
