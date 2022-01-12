@@ -77,7 +77,7 @@ public final class Proxies {
         }
     }
 
-    static void checkAreAllInterfaces(Set<Class<?>> interfaces) {
+    static void checkAreAllInterfaces(Iterable<Class<?>> interfaces) {
         for (Class<?> possibleInterface : interfaces) {
             checkIsInterface(possibleInterface);
         }
