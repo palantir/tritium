@@ -16,8 +16,9 @@
 
 package com.palantir.tritium.io;
 
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Meter;
+import com.google.errorprone.annotations.CompileTimeConstant;
+import com.palantir.logsafe.Safe;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -25,28 +26,27 @@ public final class InstrumentedStreams {
     private InstrumentedStreams() {}
 
     /**
-     * Instruments the provided stream to provide a meter tracking bytes read,
-     * and histogram tracking bytes per second.
+     * Instruments the provided stream to provide a meter tracking bytes read.
      *
      * @param in input
-     * @param bytes bytes read
-     * @param throughput bytes read per second
+     * @param metrics metric registry
+     * @param type type of stream being instrumented, must be compile-time safe tag
      * @return instrumented input stream
      */
-    public static InputStream input(InputStream in, Meter bytes, Histogram throughput) {
-        return new InstrumentedInputStream(in, bytes, throughput);
+    public static InputStream input(
+            InputStream in, TaggedMetricRegistry metrics, @Safe @CompileTimeConstant String type) {
+        return new InstrumentedInputStream(in, IoStreamMetrics.of(metrics).read(type));
     }
 
     /**
-     * Instruments the provided stream to provide a meter tracking bytes written,
-     * and histogram tracking bytes per second.
+     * Instruments the provided stream to provide a meter tracking bytes written.
      *
      * @param out output
-     * @param bytes bytes read
-     * @param throughput bytes read per second
+     * @param type type of stream being instrumented, must be compile-time safe tag
      * @return instrumented output stream
      */
-    public static OutputStream output(OutputStream out, Meter bytes, Histogram throughput) {
-        return new InstrumentedOutputStream(out, bytes, throughput);
+    public static OutputStream output(
+            OutputStream out, TaggedMetricRegistry metrics, @Safe @CompileTimeConstant String type) {
+        return new InstrumentedOutputStream(out, IoStreamMetrics.of(metrics).write(type));
     }
 }

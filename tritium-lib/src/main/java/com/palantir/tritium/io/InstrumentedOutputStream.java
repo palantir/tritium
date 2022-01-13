@@ -16,33 +16,20 @@
 
 package com.palantir.tritium.io;
 
-import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.palantir.logsafe.Preconditions;
 import java.io.OutputStream;
 
 final class InstrumentedOutputStream extends ForwardingOutputStream {
     private final Meter bytes;
-    private final Histogram throughput;
-    private long start;
 
-    InstrumentedOutputStream(OutputStream in, Meter bytes, Histogram throughput) {
+    InstrumentedOutputStream(OutputStream in, Meter bytes) {
         super(in);
         this.bytes = Preconditions.checkNotNull(bytes, "bytes");
-        this.throughput = Preconditions.checkNotNull(throughput, "throughput");
-    }
-
-    @Override
-    protected void before(long bytesToWrite) {
-        start = System.nanoTime();
-        super.before(bytesToWrite);
     }
 
     @Override
     protected void after(long bytesWritten) {
-        double elapsedSeconds = (System.nanoTime() - start) / 1_000_000_000.0;
-        long bytesPerSecond = Math.round(bytesWritten / elapsedSeconds);
-        throughput.update(bytesPerSecond);
         this.bytes.mark(bytesWritten);
         super.after(bytesWritten);
     }
