@@ -1,0 +1,8 @@
+type: improvement
+improvement:
+  description: |-
+    InstrumentedStreams for input & output streams
+
+    Track bytes read/written via meter and throughput histogram
+  links:
+  - https://github.com/palantir/tritium/pull/1314

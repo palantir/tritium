@@ -1,0 +1,15 @@
+options:
+  javaPackage: com.palantir.tritium.io
+  javaVisibility: packagePrivate
+namespaces:
+  io.stream:
+    docs: Input/Output stream metrics.
+    metrics:
+      read:
+        type: meter
+        tags: [type]
+        docs: Measures the rate of bytes read from an InputStream for a specified type.
+      write:
+        type: meter
+        tags: [type]
+        docs: Measures the rate of bytes written to an OutputStream for a specified type.
