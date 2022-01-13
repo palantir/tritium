@@ -48,19 +48,20 @@ class InstrumentedStreamsTest {
             try (ConsoleReporter reporter =
                             ConsoleReporter.forRegistry(new MetricRegistry()).build();
                     InputStream input = new ByteArrayInputStream(bytes);
-                    OutputStream output = new ByteArrayOutputStream(bytes.length);
-                    InputStream instrumentedInputStream = InstrumentedStreams.input(input, registry, "test-in");
-                    OutputStream instrumentedOutputStream = InstrumentedStreams.output(output, registry, "test-out")) {
+                    ByteArrayOutputStream output = new ByteArrayOutputStream(bytes.length);
+                    InputStream instrumentedInputStream = InstrumentedStreams.input(input, registry, "in");
+                    OutputStream instrumentedOutputStream = InstrumentedStreams.output(output, registry, "out")) {
                 assertThat(ByteStreams.copy(instrumentedInputStream, instrumentedOutputStream))
                         .isEqualTo(bytes.length);
-                assertThat(metrics.read("test-in").getCount()).isNotZero().isEqualTo(i * bytes.length);
-                assertThat(metrics.write("test-out").getCount()).isNotZero().isEqualTo(i * bytes.length);
+                assertThat(output.toByteArray()).isEqualTo(bytes);
+                assertThat(metrics.read("in").getCount()).isNotZero().isEqualTo(i * bytes.length);
+                assertThat(metrics.write("out").getCount()).isNotZero().isEqualTo(i * bytes.length);
                 Tagged.report(reporter, registry);
             }
         }
 
-        assertThat(metrics.read("test-in").getCount()).isNotZero().isEqualTo(iterations * bytes.length);
-        assertThat(metrics.write("test-out").getCount()).isNotZero().isEqualTo(iterations * bytes.length);
+        assertThat(metrics.read("in").getCount()).isNotZero().isEqualTo(iterations * bytes.length);
+        assertThat(metrics.write("out").getCount()).isNotZero().isEqualTo(iterations * bytes.length);
     }
 
     @Test
@@ -75,19 +76,20 @@ class InstrumentedStreamsTest {
         try (ConsoleReporter reporter =
                         ConsoleReporter.forRegistry(new MetricRegistry()).build();
                 InputStream input = ByteStreams.limit(byteSource.openStream(), totalSize);
-                InputStream instrumentedInputStream = InstrumentedStreams.input(input, registry, "test-in");
+                InputStream instrumentedInputStream = InstrumentedStreams.input(input, registry, "in");
                 OutputStream output = ByteStreams.nullOutputStream();
-                OutputStream instrumentedRawOutputStream = InstrumentedStreams.output(output, registry, "raw-out");
+                OutputStream instrumentedRawOutputStream = InstrumentedStreams.output(output, registry, "compressed");
                 OutputStream gzipOut = new GZIPOutputStream(instrumentedRawOutputStream);
-                OutputStream instrumentedGzipOutputStream = InstrumentedStreams.output(gzipOut, registry, "gzip-out")) {
+                OutputStream instrumentedGzipOutputStream =
+                        InstrumentedStreams.output(gzipOut, registry, "to-compress")) {
             assertThat(ByteStreams.copy(instrumentedInputStream, instrumentedGzipOutputStream))
                     .isEqualTo(totalSize);
-            assertThat(metrics.read("test-in").getCount()).isNotZero().isEqualTo(totalSize);
-            assertThat(metrics.write("gzip-out").getCount())
+            assertThat(metrics.read("in").getCount()).isNotZero().isEqualTo(totalSize);
+            assertThat(metrics.write("to-compress").getCount())
                     .isNotZero()
                     .isEqualTo(totalSize)
-                    .isGreaterThan(metrics.write("raw-out").getCount());
-            assertThat(metrics.write("raw-out").getCount()).isNotZero();
+                    .isGreaterThan(metrics.write("compressed").getCount());
+            assertThat(metrics.write("compressed").getCount()).isNotZero();
             Tagged.report(reporter, registry);
         }
     }
