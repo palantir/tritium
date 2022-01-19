@@ -497,7 +497,7 @@ final class MetricRegistriesTest {
                 .build();
         MetricRegistries.registerAll(registry, "tritium", metricSet);
         assertThat(registry.getMetrics())
-                .isEqualTo(ImmutableMap.<MetricName, Metric>builder()
+                .containsExactlyInAnyOrderEntriesOf(ImmutableMap.<MetricName, Metric>builder()
                         .put(simpleName("tritium.gauge"), gauge)
                         .put(simpleName("tritium.meter"), meter)
                         .put(simpleName("tritium.histogram"), histogram)
