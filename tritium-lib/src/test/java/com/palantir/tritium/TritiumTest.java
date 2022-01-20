@@ -24,7 +24,6 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.Timer;
-import com.google.common.collect.ImmutableSet;
 import com.palantir.tritium.event.log.LoggingLevel;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
@@ -98,7 +97,7 @@ public class TritiumTest {
 
         SortedMap<String, Timer> timers = metricRegistry.getTimers();
         assertThat(timers.keySet()).hasSize(1);
-        assertThat(timers.keySet()).isEqualTo(ImmutableSet.of(EXPECTED_METRIC_NAME));
+        assertThat(timers.keySet()).containsExactlyInAnyOrder(EXPECTED_METRIC_NAME);
         assertThat(timers).containsKey(EXPECTED_METRIC_NAME);
         assertThat(timers.get(EXPECTED_METRIC_NAME).getCount()).isOne();
 

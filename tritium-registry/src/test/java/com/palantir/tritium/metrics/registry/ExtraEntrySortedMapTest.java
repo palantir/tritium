@@ -56,7 +56,7 @@ class ExtraEntrySortedMapTest {
 
         SortedMap<Short, Byte> extraMap = new ExtraEntrySortedMap<>(base, extraKey, extraValue);
 
-        assertThat(extraMap).isEqualTo(guavaWithExtra);
+        assertThat(extraMap).containsExactlyInAnyOrderEntriesOf(guavaWithExtra);
         assertThat(extraMap).hasSameHashCodeAs(guavaWithExtra);
 
         Short paramKey1 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex1);
