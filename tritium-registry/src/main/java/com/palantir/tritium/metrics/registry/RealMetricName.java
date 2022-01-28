@@ -23,9 +23,10 @@ import java.util.SortedMap;
 import javax.annotation.Nullable;
 
 final class RealMetricName implements MetricName {
-    private static final SortedMap<String, String> EMPTY = prehash(ImmutableSortedMap.of());
+    private static final PreHashedSortedMap<String, String> EMPTY = prehash(ImmutableSortedMap.of());
     private final String safeName;
     private final SortedMap<String, String> safeTags;
+
     private final int hashCode;
 
     private RealMetricName(String safeName, SortedMap<String, String> safeTags) {
@@ -72,26 +73,28 @@ final class RealMetricName implements MetricName {
             return true;
         }
         MetricName otherMetric = (MetricName) other;
-        return safeName().equals(otherMetric.safeName()) && safeTags().equals(otherMetric.safeTags());
+        return hashCode() == otherMetric.hashCode()
+                && safeName().equals(otherMetric.safeName())
+                && safeTags().equals(otherMetric.safeTags());
     }
 
-    static MetricName create(String safeName) {
+    static RealMetricName create(String safeName) {
         return new RealMetricName(checkNotNull(safeName, "safeName"), EMPTY);
     }
 
-    static MetricName create(MetricName other) {
+    static RealMetricName create(MetricName other) {
         return new RealMetricName(other.safeName(), prehash(other.safeTags()));
     }
 
-    static MetricName create(MetricName other, String extraTagName, String extraTagValue) {
+    static RealMetricName create(MetricName other, String extraTagName, String extraTagValue) {
         return new RealMetricName(
                 other.safeName(), new ExtraEntrySortedMap<>(prehash(other.safeTags()), extraTagName, extraTagValue));
     }
 
-    private static <K, V> SortedMap<K, V> prehash(SortedMap<K, V> map) {
-        if (map instanceof PrehashedSortedMap) {
-            return map;
+    private static <K, V> PreHashedSortedMap<K, V> prehash(SortedMap<K, V> map) {
+        if (map instanceof PreHashedSortedMap) {
+            return (PreHashedSortedMap<K, V>) map;
         }
-        return new PrehashedSortedMap<>(ImmutableSortedMap.copyOfSorted(map));
+        return new PreHashedSortedMap<>(ImmutableSortedMap.copyOfSorted(map));
     }
 }

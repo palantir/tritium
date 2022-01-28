@@ -18,28 +18,42 @@ package com.palantir.tritium.metrics.registry;
 
 import com.google.common.collect.ForwardingSortedMap;
 import com.google.common.collect.ImmutableSortedMap;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * A sorted map implementation which prehashes for faster usage in hashmaps. This is only safe for immutable underlying
  * maps (both the map implementation and the entries must be immutable).
  */
-final class PrehashedSortedMap<K, V> extends ForwardingSortedMap<K, V> {
+final class PreHashedSortedMap<K, V> extends ForwardingSortedMap<K, V> {
     private final ImmutableSortedMap<K, V> delegate;
     private final int hashCode;
 
-    PrehashedSortedMap(ImmutableSortedMap<K, V> delegate) {
+    PreHashedSortedMap(ImmutableSortedMap<K, V> delegate) {
         this.delegate = delegate;
         this.hashCode = this.delegate.hashCode();
     }
 
+    @Nonnull
     @Override
     protected ImmutableSortedMap<K, V> delegate() {
         return delegate;
     }
 
-    @SuppressWarnings("checkstyle:EqualsHashCode")
     @Override
     public int hashCode() {
         return hashCode;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object instanceof PreHashedSortedMap) {
+            PreHashedSortedMap<?, ?> that = (PreHashedSortedMap<?, ?>) object;
+            return hashCode == that.hashCode && delegate.equals(that.delegate);
+        }
+        return super.equals(object);
     }
 }
