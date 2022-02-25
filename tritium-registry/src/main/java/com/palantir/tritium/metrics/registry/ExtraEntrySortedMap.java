@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @SuppressWarnings("JdkObsolete")
@@ -59,6 +60,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         return base.comparator();
     }
 
+    @Nonnull
     @Override
     public SortedMap<K, V> subMap(K fromKey, K toKey) {
         SortedMap<K, V> newBase = base.subMap(fromKey, toKey);
@@ -68,6 +70,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         return newBase;
     }
 
+    @Nonnull
     @Override
     public SortedMap<K, V> headMap(K toKey) {
         SortedMap<K, V> newBase = base.headMap(toKey);
@@ -77,6 +80,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         return newBase;
     }
 
+    @Nonnull
     @Override
     public SortedMap<K, V> tailMap(K fromKey) {
         SortedMap<K, V> newBase = base.tailMap(fromKey);
@@ -151,9 +155,10 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         throw new UnsupportedOperationException();
     }
 
+    @Nonnull
     @Override
     public Set<K> keySet() {
-        return new AbstractSet<K>() {
+        return new AbstractSet<>() {
             @Override
             public Iterator<K> iterator() {
                 return Iterables.mergeSorted(ImmutableList.of(base.keySet(), ImmutableList.of(extraKey)), ordering)
@@ -167,9 +172,10 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         };
     }
 
+    @Nonnull
     @Override
     public Collection<V> values() {
-        return new AbstractCollection<V>() {
+        return new AbstractCollection<>() {
             @Override
             public Iterator<V> iterator() {
                 return Iterators.transform(keySet().iterator(), key -> get(key));
@@ -182,9 +188,10 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         };
     }
 
+    @Nonnull
     @Override
     public Set<Entry<K, V>> entrySet() {
-        return new AbstractSet<Map.Entry<K, V>>() {
+        return new AbstractSet<>() {
             @Override
             public Iterator<Map.Entry<K, V>> iterator() {
                 return Iterators.transform(keySet().iterator(), key -> Maps.immutableEntry(key, get(key)));
