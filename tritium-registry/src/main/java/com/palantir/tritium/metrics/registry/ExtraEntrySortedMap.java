@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import javax.annotation.Nonnull;
@@ -50,7 +49,7 @@ final class ExtraEntrySortedMap<K, V> extends AbstractMap<K, V> implements Sorte
         this.extraKey = checkNotNull(extraKey, "extraKey");
         this.extraValue = checkNotNull(extraValue, "extraValue");
         this.ordering = Ordering.from(base.comparator());
-        this.extraEntryHashCode = Objects.hashCode(extraKey) ^ Objects.hashCode(extraValue);
+        this.extraEntryHashCode = extraKey.hashCode() ^ extraValue.hashCode();
         // This line of code is roughly a 50% perf regression for iterating through metrics. Remove if causing issues.
         checkArgument(!base.containsKey(extraKey), "Base must not contain the extra key that is to be added");
     }
