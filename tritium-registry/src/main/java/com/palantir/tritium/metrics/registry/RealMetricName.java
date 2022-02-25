@@ -23,7 +23,7 @@ import java.util.SortedMap;
 import javax.annotation.Nullable;
 
 final class RealMetricName implements MetricName {
-    private static final PreHashedSortedMap<String, String> EMPTY = prehash(ImmutableSortedMap.of());
+    private static final SortedMap<String, String> EMPTY = prehash(ImmutableSortedMap.of());
     private final String safeName;
     private final SortedMap<String, String> safeTags;
 
@@ -78,22 +78,22 @@ final class RealMetricName implements MetricName {
                 && safeTags().equals(otherMetric.safeTags());
     }
 
-    static RealMetricName create(String safeName) {
+    static MetricName create(String safeName) {
         return new RealMetricName(checkNotNull(safeName, "safeName"), EMPTY);
     }
 
-    static RealMetricName create(MetricName other) {
+    static MetricName create(MetricName other) {
         return new RealMetricName(other.safeName(), prehash(other.safeTags()));
     }
 
-    static RealMetricName create(MetricName other, String extraTagName, String extraTagValue) {
+    static MetricName create(MetricName other, String extraTagName, String extraTagValue) {
         return new RealMetricName(
                 other.safeName(), new ExtraEntrySortedMap<>(prehash(other.safeTags()), extraTagName, extraTagValue));
     }
 
-    private static <K, V> PreHashedSortedMap<K, V> prehash(SortedMap<K, V> map) {
+    private static <K, V> SortedMap<K, V> prehash(SortedMap<K, V> map) {
         if (map instanceof PreHashedSortedMap) {
-            return (PreHashedSortedMap<K, V>) map;
+            return map;
         }
         return new PreHashedSortedMap<>(ImmutableSortedMap.copyOfSorted(map));
     }
