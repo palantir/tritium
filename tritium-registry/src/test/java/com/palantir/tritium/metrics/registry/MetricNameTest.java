@@ -17,7 +17,9 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import org.junit.jupiter.api.Test;
 
 public class MetricNameTest {
@@ -106,5 +108,31 @@ public class MetricNameTest {
 
         assertThat(one).isNotEqualTo(two);
         assertThat(two).isNotEqualTo(one);
+    }
+
+    @Test
+    void withExtraTag() {
+        MetricName one = MetricName.builder()
+                .safeName("test")
+                .putSafeTags("key", "value")
+                .putSafeTags("key1", "value1")
+                .build();
+        MetricName two = MetricName.builder()
+                .safeName("test")
+                .putSafeTags("key2", "value2")
+                .putSafeTags("key", "value")
+                .putSafeTags("key1", "value1")
+                .build();
+        MetricName three = one.withExtraTag("key2", "value2");
+
+        assertThat(three)
+                .hasSameHashCodeAs(two)
+                .isEqualTo(two)
+                .doesNotHaveSameHashCodeAs(one)
+                .isNotEqualTo(one);
+
+        assertThatThrownBy(() -> two.withExtraTag("key", "value"))
+                .isInstanceOf(SafeIllegalArgumentException.class)
+                .hasMessageContaining("Base must not contain the extra key that is to be added");
     }
 }

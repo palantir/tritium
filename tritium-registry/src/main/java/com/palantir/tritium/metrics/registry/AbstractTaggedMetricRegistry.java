@@ -180,7 +180,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
         result.putAll(registry);
         taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
                 .forEach((metricName, metric) ->
-                        result.put(RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
+                        result.put(metricName.withExtraTag(tag.getKey(), tag.getValue()), metric)));
 
         return result.build();
     }
@@ -189,7 +189,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     public final void forEachMetric(BiConsumer<MetricName, Metric> consumer) {
         registry.forEach(consumer);
         taggedRegistries.forEach((tag, metrics) -> metrics.forEachMetric((metricName, metric) ->
-                consumer.accept(RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
+                consumer.accept(metricName.withExtraTag(tag.getKey(), tag.getValue()), metric)));
     }
 
     @Override

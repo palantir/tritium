@@ -39,6 +39,17 @@ public interface MetricName {
     @Value.NaturalOrder
     SortedMap<String, String> safeTags();
 
+    /**
+     * Creates a metric name with the specified extra tag name and value entry.
+     * <p>All tags and keys must be {@link Safe} to log.
+     * @param extraTagName extra tag key name
+     * @param extraTagValue extra tag value
+     * @return metric name including keys
+     */
+    default MetricName withExtraTag(@Safe String extraTagName, @Safe String extraTagValue) {
+        return RealMetricName.create(this, extraTagName, extraTagValue);
+    }
+
     static Builder builder() {
         return new Builder();
     }
