@@ -1,0 +1,16 @@
+type: improvement
+improvement:
+  description: |-
+    Optimize MetricName creation
+
+    RealMetricName uses pre-hashed code in equals.
+    ExtraEntrySortedMap avoids allocation in constructor.
+    Cleanup warnings in ExtraEntrySortedMap.
+
+    Add MetricName#withExtraTag(String, String).
+    We have cases where we want to append an additional tag to a MetricName
+    and would benefit from not having to pay the overhead of the MetricName
+    builder copy, so we can optimize this path to use RealMetricName's
+    access to ExtraEntrySortedMap.
+  links:
+  - https://github.com/palantir/tritium/pull/1365
