@@ -50,9 +50,8 @@ final class PreHashedSortedMap<K, V> extends ForwardingSortedMap<K, V> {
         if (this == object) {
             return true;
         }
-        if (object instanceof PreHashedSortedMap) {
-            PreHashedSortedMap<?, ?> that = (PreHashedSortedMap<?, ?>) object;
-            return hashCode == that.hashCode && delegate.equals(that.delegate);
+        if (object instanceof PreHashedSortedMap && this.hashCode != ((PreHashedSortedMap<?, ?>) object).hashCode) {
+            return false;
         }
         return super.equals(object);
     }

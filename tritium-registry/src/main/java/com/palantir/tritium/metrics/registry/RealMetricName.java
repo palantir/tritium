@@ -26,7 +26,6 @@ final class RealMetricName implements MetricName {
     private static final SortedMap<String, String> EMPTY = prehash(ImmutableSortedMap.of());
     private final String safeName;
     private final SortedMap<String, String> safeTags;
-
     private final int hashCode;
 
     private RealMetricName(String safeName, SortedMap<String, String> safeTags) {
