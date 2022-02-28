@@ -88,9 +88,8 @@ final class TagMap implements SortedMap<String, String> {
     }
 
     private int indexOfKey(Object key) {
-        ImmutableList<String> local = values;
-        for (int i = 0; i < local.size(); i += 2) {
-            if (Objects.equals(key, local.get(i))) {
+        for (int i = 0; i < values.size(); i += 2) {
+            if (Objects.equals(key, values.get(i))) {
                 return i;
             }
         }
@@ -99,19 +98,17 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public void forEach(BiConsumer<? super String, ? super String> action) {
-        ImmutableList<String> local = this.values;
-        for (int i = 0; i < local.size(); i += 2) {
-            action.accept(local.get(i), local.get(i + 1));
+        for (int i = 0; i < values.size(); i += 2) {
+            action.accept(values.get(i), values.get(i + 1));
         }
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder().append("{");
-        ImmutableList<String> local = this.values;
-        for (int i = 0; i < local.size(); i += 2) {
-            String key = local.get(i);
-            String value = local.get(i + 1);
+        for (int i = 0; i < values.size(); i += 2) {
+            String key = values.get(i);
+            String value = values.get(i + 1);
             if (i != 0) {
                 sb.append(", ");
             }
@@ -128,7 +125,8 @@ final class TagMap implements SortedMap<String, String> {
             return true;
         }
         if (other instanceof TagMap) {
-            return values.equals(((TagMap) other).values);
+            TagMap that = (TagMap) other;
+            return this.hash == that.hash && values.equals(that.values);
         }
         if (!(other instanceof Map)) {
             return false;
@@ -177,21 +175,19 @@ final class TagMap implements SortedMap<String, String> {
     @Nullable
     @Override
     public String firstKey() {
-        ImmutableList<String> local = this.values;
-        if (local.isEmpty()) {
+        if (values.isEmpty()) {
             throw new NoSuchElementException();
         }
-        return local.get(0);
+        return values.get(0);
     }
 
     @Nullable
     @Override
     public String lastKey() {
-        ImmutableList<String> local = this.values;
-        if (local.isEmpty()) {
+        if (values.isEmpty()) {
             throw new NoSuchElementException();
         }
-        return local.get(local.size() - 2);
+        return values.get(values.size() - 2);
     }
 
     @Override
@@ -211,9 +207,8 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public boolean containsValue(Object value) {
-        ImmutableList<String> local = this.values;
-        for (int i = 1; i < local.size(); i += 2) {
-            if (Objects.equals(value, local.get(i))) {
+        for (int i = 1; i < values.size(); i += 2) {
+            if (Objects.equals(value, values.get(i))) {
                 return true;
             }
         }
@@ -243,10 +238,9 @@ final class TagMap implements SortedMap<String, String> {
     @Nonnull
     @Override
     public Set<String> keySet() {
-        ImmutableList<String> local = this.values;
-        Set<String> set = new LinkedHashSet<>(local.size() / 2);
-        for (int i = 0; i < local.size(); i += 2) {
-            set.add(local.get(i));
+        Set<String> set = new LinkedHashSet<>(values.size() / 2);
+        for (int i = 0; i < values.size(); i += 2) {
+            set.add(values.get(i));
         }
         return Collections.unmodifiableSet(set);
     }
@@ -254,10 +248,9 @@ final class TagMap implements SortedMap<String, String> {
     @Nonnull
     @Override
     public Collection<String> values() {
-        ImmutableList<String> local = this.values;
-        List<String> list = new ArrayList<>(local.size() / 2);
-        for (int i = 1; i < local.size(); i += 2) {
-            list.add(local.get(i));
+        List<String> list = new ArrayList<>(values.size() / 2);
+        for (int i = 1; i < values.size(); i += 2) {
+            list.add(values.get(i));
         }
         return Collections.unmodifiableCollection(list);
     }
