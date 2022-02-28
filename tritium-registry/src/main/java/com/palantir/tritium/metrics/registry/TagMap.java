@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.function.BiConsumer;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -40,6 +41,7 @@ import javax.annotation.Nullable;
  * Note that we expect fairly small tag maps which are iterated over, not used for lookups. Most {@link Map}
  * methods are implemented, but use a naive linear search rather than a binary search.
  */
+@SuppressWarnings("JdkObsolete")
 final class TagMap implements SortedMap<String, String> {
 
     private final String[] values;
@@ -70,6 +72,7 @@ final class TagMap implements SortedMap<String, String> {
         return values;
     }
 
+    @Nullable
     @Override
     public String get(Object key) {
         int idx = indexOfKey(key);
@@ -112,7 +115,7 @@ final class TagMap implements SortedMap<String, String> {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(@Nullable Object other) {
         if (other == this) {
             return true;
         }
@@ -142,38 +145,48 @@ final class TagMap implements SortedMap<String, String> {
 
     /* Misc methods to support the SortedMap interface. */
 
+    /**
+     * Returns a null comparator which indicates natural ordering.
+     */
     @Override
     @Nullable
-    /** Returns a null comparator which indicates natural ordering. */
     public Comparator<? super String> comparator() {
         return null;
     }
 
     @Override
-    public SortedMap<String, String> subMap(String fromKey, String toKey) {
+    public SortedMap<String, String> subMap(String _fromKey, String _toKey) {
         throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
-    public SortedMap<String, String> headMap(String toKey) {
+    public SortedMap<String, String> headMap(String _toKey) {
         throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
-    public SortedMap<String, String> tailMap(String fromKey) {
+    public SortedMap<String, String> tailMap(String _fromKey) {
         throw new UnsupportedOperationException("Not implemented");
     }
 
+    @Nullable
     @Override
     public String firstKey() {
         String[] local = this.values;
-        return local.length == 0 ? null : local[0];
+        if (local.length == 0) {
+            throw new NoSuchElementException();
+        }
+        return local[0];
     }
 
+    @Nullable
     @Override
     public String lastKey() {
         String[] local = this.values;
-        return local.length == 0 ? null : local[local.length - 2];
+        if (local.length == 0) {
+            throw new NoSuchElementException();
+        }
+        return local[local.length - 2];
     }
 
     @Override
@@ -203,12 +216,12 @@ final class TagMap implements SortedMap<String, String> {
     }
 
     @Override
-    public String put(String key, String _value) {
+    public String put(String _key, String _value) {
         throw new UnsupportedOperationException("immutable");
     }
 
     @Override
-    public void putAll(Map<? extends String, ? extends String> _map) {
+    public void putAll(@Nonnull Map<? extends String, ? extends String> _map) {
         throw new UnsupportedOperationException("immutable");
     }
 
@@ -222,6 +235,7 @@ final class TagMap implements SortedMap<String, String> {
         throw new UnsupportedOperationException("immutable");
     }
 
+    @Nonnull
     @Override
     public Set<String> keySet() {
         String[] local = this.values;
@@ -232,6 +246,7 @@ final class TagMap implements SortedMap<String, String> {
         return Collections.unmodifiableSet(set);
     }
 
+    @Nonnull
     @Override
     public Collection<String> values() {
         String[] local = this.values;
@@ -242,6 +257,7 @@ final class TagMap implements SortedMap<String, String> {
         return Collections.unmodifiableCollection(list);
     }
 
+    @Nonnull
     @Override
     public Set<Entry<String, String>> entrySet() {
         return new TagMapEntrySet(values);
@@ -278,11 +294,13 @@ final class TagMap implements SortedMap<String, String> {
             return false;
         }
 
+        @Nonnull
         @Override
         public Iterator<Entry<String, String>> iterator() {
             return new TagMapEntrySetIterator(values);
         }
 
+        @Nonnull
         @Override
         public Object[] toArray() {
             String[] local = values;
@@ -329,17 +347,17 @@ final class TagMap implements SortedMap<String, String> {
         }
 
         @Override
-        public boolean addAll(Collection<? extends Entry<String, String>> _collection) {
+        public boolean addAll(@Nonnull Collection<? extends Entry<String, String>> _collection) {
             throw new UnsupportedOperationException("immutable");
         }
 
         @Override
-        public boolean retainAll(Collection<?> _collection) {
+        public boolean retainAll(@Nonnull Collection<?> _collection) {
             throw new UnsupportedOperationException("immutable");
         }
 
         @Override
-        public boolean removeAll(Collection<?> _collection) {
+        public boolean removeAll(@Nonnull Collection<?> _collection) {
             throw new UnsupportedOperationException("immutable");
         }
 
@@ -408,7 +426,7 @@ final class TagMap implements SortedMap<String, String> {
         }
 
         @Override
-        public boolean equals(Object object) {
+        public boolean equals(@Nullable Object object) {
             if (this == object) {
                 return true;
             }
@@ -421,9 +439,7 @@ final class TagMap implements SortedMap<String, String> {
 
         @Override
         public int hashCode() {
-            int result = key != null ? key.hashCode() : 0;
-            result = 31 * result + (value != null ? value.hashCode() : 0);
-            return result;
+            return 31 * key.hashCode() + value.hashCode();
         }
     }
 }
