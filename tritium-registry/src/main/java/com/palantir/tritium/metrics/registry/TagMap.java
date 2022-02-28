@@ -44,7 +44,10 @@ import javax.annotation.Nullable;
 @SuppressWarnings("JdkObsolete")
 final class TagMap implements SortedMap<String, String> {
 
+    private static final int UNSET = 0;
+
     private final String[] values;
+    private int hash = UNSET;
 
     TagMap(Map<String, String> data) {
         this(toArray(data));
@@ -140,7 +143,12 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(values);
+        int hashCode = hash;
+        if (hashCode == UNSET) {
+            hashCode = Arrays.hashCode(values);
+            hash = hashCode;
+        }
+        return hashCode;
     }
 
     /* Misc methods to support the SortedMap interface. */
