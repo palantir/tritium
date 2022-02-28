@@ -88,10 +88,10 @@ final class RealMetricName implements MetricName {
                 other.safeName(), new ExtraEntrySortedMap<>(prehash(other.safeTags()), extraTagName, extraTagValue));
     }
 
-    private static <K, V> SortedMap<K, V> prehash(SortedMap<K, V> map) {
-        if (map instanceof PrehashedSortedMap) {
+    private static SortedMap<String, String> prehash(SortedMap<String, String> map) {
+        if (map instanceof TagMap) {
             return map;
         }
-        return new PrehashedSortedMap<>(ImmutableSortedMap.copyOfSorted(map));
+        return new TagMap(map);
     }
 }
