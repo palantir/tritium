@@ -68,10 +68,12 @@ public class MetricNameTest {
     @Test
     public void compareName() {
         assertThat(MetricName.builder().safeName("a").build())
-                .isEqualTo(MetricName.builder().safeName("a").build());
+                .isEqualTo(MetricName.builder().safeName("a").build())
+                .hasSameHashCodeAs(MetricName.builder().safeName("a").build());
 
         assertThat(MetricName.builder().safeName("a").build())
-                .isNotEqualTo(MetricName.builder().safeName("b").build());
+                .isNotEqualTo(MetricName.builder().safeName("b").build())
+                .doesNotHaveSameHashCodeAs(MetricName.builder().safeName("b").build());
     }
 
     @Test
@@ -87,8 +89,8 @@ public class MetricNameTest {
                 .putSafeTags("key3", "value2")
                 .build();
 
-        assertThat(one).isNotEqualTo(two);
-        assertThat(two).isNotEqualTo(one);
+        assertThat(one).isNotEqualTo(two).doesNotHaveSameHashCodeAs(two);
+        assertThat(two).isNotEqualTo(one).doesNotHaveSameHashCodeAs(one);
     }
 
     @Test
@@ -104,7 +106,30 @@ public class MetricNameTest {
                 .putSafeTags("key2", "valueZ")
                 .build();
 
-        assertThat(one).isNotEqualTo(two);
-        assertThat(two).isNotEqualTo(one);
+        assertThat(one).isNotEqualTo(two).doesNotHaveSameHashCodeAs(two);
+        assertThat(two).isNotEqualTo(one).doesNotHaveSameHashCodeAs(one);
+    }
+
+    @Test
+    void withExtraTag() {
+        MetricName one = MetricName.builder()
+                .safeName("test")
+                .putSafeTags("key", "value")
+                .putSafeTags("key1", "value1")
+                .build();
+        MetricName two = MetricName.builder()
+                .safeName("test")
+                .putSafeTags("key2", "value2")
+                .putSafeTags("key", "value")
+                .putSafeTags("key1", "value1")
+                .build();
+        MetricName three =
+                MetricName.builder().from(one).putSafeTags("key2", "value2").build();
+
+        assertThat(three)
+                .hasSameHashCodeAs(two)
+                .isEqualTo(two)
+                .doesNotHaveSameHashCodeAs(one)
+                .isNotEqualTo(one);
     }
 }
