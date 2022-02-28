@@ -18,17 +18,16 @@ package com.palantir.tritium.metrics.registry;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
-import com.google.common.collect.ImmutableSortedMap;
 import java.util.SortedMap;
 import javax.annotation.Nullable;
 
 final class RealMetricName implements MetricName {
-    private static final SortedMap<String, String> EMPTY = prehash(ImmutableSortedMap.of());
+
     private final String safeName;
-    private final SortedMap<String, String> safeTags;
+    private final TagMap safeTags;
     private final int hashCode;
 
-    private RealMetricName(String safeName, SortedMap<String, String> safeTags) {
+    private RealMetricName(String safeName, TagMap safeTags) {
         this.safeName = safeName;
         this.safeTags = safeTags;
         this.hashCode = computeHashCode();
@@ -76,22 +75,15 @@ final class RealMetricName implements MetricName {
     }
 
     static MetricName create(String safeName) {
-        return new RealMetricName(checkNotNull(safeName, "safeName"), EMPTY);
+        return new RealMetricName(checkNotNull(safeName, "safeName"), TagMap.EMPTY);
     }
 
     static MetricName create(MetricName other) {
-        return new RealMetricName(other.safeName(), prehash(other.safeTags()));
+        return new RealMetricName(other.safeName(), TagMap.of(other.safeTags()));
     }
 
     static MetricName create(MetricName other, String extraTagName, String extraTagValue) {
         return new RealMetricName(
-                other.safeName(), new ExtraEntrySortedMap<>(prehash(other.safeTags()), extraTagName, extraTagValue));
-    }
-
-    private static SortedMap<String, String> prehash(SortedMap<String, String> map) {
-        if (map instanceof TagMap) {
-            return map;
-        }
-        return new TagMap(map);
+                other.safeName(), TagMap.of(new ExtraEntrySortedMap<>(other.safeTags(), extraTagName, extraTagValue)));
     }
 }

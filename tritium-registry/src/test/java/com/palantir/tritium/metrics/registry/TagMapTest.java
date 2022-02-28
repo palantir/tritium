@@ -27,7 +27,7 @@ class TagMapTest {
 
     @Test
     void testEmpty() {
-        TagMap map = new TagMap(ImmutableSortedMap.of());
+        TagMap map = TagMap.of(ImmutableSortedMap.of());
         assertThat(map).isEmpty();
         assertThat(map).hasSize(0);
         assertThat(map.entrySet()).isEmpty();
@@ -37,7 +37,7 @@ class TagMapTest {
 
     @Test
     void testSingleton() {
-        TagMap map = new TagMap(Collections.singletonMap("foo", "bar"));
+        TagMap map = TagMap.of(Collections.singletonMap("foo", "bar"));
         assertThat(map).isNotEmpty();
         assertThat(map).hasSize(1);
         assertThat(map).containsEntry("foo", "bar");

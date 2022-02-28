@@ -44,17 +44,21 @@ import javax.annotation.Nullable;
 @SuppressWarnings("JdkObsolete")
 final class TagMap implements SortedMap<String, String> {
 
-    private static final int UNSET = 0;
+    static final TagMap EMPTY = new TagMap(new String[0]);
 
     private final String[] values;
-    private int hash = UNSET;
+    private final int hash;
 
-    TagMap(Map<String, String> data) {
-        this(toArray(data));
+    static TagMap of(Map<String, String> data) {
+        if (data instanceof TagMap) {
+            return (TagMap) data;
+        }
+        return new TagMap(toArray(data));
     }
 
     private TagMap(String[] values) {
         this.values = values;
+        this.hash = Arrays.hashCode(values);
     }
 
     private static String[] toArray(Map<String, String> data) {
@@ -102,13 +106,13 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder().append("TagMap{");
+        StringBuilder sb = new StringBuilder().append("{");
         String[] local = this.values;
         for (int i = 0; i < local.length; i += 2) {
             String key = local[i];
             String value = local[i + 1];
             if (i != 0) {
-                sb.append(',');
+                sb.append(", ");
             }
             sb.append(key);
             sb.append('=');
@@ -143,23 +147,15 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public int hashCode() {
-        int hashCode = hash;
-        if (hashCode == UNSET) {
-            hashCode = Arrays.hashCode(values);
-            hash = hashCode;
-        }
-        return hashCode;
+        return hash;
     }
 
     /* Misc methods to support the SortedMap interface. */
 
-    /**
-     * Returns a null comparator which indicates natural ordering.
-     */
     @Override
     @Nullable
     public Comparator<? super String> comparator() {
-        return null;
+        return Comparator.naturalOrder();
     }
 
     @Override
@@ -430,7 +426,7 @@ final class TagMap implements SortedMap<String, String> {
 
         @Override
         public String toString() {
-            return "TagEntry{" + key + '=' + value + '}';
+            return '{' + key + '=' + value + '}';
         }
 
         @Override
