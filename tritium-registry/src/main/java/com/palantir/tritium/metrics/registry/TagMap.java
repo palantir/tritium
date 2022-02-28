@@ -56,14 +56,14 @@ final class TagMap implements SortedMap<String, String> {
         if (data instanceof TagMap) {
             return (TagMap) data;
         }
-        return new TagMap(toValues(data));
+        return new TagMap(toSortedKeyValues(data));
     }
 
     private TagMap(ImmutableList<String> values) {
         this.values = values;
     }
 
-    private static ImmutableList<String> toValues(Map<String, String> data) {
+    private static ImmutableList<String> toSortedKeyValues(Map<String, String> data) {
         ImmutableList.Builder<String> values = ImmutableList.builderWithExpectedSize(data.size() * 2);
         List<String> keys = ImmutableSortedSet.copyOf(data.keySet()).asList();
         for (String key : keys) {
