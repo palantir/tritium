@@ -16,6 +16,10 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.errorprone.annotations.Immutable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,55 +45,52 @@ import javax.annotation.Nullable;
  * Note that we expect fairly small tag maps which are iterated over, not used for lookups. Most {@link Map}
  * methods are implemented, but use a naive linear search rather than a binary search.
  */
+@Immutable
 @SuppressWarnings("JdkObsolete")
 final class TagMap implements SortedMap<String, String> {
+    static final TagMap EMPTY = TagMap.of(ImmutableMap.of());
 
-    static final TagMap EMPTY = new TagMap(new String[0]);
-
-    private final String[] values;
+    private final ImmutableList<String> values;
     private final int hash;
 
     static TagMap of(Map<String, String> data) {
         if (data instanceof TagMap) {
             return (TagMap) data;
         }
-        return new TagMap(toArray(data));
+        return new TagMap(toValues(data));
     }
 
-    private TagMap(String[] values) {
+    private TagMap(ImmutableList<String> values) {
         this.values = values;
-        this.hash = Arrays.hashCode(values);
+        this.hash = values.hashCode();
     }
 
-    private static String[] toArray(Map<String, String> data) {
-        int size = data.size();
-        String[] values = new String[size * 2];
-        String[] keys = new String[size];
-        int keysIndex = 0;
-        for (Map.Entry<String, String> entry : data.entrySet()) {
-            keys[keysIndex++] = entry.getKey();
+    private static ImmutableList<String> toValues(Map<String, String> data) {
+        ImmutableList.Builder<String> values = ImmutableList.builderWithExpectedSize(data.size() * 2);
+        List<String> keys = ImmutableSortedSet.copyOf(data.keySet()).asList();
+        for (String key : keys) {
+            if (key != null) {
+                String value = data.get(key);
+                if (value != null) {
+                    values.add(key);
+                    values.add(value);
+                }
+            }
         }
-        Arrays.sort(keys);
-        for (int i = 0; i < keys.length; i++) {
-            int valuesIndex = 2 * i;
-            String key = keys[i];
-            values[valuesIndex] = key;
-            values[valuesIndex + 1] = data.get(key);
-        }
-        return values;
+        return values.build();
     }
 
     @Nullable
     @Override
     public String get(Object key) {
         int idx = indexOfKey(key);
-        return idx >= 0 ? values[idx + 1] : null;
+        return idx >= 0 ? values.get(idx + 1) : null;
     }
 
     private int indexOfKey(Object key) {
-        String[] local = values;
-        for (int i = 0; i < local.length; i += 2) {
-            if (Objects.equals(key, local[i])) {
+        ImmutableList<String> local = values;
+        for (int i = 0; i < local.size(); i += 2) {
+            if (Objects.equals(key, local.get(i))) {
                 return i;
             }
         }
@@ -98,19 +99,19 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public void forEach(BiConsumer<? super String, ? super String> action) {
-        String[] local = this.values;
-        for (int i = 0; i < local.length; i += 2) {
-            action.accept(local[i], local[i + 1]);
+        ImmutableList<String> local = this.values;
+        for (int i = 0; i < local.size(); i += 2) {
+            action.accept(local.get(i), local.get(i + 1));
         }
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder().append("{");
-        String[] local = this.values;
-        for (int i = 0; i < local.length; i += 2) {
-            String key = local[i];
-            String value = local[i + 1];
+        ImmutableList<String> local = this.values;
+        for (int i = 0; i < local.size(); i += 2) {
+            String key = local.get(i);
+            String value = local.get(i + 1);
             if (i != 0) {
                 sb.append(", ");
             }
@@ -127,16 +128,16 @@ final class TagMap implements SortedMap<String, String> {
             return true;
         }
         if (other instanceof TagMap) {
-            return Arrays.equals(values, ((TagMap) other).values);
+            return values.equals(((TagMap) other).values);
         }
         if (!(other instanceof Map)) {
             return false;
         }
         Map<?, ?> otherMap = (Map<?, ?>) other;
         if (otherMap.size() == size()) {
-            for (int i = 0; i < values.length; i += 2) {
-                String key = values[i];
-                String value = values[i + 1];
+            for (int i = 0; i < values.size(); i += 2) {
+                String key = values.get(i);
+                String value = values.get(i + 1);
                 if (!Objects.equals(value, otherMap.get(key))) {
                     return false;
                 }
@@ -176,31 +177,31 @@ final class TagMap implements SortedMap<String, String> {
     @Nullable
     @Override
     public String firstKey() {
-        String[] local = this.values;
-        if (local.length == 0) {
+        ImmutableList<String> local = this.values;
+        if (local.isEmpty()) {
             throw new NoSuchElementException();
         }
-        return local[0];
+        return local.get(0);
     }
 
     @Nullable
     @Override
     public String lastKey() {
-        String[] local = this.values;
-        if (local.length == 0) {
+        ImmutableList<String> local = this.values;
+        if (local.isEmpty()) {
             throw new NoSuchElementException();
         }
-        return local[local.length - 2];
+        return local.get(local.size() - 2);
     }
 
     @Override
     public int size() {
-        return values.length / 2;
+        return values.size() / 2;
     }
 
     @Override
     public boolean isEmpty() {
-        return values.length == 0;
+        return values.isEmpty();
     }
 
     @Override
@@ -210,9 +211,9 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public boolean containsValue(Object value) {
-        String[] local = this.values;
-        for (int i = 1; i < local.length; i += 2) {
-            if (Objects.equals(value, local[i])) {
+        ImmutableList<String> local = this.values;
+        for (int i = 1; i < local.size(); i += 2) {
+            if (Objects.equals(value, local.get(i))) {
                 return true;
             }
         }
@@ -242,10 +243,10 @@ final class TagMap implements SortedMap<String, String> {
     @Nonnull
     @Override
     public Set<String> keySet() {
-        String[] local = this.values;
-        Set<String> set = new LinkedHashSet<>(local.length / 2);
-        for (int i = 0; i < local.length; i += 2) {
-            set.add(local[i]);
+        ImmutableList<String> local = this.values;
+        Set<String> set = new LinkedHashSet<>(local.size() / 2);
+        for (int i = 0; i < local.size(); i += 2) {
+            set.add(local.get(i));
         }
         return Collections.unmodifiableSet(set);
     }
@@ -253,10 +254,10 @@ final class TagMap implements SortedMap<String, String> {
     @Nonnull
     @Override
     public Collection<String> values() {
-        String[] local = this.values;
-        List<String> list = new ArrayList<>(local.length / 2);
-        for (int i = 1; i < local.length; i += 2) {
-            list.add(local[i]);
+        ImmutableList<String> local = this.values;
+        List<String> list = new ArrayList<>(local.size() / 2);
+        for (int i = 1; i < local.size(); i += 2) {
+            list.add(local.get(i));
         }
         return Collections.unmodifiableCollection(list);
     }
@@ -269,28 +270,29 @@ final class TagMap implements SortedMap<String, String> {
 
     private static final class TagMapEntrySet implements Set<Entry<String, String>> {
 
-        private final String[] values;
+        private final ImmutableList<String> values;
 
-        TagMapEntrySet(String[] values) {
+        TagMapEntrySet(ImmutableList<String> values) {
             this.values = values;
         }
 
         @Override
         public int size() {
-            return values.length / 2;
+            return values.size() / 2;
         }
 
         @Override
         public boolean isEmpty() {
-            return values.length == 0;
+            return values.isEmpty();
         }
 
         @Override
         public boolean contains(Object object) {
             if (object instanceof Entry) {
                 Entry<?, ?> entry = (Entry<?, ?>) object;
-                for (int i = 0; i < values.length; i += 2) {
-                    if (Objects.equals(entry.getKey(), values[i]) && Objects.equals(entry.getValue(), values[i + 1])) {
+                for (int i = 0; i < values.size(); i += 2) {
+                    if (Objects.equals(entry.getKey(), values.get(i))
+                            && Objects.equals(entry.getValue(), values.get(i + 1))) {
                         return true;
                     }
                 }
@@ -307,10 +309,10 @@ final class TagMap implements SortedMap<String, String> {
         @Nonnull
         @Override
         public Object[] toArray() {
-            String[] local = values;
-            Object[] result = new Object[local.length / 2];
-            for (int i = 0; i < local.length; i += 2) {
-                result[i / 2] = new TagEntry(local[i], local[i + 1]);
+            ImmutableList<String> local = values;
+            Object[] result = new Object[local.size() / 2];
+            for (int i = 0; i < local.size(); i += 2) {
+                result[i / 2] = new TagEntry(local.get(i), local.get(i + 1));
             }
             return result;
         }
@@ -318,13 +320,13 @@ final class TagMap implements SortedMap<String, String> {
         @Override
         @SuppressWarnings("unchecked")
         public <T> T[] toArray(T[] array) {
-            String[] local = values;
-            int resultLength = local.length / 2;
+            ImmutableList<String> local = values;
+            int resultLength = local.size() / 2;
             T[] result = resultLength > array.length
                     ? (T[]) Array.newInstance(array.getClass().getComponentType(), resultLength)
                     : array;
-            for (int i = 0; i < local.length; i += 2) {
-                result[i / 2] = (T) new TagEntry(local[i], local[i + 1]);
+            for (int i = 0; i < local.size(); i += 2) {
+                result[i / 2] = (T) new TagEntry(local.get(i), local.get(i + 1));
             }
             Arrays.fill(result, resultLength, array.length, null);
             return result;
@@ -372,23 +374,23 @@ final class TagMap implements SortedMap<String, String> {
     }
 
     private static final class TagMapEntrySetIterator implements Iterator<Entry<String, String>> {
-        private final String[] values;
+        private final ImmutableList<String> values;
         private int current = -2;
 
-        TagMapEntrySetIterator(String[] values) {
+        TagMapEntrySetIterator(ImmutableList<String> values) {
             this.values = values;
         }
 
         @Override
         public boolean hasNext() {
-            return current + 2 < values.length;
+            return current + 2 < values.size();
         }
 
         @Override
         public Entry<String, String> next() {
             if (hasNext()) {
                 current += 2;
-                return new TagEntry(values[current], values[current + 1]);
+                return new TagEntry(values.get(current), values.get(current + 1));
             }
             throw new NoSuchElementException();
         }

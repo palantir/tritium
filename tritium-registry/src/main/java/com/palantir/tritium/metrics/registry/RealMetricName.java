@@ -18,9 +18,11 @@ package com.palantir.tritium.metrics.registry;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.google.errorprone.annotations.Immutable;
 import java.util.SortedMap;
 import javax.annotation.Nullable;
 
+@Immutable
 final class RealMetricName implements MetricName {
 
     private final String safeName;
