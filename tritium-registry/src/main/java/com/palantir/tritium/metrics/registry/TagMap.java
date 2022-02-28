@@ -51,7 +51,6 @@ final class TagMap implements SortedMap<String, String> {
     static final TagMap EMPTY = TagMap.of(ImmutableMap.of());
 
     private final ImmutableList<String> values;
-    private final int hash;
 
     static TagMap of(Map<String, String> data) {
         if (data instanceof TagMap) {
@@ -62,7 +61,6 @@ final class TagMap implements SortedMap<String, String> {
 
     private TagMap(ImmutableList<String> values) {
         this.values = values;
-        this.hash = values.hashCode();
     }
 
     private static ImmutableList<String> toValues(Map<String, String> data) {
@@ -126,7 +124,7 @@ final class TagMap implements SortedMap<String, String> {
         }
         if (other instanceof TagMap) {
             TagMap that = (TagMap) other;
-            return this.hash == that.hash && values.equals(that.values);
+            return values.equals(that.values);
         }
         if (!(other instanceof Map)) {
             return false;
@@ -146,7 +144,7 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public int hashCode() {
-        return hash;
+        return values.hashCode();
     }
 
     /* Misc methods to support the SortedMap interface. */
