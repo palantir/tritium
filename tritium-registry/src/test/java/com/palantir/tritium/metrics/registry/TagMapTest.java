@@ -32,7 +32,7 @@ class TagMapTest {
         assertThat(map).hasSize(0);
         assertThat(map.entrySet()).isEmpty();
         assertThat(map.entrySet()).hasSize(0);
-        assertThat(map.entrySet().iterator().hasNext()).isFalse();
+        assertThat(map.entrySet().iterator()).isExhausted();
     }
 
     @Test
@@ -44,7 +44,7 @@ class TagMapTest {
         assertThat(map.get("foo")).isEqualTo("bar");
         assertThat(map.entrySet()).isNotEmpty();
         assertThat(map.entrySet()).hasSize(1);
-        assertThat(map.entrySet().iterator().hasNext()).isTrue();
+        assertThat(map.entrySet().iterator()).hasNext();
         assertThat(map.entrySet().iterator().next()).isEqualTo(new SimpleImmutableEntry<>("foo", "bar"));
     }
 }
