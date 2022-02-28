@@ -47,7 +47,6 @@ final class TagMap implements SortedMap<String, String> {
     static final TagMap EMPTY = new TagMap(new String[0]);
 
     private final String[] values;
-    private final int hash;
 
     static TagMap of(Map<String, String> data) {
         if (data instanceof TagMap) {
@@ -58,7 +57,6 @@ final class TagMap implements SortedMap<String, String> {
 
     private TagMap(String[] values) {
         this.values = values;
-        this.hash = Arrays.hashCode(values);
     }
 
     private static String[] toArray(Map<String, String> data) {
@@ -147,7 +145,7 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public int hashCode() {
-        return hash;
+        return Arrays.hashCode(values);
     }
 
     /* Misc methods to support the SortedMap interface. */
