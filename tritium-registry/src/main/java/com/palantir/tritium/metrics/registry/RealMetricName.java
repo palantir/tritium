@@ -28,7 +28,7 @@ final class RealMetricName implements MetricName {
     private final TagMap safeTags;
     private int hashCode;
 
-    private RealMetricName(String safeName, TagMap safeTags) {
+    RealMetricName(String safeName, TagMap safeTags) {
         this.safeName = safeName;
         this.safeTags = safeTags;
     }

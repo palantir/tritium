@@ -45,7 +45,7 @@ public class MetricNameTest {
                         .build(),
                 "key1",
                 "value1");
-        MetricName five = ImmutableMetricName.copyOf(four);
+        MetricName five = MetricName.builder().from(four).build();
 
         assertThat(one).isEqualTo(two).isEqualTo(three).isEqualTo(four).isEqualTo(five);
         assertThat(two).isEqualTo(one).isEqualTo(three).isEqualTo(four).isEqualTo(five);
