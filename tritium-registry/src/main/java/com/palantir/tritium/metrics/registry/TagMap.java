@@ -77,7 +77,7 @@ final class TagMap implements SortedMap<String, String> {
     }
 
     @VisibleForTesting
-    static boolean isNaturalOrder(Comparator<?> comparator) {
+    static boolean isNaturalOrder(@Nullable Comparator<?> comparator) {
         // null comparator means natural order per SortedMap javadoc
         return comparator == null
                 // Comparator.naturalOrder() and Ordering.natural() return singletons
@@ -461,7 +461,7 @@ final class TagMap implements SortedMap<String, String> {
 
         @Override
         @SuppressWarnings("SuspiciousMethodCalls")
-        public boolean equals(Object other) {
+        public boolean equals(@Nullable Object other) {
             if (this == other) {
                 return true;
             }
