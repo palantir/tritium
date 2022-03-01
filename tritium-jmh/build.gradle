@@ -13,7 +13,7 @@ tasks.jmhCompileGeneratedClasses {
 
 dependencies {
 
-    annotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess'
+    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess'
     api 'io.dropwizard.metrics:metrics-core'
 
     jmh project(':tritium-api')
