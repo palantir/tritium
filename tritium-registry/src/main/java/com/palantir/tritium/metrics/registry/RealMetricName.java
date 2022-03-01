@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics.registry;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.google.common.collect.ImmutableSortedMap;
 import java.util.SortedMap;
 import javax.annotation.Nullable;
 
@@ -25,12 +26,11 @@ final class RealMetricName implements MetricName {
 
     private final String safeName;
     private final TagMap safeTags;
-    private final int hashCode;
+    private int hashCode;
 
     private RealMetricName(String safeName, TagMap safeTags) {
         this.safeName = safeName;
         this.safeTags = safeTags;
-        this.hashCode = computeHashCode();
     }
 
     @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
@@ -47,7 +47,7 @@ final class RealMetricName implements MetricName {
     }
 
     @Override
-    public SortedMap<String, String> safeTags() {
+    public TagMap safeTags() {
         return safeTags;
     }
 
@@ -58,7 +58,12 @@ final class RealMetricName implements MetricName {
 
     @Override
     public int hashCode() {
-        return hashCode;
+        int memoized = hashCode;
+        if (memoized == 0) {
+            memoized = computeHashCode();
+            hashCode = memoized;
+        }
+        return memoized;
     }
 
     @Override
@@ -83,7 +88,20 @@ final class RealMetricName implements MetricName {
     }
 
     static MetricName create(MetricName other, String extraTagName, String extraTagValue) {
-        return new RealMetricName(
-                other.safeName(), TagMap.of(new ExtraEntrySortedMap<>(other.safeTags(), extraTagName, extraTagValue)));
+        return new RealMetricName(other.safeName(), withEntry(other.safeTags(), extraTagName, extraTagValue));
+    }
+
+    private static TagMap withEntry(SortedMap<String, String> tags, String extraTagName, String extraTagValue) {
+        if (tags instanceof TagMap) {
+            return ((TagMap) tags).withEntry(extraTagName, extraTagValue);
+        }
+        return withEntryFallback(tags, extraTagName, extraTagValue);
+    }
+
+    private static TagMap withEntryFallback(SortedMap<String, String> tags, String extraTagName, String extraTagValue) {
+        return TagMap.of(ImmutableSortedMap.<String, String>naturalOrder()
+                .putAll(tags)
+                .put(extraTagName, extraTagValue)
+                .build());
     }
 }

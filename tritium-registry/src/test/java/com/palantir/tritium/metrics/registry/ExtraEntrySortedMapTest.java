@@ -28,17 +28,23 @@ import java.util.function.Function;
 import net.jqwik.api.Assume;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
+import net.jqwik.api.constraints.AlphaChars;
 import net.jqwik.api.constraints.IntRange;
 import net.jqwik.api.constraints.Size;
+import net.jqwik.api.constraints.StringLength;
 
 @SuppressWarnings("JdkObsolete")
 class ExtraEntrySortedMapTest {
 
     @Property(tries = 10_000, seed = "3619154246571270871")
-    void check_ExtraEntrySortedMap_has_the_same_behaviour_as_an_ImmutableSortedMap_with_an_extra_entry(
-            @ForAll @Size(max = 10) Map<Short, Byte> initialValues,
-            @ForAll Short extraKey,
-            @ForAll Byte extraValue,
+    void check_TagMap_has_the_same_behaviour_as_an_ImmutableSortedMap_with_an_extra_entry(
+            @ForAll @Size(max = 10)
+                    Map<
+                                    @AlphaChars @StringLength(min = 1, max = 10) String,
+                                    @AlphaChars @StringLength(min = 1, max = 10) String>
+                            initialValues,
+            @ForAll @AlphaChars @StringLength(min = 1, max = 10) String extraKey,
+            @ForAll @AlphaChars @StringLength(min = 1, max = 10) String extraValue,
             @ForAll @IntRange(max = 5) int paramKeyIndex1,
             @ForAll @IntRange(min = 5, max = 10) int paramKeyIndex2) {
 
@@ -47,24 +53,24 @@ class ExtraEntrySortedMapTest {
         Assume.that(paramKeyIndex1 < initialValues.size());
         Assume.that(paramKeyIndex2 < initialValues.size());
 
-        SortedMap<Short, Byte> base = ImmutableSortedMap.copyOf(initialValues);
+        SortedMap<String, String> base = ImmutableSortedMap.copyOf(initialValues);
 
-        SortedMap<Short, Byte> guavaWithExtra = ImmutableSortedMap.<Short, Byte>naturalOrder()
+        SortedMap<String, String> guavaWithExtra = ImmutableSortedMap.<String, String>naturalOrder()
                 .putAll(base)
                 .put(extraKey, extraValue)
                 .build();
 
-        SortedMap<Short, Byte> extraMap = new ExtraEntrySortedMap<>(base, extraKey, extraValue);
+        SortedMap<String, String> extraMap = TagMap.of(base).withEntry(extraKey, extraValue);
 
         assertThat(extraMap).containsExactlyInAnyOrderEntriesOf(guavaWithExtra);
         assertThat(extraMap).hasSameHashCodeAs(guavaWithExtra);
 
-        Short paramKey1 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex1);
-        Byte paramValue1 = guavaWithExtra.get(paramKey1);
-        Short paramKey2 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex2);
+        String paramKey1 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex1);
+        String paramValue1 = guavaWithExtra.get(paramKey1);
+        String paramKey2 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex2);
 
-        Map<String, Function<SortedMap<Short, Byte>, Object>> methodCalls =
-                ImmutableMap.<String, Function<SortedMap<Short, Byte>, Object>>builder()
+        Map<String, Function<SortedMap<String, String>, Object>> methodCalls =
+                ImmutableMap.<String, Function<SortedMap<String, String>, Object>>builder()
                         .put("subMap", sortedMap -> sortedMap.subMap(paramKey1, paramKey2))
                         .put("headMap", sortedMap -> sortedMap.headMap(paramKey1))
                         .put("tailMap", sortedMap -> sortedMap.tailMap(paramKey1))

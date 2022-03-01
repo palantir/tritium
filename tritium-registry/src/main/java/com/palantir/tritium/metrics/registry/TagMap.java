@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,13 +47,18 @@ final class TagMap implements SortedMap<String, String> {
 
     static final TagMap EMPTY = new TagMap(new String[0]);
 
+    /**
+     * Map entries arranged with keys on even indexes and values in odd indexes.
+     * Keys are sorted alphabetically.
+     * {@code ["a", "one", "b", "two"]} represents map {@code {"a"="one", "b"="two"}}.
+     */
     private final String[] values;
 
     static TagMap of(Map<String, String> data) {
         if (data instanceof TagMap) {
             return (TagMap) data;
         }
-        return new TagMap(toArray(data));
+        return data.isEmpty() ? EMPTY : new TagMap(toArray(data));
     }
 
     private TagMap(String[] values) {
@@ -75,6 +81,29 @@ final class TagMap implements SortedMap<String, String> {
             values[valuesIndex + 1] = data.get(key);
         }
         return values;
+    }
+
+    /** Returns a new {@link TagMap} with on additional entry. */
+    TagMap withEntry(String key, String value) {
+        String[] local = this.values;
+        int newPosition = 0;
+        for (; newPosition < local.length; newPosition += 2) {
+            String current = local[newPosition];
+            int comparisonResult = current.compareTo(key);
+            if (comparisonResult == 0) {
+                throw new SafeIllegalArgumentException("Base must not contain the extra key that is to be added");
+            }
+            if (comparisonResult > 0) {
+                break;
+            }
+        }
+        // current is greater than the new key
+        String[] newArray = new String[local.length + 2];
+        System.arraycopy(local, 0, newArray, 0, newPosition);
+        newArray[newPosition] = key;
+        newArray[newPosition + 1] = value;
+        System.arraycopy(local, newPosition, newArray, newPosition + 2, local.length - newPosition);
+        return new TagMap(newArray);
     }
 
     @Nullable
@@ -131,13 +160,14 @@ final class TagMap implements SortedMap<String, String> {
             return false;
         }
         Map<?, ?> otherMap = (Map<?, ?>) other;
-        if (otherMap.size() == size()) {
-            for (int i = 0; i < values.length; i += 2) {
-                String key = values[i];
-                String value = values[i + 1];
-                if (!Objects.equals(value, otherMap.get(key))) {
-                    return false;
-                }
+        if (otherMap.size() != size()) {
+            return false;
+        }
+        for (int i = 0; i < values.length; i += 2) {
+            String key = values[i];
+            String value = values[i + 1];
+            if (!Objects.equals(value, otherMap.get(key))) {
+                return false;
             }
         }
         return true;
@@ -145,7 +175,11 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(values);
+        int hashCode = 0;
+        for (int i = 0; i < values.length; i += 2) {
+            hashCode += Objects.hashCode(values[i]) ^ Objects.hashCode(values[i + 1]);
+        }
+        return hashCode;
     }
 
     /* Misc methods to support the SortedMap interface. */
@@ -157,18 +191,44 @@ final class TagMap implements SortedMap<String, String> {
     }
 
     @Override
-    public SortedMap<String, String> subMap(String _fromKey, String _toKey) {
-        throw new UnsupportedOperationException("Not implemented");
+    public SortedMap<String, String> subMap(String fromKey, String toKey) {
+        int beginIndex = 0;
+        for (int i = 0; i < values.length; i += 2) {
+            String key = values[i];
+            if (key.compareTo(fromKey) >= 0) {
+                beginIndex = i;
+                break;
+            }
+        }
+        for (int i = values.length - 2; i >= beginIndex; i -= 2) {
+            String key = values[i];
+            if (key.compareTo(toKey) < 0) {
+                return new TagMap(Arrays.copyOfRange(values, beginIndex, i + 2));
+            }
+        }
+        return EMPTY;
     }
 
     @Override
-    public SortedMap<String, String> headMap(String _toKey) {
-        throw new UnsupportedOperationException("Not implemented");
+    public SortedMap<String, String> headMap(String toKey) {
+        for (int i = values.length - 2; i >= 0; i -= 2) {
+            String key = values[i];
+            if (key.compareTo(toKey) < 0) {
+                return new TagMap(Arrays.copyOfRange(values, 0, i + 2));
+            }
+        }
+        return EMPTY;
     }
 
     @Override
-    public SortedMap<String, String> tailMap(String _fromKey) {
-        throw new UnsupportedOperationException("Not implemented");
+    public SortedMap<String, String> tailMap(String fromKey) {
+        for (int i = 0; i < values.length; i += 2) {
+            String key = values[i];
+            if (key.compareTo(fromKey) >= 0) {
+                return new TagMap(Arrays.copyOfRange(values, i, values.length));
+            }
+        }
+        return EMPTY;
     }
 
     @Nullable
@@ -367,6 +427,36 @@ final class TagMap implements SortedMap<String, String> {
         public void clear() {
             throw new UnsupportedOperationException("immutable");
         }
+
+        @Override
+        @SuppressWarnings("SuspiciousMethodCalls")
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof Set)) {
+                return false;
+            }
+            if (other instanceof TagMapEntrySet) {
+                return Arrays.equals(values, ((TagMapEntrySet) other).values);
+            }
+            Set<?> otherSet = (Set<?>) other;
+            return size() == otherSet.size() && containsAll(otherSet) && otherSet.containsAll(this);
+        }
+
+        @Override
+        public int hashCode() {
+            int hashCode = 0;
+            for (int i = 0; i < values.length; i += 2) {
+                hashCode += Objects.hashCode(values[i]) ^ Objects.hashCode(values[i + 1]);
+            }
+            return hashCode;
+        }
+
+        @Override
+        public String toString() {
+            return "TagMapEntrySet{" + Arrays.toString(values) + '}';
+        }
     }
 
     private static final class TagMapEntrySetIterator implements Iterator<Entry<String, String>> {
@@ -439,9 +529,10 @@ final class TagMap implements SortedMap<String, String> {
             return false;
         }
 
+        /** Matches AbstractMap#SimpleEntry in the standard library. */
         @Override
         public int hashCode() {
-            return 31 * key.hashCode() + value.hashCode();
+            return Objects.hashCode(key) ^ Objects.hashCode(value);
         }
     }
 }
