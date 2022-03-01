@@ -17,10 +17,13 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Ordering;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collections;
+import java.util.Comparator;
 import org.junit.jupiter.api.Test;
 
 class TagMapTest {
@@ -46,5 +49,27 @@ class TagMapTest {
         assertThat(map.entrySet()).hasSize(1);
         assertThat(map.entrySet().iterator()).hasNext();
         assertThat(map.entrySet().iterator().next()).isEqualTo(new SimpleImmutableEntry<>("foo", "bar"));
+    }
+
+    @Test
+    void testExtraEntryKeyAlreadyExists() {
+        TagMap map = TagMap.of(Collections.singletonMap("foo", "bar"));
+        assertThatThrownBy(() -> map.withEntry("foo", "baz")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void testNaturalOrder() {
+        assertThat(TagMap.isNaturalOrder(Ordering.natural())).isTrue();
+        assertThat(TagMap.isNaturalOrder(Comparator.naturalOrder())).isTrue();
+
+        assertThat(TagMap.isNaturalOrder(Comparator.reverseOrder())).isFalse();
+        Comparator<?> immutableSortedMapComparator = ImmutableSortedMap.naturalOrder()
+                .put("a", "b")
+                .put("c", "d")
+                .build()
+                .comparator();
+        assertThat(TagMap.isNaturalOrder(immutableSortedMapComparator))
+                .as("Expected ImmutableSortedMap comparator %s to be natural", immutableSortedMapComparator)
+                .isTrue();
     }
 }

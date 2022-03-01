@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Ordering;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -58,11 +60,40 @@ final class TagMap implements SortedMap<String, String> {
         if (data instanceof TagMap) {
             return (TagMap) data;
         }
-        return data.isEmpty() ? EMPTY : new TagMap(toArray(data));
+        if (data.isEmpty()) {
+            return EMPTY;
+        }
+        if (data instanceof SortedMap) {
+            SortedMap<String, String> sortedMap = (SortedMap<String, String>) data;
+            if (isNaturalOrder(sortedMap.comparator())) {
+                return new TagMap(toArrayFromNaturalSortedMap(sortedMap));
+            }
+        }
+        return new TagMap(toArray(data));
     }
 
     private TagMap(String[] values) {
         this.values = values;
+    }
+
+    @VisibleForTesting
+    static boolean isNaturalOrder(Comparator<?> comparator) {
+        // null comparator means natural order per SortedMap javadoc
+        return comparator == null
+                // Comparator.naturalOrder() and Ordering.natural() return singletons
+                || Objects.equals(comparator, Comparator.<String>naturalOrder())
+                || Objects.equals(comparator, Ordering.natural());
+    }
+
+    private static String[] toArrayFromNaturalSortedMap(SortedMap<String, String> data) {
+        int size = data.size();
+        String[] values = new String[size * 2];
+        int index = 0;
+        for (Map.Entry<String, String> entry : data.entrySet()) {
+            values[index++] = entry.getKey();
+            values[index++] = entry.getValue();
+        }
+        return values;
     }
 
     private static String[] toArray(Map<String, String> data) {
