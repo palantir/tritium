@@ -23,15 +23,14 @@ import java.util.SortedMap;
 import javax.annotation.Nullable;
 
 final class RealMetricName implements MetricName {
-    private static final SortedMap<String, String> EMPTY = prehash(ImmutableSortedMap.of());
-    private final String safeName;
-    private final SortedMap<String, String> safeTags;
-    private final int hashCode;
 
-    private RealMetricName(String safeName, SortedMap<String, String> safeTags) {
+    private final String safeName;
+    private final TagMap safeTags;
+    private int hashCode;
+
+    private RealMetricName(String safeName, TagMap safeTags) {
         this.safeName = safeName;
         this.safeTags = safeTags;
-        this.hashCode = computeHashCode();
     }
 
     @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
@@ -48,7 +47,7 @@ final class RealMetricName implements MetricName {
     }
 
     @Override
-    public SortedMap<String, String> safeTags() {
+    public TagMap safeTags() {
         return safeTags;
     }
 
@@ -59,7 +58,12 @@ final class RealMetricName implements MetricName {
 
     @Override
     public int hashCode() {
-        return hashCode;
+        int memoized = hashCode;
+        if (memoized == 0) {
+            memoized = computeHashCode();
+            hashCode = memoized;
+        }
+        return memoized;
     }
 
     @Override
@@ -76,22 +80,28 @@ final class RealMetricName implements MetricName {
     }
 
     static MetricName create(String safeName) {
-        return new RealMetricName(checkNotNull(safeName, "safeName"), EMPTY);
+        return new RealMetricName(checkNotNull(safeName, "safeName"), TagMap.EMPTY);
     }
 
     static MetricName create(MetricName other) {
-        return new RealMetricName(other.safeName(), prehash(other.safeTags()));
+        return new RealMetricName(other.safeName(), TagMap.of(other.safeTags()));
     }
 
     static MetricName create(MetricName other, String extraTagName, String extraTagValue) {
-        return new RealMetricName(
-                other.safeName(), new ExtraEntrySortedMap<>(prehash(other.safeTags()), extraTagName, extraTagValue));
+        return new RealMetricName(other.safeName(), withEntry(other.safeTags(), extraTagName, extraTagValue));
     }
 
-    private static <K, V> SortedMap<K, V> prehash(SortedMap<K, V> map) {
-        if (map instanceof PrehashedSortedMap) {
-            return map;
+    private static TagMap withEntry(SortedMap<String, String> tags, String extraTagName, String extraTagValue) {
+        if (tags instanceof TagMap) {
+            return ((TagMap) tags).withEntry(extraTagName, extraTagValue);
         }
-        return new PrehashedSortedMap<>(ImmutableSortedMap.copyOfSorted(map));
+        return withEntryFallback(tags, extraTagName, extraTagValue);
+    }
+
+    private static TagMap withEntryFallback(SortedMap<String, String> tags, String extraTagName, String extraTagValue) {
+        return TagMap.of(ImmutableSortedMap.<String, String>naturalOrder()
+                .putAll(tags)
+                .put(extraTagName, extraTagValue)
+                .build());
     }
 }
