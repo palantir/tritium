@@ -1,6 +1,7 @@
 apply plugin: 'me.champeau.jmh'
 
 jmh {
+    resultFormat = 'JSON'
     // Use profilers to collect additional data. Supported profilers:
     // [cl, comp, gc, stack, perf, perfnorm, perfasm, xperf, xperfasm, hs_cl, hs_comp, hs_gc, hs_rt, hs_thr]
     profilers = ['gc']
