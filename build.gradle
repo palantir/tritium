@@ -1,7 +1,11 @@
 buildscript {
     repositories {
-        gradlePluginPortal()
-        mavenCentral()
+        gradlePluginPortal() {
+            metadataSources { mavenPom(); ignoreGradleMetadataRedirection() }
+        }
+        mavenCentral() {
+            metadataSources { mavenPom(); ignoreGradleMetadataRedirection() }
+        }
     }
 
     dependencies {
@@ -47,7 +51,9 @@ allprojects {
     }
 
     repositories {
-        mavenCentral()
+        mavenCentral() {
+            metadataSources { mavenPom(); ignoreGradleMetadataRedirection() }
+        }
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {
