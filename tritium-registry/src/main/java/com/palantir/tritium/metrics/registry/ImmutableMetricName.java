@@ -21,7 +21,12 @@ import com.palantir.logsafe.Preconditions;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-/** ABI backcompat stub for code which was previously generated with immutables. */
+/**
+ * ABI backcompat stub for code which was previously generated with immutables.
+ *
+ * This implementation is written by hand to optimize creation performance beyond what can be expected from immutables,
+ * for instance using {@link TagMap} due to an expected small number of tag entries.
+ */
 final class ImmutableMetricName {
     private ImmutableMetricName() {}
 
@@ -83,8 +88,9 @@ final class ImmutableMetricName {
             return (MetricName.Builder) this;
         }
 
+        @SuppressWarnings("NullAway") // RealMetricName ctor checks nulls
         public MetricName build() {
-            return new RealMetricName(Preconditions.checkNotNull(safeName, "safeName is required"), tagMap);
+            return new RealMetricName(safeName, tagMap);
         }
     }
 }

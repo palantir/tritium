@@ -16,9 +16,8 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import static com.palantir.logsafe.Preconditions.checkNotNull;
-
 import com.google.common.collect.ImmutableSortedMap;
+import com.palantir.logsafe.Preconditions;
 import java.util.SortedMap;
 import javax.annotation.Nullable;
 
@@ -29,8 +28,8 @@ final class RealMetricName implements MetricName {
     private int hashCode;
 
     RealMetricName(String safeName, TagMap safeTags) {
-        this.safeName = safeName;
-        this.safeTags = safeTags;
+        this.safeName = Preconditions.checkNotNull(safeName, "safeName is required");
+        this.safeTags = Preconditions.checkNotNull(safeTags, "safeTags is required");
     }
 
     @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
@@ -80,7 +79,7 @@ final class RealMetricName implements MetricName {
     }
 
     static MetricName create(String safeName) {
-        return new RealMetricName(checkNotNull(safeName, "safeName"), TagMap.EMPTY);
+        return new RealMetricName(safeName, TagMap.EMPTY);
     }
 
     static MetricName create(MetricName other) {
