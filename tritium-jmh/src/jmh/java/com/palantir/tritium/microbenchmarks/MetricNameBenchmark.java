@@ -42,12 +42,26 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 public class MetricNameBenchmark {
 
     @Benchmark
-    public MetricName benchmarkName() {
+    public MetricName benchmarkName3Tags() {
         return MetricName.builder()
                 .safeName("someMetric")
                 .putSafeTags("some tag", "some tag value")
                 .putSafeTags("libraryName", "tritium")
                 .putSafeTags("libraryVersion", "1.2.3")
+                .build();
+    }
+
+    @Benchmark
+    public MetricName benchmarkName7Tags() {
+        return MetricName.builder()
+                .safeName("someMetric")
+                .putSafeTags("some tag", "some tag value")
+                .putSafeTags("libraryName", "tritium")
+                .putSafeTags("libraryVersion", "1.2.3")
+                .putSafeTags("libraryName1", "tritium1")
+                .putSafeTags("libraryVersion1", "2.3.4")
+                .putSafeTags("libraryName2", "tritium2")
+                .putSafeTags("libraryVersion2", "5.6.7")
                 .build();
     }
 
