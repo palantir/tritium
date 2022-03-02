@@ -18,10 +18,7 @@ package com.palantir.tritium.metrics.registry;
 
 import com.palantir.logsafe.Safe;
 import java.util.SortedMap;
-import org.immutables.value.Value;
 
-@Value.Immutable
-@ImmutablesStyle
 public interface MetricName {
 
     /**
@@ -36,18 +33,11 @@ public interface MetricName {
      *
      * <p>All tags and keys must be {@link Safe} to log.
      */
-    @Value.NaturalOrder
     SortedMap<String, String> safeTags();
 
     static Builder builder() {
         return new Builder();
     }
 
-    final class Builder extends ImmutableMetricName.Builder {
-        // We cannot use the immutables implementation because it causes too much hashcode pain.
-        @Override
-        public MetricName build() {
-            return RealMetricName.create(super.build());
-        }
-    }
+    final class Builder extends ImmutableMetricName.Builder {}
 }

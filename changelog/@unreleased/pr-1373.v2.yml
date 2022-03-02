@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Optimize MetricName builder for small tag maps
+  links:
+  - https://github.com/palantir/tritium/pull/1373

@@ -20,7 +20,6 @@ org.assertj:assertj-core = 3.22.0
 org.awaitility:awaitility = 4.1.1
 org.checkerframework:checker-qual = 2.5.0
 org.hdrhistogram:* = 2.1.12
-org.immutables:* = 2.8.8
 org.junit.jupiter:* = 5.8.2
 org.mockito:* = 4.3.1
 org.mpierce.metrics.reservoir:* = 1.1.3
