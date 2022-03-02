@@ -65,6 +65,26 @@ public class MetricNameBenchmark {
                 .build();
     }
 
+    @Benchmark
+    public MetricName benchmarkName13Tags() {
+        return MetricName.builder()
+                .safeName("someMetric")
+                .putSafeTags("some tag", "some tag value")
+                .putSafeTags("libraryName", "tritium")
+                .putSafeTags("libraryVersion", "1.2.3")
+                .putSafeTags("libraryName1", "tritium1")
+                .putSafeTags("libraryVersion1", "2.3.4")
+                .putSafeTags("libraryName2", "tritium2")
+                .putSafeTags("libraryVersion2", "5.6.7")
+                .putSafeTags("libraryName3", "tritium")
+                .putSafeTags("libraryVersion3", "1.2.3")
+                .putSafeTags("libraryName4", "tritium1")
+                .putSafeTags("libraryVersion4", "2.3.4")
+                .putSafeTags("libraryName5", "tritium2")
+                .putSafeTags("libraryVersion5", "5.6.7")
+                .build();
+    }
+
     public static void main(String[] _args) throws Exception {
         Options opt = new OptionsBuilder()
                 .include(MetricNameBenchmark.class.getSimpleName())
