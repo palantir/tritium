@@ -30,6 +30,4 @@ org.slf4j:* = 1.7.36
 # dependency-upgrader:OFF
 # Explicitly pinning to minimum dropwizard metrics version defined by Apache Spark
 io.dropwizard.metrics:* = 4.1.1
-# Avoid increasing the minimum error-prone version for consumers
-com.google.errorprone:* = 2.10.0
 # dependency-upgrader:ON
