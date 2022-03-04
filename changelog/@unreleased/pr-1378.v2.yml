@@ -1,0 +1,9 @@
+type: improvement
+improvement:
+  description: |-
+    Optimize AbstractTaggedMetricRegistry#getOrAdd for read path
+
+    Add MetricsLifecycleBenchmark.
+    JMH benchmarks produce JSON & JFR outputs
+  links:
+  - https://github.com/palantir/tritium/pull/1378
