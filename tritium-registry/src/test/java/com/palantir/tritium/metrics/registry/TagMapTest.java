@@ -32,7 +32,7 @@ class TagMapTest {
     void testEmpty() {
         TagMap map = TagMap.of(ImmutableSortedMap.of());
         assertThat(map).isEmpty();
-        assertThat(map).hasSize(0);
+        assertThat(map).isEmpty();
         assertThat(map.entrySet()).isEmpty();
         assertThat(map.entrySet()).hasSize(0);
         assertThat(map.entrySet().iterator()).isExhausted();
