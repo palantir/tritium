@@ -192,6 +192,7 @@ public final class JvmMetrics {
 
     /** Gauge which replaces negative values with null to avoid confusing data when metrics are unavailable. */
     @FunctionalInterface
+    @SuppressWarnings("FunctionalInterfaceMethodChanged")
     private interface NonNegativeGauge extends Gauge<Long> {
         @Nullable
         @Override
