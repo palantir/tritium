@@ -29,10 +29,13 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javax.management.ObjectName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -177,6 +180,15 @@ final class JvmMetricsTest {
         });
     }
 
+    @Test
+    void testUnavailableJvmMemoryMetrics() {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        JvmMetrics.registerJvmMemory(registry, UnavailableMemoryBean.INSTANCE);
+        registry.forEachMetric((_name, metric) -> assertThat(metric)
+                .isInstanceOfSatisfying(
+                        Gauge.class, gauge -> assertThat(gauge.getValue()).isIn(null, Double.NaN)));
+    }
+
     @SuppressWarnings("JdkObsolete")
     private static <T> T find(TaggedMetricRegistry metrics, MetricName baseName, Class<T> type) {
         return metrics.getMetrics().entrySet().stream()
@@ -188,5 +200,62 @@ final class JvmMetricsTest {
                 .map(Map.Entry::getValue)
                 .map(type::cast)
                 .collect(MoreCollectors.onlyElement());
+    }
+
+    private enum UnavailableMemoryBean implements MemoryMXBean {
+        INSTANCE;
+
+        @Override
+        public int getObjectPendingFinalizationCount() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public MemoryUsage getHeapMemoryUsage() {
+            return UnavailableMemoryUsage.INSTANCE;
+        }
+
+        @Override
+        public MemoryUsage getNonHeapMemoryUsage() {
+            return UnavailableMemoryUsage.INSTANCE;
+        }
+
+        @Override
+        public boolean isVerbose() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setVerbose(boolean _value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void gc() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ObjectName getObjectName() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static final class UnavailableMemoryUsage extends MemoryUsage {
+        private static final UnavailableMemoryUsage INSTANCE = new UnavailableMemoryUsage();
+
+        UnavailableMemoryUsage() {
+            super(-1L, 0L, 0L, -1);
+        }
+
+        @Override
+        public long getUsed() {
+            return -1L;
+        }
+
+        @Override
+        public long getCommitted() {
+            return -1L;
+        }
     }
 }
