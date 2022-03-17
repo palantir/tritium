@@ -1,0 +1,6 @@
+type: improvement
+improvement:
+  description: Port memory metrics (`jvm.memory`) to metric-schema for better documentation
+    and validation
+  links:
+  - https://github.com/palantir/tritium/pull/1391
