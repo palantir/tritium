@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 /** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
@@ -192,6 +193,7 @@ public final class JvmMetrics {
     /** Gauge which replaces negative values with null to avoid confusing data when metrics are unavailable. */
     @FunctionalInterface
     private interface NonNegativeGauge extends Gauge<Long> {
+        @Nullable
         @Override
         default Long getValue() {
             long value = getValueAsLong();
