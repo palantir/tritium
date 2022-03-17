@@ -16,16 +16,20 @@
 
 package com.palantir.tritium.metrics.jvm;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.RatioGauge;
 import com.codahale.metrics.jvm.BufferPoolMetricSet;
-import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadDeadlockDetector;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.Maps;
 import com.palantir.logsafe.Preconditions;
+import com.palantir.logsafe.logger.SafeLogger;
+import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -37,6 +41,7 @@ import java.util.function.Supplier;
 
 /** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
+    private static final SafeLogger log = SafeLoggerFactory.get(JvmMetrics.class);
 
     /**
      * Registers a default set of metrics.
@@ -58,12 +63,7 @@ public final class JvmMetrics {
         MetricRegistries.registerAll(
                 registry, "jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
         registerClassLoading(metrics);
-        MetricRegistries.registerAll(
-                registry,
-                "jvm.memory",
-                () -> Maps.filterKeys(
-                        // Memory pool metrics are already provided by MetricRegistries.registerMemoryPools
-                        new MemoryUsageGaugeSet().getMetrics(), name -> !name.startsWith("pools")));
+        registerJvmMemory(registry);
         registerThreads(metrics);
     }
 
@@ -124,6 +124,54 @@ public final class JvmMetrics {
             }
         }
         return threadsByState;
+    }
+
+    private static void registerJvmMemory(TaggedMetricRegistry registry) {
+        MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+        if (memoryBean == null) {
+            log.warn("Failed to load the MemoryMXBean, jvm.memory metrics will not be recorded");
+            return;
+        }
+        JvmMemoryMetrics metrics = JvmMemoryMetrics.of(registry);
+        // jvm.memory.total
+        metrics.totalInit((Gauge<Long>) () -> memoryBean.getHeapMemoryUsage().getInit()
+                + memoryBean.getNonHeapMemoryUsage().getInit());
+        metrics.totalUsed((Gauge<Long>) () -> memoryBean.getHeapMemoryUsage().getUsed()
+                + memoryBean.getNonHeapMemoryUsage().getUsed());
+        metrics.totalMax((Gauge<Long>) () -> memoryBean.getHeapMemoryUsage().getMax()
+                + memoryBean.getNonHeapMemoryUsage().getMax());
+        metrics.totalCommitted(
+                (Gauge<Long>) () -> memoryBean.getHeapMemoryUsage().getCommitted()
+                        + memoryBean.getNonHeapMemoryUsage().getCommitted());
+        // jvm.memory.heap
+        metrics.heapInit((Gauge<Long>) () -> memoryBean.getHeapMemoryUsage().getInit());
+        metrics.heapUsed((Gauge<Long>) () -> memoryBean.getHeapMemoryUsage().getUsed());
+        metrics.heapMax((Gauge<Long>) () -> memoryBean.getHeapMemoryUsage().getMax());
+        metrics.heapCommitted(
+                (Gauge<Long>) () -> memoryBean.getHeapMemoryUsage().getCommitted());
+        metrics.heapUsage(new RatioGauge() {
+            @Override
+            protected Ratio getRatio() {
+                MemoryUsage heapMemoryUsage = memoryBean.getHeapMemoryUsage();
+                return Ratio.of(heapMemoryUsage.getUsed(), heapMemoryUsage.getMax());
+            }
+        });
+        // jvm.memory.non-heap
+        metrics.nonHeapInit(
+                (Gauge<Long>) () -> memoryBean.getNonHeapMemoryUsage().getInit());
+        metrics.nonHeapUsed(
+                (Gauge<Long>) () -> memoryBean.getNonHeapMemoryUsage().getUsed());
+        metrics.nonHeapMax(
+                (Gauge<Long>) () -> memoryBean.getNonHeapMemoryUsage().getMax());
+        metrics.nonHeapCommitted(
+                (Gauge<Long>) () -> memoryBean.getNonHeapMemoryUsage().getCommitted());
+        metrics.nonHeapUsage(new RatioGauge() {
+            @Override
+            protected Ratio getRatio() {
+                MemoryUsage nonHeapMemoryUsage = memoryBean.getNonHeapMemoryUsage();
+                return Ratio.of(nonHeapMemoryUsage.getUsed(), nonHeapMemoryUsage.getMax());
+            }
+        });
     }
 
     private JvmMetrics() {
