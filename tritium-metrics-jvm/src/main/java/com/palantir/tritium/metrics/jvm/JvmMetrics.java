@@ -22,6 +22,8 @@ import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.ThreadDeadlockDetector;
 import com.google.common.base.Suppliers;
 import com.palantir.logsafe.Preconditions;
+import com.palantir.logsafe.logger.SafeLogger;
+import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ClassLoadingMXBean;
@@ -39,6 +41,7 @@ import java.util.function.Supplier;
 
 /** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
+    private static final SafeLogger log = SafeLoggerFactory.get(JvmMetrics.class);
 
     /**
      * Registers a default set of metrics.
@@ -124,8 +127,12 @@ public final class JvmMetrics {
     }
 
     private static void registerJvmMemory(TaggedMetricRegistry registry) {
-        JvmMemoryMetrics metrics = JvmMemoryMetrics.of(registry);
         MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+        if (memoryBean == null) {
+            log.warn("Failed to load the MemoryMXBean, jvm.memory metrics will not be recorded");
+            return;
+        }
+        JvmMemoryMetrics metrics = JvmMemoryMetrics.of(registry);
         // jvm.memory.total
         metrics.totalInit((Gauge<Long>) () -> memoryBean.getHeapMemoryUsage().getInit()
                 + memoryBean.getNonHeapMemoryUsage().getInit());
