@@ -77,3 +77,48 @@ namespaces:
       threads.terminated.count:
         type: gauge
         docs: Number of live threads in the `TERMINATED` state.
+  jvm.memory:
+    docs: Java virtual machine memory usage metrics.
+    metrics:
+      total.init:
+        type: gauge
+        docs: Initial amount of memory requested by the JVM.
+      total.used:
+        type: gauge
+        docs: Total non-native memory used by the JVM.
+      total.max:
+        type: gauge
+        docs: Maximum amount of memory that may be used by the JVM before allocations fail.
+      total.committed:
+        type: gauge
+        docs: Amount of committed memory in bytes for the JVM to use.
+      heap.init:
+        type: gauge
+        docs: Initial amount of heap memory requested by the JVM.
+      heap.used:
+        type: gauge
+        docs: Heap memory used by the JVM.
+      heap.max:
+        type: gauge
+        docs: Maximum amount of heap that may be used by the JVM before allocations fail.
+      heap.committed:
+        type: gauge
+        docs: Amount of committed memory in bytes for the JVM heap.
+      heap.usage:
+        type: gauge
+        docs: Ratio of `jvm.memory.heap.used` to `jvm.memory.heap.max`.
+      non-heap.init:
+        type: gauge
+        docs: Initial amount of non-heap memory requested by the JVM.
+      non-heap.used:
+        type: gauge
+        docs: Non-heap memory used by the JVM.
+      non-heap.max:
+        type: gauge
+        docs: Maximum amount of non-heap that may be used by the JVM before direct allocations fail.
+      non-heap.committed:
+        type: gauge
+        docs: Amount of committed memory in bytes for the JVM non-heap (e.g. direct memory).
+      non-heap.usage:
+        type: gauge
+        docs: Ratio of `jvm.memory.non-heap.used` to `jvm.memory.non-heap.max`.
