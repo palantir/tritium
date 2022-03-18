@@ -38,12 +38,13 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 
 /** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
     private static final SafeLogger log = SafeLoggerFactory.get(JvmMetrics.class);
+    private static final RatioGauge.Ratio RATIO_NAN = RatioGauge.Ratio.of(Double.NaN, Double.NaN);
 
     /**
      * Registers a default set of metrics.
@@ -141,67 +142,66 @@ public final class JvmMetrics {
     static void registerJvmMemory(TaggedMetricRegistry registry, MemoryMXBean memoryBean) {
         JvmMemoryMetrics metrics = JvmMemoryMetrics.of(registry);
         // jvm.memory.total
-        metrics.totalInit(
-                (NonNegativeGauge) () -> memoryBean.getHeapMemoryUsage().getInit()
-                        + memoryBean.getNonHeapMemoryUsage().getInit());
-        metrics.totalUsed(
-                (NonNegativeGauge) () -> memoryBean.getHeapMemoryUsage().getUsed()
-                        + memoryBean.getNonHeapMemoryUsage().getUsed());
-        metrics.totalMax(
-                (NonNegativeGauge) () -> memoryBean.getHeapMemoryUsage().getMax()
-                        + memoryBean.getNonHeapMemoryUsage().getMax());
-        metrics.totalCommitted(
-                (NonNegativeGauge) () -> memoryBean.getHeapMemoryUsage().getCommitted()
-                        + memoryBean.getNonHeapMemoryUsage().getCommitted());
+        metrics.totalInit((Gauge<Long>) () -> {
+            long heap = memoryBean.getHeapMemoryUsage().getInit();
+            long nonHeap = memoryBean.getNonHeapMemoryUsage().getInit();
+            return (heap < 0 || nonHeap < 0) ? null : heap + nonHeap;
+        });
+        metrics.totalUsed((Gauge<Long>) () -> {
+            long heap = memoryBean.getHeapMemoryUsage().getUsed();
+            long nonHeap = memoryBean.getNonHeapMemoryUsage().getUsed();
+            return (heap < 0 || nonHeap < 0) ? null : heap + nonHeap;
+        });
+        metrics.totalMax((Gauge<Long>) () -> {
+            long heap = memoryBean.getHeapMemoryUsage().getMax();
+            long nonHeap = memoryBean.getNonHeapMemoryUsage().getMax();
+            return (heap < 0 || nonHeap < 0) ? null : heap + nonHeap;
+        });
+        metrics.totalCommitted((Gauge<Long>) () -> {
+            long heap = memoryBean.getHeapMemoryUsage().getCommitted();
+            long nonHeap = memoryBean.getNonHeapMemoryUsage().getCommitted();
+            return (heap < 0 || nonHeap < 0) ? null : heap + nonHeap;
+        });
         // jvm.memory.heap
-        metrics.heapInit(
-                (NonNegativeGauge) () -> memoryBean.getHeapMemoryUsage().getInit());
-        metrics.heapUsed(
-                (NonNegativeGauge) () -> memoryBean.getHeapMemoryUsage().getUsed());
-        metrics.heapMax((NonNegativeGauge) () -> memoryBean.getHeapMemoryUsage().getMax());
-        metrics.heapCommitted(
-                (NonNegativeGauge) () -> memoryBean.getHeapMemoryUsage().getCommitted());
+        metrics.heapInit(nonNegative(() -> memoryBean.getHeapMemoryUsage().getInit()));
+        metrics.heapUsed(nonNegative(() -> memoryBean.getHeapMemoryUsage().getUsed()));
+        metrics.heapMax(nonNegative(() -> memoryBean.getHeapMemoryUsage().getMax()));
+        metrics.heapCommitted(nonNegative(() -> memoryBean.getHeapMemoryUsage().getCommitted()));
         metrics.heapUsage(new RatioGauge() {
             @Override
-            protected Ratio getRatio() {
+            protected RatioGauge.Ratio getRatio() {
                 MemoryUsage heapMemoryUsage = memoryBean.getHeapMemoryUsage();
                 long used = heapMemoryUsage.getUsed();
                 long max = heapMemoryUsage.getMax();
-                return (used < 0 || max < 0) ? Ratio.of(Double.NaN, Double.NaN) : Ratio.of(used, max);
+                return (used < 0 || max < 0) ? RATIO_NAN : RatioGauge.Ratio.of(used, max);
             }
         });
         // jvm.memory.non-heap
-        metrics.nonHeapInit(
-                (NonNegativeGauge) () -> memoryBean.getNonHeapMemoryUsage().getInit());
-        metrics.nonHeapUsed(
-                (NonNegativeGauge) () -> memoryBean.getNonHeapMemoryUsage().getUsed());
-        metrics.nonHeapMax(
-                (NonNegativeGauge) () -> memoryBean.getNonHeapMemoryUsage().getMax());
+        metrics.nonHeapInit(nonNegative(() -> memoryBean.getNonHeapMemoryUsage().getInit()));
+        metrics.nonHeapUsed(nonNegative(() -> memoryBean.getNonHeapMemoryUsage().getUsed()));
+        metrics.nonHeapMax(nonNegative(() -> memoryBean.getNonHeapMemoryUsage().getMax()));
         metrics.nonHeapCommitted(
-                (NonNegativeGauge) () -> memoryBean.getNonHeapMemoryUsage().getCommitted());
+                nonNegative(() -> memoryBean.getNonHeapMemoryUsage().getCommitted()));
         metrics.nonHeapUsage(new RatioGauge() {
             @Override
-            protected Ratio getRatio() {
+            protected RatioGauge.Ratio getRatio() {
                 MemoryUsage nonHeapMemoryUsage = memoryBean.getNonHeapMemoryUsage();
                 long used = nonHeapMemoryUsage.getUsed();
                 long max = nonHeapMemoryUsage.getMax();
-                return (used < 0 || max < 0) ? Ratio.of(Double.NaN, Double.NaN) : Ratio.of(used, max);
+                return (used < 0 || max < 0) ? RATIO_NAN : RatioGauge.Ratio.of(used, max);
             }
         });
     }
 
-    /** Gauge which replaces negative values with null to avoid confusing data when metrics are unavailable. */
-    @FunctionalInterface
-    @SuppressWarnings("FunctionalInterfaceMethodChanged")
-    private interface NonNegativeGauge extends Gauge<Long> {
-        @Nullable
-        @Override
-        default Long getValue() {
-            long value = getValueAsLong();
-            return value >= 0 ? value : null;
-        }
-
-        long getValueAsLong();
+    /**
+     * Creates a gauge which replaces negative values with null to avoid
+     * confusing data when metrics are unavailable.
+     */
+    private static Gauge<Long> nonNegative(LongSupplier supplier) {
+        return () -> {
+            long longValue = supplier.getAsLong();
+            return longValue < 0 ? null : longValue;
+        };
     }
 
     private JvmMetrics() {
