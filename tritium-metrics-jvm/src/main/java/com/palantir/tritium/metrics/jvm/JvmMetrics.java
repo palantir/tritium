@@ -38,8 +38,9 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
-import java.util.function.LongSupplier;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 /** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
@@ -142,26 +143,10 @@ public final class JvmMetrics {
     static void registerJvmMemory(TaggedMetricRegistry registry, MemoryMXBean memoryBean) {
         JvmMemoryMetrics metrics = JvmMemoryMetrics.of(registry);
         // jvm.memory.total
-        metrics.totalInit((Gauge<Long>) () -> {
-            long heap = memoryBean.getHeapMemoryUsage().getInit();
-            long nonHeap = memoryBean.getNonHeapMemoryUsage().getInit();
-            return (heap < 0 || nonHeap < 0) ? null : heap + nonHeap;
-        });
-        metrics.totalUsed((Gauge<Long>) () -> {
-            long heap = memoryBean.getHeapMemoryUsage().getUsed();
-            long nonHeap = memoryBean.getNonHeapMemoryUsage().getUsed();
-            return (heap < 0 || nonHeap < 0) ? null : heap + nonHeap;
-        });
-        metrics.totalMax((Gauge<Long>) () -> {
-            long heap = memoryBean.getHeapMemoryUsage().getMax();
-            long nonHeap = memoryBean.getNonHeapMemoryUsage().getMax();
-            return (heap < 0 || nonHeap < 0) ? null : heap + nonHeap;
-        });
-        metrics.totalCommitted((Gauge<Long>) () -> {
-            long heap = memoryBean.getHeapMemoryUsage().getCommitted();
-            long nonHeap = memoryBean.getNonHeapMemoryUsage().getCommitted();
-            return (heap < 0 || nonHeap < 0) ? null : heap + nonHeap;
-        });
+        metrics.totalInit(nonNegative(() -> totalHeapPlusNonHeap(memoryBean, MemoryUsage::getInit)));
+        metrics.totalUsed(nonNegative(() -> totalHeapPlusNonHeap(memoryBean, MemoryUsage::getUsed)));
+        metrics.totalMax(nonNegative(() -> totalHeapPlusNonHeap(memoryBean, MemoryUsage::getMax)));
+        metrics.totalCommitted(nonNegative(() -> totalHeapPlusNonHeap(memoryBean, MemoryUsage::getCommitted)));
         // jvm.memory.heap
         metrics.heapInit(nonNegative(() -> memoryBean.getHeapMemoryUsage().getInit()));
         metrics.heapUsed(nonNegative(() -> memoryBean.getHeapMemoryUsage().getUsed()));
@@ -194,14 +179,27 @@ public final class JvmMetrics {
     }
 
     /**
+     * Computes the total heap + non-heap result of applying the specified function.
+     * If either value is negative, returns null to avoid misleading metric data.
+     */
+    @Nullable
+    private static Long totalHeapPlusNonHeap(MemoryMXBean memoryBean, Function<MemoryUsage, Long> longFunction) {
+        Long heap = negativeToNull(longFunction.apply(memoryBean.getHeapMemoryUsage()));
+        Long nonHeap = negativeToNull(longFunction.apply(memoryBean.getNonHeapMemoryUsage()));
+        return (heap == null) ? null : (nonHeap == null) ? null : heap + nonHeap;
+    }
+
+    /**
      * Creates a gauge which replaces negative values with null to avoid
      * confusing data when metrics are unavailable.
      */
-    private static Gauge<Long> nonNegative(LongSupplier supplier) {
-        return () -> {
-            long longValue = supplier.getAsLong();
-            return longValue < 0 ? null : longValue;
-        };
+    private static Gauge<Long> nonNegative(Supplier<Long> supplier) {
+        return () -> negativeToNull(supplier.get());
+    }
+
+    @Nullable
+    private static Long negativeToNull(@Nullable Long value) {
+        return value == null || value < 0 ? null : value;
     }
 
     private JvmMetrics() {
