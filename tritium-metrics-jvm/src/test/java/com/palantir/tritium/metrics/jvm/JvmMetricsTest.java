@@ -184,9 +184,11 @@ final class JvmMetricsTest {
     void testUnavailableJvmMemoryMetrics() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
         JvmMetrics.registerJvmMemory(registry, UnavailableMemoryBean.INSTANCE);
-        registry.forEachMetric((_name, metric) -> assertThat(metric)
-                .isInstanceOfSatisfying(
-                        Gauge.class, gauge -> assertThat(gauge.getValue()).isIn(null, Double.NaN)));
+        registry.forEachMetric(
+                (_name, metric) -> assertThat(metric).isInstanceOf(Gauge.class).satisfies(instance -> {
+                    Gauge<?> gauge = (Gauge<?>) instance;
+                    assertThat(gauge.getValue()).isIn(null, Double.NaN);
+                }));
     }
 
     @SuppressWarnings("JdkObsolete")
