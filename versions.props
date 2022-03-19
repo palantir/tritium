@@ -1,5 +1,5 @@
 com.fasterxml.jackson.*:* = 2.11.3
-com.github.ben-manes.caffeine:caffeine = 3.0.5
+com.github.ben-manes.caffeine:caffeine = 3.0.6
 com.google.auto:* = 1.2.1
 com.google.auto.service:* = 1.0.1
 com.google.code.findbugs:jFormatString = 3.0.0
