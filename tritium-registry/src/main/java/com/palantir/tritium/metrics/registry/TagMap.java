@@ -308,6 +308,7 @@ final class TagMap implements SortedMap<String, String> {
         return false;
     }
 
+    @Nullable
     @Override
     public String put(String _key, String _value) {
         throw new UnsupportedOperationException("immutable");
@@ -318,6 +319,7 @@ final class TagMap implements SortedMap<String, String> {
         throw new UnsupportedOperationException("immutable");
     }
 
+    @Nullable
     @Override
     public String remove(Object _key) {
         throw new UnsupportedOperationException("immutable");
