@@ -64,7 +64,7 @@ final class ProxiesTest {
 
     @Test
     void testCheckAreAllInterfacesWithClass() {
-        List<Class<?>> interfaces =
+        ImmutableList<Class<?>> interfaces =
                 ImmutableList.of(TestInterface.class, String.class, Runnable.class, Callable.class, List.class);
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> Proxies.checkAreAllInterfaces(interfaces));

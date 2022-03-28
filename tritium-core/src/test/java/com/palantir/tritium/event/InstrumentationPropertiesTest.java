@@ -105,7 +105,7 @@ final class InstrumentationPropertiesTest {
     @Test
     void racingSystemProperties() throws Exception {
         CyclicBarrier barrier = new CyclicBarrier(8);
-        List<Callable<Object>> tasks = ImmutableList.of(
+        ImmutableList<Callable<Object>> tasks = ImmutableList.of(
                 () -> {
                     barrier.await();
                     return "getSystemPropertySupplier: "

@@ -28,7 +28,6 @@ import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.SortedMap;
 
 public final class Tagged {
     private Tagged() {}
@@ -50,11 +49,11 @@ public final class Tagged {
         if (!metrics.isEmpty()) {
             System.out.println("Tagged Metrics:");
             @SuppressWarnings("rawtypes")
-            SortedMap<String, Gauge> gauges = filter(metrics, Gauge.class);
-            SortedMap<String, Counter> counters = filter(metrics, Counter.class);
-            SortedMap<String, Histogram> histograms = filter(metrics, Histogram.class);
-            SortedMap<String, Meter> meters = filter(metrics, Meter.class);
-            SortedMap<String, Timer> timers = filter(metrics, Timer.class);
+            ImmutableSortedMap<String, Gauge> gauges = filter(metrics, Gauge.class);
+            ImmutableSortedMap<String, Counter> counters = filter(metrics, Counter.class);
+            ImmutableSortedMap<String, Histogram> histograms = filter(metrics, Histogram.class);
+            ImmutableSortedMap<String, Meter> meters = filter(metrics, Meter.class);
+            ImmutableSortedMap<String, Timer> timers = filter(metrics, Timer.class);
             reporter.report(gauges, counters, histograms, meters, timers);
         }
     }
