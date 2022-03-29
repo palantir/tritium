@@ -53,9 +53,9 @@ class ExtraEntrySortedMapTest {
         Assume.that(paramKeyIndex1 < initialValues.size());
         Assume.that(paramKeyIndex2 < initialValues.size());
 
-        SortedMap<String, String> base = ImmutableSortedMap.copyOf(initialValues);
+        ImmutableSortedMap<String, String> base = ImmutableSortedMap.copyOf(initialValues);
 
-        SortedMap<String, String> guavaWithExtra = ImmutableSortedMap.<String, String>naturalOrder()
+        ImmutableSortedMap<String, String> guavaWithExtra = ImmutableSortedMap.<String, String>naturalOrder()
                 .putAll(base)
                 .put(extraKey, extraValue)
                 .build();
@@ -69,7 +69,7 @@ class ExtraEntrySortedMapTest {
         String paramValue1 = guavaWithExtra.get(paramKey1);
         String paramKey2 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex2);
 
-        Map<String, Function<SortedMap<String, String>, Object>> methodCalls =
+        ImmutableMap<String, Function<SortedMap<String, String>, Object>> methodCalls =
                 ImmutableMap.<String, Function<SortedMap<String, String>, Object>>builder()
                         .put("subMap", sortedMap -> sortedMap.subMap(paramKey1, paramKey2))
                         .put("headMap", sortedMap -> sortedMap.headMap(paramKey1))

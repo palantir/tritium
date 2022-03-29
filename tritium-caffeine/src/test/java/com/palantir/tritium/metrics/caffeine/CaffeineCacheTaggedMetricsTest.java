@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.codahale.metrics.Gauge;
 import com.github.benmanes.caffeine.cache.Cache;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.metrics.registry.MetricName;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -34,7 +34,7 @@ final class CaffeineCacheTaggedMetricsTest {
     void createMetrics(@Mock Cache<?, ?> cache) {
         CaffeineCacheTaggedMetrics cacheTaggedMetrics = CaffeineCacheTaggedMetrics.create(cache, "test");
         assertThat(cacheTaggedMetrics).isNotNull();
-        Map<MetricName, Gauge<?>> metrics = cacheTaggedMetrics.getMetrics();
+        ImmutableMap<MetricName, Gauge<?>> metrics = cacheTaggedMetrics.getMetrics();
         assertThat(metrics).hasSize(12);
         assertThat(metrics.keySet())
                 .extracting(MetricName::safeName)

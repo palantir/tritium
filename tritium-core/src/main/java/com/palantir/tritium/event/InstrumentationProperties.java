@@ -94,7 +94,7 @@ public final class InstrumentationProperties {
         return instrumentationProperties.get();
     }
 
-    private static Map<String, String> createInstrumentationSystemProperties() {
+    private static ImmutableMap<String, String> createInstrumentationSystemProperties() {
         /*
          * Since system properties are backed by a java.util.Hashtable, they can be
          * a point of contention as all access is synchronized. We therefore take
@@ -106,7 +106,7 @@ public final class InstrumentationProperties {
         @SuppressWarnings("unchecked")
         Map<Object, Object> clonedSystemProperties =
                 (Map<Object, Object>) System.getProperties().clone();
-        Map<String, String> map = clonedSystemProperties.entrySet().stream()
+        ImmutableMap<String, String> map = clonedSystemProperties.entrySet().stream()
                 .filter(entry -> entry.getKey() instanceof String
                         && entry.getValue() instanceof String
                         && String.valueOf(entry.getKey()).startsWith(INSTRUMENT_PREFIX))

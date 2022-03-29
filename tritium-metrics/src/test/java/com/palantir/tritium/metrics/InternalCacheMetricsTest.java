@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.tritium.metrics.registry.MetricName;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +39,7 @@ final class InternalCacheMetricsTest {
 
     @Test
     void createMetrics() {
-        Map<String, Gauge<?>> metrics = InternalCacheMetrics.createMetrics(emptyStats(), Function.identity());
+        ImmutableMap<String, Gauge<?>> metrics = InternalCacheMetrics.createMetrics(emptyStats(), Function.identity());
         assertThat(metrics)
                 .containsOnlyKeys(
                         "cache.estimated.size",
