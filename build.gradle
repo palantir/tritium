@@ -85,7 +85,7 @@ allprojects {
                         'MemberName', // false positives on ignored lambda args
                         'StaticOrDefaultInterfaceMethod', // Android specific
                         'Var', // high noise, low signal
-                        'Varifier' // don't `var`ify everything yet
+                        'Varifier' // don't `var`ify everything yet as this conflicts with baseline VarUsage
             }
         }
     })
