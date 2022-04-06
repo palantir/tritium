@@ -19,6 +19,7 @@ package com.palantir.tritium.metrics;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.palantir.logsafe.Preconditions;
+import com.palantir.logsafe.Safe;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -30,7 +31,7 @@ final class TaggedMetricsThreadFactory implements ThreadFactory {
     private final Meter created;
     private final Counter running;
 
-    TaggedMetricsThreadFactory(ThreadFactory delegate, ExecutorMetrics metrics, String name) {
+    TaggedMetricsThreadFactory(ThreadFactory delegate, ExecutorMetrics metrics, @Safe String name) {
         this.delegate = Preconditions.checkNotNull(delegate, "ThreadFactory is required");
         Preconditions.checkNotNull(name, "Name is required");
         Preconditions.checkNotNull(metrics, "ExecutorMetrics is required");

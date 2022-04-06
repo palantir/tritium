@@ -150,7 +150,7 @@ public final class MetricRegistries {
         return DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC));
     }
 
-    static <T extends Metric> T getOrAdd(MetricRegistry metrics, String name, MetricBuilder<T> builder) {
+    static <T extends Metric> T getOrAdd(MetricRegistry metrics, @Safe String name, MetricBuilder<T> builder) {
         Metric existingMetric = tryGetExistingMetric(metrics, name);
         if (existingMetric == null) {
             return addMetric(metrics, name, builder);
@@ -159,11 +159,11 @@ public final class MetricRegistries {
     }
 
     @Nullable
-    private static Metric tryGetExistingMetric(MetricRegistry metrics, String name) {
+    private static Metric tryGetExistingMetric(MetricRegistry metrics, @Safe String name) {
         return checkNotNull(metrics, "metrics").getMetrics().get(checkNotNull(name));
     }
 
-    private static <T extends Metric> T addMetric(MetricRegistry metrics, String name, MetricBuilder<T> builder) {
+    private static <T extends Metric> T addMetric(MetricRegistry metrics, @Safe String name, MetricBuilder<T> builder) {
         checkNotNull(builder);
         T newMetric = builder.newMetric();
         try {
@@ -177,7 +177,7 @@ public final class MetricRegistries {
 
     @SuppressWarnings("unchecked")
     private static <T extends Metric> T getAndCheckExistingMetric(
-            String name, MetricBuilder<T> builder, @Nullable Metric existingMetric) {
+            @Safe String name, MetricBuilder<T> builder, @Nullable Metric existingMetric) {
         if (existingMetric != null && builder.isInstance(existingMetric)) {
             return (T) existingMetric;
         }
@@ -185,7 +185,7 @@ public final class MetricRegistries {
     }
 
     private static SafeIllegalArgumentException invalidMetric(
-            String name, @Nullable Metric existingMetric, Metric newMetric) {
+            @Safe String name, @Nullable Metric existingMetric, Metric newMetric) {
         throw new SafeIllegalArgumentException(
                 "Metric name already used for different metric type",
                 SafeArg.of("metricName", name),
@@ -193,6 +193,7 @@ public final class MetricRegistries {
                 SafeArg.of("newMetricType", safeClassName(newMetric)));
     }
 
+    @Safe
     private static String safeClassName(@Nullable Object obj) {
         return (obj == null) ? "" : obj.getClass().getName();
     }
@@ -203,7 +204,7 @@ public final class MetricRegistries {
      * @param prefix metric name prefix
      * @return metric filter
      */
-    public static MetricFilter metricsPrefixedBy(String prefix) {
+    public static MetricFilter metricsPrefixedBy(@Safe String prefix) {
         checkNotNull(prefix, "prefix");
         return (name, _metric) -> name.startsWith(prefix);
     }
@@ -241,13 +242,13 @@ public final class MetricRegistries {
      */
     @Deprecated
     @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
-    public static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name) {
+    public static void registerCache(MetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
         registerCache(registry, cache, name, Clock.defaultClock());
     }
 
     @VisibleForTesting
     @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
-    static void registerCache(MetricRegistry registry, Cache<?, ?> cache, String name, Clock clock) {
+    static void registerCache(MetricRegistry registry, Cache<?, ?> cache, @Safe String name, Clock clock) {
         checkNotNull(registry, "metric registry");
         checkNotNull(cache, "cache");
         checkNotNull(name, "name");
@@ -339,7 +340,7 @@ public final class MetricRegistries {
      * @return instrumented executor service
      */
     public static ScheduledExecutorService instrument(
-            TaggedMetricRegistry registry, ScheduledExecutorService delegate, String name) {
+            TaggedMetricRegistry registry, ScheduledExecutorService delegate, @Safe String name) {
         return new TaggedMetricsScheduledExecutorService(
                 checkNotNull(delegate, "delegate"), ExecutorMetrics.of(registry), checkNotNull(name, "name"));
     }
@@ -355,7 +356,8 @@ public final class MetricRegistries {
      * @param name executor service name
      * @return instrumented executor service
      */
-    public static ExecutorService instrument(TaggedMetricRegistry registry, ExecutorService delegate, String name) {
+    public static ExecutorService instrument(
+            TaggedMetricRegistry registry, ExecutorService delegate, @Safe String name) {
         return executor().registry(registry).name(name).executor(delegate).build();
     }
 
@@ -368,7 +370,7 @@ public final class MetricRegistries {
      * @param name Thread factory name
      * @return instrumented thread factory
      */
-    public static ThreadFactory instrument(TaggedMetricRegistry registry, ThreadFactory delegate, String name) {
+    public static ThreadFactory instrument(TaggedMetricRegistry registry, ThreadFactory delegate, @Safe String name) {
         return new TaggedMetricsThreadFactory(
                 checkNotNull(delegate, "ThreadFactory is required"),
                 ExecutorMetrics.of(registry),
@@ -384,7 +386,7 @@ public final class MetricRegistries {
      * @param name context name
      * @return instrumented ssl context
      */
-    public static SSLContext instrument(TaggedMetricRegistry registry, SSLContext context, String name) {
+    public static SSLContext instrument(TaggedMetricRegistry registry, SSLContext context, @Safe String name) {
         return new InstrumentedSslContext(
                 checkNotNull(context, "context"), TlsMetrics.of(registry), checkNotNull(name, "name"));
     }
@@ -398,7 +400,8 @@ public final class MetricRegistries {
      * @param name socket factory name
      * @return instrumented socket factory
      */
-    public static SSLSocketFactory instrument(TaggedMetricRegistry registry, SSLSocketFactory factory, String name) {
+    public static SSLSocketFactory instrument(
+            TaggedMetricRegistry registry, SSLSocketFactory factory, @Safe String name) {
         return new InstrumentedSslSocketFactory(
                 checkNotNull(factory, "factory"), TlsMetrics.of(registry), checkNotNull(name, "name"));
     }
@@ -430,16 +433,16 @@ public final class MetricRegistries {
      * @throws IllegalArgumentException if there is already a {@link Metric} registered that doesn't implement the same
      *     interfaces as {@code metric}
      */
-    public static <T extends Metric> T registerSafe(MetricRegistry registry, String name, T metric) {
+    public static <T extends Metric> T registerSafe(MetricRegistry registry, @Safe String name, T metric) {
         return registerOrReplace(registry, name, metric, /* replace= */ false);
     }
 
-    public static <T extends Metric> T registerWithReplacement(MetricRegistry registry, String name, T metric) {
+    public static <T extends Metric> T registerWithReplacement(MetricRegistry registry, @Safe String name, T metric) {
         return registerOrReplace(registry, name, metric, /* replace= */ true);
     }
 
     private static <T extends Metric> T registerOrReplace(
-            MetricRegistry registry, String name, T metric, boolean replace) {
+            MetricRegistry registry, @Safe String name, T metric, boolean replace) {
         synchronized (registry) {
             Map<String, Metric> metrics = registry.getMetrics();
             Metric existingMetric = metrics.get(name);
@@ -488,7 +491,7 @@ public final class MetricRegistries {
      * @param prefix Metric name prefix
      * @param metricSet Set to register with the tagged registry
      */
-    public static void registerAll(TaggedMetricRegistry registry, String prefix, MetricSet metricSet) {
+    public static void registerAll(TaggedMetricRegistry registry, @Safe String prefix, MetricSet metricSet) {
         Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
         Preconditions.checkNotNull(prefix, "Prefix is required");
         Preconditions.checkArgument(!Strings.isNullOrEmpty(prefix), "Prefix cannot be blank");
@@ -529,6 +532,7 @@ public final class MetricRegistries {
         @Nullable
         private TaggedMetricRegistry registry;
 
+        @Safe
         @Nullable
         private String name;
 
@@ -546,7 +550,7 @@ public final class MetricRegistries {
 
         @Override
         @CheckReturnValue
-        public ExecutorInstrumentationBuilderExecutorStage name(String value) {
+        public ExecutorInstrumentationBuilderExecutorStage name(@Safe String value) {
             this.name = Preconditions.checkNotNull(value, "Name");
             return this;
         }
@@ -589,7 +593,7 @@ public final class MetricRegistries {
 
     public interface ExecutorInstrumentationBuilderNameStage {
         @CheckReturnValue
-        ExecutorInstrumentationBuilderExecutorStage name(String value);
+        ExecutorInstrumentationBuilderExecutorStage name(@Safe String value);
     }
 
     public interface ExecutorInstrumentationBuilderExecutorStage {

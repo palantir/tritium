@@ -19,6 +19,7 @@ package com.palantir.tritium.metrics.registry;
 import com.palantir.logsafe.Safe;
 import java.util.SortedMap;
 
+@Safe
 public interface MetricName {
 
     /**
@@ -26,6 +27,7 @@ public interface MetricName {
      *
      * <p>Names must be {@link Safe} to log.
      */
+    @Safe
     String safeName();
 
     /**
@@ -33,6 +35,7 @@ public interface MetricName {
      *
      * <p>All tags and keys must be {@link Safe} to log.
      */
+    @Safe
     SortedMap<String, String> safeTags();
 
     static Builder builder() {

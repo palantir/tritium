@@ -20,6 +20,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
+import com.palantir.logsafe.Safe;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -55,12 +56,16 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
             MetricName.builder().safeName(FAILURES_METRIC_NAME).build();
 
     private final TaggedMetricRegistry taggedMetricRegistry;
+
+    @Safe
     private final String serviceName;
+
     private final Meter globalFailureMeter;
     private final ConcurrentMap<Method, Timer> timerCache = new ConcurrentHashMap<>();
     private final Function<Method, Timer> onSuccessTimerMappingFunction;
 
-    public TaggedMetricsServiceInvocationEventHandler(TaggedMetricRegistry taggedMetricRegistry, String serviceName) {
+    public TaggedMetricsServiceInvocationEventHandler(
+            TaggedMetricRegistry taggedMetricRegistry, @Safe String serviceName) {
         super(getEnabledSupplier(serviceName));
         this.taggedMetricRegistry = checkNotNull(taggedMetricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
@@ -73,7 +78,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     @SuppressWarnings("NoFunctionalReturnType") // helper
-    private static BooleanSupplier getEnabledSupplier(String serviceName) {
+    private static BooleanSupplier getEnabledSupplier(@Safe String serviceName) {
         return InstrumentationProperties.getSystemPropertySupplier(serviceName);
     }
 

@@ -40,7 +40,8 @@ final class Jdk9CompatibleFileDescriptorRatioGauge {
             metrics.filedescriptor(new RatioGauge() {
                 @Override
                 protected Ratio getRatio() {
-                    return Ratio.of(unix.getOpenFileDescriptorCount(), unix.getMaxFileDescriptorCount());
+                    return Ratio.of(
+                            (double) unix.getOpenFileDescriptorCount(), (double) unix.getMaxFileDescriptorCount());
                 }
             });
         } else {

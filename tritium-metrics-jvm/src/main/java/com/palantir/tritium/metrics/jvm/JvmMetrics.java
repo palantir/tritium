@@ -156,8 +156,8 @@ public final class JvmMetrics {
             @Override
             protected RatioGauge.Ratio getRatio() {
                 MemoryUsage heapMemoryUsage = memoryBean.getHeapMemoryUsage();
-                long used = heapMemoryUsage.getUsed();
-                long max = heapMemoryUsage.getMax();
+                double used = heapMemoryUsage.getUsed();
+                double max = heapMemoryUsage.getMax();
                 return (used < 0 || max < 0) ? RATIO_NAN : RatioGauge.Ratio.of(used, max);
             }
         });
@@ -171,8 +171,8 @@ public final class JvmMetrics {
             @Override
             protected RatioGauge.Ratio getRatio() {
                 MemoryUsage nonHeapMemoryUsage = memoryBean.getNonHeapMemoryUsage();
-                long used = nonHeapMemoryUsage.getUsed();
-                long max = nonHeapMemoryUsage.getMax();
+                double used = nonHeapMemoryUsage.getUsed();
+                double max = nonHeapMemoryUsage.getMax();
                 return (used < 0 || max < 0) ? RATIO_NAN : RatioGauge.Ratio.of(used, max);
             }
         });

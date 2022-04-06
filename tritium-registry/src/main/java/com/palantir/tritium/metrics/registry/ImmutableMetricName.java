@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics.registry;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.palantir.logsafe.Preconditions;
+import com.palantir.logsafe.Safe;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -45,13 +46,13 @@ final class ImmutableMetricName {
         }
 
         @CanIgnoreReturnValue
-        public MetricName.Builder safeName(String value) {
+        public MetricName.Builder safeName(@Safe String value) {
             this.safeName = Preconditions.checkNotNull(value, "safeName");
             return (MetricName.Builder) this;
         }
 
         @CanIgnoreReturnValue
-        public MetricName.Builder putSafeTags(String key, String value) {
+        public MetricName.Builder putSafeTags(@Safe String key, @Safe String value) {
             Preconditions.checkNotNull(key, "safeTagName");
             Preconditions.checkNotNull(value, "safeTagValue");
             tagMap = tagMap.withEntry(key, value);
@@ -59,7 +60,7 @@ final class ImmutableMetricName {
         }
 
         @CanIgnoreReturnValue
-        public MetricName.Builder putSafeTags(Map.Entry<String, ? extends String> entry) {
+        public MetricName.Builder putSafeTags(@Safe Map.Entry<String, ? extends String> entry) {
             Preconditions.checkNotNull(entry, "entry");
             tagMap = tagMap.withEntry(entry.getKey(), entry.getValue());
             return (MetricName.Builder) this;
@@ -67,7 +68,7 @@ final class ImmutableMetricName {
 
         @SuppressWarnings("unchecked")
         @CanIgnoreReturnValue
-        public MetricName.Builder safeTags(Map<String, ? extends String> entries) {
+        public MetricName.Builder safeTags(@Safe Map<String, ? extends String> entries) {
             Preconditions.checkNotNull(entries, "entries");
             tagMap = TagMap.of((Map<String, String>) entries);
             return (MetricName.Builder) this;
@@ -75,7 +76,7 @@ final class ImmutableMetricName {
 
         @SuppressWarnings("unchecked")
         @CanIgnoreReturnValue
-        public MetricName.Builder putAllSafeTags(Map<String, ? extends String> entries) {
+        public MetricName.Builder putAllSafeTags(@Safe Map<String, ? extends String> entries) {
             Preconditions.checkNotNull(entries, "entries");
             if (!entries.isEmpty()) {
                 tagMap = tagMap.isEmpty()
