@@ -84,7 +84,8 @@ allprojects {
                         'Java8ApiChecker', // tritium requires JDK 11+
                         'MemberName', // false positives on ignored lambda args
                         'StaticOrDefaultInterfaceMethod', // Android specific
-                        'Var' // high noise, low signal
+                        'Var', // high noise, low signal
+                        'Varifier' // don't `var`ify everything yet
             }
         }
     })
