@@ -22,6 +22,7 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
+import com.palantir.logsafe.Safe;
 import com.palantir.logsafe.SafeArg;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -141,10 +142,10 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * @param safeTagValue a tag value which should be added to all metrics in the metrics set
      * @param metrics the metrics which should be added
      */
-    void addMetrics(String safeTagName, String safeTagValue, TaggedMetricSet metrics);
+    void addMetrics(@Safe String safeTagName, @Safe String safeTagValue, TaggedMetricSet metrics);
 
     /** Removes a TaggedMetricsSet added via addMetrics from this metrics set. */
-    Optional<TaggedMetricSet> removeMetrics(String safeTagName, String safeTagValue);
+    Optional<TaggedMetricSet> removeMetrics(@Safe String safeTagName, @Safe String safeTagValue);
 
     /**
      * Removes a TaggedMetricsSet added via addMetrics from this metrics set, if currently registered to this metric
@@ -155,5 +156,5 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      *
      * @return true if value was removed
      */
-    boolean removeMetrics(String safeTagName, String safeTagValue, TaggedMetricSet metrics);
+    boolean removeMetrics(@Safe String safeTagName, @Safe String safeTagValue, TaggedMetricSet metrics);
 }

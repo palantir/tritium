@@ -21,6 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.palantir.logsafe.Safe;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
@@ -39,16 +40,19 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     private static final String FAILURES = "failures";
 
     private final MetricRegistry metricRegistry;
+
+    @Safe
     private final String serviceName;
 
     // consider creating annotation handlers as separate objects
     private final ImmutableMap<AnnotationHelper.MethodSignature, String> metricGroups;
 
+    @Safe
     @Nullable
     private final String globalGroupPrefix;
 
     @SuppressWarnings("WeakerAccess") // public API
-    public MetricsInvocationEventHandler(MetricRegistry metricRegistry, String serviceName) {
+    public MetricsInvocationEventHandler(MetricRegistry metricRegistry, @Safe String serviceName) {
         super(getEnabledSupplier(serviceName));
         this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
@@ -60,8 +64,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry,
             Class<?> serviceClass,
-            String serviceName,
-            @Nullable String globalGroupPrefix) {
+            @Safe String serviceName,
+            @Safe @Nullable String globalGroupPrefix) {
         super(getEnabledSupplier(serviceName));
         this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
@@ -71,7 +75,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     @SuppressWarnings("WeakerAccess") // public API
     public MetricsInvocationEventHandler(
-            MetricRegistry metricRegistry, Class<?> serviceClass, @Nullable String globalGroupPrefix) {
+            MetricRegistry metricRegistry, Class<?> serviceClass, @Safe @Nullable String globalGroupPrefix) {
         this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
     }
 
