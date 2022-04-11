@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Additional safe-logging annotations on type variables
+  links:
+  - https://github.com/palantir/tritium/pull/1437
