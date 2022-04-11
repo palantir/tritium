@@ -60,7 +60,7 @@ final class ImmutableMetricName {
         }
 
         @CanIgnoreReturnValue
-        public MetricName.Builder putSafeTags(@Safe Map.Entry<String, ? extends String> entry) {
+        public MetricName.Builder putSafeTags(@Safe Map.Entry<@Safe String, @Safe ? extends String> entry) {
             Preconditions.checkNotNull(entry, "entry");
             tagMap = tagMap.withEntry(entry.getKey(), entry.getValue());
             return (MetricName.Builder) this;
@@ -68,7 +68,7 @@ final class ImmutableMetricName {
 
         @SuppressWarnings("unchecked")
         @CanIgnoreReturnValue
-        public MetricName.Builder safeTags(@Safe Map<String, ? extends String> entries) {
+        public MetricName.Builder safeTags(@Safe Map<@Safe String, @Safe ? extends String> entries) {
             Preconditions.checkNotNull(entries, "entries");
             tagMap = TagMap.of((Map<String, String>) entries);
             return (MetricName.Builder) this;
@@ -76,7 +76,7 @@ final class ImmutableMetricName {
 
         @SuppressWarnings("unchecked")
         @CanIgnoreReturnValue
-        public MetricName.Builder putAllSafeTags(@Safe Map<String, ? extends String> entries) {
+        public MetricName.Builder putAllSafeTags(@Safe Map<@Safe String, @Safe ? extends String> entries) {
             Preconditions.checkNotNull(entries, "entries");
             if (!entries.isEmpty()) {
                 tagMap = tagMap.isEmpty()
