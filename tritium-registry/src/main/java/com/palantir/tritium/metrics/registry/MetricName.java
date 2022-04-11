@@ -36,7 +36,7 @@ public interface MetricName {
      * <p>All tags and keys must be {@link Safe} to log.
      */
     @Safe
-    SortedMap<String, String> safeTags();
+    SortedMap<@Safe String, @Safe String> safeTags();
 
     static Builder builder() {
         return new Builder();
