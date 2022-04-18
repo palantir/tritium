@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Add javac exports to gradle JVM args for formatting
+  links:
+  - https://github.com/palantir/tritium/pull/1450
