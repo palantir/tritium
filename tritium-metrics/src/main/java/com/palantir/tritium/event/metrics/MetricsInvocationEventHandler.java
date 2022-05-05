@@ -19,16 +19,12 @@ package com.palantir.tritium.event.metrics;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.palantir.logsafe.Safe;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
-import com.palantir.tritium.event.metrics.annotations.AnnotationHelper;
-import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -44,59 +40,28 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     @Safe
     private final String serviceName;
 
-    // consider creating annotation handlers as separate objects
-    private final ImmutableMap<AnnotationHelper.MethodSignature, String> metricGroups;
-
-    @Safe
-    @Nullable
-    private final String globalGroupPrefix;
-
     @SuppressWarnings("WeakerAccess") // public API
     public MetricsInvocationEventHandler(MetricRegistry metricRegistry, @Safe String serviceName) {
         super(getEnabledSupplier(serviceName));
         this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
-        this.metricGroups = ImmutableMap.of();
-        this.globalGroupPrefix = null;
     }
 
     @SuppressWarnings("InconsistentOverloads")
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry,
-            Class<?> serviceClass,
+            Class<?> _serviceClass,
             @Safe String serviceName,
-            @Safe @Nullable String globalGroupPrefix) {
+            @Safe @Nullable String _globalGroupPrefix) {
         super(getEnabledSupplier(serviceName));
         this.metricRegistry = checkNotNull(metricRegistry, "metricRegistry");
         this.serviceName = checkNotNull(serviceName, "serviceName");
-        this.metricGroups = createMethodGroupMapping(checkNotNull(serviceClass));
-        this.globalGroupPrefix = Strings.emptyToNull(globalGroupPrefix);
     }
 
     @SuppressWarnings("WeakerAccess") // public API
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry, Class<?> serviceClass, @Safe @Nullable String globalGroupPrefix) {
         this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
-    }
-
-    private static ImmutableMap<AnnotationHelper.MethodSignature, String> createMethodGroupMapping(
-            Class<?> serviceClass) {
-        ImmutableMap.Builder<AnnotationHelper.MethodSignature, String> builder = ImmutableMap.builder();
-
-        MetricGroup classGroup = AnnotationHelper.getSuperTypeAnnotation(serviceClass, MetricGroup.class);
-
-        for (Method method : serviceClass.getMethods()) {
-            AnnotationHelper.MethodSignature sig = AnnotationHelper.MethodSignature.of(method);
-            MetricGroup methodGroup = AnnotationHelper.getMethodAnnotation(MetricGroup.class, serviceClass, sig);
-
-            if (methodGroup != null) {
-                builder.put(sig, methodGroup.value());
-            } else if (classGroup != null) {
-                builder.put(sig, classGroup.value());
-            }
-        }
-
-        return builder.build();
     }
 
     // explicitly qualifying BooleanSupplier types for deconfliction
@@ -114,31 +79,23 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     public void onSuccess(@Nullable InvocationContext context, @Nullable Object _result) {
         debugIfNullContext(context);
         if (context != null) {
-            long nanos = updateTimer(context);
-            handleSuccessAnnotations(context, nanos);
+            updateTimer(context);
         }
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
+    public void onFailure(@Nullable InvocationContext context, @Nonnull Throwable _cause) {
         markGlobalFailure();
         debugIfNullContext(context);
         if (context != null) {
-            String failuresMetricName = getBaseMetricName(context) + '.' + FAILURES;
-            metricRegistry.meter(failuresMetricName).mark();
-            metricRegistry
-                    .meter(failuresMetricName + '.' + cause.getClass().getName())
-                    .mark();
-            long nanos = updateTimer(context);
-            handleFailureAnnotations(context, nanos);
+            metricRegistry.meter(getBaseMetricName(context) + '.' + FAILURES).mark();
         }
     }
 
     @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
-    private long updateTimer(InvocationContext context) {
+    private void updateTimer(InvocationContext context) {
         long nanos = System.nanoTime() - context.getStartTimeNanos();
         metricRegistry.timer(getBaseMetricName(context)).update(nanos, TimeUnit.NANOSECONDS);
-        return nanos;
     }
 
     private String getBaseMetricName(InvocationContext context) {
@@ -147,38 +104,5 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
 
     private void markGlobalFailure() {
         metricRegistry.meter(FAILURES).mark();
-    }
-
-    @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
-    private void handleSuccessAnnotations(InvocationContext context, long nanos) {
-        String metricName = getAnnotatedMetricName(context);
-        if (metricName != null) {
-            metricRegistry.timer(serviceName + '.' + metricName).update(nanos, TimeUnit.NANOSECONDS);
-
-            if (globalGroupPrefix != null) {
-                metricRegistry.timer(globalGroupPrefix + '.' + metricName).update(nanos, TimeUnit.NANOSECONDS);
-            }
-        }
-    }
-
-    @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
-    private void handleFailureAnnotations(InvocationContext context, long nanos) {
-        String metricName = getAnnotatedMetricName(context);
-        if (metricName != null) {
-            metricRegistry
-                    .timer(serviceName + '.' + metricName + '.' + FAILURES)
-                    .update(nanos, TimeUnit.NANOSECONDS);
-
-            if (globalGroupPrefix != null) {
-                metricRegistry
-                        .timer(globalGroupPrefix + '.' + metricName + '.' + FAILURES)
-                        .update(nanos, TimeUnit.NANOSECONDS);
-            }
-        }
-    }
-
-    @Nullable
-    private String getAnnotatedMetricName(InvocationContext context) {
-        return metricGroups.get(AnnotationHelper.MethodSignature.of(context.getMethod()));
     }
 }

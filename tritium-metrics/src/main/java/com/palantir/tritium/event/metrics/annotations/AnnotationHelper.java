@@ -18,15 +18,17 @@ package com.palantir.tritium.event.metrics.annotations;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
-import com.google.common.annotations.VisibleForTesting;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Set;
 import javax.annotation.Nullable;
 
+/**
+ * Do not use, will be removed in future release.
+ * @deprecated Do not use, will be removed in future release.
+ */
+@Deprecated
+@SuppressWarnings("InlineMeSuggester") // this will just go away
 public final class AnnotationHelper {
 
     private AnnotationHelper() {
@@ -34,74 +36,29 @@ public final class AnnotationHelper {
     }
 
     /**
-     * Annotation as implemented on passed in type or parent of that type, works for both super classes and interfaces.
-     *
-     * @param clazz - Class type to scan for annotations
-     * @param annotation - Annotation type to scan for
-     * @return - First matching annotation found in depth first search, or null if not found
+     * Do not use, will be removed in future release.
+     * @return always null
+     * @deprecated Do not use, will be removed in future release.
      */
+    @Deprecated
     @Nullable
-    public static <T extends Annotation> T getSuperTypeAnnotation(Class<?> clazz, Class<T> annotation) {
-        if (clazz.isAnnotationPresent(annotation)) {
-            return clazz.getAnnotation(annotation);
-        }
-
-        for (Class<?> ifaces : getParentClasses(clazz)) {
-            T superAnnotation = getSuperTypeAnnotation(ifaces, annotation);
-            if (superAnnotation != null) {
-                return superAnnotation;
-            }
-        }
-
+    public static <T extends Annotation> T getSuperTypeAnnotation(Class<?> _clazz, Class<T> _annotation) {
         return null;
     }
 
     /**
-     * Depth first search up the Type hierarchy to find a matching annotation, Types which do not implement the
-     * specified method signature are ignored.
-     *
-     * @param annotation - Annotation type to scan for
-     * @param clazz - Class type to scan for matching annotations
-     * @param methodSignature - Method to search annotation for
-     * @return - First found matching annotation or null
+     * Do not use, will be removed in future release.
+     * @return always null
+     * @deprecated Do not use, will be removed in future release.
      */
+    @Deprecated
     @Nullable
     public static <T extends Annotation> T getMethodAnnotation(
-            Class<T> annotation, Class<?> clazz, MethodSignature methodSignature) {
-        Method method;
-        try {
-            method = clazz.getMethod(methodSignature.getMethodName(), methodSignature.getParameterTypes());
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
-
-        if (method.isAnnotationPresent(annotation)) {
-            return method.getAnnotation(annotation);
-        }
-
-        for (Class<?> iface : getParentClasses(clazz)) {
-            T foundAnnotation = getMethodAnnotation(annotation, iface, methodSignature);
-            if (foundAnnotation != null) {
-                return foundAnnotation;
-            }
-        }
-
+            Class<T> _annotation, Class<?> _clazz, MethodSignature _methodSignature) {
         return null;
     }
 
-    @VisibleForTesting
-    private static Set<Class<?>> getParentClasses(Class<?> clazz) {
-        Set<Class<?>> parentClasses = Collections.newSetFromMap(new IdentityHashMap<>());
-        parentClasses.addAll(Arrays.asList(clazz.getInterfaces()));
-        Class<?> superclass = clazz.getSuperclass();
-        while (superclass != null) {
-            parentClasses.addAll(Arrays.asList(superclass.getInterfaces()));
-            parentClasses.add(superclass);
-            superclass = superclass.getSuperclass();
-        }
-        return parentClasses;
-    }
-
+    @Deprecated
     public static final class MethodSignature {
         private final String methodName;
         private final Class<?>[] parameterTypes;

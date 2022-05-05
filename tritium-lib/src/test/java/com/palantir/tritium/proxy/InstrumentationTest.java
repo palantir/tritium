@@ -48,7 +48,6 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.event.log.LoggingInvocationEventHandler;
 import com.palantir.tritium.event.metrics.MetricsInvocationEventHandler;
 import com.palantir.tritium.event.metrics.TaggedMetricsServiceInvocationEventHandler;
-import com.palantir.tritium.event.metrics.annotations.MetricGroup;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
@@ -79,17 +78,6 @@ import org.slf4j.LoggerFactory;
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings({"NullAway", "SystemOut", "WeakerAccess"}) // mock injection, dumping metrics to standard out
 public abstract class InstrumentationTest {
-
-    @MetricGroup("DEFAULT")
-    public interface AnnotatedInterface {
-        @MetricGroup("ONE")
-        void method();
-
-        @MetricGroup("ONE")
-        void otherMethod();
-
-        void defaultMethod();
-    }
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
 
@@ -175,38 +163,6 @@ public abstract class InstrumentationTest {
                 .withLoggingLevel(LoggingLevel.INFO)
                 .build()
                 .report();
-    }
-
-    @Test
-    void testMetricGroupBuilder() {
-        AnnotatedInterface delegate = mock(AnnotatedInterface.class);
-        String globalPrefix = "com.business.service";
-
-        MetricRegistry metricRegistry = MetricRegistries.createWithHdrHistogramReservoirs();
-
-        AnnotatedInterface instrumentedService = Instrumentation.builder(AnnotatedInterface.class, delegate)
-                .withMetrics(metricRegistry, globalPrefix)
-                .withPerformanceTraceLogging()
-                .build();
-        // call
-        instrumentedService.method();
-        instrumentedService.otherMethod();
-        instrumentedService.defaultMethod();
-
-        assertThat(metricRegistry
-                        .timer(AnnotatedInterface.class.getName() + ".ONE")
-                        .getCount())
-                .isEqualTo(2L);
-        assertThat(metricRegistry.timer(globalPrefix + ".ONE").getCount()).isEqualTo(2L);
-        assertThat(metricRegistry
-                        .timer(AnnotatedInterface.class.getName() + ".DEFAULT")
-                        .getCount())
-                .isOne();
-        assertThat(metricRegistry.timer(globalPrefix + ".DEFAULT").getCount()).isOne();
-        assertThat(metricRegistry
-                        .timer(AnnotatedInterface.class.getName() + ".method")
-                        .getCount())
-                .isOne();
     }
 
     private void executeManyTimes(TestInterface instrumentedService, int invocations) {

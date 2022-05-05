@@ -166,10 +166,6 @@ public class TritiumTest {
                         .meter(MetricRegistry.name(methodMetricName, "failures"))
                         .getCount())
                 .isOne();
-        assertThat(metricRegistry
-                        .meter(MetricRegistry.name(methodMetricName, "failures", "java.lang.OutOfMemoryError"))
-                        .getCount())
-                .isOne();
     }
 
     @Test
