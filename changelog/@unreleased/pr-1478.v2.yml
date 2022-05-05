@@ -1,0 +1,10 @@
+type: deprecation
+deprecation:
+  description: |-
+    Remove unused @MetricGroup annotation helpers
+
+    This was never used and the code for it has rotted, so time to purge.
+    The @MetricGroup annotation still exists to prevent any immediate ABI
+    breaks, but have been deprecated and will be removed in future.
+  links:
+  - https://github.com/palantir/tritium/pull/1478
