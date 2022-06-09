@@ -5,6 +5,8 @@ buildscript {
     }
 
     dependencies {
+        classpath 'com.palantir.gradle.jdks:gradle-jdks:0.16.0'
+        classpath 'com.palantir.gradle.jdkslatest:gradle-jdks-latest:0.1.0'
         classpath 'com.google.errorprone:error_prone_core:2.14.0'
         classpath 'com.palantir.baseline:gradle-baseline-java:4.143.0'
         classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.11.0'
@@ -24,6 +26,7 @@ apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'com.palantir.git-version'
 apply plugin: 'com.palantir.baseline-java-versions'
+apply plugin: 'com.palantir.jdks.latest'
 
 javaVersions {
     libraryTarget = 11
