@@ -18,13 +18,14 @@ package com.palantir.tritium.proxy;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
 @SuppressWarnings("PreferSafeLoggingPreconditions") // this module depends only on JDK
 public final class Proxies {
+
+    private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class<?>[0];
 
     private Proxies() {}
 
@@ -59,27 +60,27 @@ public final class Proxies {
         checkIsInterface(iface);
         Objects.requireNonNull(delegateClass, "delegateClass");
 
-        Set<Class<?>> interfaces = new LinkedHashSet<>();
-        interfaces.add(iface);
         if (delegateClass.isInterface()) {
-            interfaces.add(delegateClass);
-        } else {
-            interfaces.addAll(Arrays.asList(delegateClass.getInterfaces()));
+            if (iface.equals(delegateClass)) {
+                return new Class<?>[] {iface};
+            }
+            return new Class<?>[] {iface, delegateClass};
         }
 
-        checkAreAllInterfaces(interfaces);
-        return interfaces.toArray(new Class<?>[0]);
+        Class<?>[] delegateInterfaces = delegateClass.getInterfaces();
+        int expectedSize = delegateInterfaces.length + 1;
+        Set<Class<?>> interfaces = new LinkedHashSet<>((int) ((float) expectedSize / 0.75F + 1.0F));
+        interfaces.add(iface);
+        for (Class<?> possibleInterface : delegateInterfaces) {
+            interfaces.add(checkIsInterface(possibleInterface));
+        }
+        return interfaces.toArray(EMPTY_CLASS_ARRAY);
     }
 
-    static void checkIsInterface(Class<?> iface) {
+    static Class<?> checkIsInterface(Class<?> iface) {
         if (!iface.isInterface()) {
             throw new IllegalArgumentException(iface + " is not an interface");
         }
-    }
-
-    static void checkAreAllInterfaces(Iterable<Class<?>> interfaces) {
-        for (Class<?> possibleInterface : interfaces) {
-            checkIsInterface(possibleInterface);
-        }
+        return iface;
     }
 }

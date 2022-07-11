@@ -5,7 +5,6 @@ dependencies {
 
     testImplementation project(':tritium-test')
 
-    testImplementation 'com.google.guava:guava'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
