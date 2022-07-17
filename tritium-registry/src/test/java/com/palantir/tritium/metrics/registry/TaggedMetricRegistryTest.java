@@ -112,12 +112,12 @@ final class TaggedMetricRegistryTest {
         Gauge<Integer> gauge1 = intGauge(1);
         registry.registerWithReplacement(METRIC_1, gauge1);
         assertThat(registry.getMetrics().get(METRIC_1))
-                .isSameAs(registry.gauge(METRIC_1).get())
+                .isSameAs(registry.gauge(METRIC_1).orElseThrow())
                 .isSameAs(gauge1);
         Gauge<Integer> gauge2 = intGauge(2);
         registry.registerWithReplacement(METRIC_2, gauge2);
         assertThat(registry.getMetrics().get(METRIC_2))
-                .isSameAs(registry.gauge(METRIC_2).get())
+                .isSameAs(registry.gauge(METRIC_2).orElseThrow())
                 .isSameAs(gauge2);
 
         assertThat(gauge1.getValue()).isOne();
@@ -125,27 +125,27 @@ final class TaggedMetricRegistryTest {
 
         assertThat(gauge1).isNotSameAs(gauge2);
         assertThat(registry.gauge(METRIC_1, intGauge(3)))
-                .isSameAs(registry.gauge(METRIC_1).get())
+                .isSameAs(registry.gauge(METRIC_1).orElseThrow())
                 .isSameAs(gauge1);
         assertThat(registry.getMetrics().get(METRIC_1))
-                .isSameAs(registry.gauge(METRIC_1).get())
+                .isSameAs(registry.gauge(METRIC_1).orElseThrow())
                 .isSameAs(gauge1);
         Gauge<Integer> gauge3 = intGauge(3);
         registry.registerWithReplacement(METRIC_1, gauge3);
         assertThat(registry.getMetrics().get(METRIC_1))
-                .isSameAs(registry.gauge(METRIC_1).get())
+                .isSameAs(registry.gauge(METRIC_1).orElseThrow())
                 .isSameAs(gauge3);
 
         assertThat(registry.gauge(METRIC_2, intGauge(4)))
-                .isSameAs(registry.gauge(METRIC_2).get())
+                .isSameAs(registry.gauge(METRIC_2).orElseThrow())
                 .isSameAs(gauge2);
         assertThat(registry.getMetrics().get(METRIC_2))
-                .isSameAs(registry.gauge(METRIC_2).get())
+                .isSameAs(registry.gauge(METRIC_2).orElseThrow())
                 .isSameAs(gauge2);
         Gauge<Integer> gauge4 = intGauge(4);
         registry.registerWithReplacement(METRIC_2, gauge4);
         assertThat(registry.getMetrics().get(METRIC_2))
-                .isSameAs(registry.gauge(METRIC_2).get())
+                .isSameAs(registry.gauge(METRIC_2).orElseThrow())
                 .isSameAs(gauge4);
     }
 
