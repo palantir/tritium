@@ -67,6 +67,7 @@ allprojects {
 
             options.errorprone {
                 option('NullAway:AnnotatedPackages', 'com.palantir')
+                option('NullAway:CheckOptionalEmptiness', 'true')
 
                 // warnings not explicitly provided by error-prone
                 error 'NullAway',
