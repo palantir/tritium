@@ -56,9 +56,17 @@ class TagMapTest {
         TagMap original = TagMap.of(Collections.singletonMap("foo", "bar"));
         TagMap updated = original.withEntry("foo", "baz");
         assertThat(updated)
+                .hasSize(1)
+                .containsEntry("foo", "baz")
                 .isEqualTo(ImmutableMap.of("foo", "baz"))
                 .as("Original must not be mutated")
-                .isNotSameAs(original);
+                .isNotSameAs(original)
+                .isNotEqualTo(original);
+        assertThat(original)
+                .hasSize(1)
+                .as("Original must not be mutated")
+                .containsEntry("foo", "bar")
+                .isNotEqualTo(updated);
     }
 
     @Test
