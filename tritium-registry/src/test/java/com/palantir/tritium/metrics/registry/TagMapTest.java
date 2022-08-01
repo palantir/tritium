@@ -17,8 +17,8 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -53,12 +53,22 @@ class TagMapTest {
 
     @Test
     void testExtraEntryKeyAlreadyExists() {
-        TagMap map = TagMap.of(Collections.singletonMap("foo", "bar"));
-        assertThatThrownBy(() -> map.withEntry("foo", "baz")).isInstanceOf(IllegalArgumentException.class);
+        TagMap original = TagMap.of(Collections.singletonMap("foo", "bar"));
+        TagMap updated = original.withEntry("foo", "baz");
+        assertThat(updated)
+                .isEqualTo(ImmutableMap.of("foo", "baz"))
+                .as("Original must not be mutated")
+                .isNotSameAs(original);
     }
 
     @Test
-    public void testNaturalOrder() {
+    void testUpdateWithExisting() {
+        TagMap map = TagMap.EMPTY.withEntry("foo", "bar");
+        assertThat(map.withEntry("foo", "bar")).isSameAs(map);
+    }
+
+    @Test
+    void testNaturalOrder() {
         assertThat(TagMap.isNaturalOrder(Ordering.natural())).isTrue();
         assertThat(TagMap.isNaturalOrder(Comparator.naturalOrder())).isTrue();
 
