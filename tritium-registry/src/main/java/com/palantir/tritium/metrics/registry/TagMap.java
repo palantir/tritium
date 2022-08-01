@@ -113,7 +113,7 @@ final class TagMap implements SortedMap<String, String> {
         return values;
     }
 
-    /** Returns a new {@link TagMap} with on additional entry. */
+    /** Returns a new {@link TagMap} with on additional or updated entry. */
     TagMap withEntry(String key, String value) {
         String[] local = this.values;
         int newPosition = 0;
