@@ -18,7 +18,6 @@ package com.palantir.tritium.metrics.registry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
-import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -114,7 +113,7 @@ final class TagMap implements SortedMap<String, String> {
         return values;
     }
 
-    /** Returns a new {@link TagMap} with on additional entry. */
+    /** Returns a new {@link TagMap} with an additional or updated entry. */
     TagMap withEntry(String key, String value) {
         String[] local = this.values;
         int newPosition = 0;
@@ -122,7 +121,12 @@ final class TagMap implements SortedMap<String, String> {
             String current = local[newPosition];
             int comparisonResult = current.compareTo(key);
             if (comparisonResult == 0) {
-                throw new SafeIllegalArgumentException("Base must not contain the extra key that is to be added");
+                if (Objects.equals(local[newPosition + 1], value)) {
+                    return this;
+                }
+                String[] newArray = local.clone();
+                newArray[newPosition + 1] = value;
+                return new TagMap(newArray);
             }
             if (comparisonResult > 0) {
                 break;

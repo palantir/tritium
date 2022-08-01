@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: MetricName TagMap supports replacement of existing entries
+  links:
+  - https://github.com/palantir/tritium/pull/1537
