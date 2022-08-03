@@ -456,8 +456,8 @@ final class MetricRegistriesTest {
         assertThat(registry.getMetrics().keySet())
                 .filteredOn(metricName -> metricName.safeName().equals("jvm.gc.finalizer.queue.size"))
                 .hasSize(1)
-                .allSatisfy(metricName ->
-                        assertThat(metricName.safeTags()).containsOnlyKeys("libraryName", "libraryVersion"));
+                .allSatisfy(metricName -> assertThat(metricName.safeTags())
+                        .containsOnlyKeys("libraryName", "libraryVersion", "javaVersion"));
     }
 
     @Test
