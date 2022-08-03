@@ -451,7 +451,7 @@ final class MetricRegistriesTest {
                 .filteredOn(metricName -> metricName.safeName().startsWith("jvm.gc.time")
                         || metricName.safeName().startsWith("jvm.gc.count"))
                 .allSatisfy(metricName -> assertThat(metricName.safeTags())
-                        .containsOnlyKeys("collector", "libraryName", "libraryVersion"));
+                        .containsOnlyKeys("collector", "libraryName", "libraryVersion", "javaVersion"));
 
         assertThat(registry.getMetrics().keySet())
                 .filteredOn(metricName -> metricName.safeName().equals("jvm.gc.finalizer.queue.size"))
@@ -466,7 +466,8 @@ final class MetricRegistriesTest {
         MetricRegistries.registerMemoryPools(registry);
         assertThat(registry.getMetrics().keySet()).allSatisfy(metricName -> {
             assertThat(metricName.safeName()).matches("jvm\\.memory\\.pools\\..+");
-            assertThat(metricName.safeTags()).containsOnlyKeys("memoryPool", "libraryName", "libraryVersion");
+            assertThat(metricName.safeTags())
+                    .containsOnlyKeys("memoryPool", "libraryName", "libraryVersion", "javaVersion");
         });
         // n.b. Test does not check for 'used-after-gc' because it depends on the runtime
         assertThat(registry.getMetrics().keySet())
