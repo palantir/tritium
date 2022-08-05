@@ -58,7 +58,7 @@ class TagMapTest {
         assertThat(updated)
                 .hasSize(1)
                 .containsEntry("foo", "baz")
-                .isEqualTo(ImmutableMap.of("foo", "baz"))
+                .containsExactlyInAnyOrderEntriesOf(ImmutableMap.of("foo", "baz"))
                 .as("Original must not be mutated")
                 .isNotSameAs(original)
                 .isNotEqualTo(original);
