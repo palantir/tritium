@@ -1,0 +1,6 @@
+type: feature
+feature:
+  description: The `uptime` metric now has an additional tag `enablePreview` which
+    signifies if the `--enable-preview` flag is passed to java at runtime or not.
+  links:
+  - https://github.com/palantir/tritium/pull/1548
