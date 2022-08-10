@@ -26,6 +26,7 @@ import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.logger.SafeLogger;
 import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.metrics.MetricRegistries;
+import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.AttributeUptime_EnablePreview;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
@@ -80,6 +81,10 @@ public final class JvmMetrics {
                 .javaRuntimeVersion(System.getProperty("java.runtime.version", "unknown"))
                 .javaVendorVersion(System.getProperty("java.vendor.version", "unknown"))
                 .javaVmVendor(System.getProperty("java.vm.vendor", "unknown"))
+                .enablePreview(
+                        runtimeMxBean.getInputArguments().contains("--enable-preview")
+                                ? AttributeUptime_EnablePreview.TRUE
+                                : AttributeUptime_EnablePreview.FALSE)
                 .build(runtimeMxBean::getUptime);
     }
 

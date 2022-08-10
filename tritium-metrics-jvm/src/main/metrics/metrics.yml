@@ -31,16 +31,23 @@ namespaces:
       attribute.uptime:
         type: gauge
         docs: |
-          Provides the Java virtual machine uptime value in milliseconds. Example tags:
-          javaSpecificationVersion = 11, javaVersion = 11.0.3, javaVersionDate = 2019-04-16,
-          javaRuntimeVersion = 11.0.3+7-LTS, javaVendorVersion = Zulu11.31+11-CA, javaVmVendor = Azul Systems, Inc.
+          Provides the Java virtual machine uptime value in milliseconds.
         tags:
-        - javaSpecificationVersion
-        - javaVersion
-        - javaVersionDate
-        - javaRuntimeVersion
-        - javaVendorVersion
-        - javaVmVendor
+        - name: javaSpecificationVersion
+          docs: "Example: 11"
+        - name: javaVersion
+          docs: "Example: 11.0.3"
+        - name: javaVersionDate
+          docs: "Example: 2019-04-16"
+        - name: javaRuntimeVersion
+          docs: "Example: 11.0.3+7-LTS"
+        - name: javaVendorVersion
+          docs: "Example: Zulu11.31+11-CA"
+        - name: javaVmVendor
+          docs: "Example: Azul Systems, Inc."
+        - name: enablePreview
+          docs: "Whether the JVM is running with --enable-preview (see https://openjdk.org/jeps/12 )"
+          values: [true, false]
       classloader.loaded:
         type: gauge
         docs: Total number of classes that have been loaded since the jvm started.
