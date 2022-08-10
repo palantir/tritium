@@ -27,7 +27,7 @@ import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
+import com.palantir.logsafe.Safe;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.util.Map;
@@ -47,7 +47,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     private static final Supplier<Logger> log =
             Suppliers.memoize(() -> LoggerFactory.getLogger(AbstractTaggedMetricRegistry.class));
     private final Map<MetricName, Metric> registry = new ConcurrentHashMap<>();
-    private final Map<Map.Entry<String, String>, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
+    private final Map<TagMap, TaggedMetricSet> taggedRegistries = new ConcurrentHashMap<>();
     private final Supplier<Reservoir> reservoirSupplier;
 
     @SuppressWarnings("PublicConstructorForAbstractClass") // public API (e.g. used by Dialogue TaggedMetrics)
@@ -179,8 +179,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
         ImmutableMap.Builder<MetricName, Metric> result = ImmutableMap.builder();
         result.putAll(registry);
         taggedRegistries.forEach((tag, metrics) -> metrics.getMetrics()
-                .forEach((metricName, metric) ->
-                        result.put(RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
+                .forEach((metricName, metric) -> result.put(RealMetricName.create(metricName, tag), metric)));
 
         return result.build();
     }
@@ -188,8 +187,8 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     @Override
     public final void forEachMetric(BiConsumer<MetricName, Metric> consumer) {
         registry.forEach(consumer);
-        taggedRegistries.forEach((tag, metrics) -> metrics.forEachMetric((metricName, metric) ->
-                consumer.accept(RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
+        taggedRegistries.forEach((tag, metrics) -> metrics.forEachMetric(
+                (metricName, metric) -> consumer.accept(RealMetricName.create(metricName, tag), metric)));
     }
 
     @Override
@@ -199,17 +198,22 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     @Override
     public final void addMetrics(String safeTagName, String safeTagValue, TaggedMetricSet other) {
-        taggedRegistries.put(Maps.immutableEntry(safeTagName, safeTagValue), other);
+        taggedRegistries.put(TagMap.of(safeTagName, safeTagValue), other);
+    }
+
+    @Override
+    public final void addMetrics(Map<@Safe String, @Safe String> tags, TaggedMetricSet metrics) {
+        taggedRegistries.put(TagMap.of(tags), metrics);
     }
 
     @Override
     public final Optional<TaggedMetricSet> removeMetrics(String safeTagName, String safeTagValue) {
-        return Optional.ofNullable(taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue)));
+        return Optional.ofNullable(taggedRegistries.remove(TagMap.of(safeTagName, safeTagValue)));
     }
 
     @Override
     public final boolean removeMetrics(String safeTagName, String safeTagValue, TaggedMetricSet metrics) {
-        return taggedRegistries.remove(Maps.immutableEntry(safeTagName, safeTagValue), metrics);
+        return taggedRegistries.remove(TagMap.of(safeTagName, safeTagValue), metrics);
     }
 
     protected final <T extends Metric> T getOrAdd(

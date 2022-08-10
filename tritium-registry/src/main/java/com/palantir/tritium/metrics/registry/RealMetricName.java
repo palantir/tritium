@@ -90,6 +90,10 @@ final class RealMetricName implements MetricName {
         return new RealMetricName(other.safeName(), withEntry(other.safeTags(), extraTagName, extraTagValue));
     }
 
+    public static RealMetricName create(MetricName metricName, TagMap tag) {
+        return new RealMetricName(metricName.safeName(), tag.withEntries(metricName.safeTags()));
+    }
+
     private static TagMap withEntry(SortedMap<String, String> tags, String extraTagName, String extraTagValue) {
         if (tags instanceof TagMap) {
             return ((TagMap) tags).withEntry(extraTagName, extraTagValue);

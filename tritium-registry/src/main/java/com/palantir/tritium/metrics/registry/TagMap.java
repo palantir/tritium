@@ -18,6 +18,8 @@ package com.palantir.tritium.metrics.registry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
+import com.palantir.logsafe.Preconditions;
+import com.palantir.logsafe.Safe;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,12 +41,12 @@ import javax.annotation.Nullable;
 /**
  * {@link TagMap} is a {@link SortedMap} implementation optimized for creation performance and memory overhead.
  * Primarily optimized to retain as little memory as possible, and create small short-lived intermediate objects.
- *
+ * <p>
  * Note that we expect fairly small tag maps which are iterated over, not used for lookups. Most {@link Map}
  * methods are implemented, but use a naive linear search rather than a binary search.
  */
 @SuppressWarnings("JdkObsolete")
-final class TagMap implements SortedMap<String, String> {
+final class TagMap implements SortedMap<@Safe String, @Safe String> {
 
     static final TagMap EMPTY = new TagMap(new String[0]);
 
@@ -53,9 +55,9 @@ final class TagMap implements SortedMap<String, String> {
      * Keys are sorted alphabetically.
      * {@code ["a", "one", "b", "two"]} represents map {@code {"a"="one", "b"="two"}}.
      */
-    private final String[] values;
+    private final @Safe String[] values;
 
-    static TagMap of(Map<String, String> data) {
+    static TagMap of(Map<@Safe String, @Safe String> data) {
         if (data instanceof TagMap) {
             return (TagMap) data;
         }
@@ -69,6 +71,11 @@ final class TagMap implements SortedMap<String, String> {
             }
         }
         return new TagMap(toArray(data));
+    }
+
+    static TagMap of(@Safe String tag, @Safe String value) {
+        return new TagMap(
+                new String[] {Preconditions.checkNotNull(tag, "tag"), Preconditions.checkNotNull(value, "value")});
     }
 
     private TagMap(String[] values) {
@@ -139,6 +146,14 @@ final class TagMap implements SortedMap<String, String> {
         newArray[newPosition + 1] = value;
         System.arraycopy(local, newPosition, newArray, newPosition + 2, local.length - newPosition);
         return new TagMap(newArray);
+    }
+
+    TagMap withEntries(SortedMap<@Safe String, @Safe String> entries) {
+        TagMap tagMap = this;
+        for (Map.Entry<String, String> entry : entries.entrySet()) {
+            tagMap = tagMap.withEntry(entry.getKey(), entry.getValue());
+        }
+        return tagMap;
     }
 
     @Nullable
@@ -358,13 +373,13 @@ final class TagMap implements SortedMap<String, String> {
 
     @Nonnull
     @Override
-    public Set<Entry<String, String>> entrySet() {
+    public Set<Entry<@Safe String, @Safe String>> entrySet() {
         return new TagMapEntrySet(values);
     }
 
-    private static final class TagMapEntrySet implements Set<Entry<String, String>> {
+    private static final class TagMapEntrySet implements Set<Entry<@Safe String, @Safe String>> {
 
-        private final String[] values;
+        private final @Safe String[] values;
 
         TagMapEntrySet(String[] values) {
             this.values = values;

@@ -24,6 +24,7 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import com.palantir.logsafe.Safe;
 import com.palantir.logsafe.SafeArg;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.slf4j.LoggerFactory;
@@ -143,6 +144,8 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * @param metrics the metrics which should be added
      */
     void addMetrics(@Safe String safeTagName, @Safe String safeTagValue, TaggedMetricSet metrics);
+
+    void addMetrics(Map<@Safe String, @Safe String> tags, TaggedMetricSet metrics);
 
     /** Removes a TaggedMetricsSet added via addMetrics from this metrics set. */
     Optional<TaggedMetricSet> removeMetrics(@Safe String safeTagName, @Safe String safeTagValue);
