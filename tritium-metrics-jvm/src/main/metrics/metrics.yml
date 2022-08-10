@@ -46,7 +46,7 @@ namespaces:
         - name: javaVmVendor
           docs: "Example: Azul Systems, Inc."
         - name: enablePreview
-          docs: "Whether the JVM is running with --enable-preview (see JEP 12)"
+          docs: "Whether the JVM is running with --enable-preview (see https://openjdk.org/jeps/12 )"
           values: [true, false]
       classloader.loaded:
         type: gauge
