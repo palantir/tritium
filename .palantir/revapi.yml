@@ -5,3 +5,9 @@ acceptedBreaks:
       old: "class com.palantir.tritium.metrics.registry.MetricName.Builder"
       new: "class com.palantir.tritium.metrics.registry.MetricName.Builder"
       justification: "MetricName.Builder is final"
+  "0.51.0":
+    com.palantir.tritium:tritium-registry:
+    - code: "java.method.addedToInterface"
+      new: "method void com.palantir.tritium.metrics.registry.TaggedMetricRegistry::addMetrics(java.util.Map<java.lang.String,\
+        \ java.lang.String>, com.palantir.tritium.metrics.registry.TaggedMetricSet)"
+      justification: "Provide default implementation via AbstractTaggedMetricRegistry"
