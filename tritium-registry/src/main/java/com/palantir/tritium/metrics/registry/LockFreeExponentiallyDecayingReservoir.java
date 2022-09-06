@@ -22,6 +22,7 @@ import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.WeightedSnapshot;
 import com.codahale.metrics.WeightedSnapshot.WeightedSample;
 import com.google.common.annotations.Beta;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
@@ -250,6 +251,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
          * Maximum number of samples to keep in the reservoir. Once this number is reached older samples are
          * replaced (based on weight, with some amount of random jitter).
          */
+        @CanIgnoreReturnValue
         public Builder size(int value) {
             if (value <= 0) {
                 throw new SafeIllegalArgumentException(
@@ -262,6 +264,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         /**
          * Alpha is the exponential decay factor. Higher values bias results more heavily toward newer values.
          */
+        @CanIgnoreReturnValue
         public Builder alpha(double value) {
             this.alpha = value;
             return this;
@@ -270,6 +273,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         /**
          * Interval at which this reservoir is rescaled.
          */
+        @CanIgnoreReturnValue
         public Builder rescaleThreshold(Duration value) {
             this.rescaleThreshold = Preconditions.checkNotNull(value, "rescaleThreshold is required");
             return this;
@@ -278,6 +282,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         /**
          * Clock instance used for decay.
          */
+        @CanIgnoreReturnValue
         public Builder clock(Clock value) {
             this.clock = Preconditions.checkNotNull(value, "clock is required");
             return this;

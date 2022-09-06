@@ -21,6 +21,8 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.InlineMe;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.InstrumentationFilters;
@@ -43,6 +45,7 @@ public final class Instrumentation {
 
     private Instrumentation() {}
 
+    @CheckReturnValue
     static <T, U extends T> T wrap(
             Class<T> interfaceClass,
             U delegate,
@@ -75,6 +78,7 @@ public final class Instrumentation {
                     "Instrumentation.wrap(interfaceClass, delegate, handlers, InstrumentationFilters.INSTRUMENT_ALL)",
             imports = {"com.palantir.tritium.event.InstrumentationFilters", "com.palantir.tritium.proxy.Instrumentation"
             })
+    @CheckReturnValue
     @Deprecated
     static <T, U extends T> T wrap(
             Class<T> interfaceClass, U delegate, List<InvocationEventHandler<InvocationContext>> handlers) {
@@ -92,7 +96,8 @@ public final class Instrumentation {
      * @deprecated use {@link com.palantir.tritium.Tritium#instrument(Class, Object, MetricRegistry)}
      */
     @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
+    @CheckReturnValue
+    @SuppressWarnings({"InlineMeSuggester", "CanIgnoreReturnValueSuggester"})
     public static <T, U extends T> T instrument(Class<T> serviceInterface, U delegate, MetricRegistry metricRegistry) {
         return builder(serviceInterface, delegate)
                 .withFilter(InstrumentationFilters.INSTRUMENT_ALL)
@@ -105,6 +110,7 @@ public final class Instrumentation {
         return LoggerFactory.getLogger("performance." + serviceInterface.getName());
     }
 
+    @CheckReturnValue
     public static <T, U extends T> Builder<T, U> builder(Class<T> interfaceClass, U delegate) {
         return new Builder<>(interfaceClass, delegate);
     }
@@ -130,6 +136,7 @@ public final class Instrumentation {
          * @param globalPrefix - Metrics name prefix to be used
          * @return - InstrumentationBuilder
          */
+        @CanIgnoreReturnValue
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry, String globalPrefix) {
             checkNotNull(metricRegistry, "metricRegistry");
             this.handlers.add(new MetricsInvocationEventHandler(
@@ -137,6 +144,7 @@ public final class Instrumentation {
             return this;
         }
 
+        @CanIgnoreReturnValue
         public Builder<T, U> withMetrics(MetricRegistry metricRegistry) {
             return withMetrics(metricRegistry, "");
         }
@@ -151,6 +159,7 @@ public final class Instrumentation {
          * @param prefix - Metrics name prefix to be used
          * @return - InstrumentationBuilder
          */
+        @CanIgnoreReturnValue
         public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry, String prefix) {
             checkNotNull(metricRegistry, "metricRegistry");
             String serviceName = Strings.isNullOrEmpty(prefix) ? interfaceClass.getName() : prefix;
@@ -158,10 +167,12 @@ public final class Instrumentation {
             return this;
         }
 
+        @CanIgnoreReturnValue
         public Builder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry) {
             return withTaggedMetrics(metricRegistry, "");
         }
 
+        @CanIgnoreReturnValue
         public Builder<T, U> withPerformanceTraceLogging() {
             return withLogging(getPerformanceLoggerForInterface(interfaceClass), LoggingLevel.TRACE, (LongPredicate)
                     LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND);
@@ -173,6 +184,7 @@ public final class Instrumentation {
          * @deprecated use {@link #withLogging(Logger, LoggingLevel, java.util.function.LongPredicate)}
          */
         @Deprecated
+        @CanIgnoreReturnValue
         @SuppressWarnings({"FunctionalInterfaceClash", "InlineMeSuggester"}) // back compat
         public Builder<T, U> withLogging(
                 Logger logger,
@@ -181,28 +193,33 @@ public final class Instrumentation {
             return withLogging(logger, loggingLevel, (LongPredicate) durationPredicate);
         }
 
+        @CanIgnoreReturnValue
         @SuppressWarnings("FunctionalInterfaceClash")
         public Builder<T, U> withLogging(Logger logger, LoggingLevel loggingLevel, LongPredicate durationPredicate) {
             this.handlers.add(new LoggingInvocationEventHandler(logger, loggingLevel, durationPredicate));
             return this;
         }
 
+        @CanIgnoreReturnValue
         public Builder<T, U> withHandler(InvocationEventHandler<InvocationContext> handler) {
             checkNotNull(handler, "handler");
             return withHandlers(Collections.singleton(handler));
         }
 
+        @CanIgnoreReturnValue
         public Builder<T, U> withHandlers(Iterable<InvocationEventHandler<InvocationContext>> additionalHandlers) {
             checkNotNull(additionalHandlers, "additionalHandlers");
             this.handlers.addAll(additionalHandlers);
             return this;
         }
 
+        @CanIgnoreReturnValue
         public Builder<T, U> withFilter(InstrumentationFilter instrumentationFilter) {
             this.filter = checkNotNull(instrumentationFilter, "instrumentationFilter");
             return this;
         }
 
+        @CheckReturnValue
         public T build() {
             return wrap(interfaceClass, delegate, handlers.build(), filter);
         }

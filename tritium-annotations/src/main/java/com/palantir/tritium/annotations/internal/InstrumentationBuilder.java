@@ -18,6 +18,8 @@ package com.palantir.tritium.annotations.internal;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.errorprone.annotations.CheckReturnValue;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.CompositeInvocationEventHandler;
 import com.palantir.tritium.event.InstrumentationFilters;
@@ -59,6 +61,7 @@ public final class InstrumentationBuilder<T, U extends T> {
      * @param prefix - Metrics name prefix to be used
      * @return - InstrumentationBuilder
      */
+    @CanIgnoreReturnValue
     public InstrumentationBuilder<T, U> withTaggedMetrics(
             TaggedMetricRegistry metricRegistry, @Nullable String prefix) {
         checkNotNull(metricRegistry, "metricRegistry");
@@ -66,10 +69,12 @@ public final class InstrumentationBuilder<T, U extends T> {
         return withHandler(new TaggedMetricsServiceInvocationEventHandler(metricRegistry, serviceName));
     }
 
+    @CanIgnoreReturnValue
     public InstrumentationBuilder<T, U> withTaggedMetrics(TaggedMetricRegistry metricRegistry) {
         return withTaggedMetrics(metricRegistry, "");
     }
 
+    @CanIgnoreReturnValue
     public InstrumentationBuilder<T, U> withPerformanceTraceLogging() {
         return withLogging(
                 getPerformanceLoggerForInterface(interfaceClass),
@@ -81,21 +86,25 @@ public final class InstrumentationBuilder<T, U extends T> {
         return LoggerFactory.getLogger("performance." + serviceInterface.getName());
     }
 
+    @CanIgnoreReturnValue
     public InstrumentationBuilder<T, U> withLogging(
             Logger logger, LoggingLevel loggingLevel, LongPredicate durationPredicate) {
         return withHandler(new LoggingInvocationEventHandler(logger, loggingLevel, durationPredicate));
     }
 
+    @CanIgnoreReturnValue
     public InstrumentationBuilder<T, U> withTracing() {
         return withHandler(TracingInvocationEventHandler.create(interfaceClass.getName()));
     }
 
+    @CanIgnoreReturnValue
     public InstrumentationBuilder<T, U> withHandler(InvocationEventHandler<InvocationContext> handler) {
         checkNotNull(handler, "handler");
         this.handlers.add(handler);
         return this;
     }
 
+    @CanIgnoreReturnValue
     public InstrumentationBuilder<T, U> withHandlers(
             Iterable<InvocationEventHandler<InvocationContext>> additionalHandlers) {
         checkNotNull(additionalHandlers, "additionalHandlers");
@@ -105,11 +114,13 @@ public final class InstrumentationBuilder<T, U extends T> {
         return this;
     }
 
+    @CanIgnoreReturnValue
     public InstrumentationBuilder<T, U> withFilter(InstrumentationFilter instrumentationFilter) {
         this.filter = checkNotNull(instrumentationFilter, "instrumentationFilter");
         return this;
     }
 
+    @CheckReturnValue
     public U build() {
         return factory.create(delegate, CompositeInvocationEventHandler.of(handlers), filter);
     }
