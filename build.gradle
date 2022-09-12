@@ -7,7 +7,6 @@ buildscript {
     dependencies {
         classpath 'com.palantir.gradle.jdks:gradle-jdks:0.27.0'
         classpath 'com.palantir.gradle.jdkslatest:gradle-jdks-latest:0.4.0'
-        classpath 'com.google.errorprone:error_prone_core:2.14.0'
         classpath 'com.palantir.baseline:gradle-baseline-java:4.161.0'
         classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.11.0'
         classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.11.0'
@@ -68,6 +67,7 @@ allprojects {
             options.errorprone {
                 option('NullAway:AnnotatedPackages', 'com.palantir')
                 option('NullAway:CheckOptionalEmptiness', 'true')
+                option('AllSuggestionsAsWarnings') // https://github.com/google/error-prone/pull/3301
 
                 // warnings not explicitly provided by error-prone
                 error 'NullAway',
@@ -78,10 +78,6 @@ allprojects {
                         'PreferSafeLoggableExceptions',
                         'PreferSafeLogger'
 
-                // increase strictness for built-in error-prone checks
-                error((com.google.errorprone.scanner.BuiltInCheckerSuppliers.ENABLED_WARNINGS +
-                        com.google.errorprone.scanner.BuiltInCheckerSuppliers.DISABLED_CHECKS
-                        ).collect { it.canonicalName() } as String[])
 
                 disable 'AndroidJdkLibsChecker', // ignore Android
                         'Java7ApiChecker', // tritium requires JDK 11+
