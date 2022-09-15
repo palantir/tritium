@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Enforce NullAway for Guava packages
+  links:
+  - https://github.com/palantir/tritium/pull/1570
