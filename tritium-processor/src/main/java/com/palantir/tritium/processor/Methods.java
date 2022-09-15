@@ -17,7 +17,7 @@
 package com.palantir.tritium.processor;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.base.Strings;
+import com.palantir.logsafe.Preconditions;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.TypeName;
@@ -67,9 +67,11 @@ final class Methods {
         IdentityHashMap<MethodElements, String> result = new IdentityHashMap<>();
         for (MethodElements method : instrumentedMethods) {
             String methodName = method.element().getSimpleName().toString();
-            String originalMethodFieldName = Strings.nullToEmpty(CaseFormat.LOWER_CAMEL
-                    .converterTo(CaseFormat.UPPER_UNDERSCORE)
-                    .convert(methodName));
+            String originalMethodFieldName = Preconditions.checkNotNull(
+                    CaseFormat.LOWER_CAMEL
+                            .converterTo(CaseFormat.UPPER_UNDERSCORE)
+                            .convert(methodName),
+                    "methodName cannot be null");
             String methodFieldName = originalMethodFieldName;
             for (int i = 1; true; i++) {
                 String finalName = methodFieldName;
