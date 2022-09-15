@@ -65,7 +65,7 @@ allprojects {
             ]
 
             options.errorprone {
-                option('NullAway:AnnotatedPackages', 'com.palantir')
+                option('NullAway:AnnotatedPackages', 'com.palantir,com.google.common')
                 option('NullAway:CheckOptionalEmptiness', 'true')
                 option('AllSuggestionsAsWarnings') // https://github.com/google/error-prone/pull/3301
 
