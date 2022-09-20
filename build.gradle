@@ -40,6 +40,7 @@ allprojects {
     apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
     apply plugin: 'com.palantir.baseline-exact-dependencies'
+    apply plugin: 'com.palantir.baseline-null-away'
     apply plugin: 'com.palantir.java-format'
 
     configurations {
@@ -53,10 +54,6 @@ allprojects {
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {
-        dependencies {
-            errorprone 'com.uber.nullaway:nullaway'
-        }
-
         tasks.withType(JavaCompile).configureEach {
             options.compilerArgs += [
                 '-Werror',
