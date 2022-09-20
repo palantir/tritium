@@ -7,7 +7,7 @@ buildscript {
     dependencies {
         classpath 'com.palantir.gradle.jdks:gradle-jdks:0.27.0'
         classpath 'com.palantir.gradle.jdkslatest:gradle-jdks-latest:0.4.0'
-        classpath 'com.palantir.baseline:gradle-baseline-java:4.170.0'
+        classpath 'com.palantir.baseline:gradle-baseline-java:4.171.0'
         classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.11.0'
         classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.11.0'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.15.0'
@@ -40,6 +40,7 @@ allprojects {
     apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
     apply plugin: 'com.palantir.baseline-exact-dependencies'
+    apply plugin: 'com.palantir.baseline-null-away'
     apply plugin: 'com.palantir.java-format'
 
     configurations {
@@ -53,10 +54,6 @@ allprojects {
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {
-        dependencies {
-            errorprone 'com.uber.nullaway:nullaway'
-        }
-
         tasks.withType(JavaCompile).configureEach {
             options.compilerArgs += [
                 '-Werror',
