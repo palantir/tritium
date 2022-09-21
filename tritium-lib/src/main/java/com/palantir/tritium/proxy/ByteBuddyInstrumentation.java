@@ -127,7 +127,8 @@ final class ByteBuddyInstrumentation {
                 "additionalInterfaces must not contain interfaceClass",
                 SafeArg.of("additionalInterfaces", additionalInterfaces),
                 SafeArg.of("interfaceClass", interfaceClass));
-        ImmutableList<Class<?>> interfaces = ImmutableList.<Class<?>>builder()
+        ImmutableList<Class<?>> interfaces = ImmutableList.<Class<?>>builderWithExpectedSize(
+                        additionalInterfaces.size() + 1)
                 .add(interfaceClass)
                 .addAll(additionalInterfaces)
                 .build();

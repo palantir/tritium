@@ -19,11 +19,9 @@ package com.palantir.tritium.proxy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import com.google.common.collect.ImmutableList;
 import com.palantir.tritium.test.MoreSpecificReturn;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
-import java.util.List;
 import java.util.concurrent.Callable;
 import org.junit.jupiter.api.Test;
 
@@ -40,9 +38,12 @@ final class ProxiesTest {
     }
 
     @Test
-    void testInterfacesClassOfQClassOfQ() {
-        Class<?>[] interfaces = Proxies.interfaces(TestInterface.class, TestImplementation.class);
-        assertThat(interfaces).containsExactly(TestInterface.class, Runnable.class, MoreSpecificReturn.class);
+    void testInterfaces() {
+        assertThat(Proxies.interfaces(TestInterface.class, TestImplementation.class))
+                .containsExactly(TestInterface.class, Runnable.class, MoreSpecificReturn.class);
+        assertThat(Proxies.interfaces(Runnable.class, Runnable.class)).containsExactly(Runnable.class);
+        assertThat(Proxies.interfaces(Runnable.class, Foo.class)).containsExactly(Runnable.class);
+        assertThat(Proxies.interfaces(Runnable.class, Callable.class)).containsExactly(Runnable.class, Callable.class);
     }
 
     @Test
@@ -56,17 +57,10 @@ final class ProxiesTest {
                 .isThrownBy(() -> Proxies.checkIsInterface(String.class));
     }
 
-    @Test
-    void testCheckAreAllInterfaces() {
-        Proxies.checkAreAllInterfaces(
-                ImmutableList.of(TestInterface.class, Runnable.class, Callable.class, List.class));
-    }
-
-    @Test
-    void testCheckAreAllInterfacesWithClass() {
-        ImmutableList<Class<?>> interfaces =
-                ImmutableList.of(TestInterface.class, String.class, Runnable.class, Callable.class, List.class);
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> Proxies.checkAreAllInterfaces(interfaces));
+    static class Foo implements Runnable {
+        @Override
+        public void run() {
+            throw new UnsupportedOperationException();
+        }
     }
 }
