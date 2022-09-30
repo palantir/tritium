@@ -17,6 +17,7 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -30,7 +31,9 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import com.palantir.tritium.registry.test.TestTaggedMetricRegistries;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -299,6 +302,34 @@ final class TaggedMetricRegistryTest {
                                 .putSafeTags("tagB", Integer.toString(2))
                                 .build()));
         assertThat(counter.getCount()).isOne();
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testDuplicateMetricNames(TaggedMetricRegistry registry) {
+        registry.addMetrics(
+                "tag1",
+                "value",
+                () -> Collections.singletonMap(
+                        MetricName.builder()
+                                .safeName("name")
+                                .putSafeTags("tag2", "value")
+                                .build(),
+                        new Meter()));
+        registry.addMetrics(
+                "tag2",
+                "value",
+                () -> Collections.singletonMap(
+                        MetricName.builder()
+                                .safeName("name")
+                                .putSafeTags("tag1", "value")
+                                .build(),
+                        new Meter()));
+        assertThatCode(registry::getMetrics).doesNotThrowAnyException();
+        assertThat(registry.getMetrics()).hasSize(1);
+        AtomicInteger elements = new AtomicInteger();
+        registry.forEachMetric((_name, _metric) -> elements.incrementAndGet());
+        assertThat(elements).hasValue(2);
     }
 
     private static void assertMetric(

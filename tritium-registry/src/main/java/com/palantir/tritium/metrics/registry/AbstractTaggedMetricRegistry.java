@@ -182,7 +182,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
                 .forEach((metricName, metric) ->
                         result.put(RealMetricName.create(metricName, tag.getKey(), tag.getValue()), metric)));
 
-        return result.build();
+        return result.buildKeepingLast();
     }
 
     @Override
