@@ -84,7 +84,7 @@ class TagMapTest {
         Comparator<?> immutableSortedMapComparator = ImmutableSortedMap.naturalOrder()
                 .put("a", "b")
                 .put("c", "d")
-                .build()
+                .buildOrThrow()
                 .comparator();
         assertThat(TagMap.isNaturalOrder(immutableSortedMapComparator))
                 .as("Expected ImmutableSortedMap comparator %s to be natural", immutableSortedMapComparator)

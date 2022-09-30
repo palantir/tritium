@@ -84,7 +84,7 @@ final class ImmutableMetricName {
                         : TagMap.of(ImmutableMap.<String, String>builderWithExpectedSize(tagMap.size() + entries.size())
                                 .putAll(tagMap)
                                 .putAll(entries)
-                                .build());
+                                .buildOrThrow());
             }
             return (MetricName.Builder) this;
         }

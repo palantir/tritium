@@ -58,7 +58,7 @@ class ExtraEntrySortedMapTest {
         ImmutableSortedMap<String, String> guavaWithExtra = ImmutableSortedMap.<String, String>naturalOrder()
                 .putAll(base)
                 .put(extraKey, extraValue)
-                .build();
+                .buildOrThrow();
 
         SortedMap<String, String> extraMap = TagMap.of(base).withEntry(extraKey, extraValue);
 
@@ -84,7 +84,7 @@ class ExtraEntrySortedMapTest {
                         .put("keySet", SortedMap::keySet)
                         .put("entrySet", SortedMap::entrySet)
                         .put("values", shortByteSortedMap -> ImmutableList.copyOf(shortByteSortedMap.values()))
-                        .build();
+                        .buildOrThrow();
 
         methodCalls.forEach((methodCallName, methodCall) -> {
             assertThat(methodCall.apply(extraMap))

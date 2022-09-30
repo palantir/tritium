@@ -101,6 +101,6 @@ final class RealMetricName implements MetricName {
         return TagMap.of(ImmutableSortedMap.<String, String>naturalOrder()
                 .putAll(tags)
                 .put(extraTagName, extraTagValue)
-                .build());
+                .buildOrThrow());
     }
 }
