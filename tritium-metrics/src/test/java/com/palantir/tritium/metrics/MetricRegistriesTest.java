@@ -495,7 +495,7 @@ final class MetricRegistriesTest {
                 .put("counter", counter)
                 .put("timer", timer)
                 .put("set", (MetricSet) () -> ImmutableMap.of("gauge", gauge))
-                .build();
+                .buildOrThrow();
         MetricRegistries.registerAll(registry, "tritium", metricSet);
         assertThat(registry.getMetrics())
                 .containsExactlyInAnyOrderEntriesOf(ImmutableMap.<MetricName, Metric>builder()
@@ -505,7 +505,7 @@ final class MetricRegistriesTest {
                         .put(simpleName("tritium.counter"), counter)
                         .put(simpleName("tritium.timer"), timer)
                         .put(simpleName("tritium.set.gauge"), gauge)
-                        .build());
+                        .buildOrThrow());
     }
 
     @Test
