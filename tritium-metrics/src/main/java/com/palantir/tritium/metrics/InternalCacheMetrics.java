@@ -39,7 +39,7 @@ public final class InternalCacheMetrics {
     private InternalCacheMetrics() {}
 
     public static <K> ImmutableMap<K, Gauge<?>> createMetrics(Stats stats, Function<String, K> metricNamer) {
-        ImmutableMap.Builder<K, Gauge<?>> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<K, Gauge<?>> builder = ImmutableMap.builderWithExpectedSize(12);
         stats.forEach((name, gauge) -> builder.put(metricNamer.apply(name), gauge));
         return builder.buildOrThrow();
     }
