@@ -27,8 +27,4 @@ org.slf4j:* = 1.7.36
 # dependency-upgrader:OFF
 # Explicitly pinning to minimum dropwizard metrics version defined by Apache Spark
 io.dropwizard.metrics:* = 4.1.1
-
-# Pin to avoid ABI break in checkerframework 3.26.0 return types
-# see https://github.com/uber/NullAway/issues/670
-org.checkerframework:* = 3.25.0
 # dependency-upgrader:ON
