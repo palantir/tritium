@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: Add UtcTimestamp as more efficient way to get OffsetDateTime.now(UTC)
+  links:
+  - https://github.com/palantir/tritium/pull/1600

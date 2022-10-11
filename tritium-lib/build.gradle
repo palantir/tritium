@@ -10,6 +10,7 @@ dependencies {
     api project(':tritium-proxy')
     api project(':tritium-registry')
     api project(':tritium-slf4j')
+    api project(':tritium-time')
     api project(':tritium-tracing')
     api 'io.dropwizard.metrics:metrics-core'
 
