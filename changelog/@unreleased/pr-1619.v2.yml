@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Add metrics for cpu shares and detected processor count
+  links:
+  - https://github.com/palantir/tritium/pull/1619
