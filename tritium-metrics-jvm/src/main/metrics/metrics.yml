@@ -11,6 +11,12 @@ namespaces:
       load.norm.1:
         type: gauge
         docs: Gauge based on `os.load.1` normalized for the number of available processors. This is designed to provide a hint about the system load, values are positive and may be greater than one.
+  container:
+    docs: Container Metrics
+    metrics:
+      cpu.shares:
+        type: gauge
+        docs: Gauge based on the detected CPU shares, if supported by the platform.
   process:
     docs: JVM Process Metrics
     metrics:
@@ -84,6 +90,11 @@ namespaces:
       threads.terminated.count:
         type: gauge
         docs: Number of live threads in the `TERMINATED` state.
+      processors:
+        type: gauge
+        docs: Gauge describing the number of CPUs _detected_ by the JVM.
+          Note that this may not reflect the number of processors that should be used due to changes in the JDK along
+          the lines of [JDK-8281181](https://bugs.openjdk.org/browse/JDK-8281181).
   jvm.memory:
     docs: Java virtual machine memory usage metrics.
     metrics:

@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.OptionalLong;
 import javax.management.ObjectName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -75,6 +77,7 @@ final class JvmMetricsTest {
             "jvm.memory.non-heap.committed",
             "jvm.memory.non-heap.max",
             "jvm.memory.heap.max",
+            "jvm.processors",
             "jvm.safepoint.time",
             "jvm.threads.timed-waiting.count",
             "jvm.threads.waiting.count",
@@ -189,6 +192,37 @@ final class JvmMetricsTest {
                     Gauge<?> gauge = (Gauge<?>) instance;
                     assertThat(gauge.getValue()).isIn(null, Double.NaN);
                 }));
+    }
+
+    @Test
+    void testProcessorsMetric() {
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        JvmMetrics.register(metrics);
+        assertThat(metrics.gauge(InternalJvmMetrics.processorsMetricName()).map(Gauge::getValue))
+                .hasValue(Runtime.getRuntime().availableProcessors());
+    }
+
+    @Test
+    void testCpuSharesUnavailable() {
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        JvmMetrics.registerCpuShares(metrics, Optional.empty());
+        assertThat(metrics.getMetrics()).isEmpty();
+    }
+
+    @Test
+    void testCpuSharesAvailableButNotUsed() {
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        JvmMetrics.registerCpuShares(metrics, Optional.of(OptionalLong::empty));
+        assertThat(metrics.gauge(ContainerMetrics.cpuSharesMetricName()))
+                .hasValueSatisfying(gauge -> assertThat(gauge.getValue()).isNull());
+    }
+
+    @Test
+    void testCpuShares() {
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        JvmMetrics.registerCpuShares(metrics, Optional.of(() -> OptionalLong.of(200L)));
+        assertThat(metrics.gauge(ContainerMetrics.cpuSharesMetricName()))
+                .hasValueSatisfying(gauge -> assertThat(gauge.getValue()).isEqualTo(200L));
     }
 
     @SuppressWarnings("JdkObsolete")
