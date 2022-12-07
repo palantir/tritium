@@ -22,6 +22,8 @@ import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.ThreadDeadlockDetector;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
+import com.palantir.jvm.diagnostics.CpuSharesAccessor;
+import com.palantir.jvm.diagnostics.JvmDiagnostics;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.logger.SafeLogger;
 import com.palantir.logsafe.logger.SafeLoggerFactory;
@@ -37,6 +39,7 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -70,6 +73,8 @@ public final class JvmMetrics {
         registerClassLoading(metrics);
         registerJvmMemory(registry);
         registerThreads(metrics);
+        metrics.processors(Runtime.getRuntime()::availableProcessors);
+        registerCpuShares(registry, JvmDiagnostics.cpuShares());
     }
 
     private static void registerAttributes(InternalJvmMetrics metrics) {
@@ -111,6 +116,14 @@ public final class JvmMetrics {
         metrics.threadsTimedWaitingCount(
                 () -> threadsByStateSupplier.get().getOrDefault(Thread.State.TIMED_WAITING, 0));
         metrics.threadsTerminatedCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.TERMINATED, 0));
+    }
+
+    @VisibleForTesting
+    static void registerCpuShares(TaggedMetricRegistry registry, Optional<CpuSharesAccessor> maybeCpuSharesAccessor) {
+        maybeCpuSharesAccessor.ifPresentOrElse(
+                cpuSharesAccessor -> ContainerMetrics.of(registry).cpuShares((Gauge<Long>)
+                        () -> cpuSharesAccessor.getCpuShares().orElse(-1L)),
+                () -> log.info("CPU Shares information is not supported, cpu share metrics will not be reported"));
     }
 
     @SuppressWarnings("UnnecessaryLambda") // Avoid allocations in the threads-by-state loop
