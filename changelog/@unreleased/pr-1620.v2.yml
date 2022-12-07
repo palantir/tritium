@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Fix typo in docs for cpu.shares gauge
+  links:
+  - https://github.com/palantir/tritium/pull/1620
