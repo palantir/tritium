@@ -40,7 +40,6 @@ import java.lang.management.ThreadMXBean;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -122,11 +121,9 @@ public final class JvmMetrics {
     @VisibleForTesting
     static void registerCpuShares(TaggedMetricRegistry registry, Optional<CpuSharesAccessor> maybeCpuSharesAccessor) {
         maybeCpuSharesAccessor.ifPresentOrElse(
-                cpuSharesAccessor -> ContainerMetrics.of(registry).cpuShares((Gauge<Long>) () -> {
-                    OptionalLong cpuShares = cpuSharesAccessor.getCpuShares();
-                    return cpuShares.isEmpty() ? null : cpuShares.getAsLong();
-                }),
-                () -> log.info("CPU Shares information is not supported, metrics will not be reported"));
+                cpuSharesAccessor -> ContainerMetrics.of(registry).cpuShares((Gauge<Long>)
+                        () -> cpuSharesAccessor.getCpuShares().orElse(-1L)),
+                () -> log.info("CPU Shares information is not supported, cpu share metrics will not be reported"));
     }
 
     @SuppressWarnings("UnnecessaryLambda") // Avoid allocations in the threads-by-state loop

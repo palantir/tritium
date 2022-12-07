@@ -16,7 +16,7 @@ namespaces:
     metrics:
       cpu.shares:
         type: gauge
-        docs: Gauge based on the detected CPU shares, if supported by the platform.
+        docs: Gauge based on the detected CPU shares, if supported by the platform. Note that `-1` is reported if CPU shares are not being used, and hte metric will not be available if cpu shares are unsupported on this system.
   process:
     docs: JVM Process Metrics
     metrics:

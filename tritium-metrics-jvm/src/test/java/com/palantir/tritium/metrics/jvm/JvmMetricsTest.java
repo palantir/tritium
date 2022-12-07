@@ -214,7 +214,7 @@ final class JvmMetricsTest {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         JvmMetrics.registerCpuShares(metrics, Optional.of(OptionalLong::empty));
         assertThat(metrics.gauge(ContainerMetrics.cpuSharesMetricName()))
-                .hasValueSatisfying(gauge -> assertThat(gauge.getValue()).isNull());
+                .hasValueSatisfying(gauge -> assertThat(gauge.getValue()).isEqualTo(-1L));
     }
 
     @Test
