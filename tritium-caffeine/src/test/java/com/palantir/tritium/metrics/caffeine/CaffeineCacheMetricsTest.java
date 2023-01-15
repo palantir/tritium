@@ -17,12 +17,16 @@
 package com.palantir.tritium.metrics.caffeine;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Policy.Eviction;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,10 +36,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("NullAway") // mock injection
-final class CaffeineCacheMetricsTest {
+final class CaffeineCacheMetricsTest<K, V> {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    Cache<?, ?> cache;
+    Cache<K, V> cache;
+
+    @Mock
+    Eviction<K, V> mockEviction;
 
     private Map<String, Metric> metrics;
 
@@ -74,15 +81,47 @@ final class CaffeineCacheMetricsTest {
     }
 
     @Test
-    void maximumSize() {
+    void unboundedMaximumSize() {
+        when(cache.policy().eviction()).thenReturn(Optional.empty());
+        assertThat(metrics.get("test.cache.maximum.size"))
+                .isInstanceOf(Gauge.class)
+                .returns(-1L, metric -> ((Gauge<?>) metric).getValue());
+        assertThat(metrics.get("test.cache.weighted.size"))
+                .isInstanceOf(Gauge.class)
+                .returns(0L, metric -> ((Gauge<?>) metric).getValue());
+    }
+
+    @Test
+    void boundedMaximumSize() {
+        when(mockEviction.getMaximum()).thenReturn(42L);
+        when(cache.policy().eviction()).thenReturn(Optional.of(mockEviction));
+        assertThat(metrics.get("test.cache.maximum.size"))
+                .isInstanceOf(Gauge.class)
+                .returns(42L, metric -> ((Gauge<?>) metric).getValue());
+        assertThat(metrics.get("test.cache.weighted.size"))
+                .isInstanceOf(Gauge.class)
+                .returns(0L, metric -> ((Gauge<?>) metric).getValue());
+    }
+
+    @Test
+    void unboundedWeightedSize() {
+        when(cache.policy().eviction()).thenReturn(Optional.empty());
+        assertThat(metrics.get("test.cache.weighted.size"))
+                .isInstanceOf(Gauge.class)
+                .returns(0L, metric -> ((Gauge<?>) metric).getValue());
         assertThat(metrics.get("test.cache.maximum.size"))
                 .isInstanceOf(Gauge.class)
                 .returns(-1L, metric -> ((Gauge<?>) metric).getValue());
     }
 
     @Test
-    void weightedSize() {
+    void boundedWeightedSize() {
+        when(mockEviction.weightedSize()).thenReturn(OptionalLong.of(42));
+        when(cache.policy().eviction()).thenReturn(Optional.of(mockEviction));
         assertThat(metrics.get("test.cache.weighted.size"))
+                .isInstanceOf(Gauge.class)
+                .returns(42L, metric -> ((Gauge<?>) metric).getValue());
+        assertThat(metrics.get("test.cache.maximum.size"))
                 .isInstanceOf(Gauge.class)
                 .returns(0L, metric -> ((Gauge<?>) metric).getValue());
     }
