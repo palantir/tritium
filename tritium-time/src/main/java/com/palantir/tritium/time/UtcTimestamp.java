@@ -30,6 +30,8 @@ public final class UtcTimestamp {
      * Returns an {@link OffsetDateTime} from the system clock in the {@link ZoneOffset#UTC UTC} time zone.
      * Effectively the same as {@link OffsetDateTime#now(java.time.ZoneId)} with argument {@link ZoneOffset#UTC
      * ZoneOffset.UTC}, but optimized to avoid zone rules lookup given UTC zone offset is zero.
+     * <p>
+     * Superseded by <a href="https://bugs.openjdk.org/browse/JDK-8283681">JDK-8283681</a> in JDK 19+.
      *
      * @return OffsetDateTime representing now in {@link ZoneOffset#UTC UTC} zone
      */
@@ -42,6 +44,8 @@ public final class UtcTimestamp {
      * Effectively the same as {@link OffsetDateTime#ofInstant(Instant, ZoneId)} with arguments
      * {@code clock.instant()}, {@link ZoneOffset#UTC ZoneOffset.UTC}, but optimized to avoid zone rules lookup
      * given UTC zone offset is zero.
+     * <p>
+     * Superseded by <a href="https://bugs.openjdk.org/browse/JDK-8283681">JDK-8283681</a> in JDK 19+.
      *
      * @return OffsetDateTime representing clock's instant in {@link ZoneOffset#UTC UTC} zone
      */
@@ -53,6 +57,8 @@ public final class UtcTimestamp {
      * Returns an {@link OffsetDateTime} at the specified instant in the {@link ZoneOffset#UTC UTC} time zone.
      * Effectively the same as {@link OffsetDateTime#ofInstant(Instant, ZoneId)}  with arguments instant and
      * {@link ZoneOffset#UTC ZoneOffset.UTC}, but optimized to avoid zone rules lookup given UTC zone offset is zero.
+     * <p>
+     * Superseded by <a href="https://bugs.openjdk.org/browse/JDK-8283681">JDK-8283681</a> in JDK 19+.
      *
      * @return OffsetDateTime representing instant in {@link ZoneOffset#UTC UTC} zone
      */
