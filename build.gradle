@@ -5,6 +5,7 @@ buildscript {
     }
 
     dependencies {
+        classpath 'com.palantir.jakartapackagealignment:jakarta-package-alignment:0.3.0'
         classpath 'com.palantir.gradle.jdks:gradle-jdks:0.28.0'
         classpath 'com.palantir.gradle.jdkslatest:gradle-jdks-latest:0.6.0'
         classpath 'com.palantir.baseline:gradle-baseline-java:4.188.0'
@@ -42,6 +43,7 @@ allprojects {
     apply plugin: 'com.palantir.baseline-exact-dependencies'
     apply plugin: 'com.palantir.baseline-null-away'
     apply plugin: 'com.palantir.java-format'
+    apply plugin: 'com.palantir.jakarta-package-alignment'
 
     configurations {
         testImplementationClasspath {
