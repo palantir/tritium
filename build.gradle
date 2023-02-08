@@ -89,7 +89,7 @@ allprojects {
         }
     })
 
-    tasks.withType(Test) {
+    tasks.withType(Test).configureEach {
         useJUnitPlatform {
             includeEngines 'jqwik', 'junit-jupiter'
         }
@@ -103,7 +103,7 @@ allprojects {
         }
     }
 
-    tasks.withType(Javadoc) {
+    tasks.withType(Javadoc).configureEach {
         // suppress Javadoc doclint warnings in Java 8+
         if (!System.getProperty("java.version").startsWith("1.7")) {
             options.addStringOption('Xdoclint:none', '-quiet')
