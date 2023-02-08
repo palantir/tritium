@@ -93,7 +93,13 @@ allprojects {
         useJUnitPlatform {
             includeEngines 'jqwik', 'junit-jupiter'
         }
-        maxParallelForks Runtime.getRuntime().availableProcessors()
+        // see https://docs.gradle.org/current/userguide/performance.html#execute_tests_in_parallel
+        // and https://junit.org/junit5/docs/current/user-guide/#writing-tests-parallel-execution
+        // N.B. some tests depend on system properties, so cannot be concurrently executed
+        maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+        systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+        systemProperty("junit.jupiter.execution.parallel.mode.default", "same_thread")
+        systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
         testLogging {
             events "passed", "skipped", "failed"
             exceptionFormat "full"
