@@ -31,6 +31,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Nullable;
 
 abstract class InvocationEventProxy implements InvocationHandler {
@@ -81,7 +82,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
             Object result = method.invoke(getDelegate(), arguments);
             return handleOnSuccess(context, result);
         } catch (InvocationTargetException ite) {
-            throw handleOnFailure(context, ite.getCause());
+            throw handleOnFailure(context, Objects.requireNonNullElse(ite.getCause(), ite));
         } catch (IllegalAccessException | RuntimeException | Error t) {
             throw handleOnFailure(context, t);
         }
