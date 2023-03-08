@@ -34,7 +34,7 @@ public final class InstrumentedStreams {
      * @return instrumented input stream
      */
     public static InputStream input(
-            InputStream in, TaggedMetricRegistry metrics, @Safe @CompileTimeConstant String type) {
+            InputStream in, TaggedMetricRegistry metrics, @Safe @CompileTimeConstant final String type) {
         return new InstrumentedInputStream(in, IoStreamMetrics.of(metrics).read(type));
     }
 
@@ -46,7 +46,7 @@ public final class InstrumentedStreams {
      * @return instrumented output stream
      */
     public static OutputStream output(
-            OutputStream out, TaggedMetricRegistry metrics, @Safe @CompileTimeConstant String type) {
+            OutputStream out, TaggedMetricRegistry metrics, @Safe @CompileTimeConstant final String type) {
         return new InstrumentedOutputStream(out, IoStreamMetrics.of(metrics).write(type));
     }
 }
