@@ -26,11 +26,15 @@ import javax.annotation.Nullable;
 
 public final class CompositeInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
+    // most instances will have very small number of handlers (typically 2-3)
+    // see https://shipilev.net/blog/2016/arrays-wisdom-ancients/#_caching_the_array
+    @SuppressWarnings("unchecked")
+    private static final InvocationEventHandler<InvocationContext>[] EMPTY = new InvocationEventHandler[] {};
+
     private final InvocationEventHandler<InvocationContext>[] handlers;
 
-    @SuppressWarnings("unchecked")
     private CompositeInvocationEventHandler(List<InvocationEventHandler<InvocationContext>> handlers) {
-        this.handlers = checkNotNull(handlers, "handlers").toArray(new InvocationEventHandler[0]);
+        this.handlers = checkNotNull(handlers, "handlers").toArray(EMPTY);
         for (InvocationEventHandler<InvocationContext> handler : handlers) {
             checkNotNull(handler, "Null handlers are not allowed");
         }
