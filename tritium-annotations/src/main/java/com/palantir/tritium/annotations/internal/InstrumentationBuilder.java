@@ -37,10 +37,13 @@ import org.slf4j.LoggerFactory;
 
 public final class InstrumentationBuilder<T, U extends T> {
 
+    // pre-allocate enough space for up to 4 handlers so that we don't have to dynamically grow,
+    // though most consumers use between 1 and 3 handlers
+    private static final int ESTIMATED_HANDLERS = 4;
     private final Class<? super T> interfaceClass;
     private final T delegate;
     private final InstrumentedTypeFactory<T, U> factory;
-    private final List<InvocationEventHandler<InvocationContext>> handlers = new ArrayList<>();
+    private final List<InvocationEventHandler<InvocationContext>> handlers = new ArrayList<>(ESTIMATED_HANDLERS);
     private InstrumentationFilter filter = InstrumentationFilters.INSTRUMENT_ALL;
 
     public InstrumentationBuilder(Class<? super T> interfaceClass, T delegate, InstrumentedTypeFactory<T, U> factory) {
@@ -112,5 +115,15 @@ public final class InstrumentationBuilder<T, U extends T> {
 
     public U build() {
         return factory.create(delegate, CompositeInvocationEventHandler.of(handlers), filter);
+    }
+
+    public static <T, U extends T> U trace(
+            Class<? super T> interfaceClass, T delegate, InstrumentedTypeFactory<T, U> factory) {
+        return checkNotNull(factory, "factory")
+                .create(
+                        checkNotNull(delegate, "delegate"),
+                        TracingInvocationEventHandler.create(
+                                checkNotNull(interfaceClass, "class").getName()),
+                        InstrumentationFilters.INSTRUMENT_ALL);
     }
 }

@@ -62,6 +62,10 @@ public final class InstrumentedDelegateToCallable<T> implements DelegateToCallab
                 Callable.class, delegate, InstrumentedDelegateToCallable::new);
     }
 
+    public static <T> DelegateToCallable<T> trace(Callable<T> delegate) {
+        return InstrumentationBuilder.trace(Callable.class, delegate, InstrumentedDelegateToCallable::new);
+    }
+
     public static <T> DelegateToCallable<T> instrument(Callable<T> delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }

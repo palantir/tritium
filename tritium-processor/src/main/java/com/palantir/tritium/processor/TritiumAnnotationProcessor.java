@@ -304,6 +304,18 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                                 TypeNames.erased(delegateType),
                                 className)
                         .build())
+                .addMethod(MethodSpec.methodBuilder("trace")
+                        .addTypeVariables(typeVarNames)
+                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                        .returns(annotatedType)
+                        .addParameter(ParameterSpec.builder(delegateType, DELEGATE_NAME)
+                                .build())
+                        .addStatement(
+                                "return $T.trace($T.class, delegate, $N::new)",
+                                InstrumentationBuilder.class,
+                                TypeNames.erased(delegateType),
+                                className)
+                        .build())
                 .addMethod(MethodSpec.methodBuilder("instrument")
                         .addTypeVariables(typeVarNames)
                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)

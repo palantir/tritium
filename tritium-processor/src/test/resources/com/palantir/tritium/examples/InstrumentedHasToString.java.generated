@@ -60,6 +60,10 @@ public final class InstrumentedHasToString implements HasToString {
                 HasToString.class, delegate, InstrumentedHasToString::new);
     }
 
+    public static HasToString trace(HasToString delegate) {
+        return InstrumentationBuilder.trace(HasToString.class, delegate, InstrumentedHasToString::new);
+    }
+
     public static HasToString instrument(HasToString delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }

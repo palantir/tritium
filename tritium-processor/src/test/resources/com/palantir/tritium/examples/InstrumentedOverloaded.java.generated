@@ -141,6 +141,10 @@ public final class InstrumentedOverloaded implements Overloaded {
                 Overloaded.class, delegate, InstrumentedOverloaded::new);
     }
 
+    public static Overloaded trace(Overloaded delegate) {
+        return InstrumentationBuilder.trace(Overloaded.class, delegate, InstrumentedOverloaded::new);
+    }
+
     public static Overloaded instrument(Overloaded delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
