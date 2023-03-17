@@ -1,0 +1,10 @@
+type: improvement
+improvement:
+  description: |-
+    @Instrument generates static trace method
+
+    Provide a `trace` method for generated Instrumented* classes to simplify and optimize the cases where one only wants tracing instrumentation on dynamic instances (e.g. when tracing individual transactions).
+
+    Remove a few excess allocations when using InstrumentationBuilder
+  links:
+  - https://github.com/palantir/tritium/pull/1679
