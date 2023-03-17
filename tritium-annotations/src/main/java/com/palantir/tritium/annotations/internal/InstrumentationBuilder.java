@@ -116,4 +116,14 @@ public final class InstrumentationBuilder<T, U extends T> {
     public U build() {
         return factory.create(delegate, CompositeInvocationEventHandler.of(handlers), filter);
     }
+
+    public static <T, U extends T> U trace(
+            Class<? super T> interfaceClass, T delegate, InstrumentedTypeFactory<T, U> factory) {
+        return checkNotNull(factory, "factory")
+                .create(
+                        checkNotNull(delegate, "delegate"),
+                        TracingInvocationEventHandler.create(
+                                checkNotNull(interfaceClass, "class").getName()),
+                        InstrumentationFilters.INSTRUMENT_ALL);
+    }
 }

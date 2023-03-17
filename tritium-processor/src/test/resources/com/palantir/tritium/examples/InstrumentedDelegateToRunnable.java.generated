@@ -60,6 +60,10 @@ public final class InstrumentedDelegateToRunnable implements DelegateToRunnable 
                 Runnable.class, delegate, InstrumentedDelegateToRunnable::new);
     }
 
+    public static DelegateToRunnable trace(Runnable delegate) {
+        return InstrumentationBuilder.trace(Runnable.class, delegate, InstrumentedDelegateToRunnable::new);
+    }
+
     public static DelegateToRunnable instrument(Runnable delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }

@@ -82,6 +82,10 @@ public final class InstrumentedHasDefaultMethod implements HasDefaultMethod {
                 HasDefaultMethod.class, delegate, InstrumentedHasDefaultMethod::new);
     }
 
+    public static HasDefaultMethod trace(HasDefaultMethod delegate) {
+        return InstrumentationBuilder.trace(HasDefaultMethod.class, delegate, InstrumentedHasDefaultMethod::new);
+    }
+
     public static HasDefaultMethod instrument(HasDefaultMethod delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }

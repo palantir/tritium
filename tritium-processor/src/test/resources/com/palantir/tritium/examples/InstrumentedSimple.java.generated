@@ -80,6 +80,10 @@ public final class InstrumentedSimple implements Simple {
         return new InstrumentationBuilder<Simple, Simple>(Simple.class, delegate, InstrumentedSimple::new);
     }
 
+    public static Simple trace(Simple delegate) {
+        return InstrumentationBuilder.trace(Simple.class, delegate, InstrumentedSimple::new);
+    }
+
     public static Simple instrument(Simple delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }

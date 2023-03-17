@@ -63,6 +63,10 @@ public final class InstrumentedDeprecatedMethod implements DeprecatedMethod {
                 DeprecatedMethod.class, delegate, InstrumentedDeprecatedMethod::new);
     }
 
+    public static DeprecatedMethod trace(DeprecatedMethod delegate) {
+        return InstrumentationBuilder.trace(DeprecatedMethod.class, delegate, InstrumentedDeprecatedMethod::new);
+    }
+
     public static DeprecatedMethod instrument(DeprecatedMethod delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }

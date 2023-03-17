@@ -61,6 +61,10 @@ public final class InstrumentedBindsParameter implements BindsParameter {
                 BindsParameter.class, delegate, InstrumentedBindsParameter::new);
     }
 
+    public static BindsParameter trace(BindsParameter delegate) {
+        return InstrumentationBuilder.trace(BindsParameter.class, delegate, InstrumentedBindsParameter::new);
+    }
+
     public static BindsParameter instrument(BindsParameter delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }

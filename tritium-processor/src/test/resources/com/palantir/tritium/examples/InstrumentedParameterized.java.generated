@@ -126,6 +126,10 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
                 Parameterized.class, delegate, InstrumentedParameterized::new);
     }
 
+    public static <T> Parameterized<T> trace(Parameterized<T> delegate) {
+        return InstrumentationBuilder.trace(Parameterized.class, delegate, InstrumentedParameterized::new);
+    }
+
     public static <T> Parameterized<T> instrument(Parameterized<T> delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }

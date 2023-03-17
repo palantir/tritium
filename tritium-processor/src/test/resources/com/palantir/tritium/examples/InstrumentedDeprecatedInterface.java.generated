@@ -64,6 +64,10 @@ public final class InstrumentedDeprecatedInterface implements DeprecatedInterfac
                 DeprecatedInterface.class, delegate, InstrumentedDeprecatedInterface::new);
     }
 
+    public static DeprecatedInterface trace(DeprecatedInterface delegate) {
+        return InstrumentationBuilder.trace(DeprecatedInterface.class, delegate, InstrumentedDeprecatedInterface::new);
+    }
+
     public static DeprecatedInterface instrument(DeprecatedInterface delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }

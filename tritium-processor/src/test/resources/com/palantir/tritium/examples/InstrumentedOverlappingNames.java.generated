@@ -78,6 +78,10 @@ public final class InstrumentedOverlappingNames implements OverlappingNames {
                 OverlappingNames.class, delegate, InstrumentedOverlappingNames::new);
     }
 
+    public static OverlappingNames trace(OverlappingNames delegate) {
+        return InstrumentationBuilder.trace(OverlappingNames.class, delegate, InstrumentedOverlappingNames::new);
+    }
+
     public static OverlappingNames instrument(OverlappingNames delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
