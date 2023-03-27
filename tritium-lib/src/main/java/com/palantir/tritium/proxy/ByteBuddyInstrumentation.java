@@ -57,8 +57,8 @@ final class ByteBuddyInstrumentation {
     // Offset to avoid duplicate fqcns
     private static final AtomicInteger offset = new AtomicInteger();
     // Reuse generated classes when possible
-    private static final TypeCache<ImmutableList<Class<?>>> cache =
-            new TypeCache.WithInlineExpunction<>(TypeCache.Sort.WEAK);
+    //    private static final TypeCache<ImmutableList<Class<?>>> cache =
+    //            new TypeCache.WithInlineExpunction<>(TypeCache.Sort.WEAK);
     private static final Joiner UNDERSCORE_JOINER = Joiner.on('_');
     private static final String METHODS_FIELD = "methods";
 
@@ -132,67 +132,73 @@ final class ByteBuddyInstrumentation {
                 .add(interfaceClass)
                 .addAll(additionalInterfaces)
                 .build();
-        return (Class<? extends T>) cache.findOrInsert(classLoader, interfaces, () -> {
-            DynamicType.Builder.MethodDefinition.ReceiverTypeDefinition<Object> builder = new ByteBuddy(
-                            ClassFileVersion.ofThisVm(ClassFileVersion.JAVA_V8))
-                    .subclass(Object.class)
-                    .modifiers(Modifier.FINAL | Modifier.PUBLIC)
-                    .name(className(interfaces))
-                    .defineConstructor(Visibility.PUBLIC)
-                    .withParameters(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
-                    .intercept(MethodCall.invoke(Object.class.getDeclaredConstructor())
-                            .andThen(FieldAccessor.ofField("delegate").setsArgumentAt(0))
-                            .andThen(FieldAccessor.ofField("invocationEventHandler")
-                                    .setsArgumentAt(1))
-                            .andThen(FieldAccessor.ofField("instrumentationFilter")
-                                    .setsArgumentAt(2)))
-                    .implement(interfaces)
-                    .method(ElementMatchers.isToString())
-                    .intercept(MethodCall.invokeSelf().onField("delegate"));
-            List<Method> allMethods = new ArrayList<>();
-            for (Class<?> iface : interfaces) {
-                boolean allowDirectAccess = iface.isAssignableFrom(interfaceClass);
-                for (Method method : iface.getMethods()) {
-                    int index = allMethods.size();
-                    allMethods.add(method);
-                    // Retain tritium proxy detail where hashcode, equals, and toString cannot be instrumented.
-                    builder = builder.method(ElementMatchers.not(ElementMatchers.isHashCode()
-                                            .or(ElementMatchers.isEquals())
-                                            .or(ElementMatchers.isToString()))
-                                    .and(ElementMatchers.is(method)))
-                            .intercept(Advice.withCustomMapping()
-                                    .bind(ByteBuddyInstrumentationAdvice.MethodIndex.class, index)
-                                    .to(ByteBuddyInstrumentationAdvice.class)
-                                    .wrap(
-                                            allowDirectAccess
-                                                    ? MethodCall.invokeSelf()
-                                                            .onField("delegate")
-                                                            .withAllArguments()
-                                                    : MethodCall.invokeSelf()
-                                                            // Byte buddy doesn't seem to allow casting from fields, but
-                                                            // we can cast the result of a trivial call (in this case
-                                                            // Objects.requireNonNull) into the desired type.
-                                                            .onMethodCall(passThroughMethod()
-                                                                    .withField("delegate"))
-                                                            .withAllArguments()
-                                                            .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)));
-                }
-            }
-            return builder.defineField("delegate", interfaceClass, Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
-                    .defineField(
-                            "invocationEventHandler",
-                            InvocationEventHandler.class,
-                            Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
-                    .defineField(
-                            "instrumentationFilter",
-                            InstrumentationFilter.class,
-                            Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
-                    .defineField(METHODS_FIELD, Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
-                    .initializer(new StaticFieldLoadedTypeInitializer(METHODS_FIELD, allMethods.toArray(new Method[0])))
-                    .make()
-                    .load(classLoader)
-                    .getLoaded();
-        });
+        return (Class<? extends T>)
+                new TypeCache.WithInlineExpunction<>(TypeCache.Sort.WEAK).findOrInsert(classLoader, interfaces, () -> {
+                    DynamicType.Builder.MethodDefinition.ReceiverTypeDefinition<Object> builder = new ByteBuddy(
+                                    ClassFileVersion.ofThisVm(ClassFileVersion.JAVA_V8))
+                            .subclass(Object.class)
+                            .modifiers(Modifier.FINAL | Modifier.PUBLIC)
+                            .name(className(interfaces))
+                            .defineConstructor(Visibility.PUBLIC)
+                            .withParameters(interfaceClass, InvocationEventHandler.class, InstrumentationFilter.class)
+                            .intercept(MethodCall.invoke(Object.class.getDeclaredConstructor())
+                                    .andThen(FieldAccessor.ofField("delegate").setsArgumentAt(0))
+                                    .andThen(FieldAccessor.ofField("invocationEventHandler")
+                                            .setsArgumentAt(1))
+                                    .andThen(FieldAccessor.ofField("instrumentationFilter")
+                                            .setsArgumentAt(2)))
+                            .implement(interfaces)
+                            .method(ElementMatchers.isToString())
+                            .intercept(MethodCall.invokeSelf().onField("delegate"));
+                    List<Method> allMethods = new ArrayList<>();
+                    for (Class<?> iface : interfaces) {
+                        boolean allowDirectAccess = iface.isAssignableFrom(interfaceClass);
+                        for (Method method : iface.getMethods()) {
+                            int index = allMethods.size();
+                            allMethods.add(method);
+                            // Retain tritium proxy detail where hashcode, equals, and toString cannot be instrumented.
+                            builder = builder.method(ElementMatchers.not(ElementMatchers.isHashCode()
+                                                    .or(ElementMatchers.isEquals())
+                                                    .or(ElementMatchers.isToString()))
+                                            .and(ElementMatchers.is(method)))
+                                    .intercept(Advice.withCustomMapping()
+                                            .bind(ByteBuddyInstrumentationAdvice.MethodIndex.class, index)
+                                            .to(ByteBuddyInstrumentationAdvice.class)
+                                            .wrap(
+                                                    allowDirectAccess
+                                                            ? MethodCall.invokeSelf()
+                                                                    .onField("delegate")
+                                                                    .withAllArguments()
+                                                            : MethodCall.invokeSelf()
+                                                                    // Byte buddy doesn't seem to allow casting from
+                                                                    // fields, but
+                                                                    // we can cast the result of a trivial call (in this
+                                                                    // case
+                                                                    // Objects.requireNonNull) into the desired type.
+                                                                    .onMethodCall(passThroughMethod()
+                                                                            .withField("delegate"))
+                                                                    .withAllArguments()
+                                                                    .withAssigner(
+                                                                            Assigner.DEFAULT,
+                                                                            Assigner.Typing.DYNAMIC)));
+                        }
+                    }
+                    return builder.defineField("delegate", interfaceClass, Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
+                            .defineField(
+                                    "invocationEventHandler",
+                                    InvocationEventHandler.class,
+                                    Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
+                            .defineField(
+                                    "instrumentationFilter",
+                                    InstrumentationFilter.class,
+                                    Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
+                            .defineField(METHODS_FIELD, Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+                            .initializer(new StaticFieldLoadedTypeInitializer(
+                                    METHODS_FIELD, allMethods.toArray(new Method[0])))
+                            .make()
+                            .load(classLoader)
+                            .getLoaded();
+                });
     }
 
     private static MethodCall.WithoutSpecifiedTarget passThroughMethod() throws NoSuchMethodException {

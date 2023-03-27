@@ -16,16 +16,14 @@
 
 package com.palantir.tritium.microbenchmarks;
 
-import com.google.common.collect.Streams;
-import com.google.common.util.concurrent.Runnables;
 import com.palantir.tritium.Tritium;
 import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -40,6 +38,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.openjdk.jmh.runner.options.TimeValue;
 
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
@@ -50,7 +49,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 @SuppressWarnings({"designforextension", "NullAway"})
 public class InstrumentationCreationBenchmark {
 
-    @Param({"BYTE_BUDDY", "DYNAMIC_PROXY"})
+    @Param("BYTE_BUDDY")
     private InstrumentationMode mode;
 
     @SuppressWarnings("unused")
@@ -65,57 +64,52 @@ public class InstrumentationCreationBenchmark {
     }
 
     private TaggedMetricRegistry registry;
-    private Stubs.Iface99 largeStub;
-    private Stubs.Iface99 duplicateStub;
 
     @Setup
     public void before() {
         mode.initialize();
         this.registry = new DefaultTaggedMetricRegistry();
-        this.largeStub = (Stubs.Iface99) Proxy.newProxyInstance(
-                getClass().getClassLoader(),
-                // Apply runnable to avoid benchmarks reusing the proxy class
-                new Class<?>[] {Runnable.class, Stubs.Iface99.class},
-                (_proxy, _method, _args) -> null);
-        this.duplicateStub = (Stubs.Iface99) Proxy.newProxyInstance(
-                getClass().getClassLoader(),
-                // Apply runnable to avoid benchmarks reusing the proxy class
-                Streams.concat(
-                                Stream.<Class<?>>of(Runnable.class),
-                                IntStream.range(0, 100).<Class<?>>mapToObj(value -> {
-                                    try {
-                                        return Class.forName(
-                                                Stubs.Iface99.class.getName().replace("99", "" + value));
-                                    } catch (ClassNotFoundException e) {
-                                        throw new IllegalStateException(e);
-                                    }
-                                }))
-                        .toArray(Class<?>[]::new),
-                (_proxy, _method, _args) -> null);
     }
 
+    @SuppressWarnings({"unchecked", "ProxyNonConstantType"})
     @Benchmark
-    public void createInstrumentationLargeInterface() {
-        Tritium.instrument(Stubs.Iface99.class, largeStub, registry).iface50method5();
-    }
-
-    @Benchmark
-    public void createInstrumentationLargeComplexInterface() {
-        Tritium.instrument(Stubs.Iface99.class, duplicateStub, registry).iface50method5();
-    }
-
-    @Benchmark
-    public void createInstrumentationSimpleInterface() {
-        Tritium.instrument(Runnable.class, Runnables.doNothing(), registry).run();
+    public void createInstrumentationLargeInterface() throws ClassNotFoundException {
+        Class<Stubs.Iface0> iface =
+                (Class<Stubs.Iface0>) Class.forName("com.palantir.tritium.microbenchmarks.Stubs$Iface"
+                        + ThreadLocalRandom.current().nextInt(100));
+        Stubs.Iface0 instrumented = Tritium.instrument(
+                iface,
+                (Stubs.Iface0) Proxy.newProxyInstance(
+                        iface.getClassLoader(),
+                        // Apply runnable to avoid benchmarks reusing the proxy class
+                        new Class<?>[] {iface},
+                        (_proxy, _method, _args) -> {
+                            byte[] byteArray = new byte[1024 * 4];
+                            ThreadLocalRandom.current().nextBytes(byteArray);
+                            if (Arrays.hashCode(byteArray) == 12345) {
+                                System.out.println("lucky hashCode!");
+                            }
+                            if (ThreadLocalRandom.current().nextInt(1000) == 0) {
+                                System.gc();
+                            }
+                            return null;
+                        }),
+                registry);
+        for (int i = 0; i < 10; i++) {
+            instrumented.iface0method0();
+        }
     }
 
     public static void main(String[] _args) throws Exception {
         Options options = new OptionsBuilder()
-                .include(InstrumentationCreationBenchmark.class.getName())
+                .include(InstrumentationCreationBenchmark.class.getName() + ".createInstrumentationLargeInterface")
                 .warmupIterations(0)
+                .threads(2)
                 .measurementIterations(1)
-                .mode(Mode.SingleShotTime)
-                .forks(1)
+                .measurementTime(TimeValue.seconds(10))
+                .jvmArgs("-XX:+UseShenandoahGC", "-XX:+ClassUnloadingWithConcurrentMark", "-XX:+UseNUMA")
+                .mode(Mode.AverageTime)
+                .forks(100)
                 .build();
         new Runner(options).run();
     }
