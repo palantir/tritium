@@ -132,9 +132,11 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         @Override
         public void run() {
             running.inc();
-            try (Timer.Context ignored = duration.time()) {
+            long startNanos = System.nanoTime();
+            try {
                 task.run();
             } finally {
+                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
             }
         }
@@ -153,11 +155,12 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         @Override
         public void run() {
             running.inc();
-            Timer.Context context = duration.time();
+            long startNanos = System.nanoTime();
             try {
                 task.run();
             } finally {
-                long elapsed = context.stop();
+                long elapsed = System.nanoTime() - startNanos;
+                duration.update(elapsed, TimeUnit.NANOSECONDS);
                 running.dec();
                 if (elapsed > periodInNanos) {
                     scheduledOverrun.inc();
@@ -177,9 +180,11 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         @Override
         public T call() throws Exception {
             running.inc();
-            try (Timer.Context ignored = duration.time()) {
+            long startNanos = System.nanoTime();
+            try {
                 return task.call();
             } finally {
+                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
             }
         }

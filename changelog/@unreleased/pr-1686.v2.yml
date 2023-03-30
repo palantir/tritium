@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Reduce executor allocation overhead from Timer.Context
+  links:
+  - https://github.com/palantir/tritium/pull/1686

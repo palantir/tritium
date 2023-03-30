@@ -136,9 +136,11 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
         public void run() {
             stopQueueTimer();
             running.inc();
-            try (Timer.Context ignored = duration.time()) {
+            long startNanos = System.nanoTime();
+            try {
                 task.run();
             } finally {
+                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
             }
         }
@@ -169,9 +171,11 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
         public T call() throws Exception {
             stopQueueTimer();
             running.inc();
-            try (Timer.Context ignored = duration.time()) {
+            long startNanos = System.nanoTime();
+            try {
                 return task.call();
             } finally {
+                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
             }
         }
