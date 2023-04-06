@@ -19,6 +19,7 @@ package com.palantir.tritium.metrics;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
@@ -140,7 +141,7 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
             try {
                 task.run();
             } finally {
-                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
+                duration.update(Duration.ofNanos(System.nanoTime() - startNanos));
                 running.dec();
             }
         }
@@ -175,7 +176,7 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
             try {
                 return task.call();
             } finally {
-                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
+                duration.update(Duration.ofNanos(System.nanoTime() - startNanos));
                 running.dec();
             }
         }
