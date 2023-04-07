@@ -31,6 +31,8 @@ import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
@@ -159,5 +161,33 @@ public class LoggingInvocationEventHandlerTest {
         java.util.function.LongPredicate legacyPredicate = _ignored -> false;
         assertThat(new LoggingInvocationEventHandler(getLogger(), LoggingLevel.TRACE, legacyPredicate))
                 .isNotNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {Long.MIN_VALUE, -1, 0, 1, 100, 1_000})
+    void testLogDurationsLessThanOrEqualToOneMicrosecond(long nanoseconds) {
+        assertThat(LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND.test(nanoseconds))
+                .isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {1_001, 1_000_000, Long.MAX_VALUE})
+    void testLogDurationsGreaterThanOneMicrosecond(long nanoseconds) {
+        assertThat(LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_1_MICROSECOND.test(nanoseconds))
+                .isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {Long.MIN_VALUE, -1, 0, 1, 100, 1_000, 999_999})
+    void testLogDurationsLessThanOrEqualToZeroMilliseconds(long nanoseconds) {
+        assertThat(LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_0_MILLIS.test(nanoseconds))
+                .isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {1_000_000, 1_000_001, 1_000_000_000, Long.MAX_VALUE})
+    void testLogDurationsGreaterThanZeroMilliseconds(long nanoseconds) {
+        assertThat(LoggingInvocationEventHandler.LOG_DURATIONS_GREATER_THAN_0_MILLIS.test(nanoseconds))
+                .isTrue();
     }
 }
