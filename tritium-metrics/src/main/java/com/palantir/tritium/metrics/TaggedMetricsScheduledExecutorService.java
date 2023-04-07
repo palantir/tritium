@@ -18,7 +18,6 @@ package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
@@ -137,7 +136,7 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
             try {
                 task.run();
             } finally {
-                duration.update(Duration.ofNanos(System.nanoTime() - startNanos));
+                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
             }
         }
@@ -161,7 +160,7 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
                 task.run();
             } finally {
                 long elapsed = System.nanoTime() - startNanos;
-                duration.update(Duration.ofNanos(elapsed));
+                duration.update(elapsed, TimeUnit.NANOSECONDS);
                 running.dec();
                 if (elapsed > periodInNanos) {
                     scheduledOverrun.inc();
@@ -185,7 +184,7 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
             try {
                 return task.call();
             } finally {
-                duration.update(Duration.ofNanos(System.nanoTime() - startNanos));
+                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
             }
         }
