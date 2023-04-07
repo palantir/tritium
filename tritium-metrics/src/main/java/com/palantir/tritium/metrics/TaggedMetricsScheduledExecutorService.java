@@ -130,6 +130,7 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         }
 
         @Override
+        @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         public void run() {
             running.inc();
             long startNanos = System.nanoTime();
@@ -153,6 +154,7 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         }
 
         @Override
+        @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         public void run() {
             running.inc();
             long startNanos = System.nanoTime();
@@ -178,6 +180,7 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         }
 
         @Override
+        @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         public T call() throws Exception {
             running.inc();
             long startNanos = System.nanoTime();
