@@ -133,6 +133,7 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
         }
 
         @Override
+        @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         public void run() {
             stopQueueTimer();
             running.inc();
@@ -168,6 +169,7 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
         }
 
         @Override
+        @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         public T call() throws Exception {
             stopQueueTimer();
             running.inc();

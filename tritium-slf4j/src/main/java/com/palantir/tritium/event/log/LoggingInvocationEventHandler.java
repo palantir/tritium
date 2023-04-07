@@ -28,9 +28,7 @@ import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
-import java.time.Duration;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,10 +42,10 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_ALL_DURATIONS = _input -> true;
 
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_DURATIONS_GREATER_THAN_1_MICROSECOND =
-            nanos -> TimeUnit.MICROSECONDS.convert(Duration.ofNanos(nanos)) > 1;
+            nanos -> nanos > 1000;
 
     public static final com.palantir.tritium.api.functions.LongPredicate LOG_DURATIONS_GREATER_THAN_0_MILLIS =
-            nanos -> TimeUnit.MILLISECONDS.convert(Duration.ofNanos(nanos)) > 0;
+            nanos -> nanos >= 1_000_000;
 
     public static final com.palantir.tritium.api.functions.LongPredicate NEVER_LOG = _input -> false;
 
