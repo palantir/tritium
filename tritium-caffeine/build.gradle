@@ -1,12 +1,10 @@
 apply plugin: 'com.palantir.external-publish-jar'
-apply plugin: 'com.palantir.revapi'
 
 dependencies {
-
-    api project(':tritium-metrics')
-    api project(':tritium-registry')
     api 'com.github.ben-manes.caffeine:caffeine'
     api 'io.dropwizard.metrics:metrics-core'
+    api project(':tritium-metrics')
+    api project(':tritium-registry')
 
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:logger'
@@ -21,4 +19,3 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
 }
-
