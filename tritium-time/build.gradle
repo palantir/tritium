@@ -1,9 +1,7 @@
 apply plugin: 'com.palantir.external-publish-jar'
-apply plugin: 'com.palantir.revapi'
 apply plugin: 'me.champeau.jmh'
 
 dependencies {
-
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'

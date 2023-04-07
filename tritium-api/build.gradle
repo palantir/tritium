@@ -1,8 +1,5 @@
 apply plugin: 'com.palantir.external-publish-jar'
-apply plugin: 'com.palantir.revapi'
 
 dependencies {
-
     implementation 'com.google.code.findbugs:jsr305'
 }
-

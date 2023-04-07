@@ -1,11 +1,8 @@
 apply plugin: 'com.palantir.external-publish-jar'
-apply plugin: 'com.palantir.revapi'
 
 dependencies {
-
-    testImplementation project(':tritium-test')
-
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testImplementation project(':tritium-test')
 }

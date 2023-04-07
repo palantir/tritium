@@ -44,6 +44,7 @@ allprojects {
     apply plugin: 'com.palantir.baseline-null-away'
     apply plugin: 'com.palantir.jakarta-package-alignment'
     apply plugin: 'com.palantir.java-format'
+    apply plugin: 'com.palantir.revapi'
 
     configurations {
         testImplementationClasspath {
@@ -111,22 +112,10 @@ allprojects {
 
     tasks.withType(Javadoc).configureEach {
         // suppress Javadoc doclint warnings in Java 8+
-        if (!System.getProperty("java.version").startsWith("1.7")) {
-            options.addStringOption('Xdoclint:none', '-quiet')
-        }
+        options.addStringOption('Xdoclint:none', '-quiet')
     }
     tasks.check.dependsOn(javadoc)
-
-    checkImplicitDependencies {
-        // avoid spurious flags on dropwizard metrics
-        ignore 'io.dropwizard.metrics', 'metrics-core'
-    }
-    checkUnusedDependencies {
-        // avoid spurious flags on junit-jupiter
-        ignore 'org.junit.jupiter', 'junit-jupiter'
-    }
     tasks.check.dependsOn(checkImplicitDependencies)
     tasks.check.dependsOn(checkUnusedDependencies)
     tasks.check.dependsOn(checkUnusedConstraints)
 }
-

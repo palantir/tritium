@@ -1,8 +1,6 @@
 apply plugin: 'com.palantir.external-publish-jar'
-apply plugin: 'com.palantir.revapi'
 
 dependencies {
-
     api project(':tritium-api')
 
     implementation 'com.google.code.findbugs:jsr305'
@@ -12,10 +10,10 @@ dependencies {
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
 
-    testImplementation project(':tritium-test')
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.awaitility:awaitility'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testImplementation 'org.mockito:mockito-core'
+    testImplementation project(':tritium-test')
 }
