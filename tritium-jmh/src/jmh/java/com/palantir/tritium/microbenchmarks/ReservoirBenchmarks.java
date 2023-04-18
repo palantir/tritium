@@ -43,7 +43,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @SuppressWarnings({"designforextension", "NullAway"})
 public class ReservoirBenchmarks {
 
-    @Param({"EXPO_DECAY", "LOCK_FREE_EXPO_DECAY"})
+    @Param({"EXPO_DECAY", "LOCK_FREE_EXPO_DECAY", "DW_LOCK_FREE_EXPO_DECAY"})
     private ReservoirType reservoirType;
 
     public enum ReservoirType {
@@ -55,8 +55,17 @@ public class ReservoirBenchmarks {
         },
         LOCK_FREE_EXPO_DECAY() {
             @Override
+            @SuppressWarnings("deprecation") // explicitly testing
             Reservoir create() {
                 return LockFreeExponentiallyDecayingReservoir.builder().build();
+            }
+        },
+
+        DW_LOCK_FREE_EXPO_DECAY() {
+            @Override
+            Reservoir create() {
+                return com.codahale.metrics.LockFreeExponentiallyDecayingReservoir.builder()
+                        .build();
             }
         };
 
