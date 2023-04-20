@@ -16,18 +16,20 @@ dependencies {
     jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess'
     api 'io.dropwizard.metrics:metrics-core'
 
-    jmh project(':tritium-api')
-    jmh project(':tritium-core')
-    jmh project(':tritium-lib')
-    jmh project(':tritium-metrics')
-    jmh project(':tritium-registry')
-    jmh project(':tritium-slf4j')
-    jmh project(':tritium-test')
-    jmh project(':tritium-tracing')
-    jmh 'com.google.code.findbugs:jsr305'
-    jmh 'com.google.guava:guava'
-    jmh 'com.palantir.safe-logging:preconditions'
-    jmh 'com.palantir.safe-logging:safe-logging'
-    jmh 'com.palantir.tracing:tracing'
-    jmh 'io.dropwizard.metrics:metrics-core'
+    jmhImplementation project(':tritium-api')
+    jmhImplementation project(':tritium-core')
+    jmhImplementation project(':tritium-lib')
+    jmhImplementation project(':tritium-metrics')
+    jmhImplementation project(':tritium-registry')
+    jmhImplementation project(':tritium-slf4j')
+    jmhImplementation project(':tritium-test')
+    jmhImplementation project(':tritium-tracing')
+    jmhImplementation 'com.google.code.findbugs:jsr305'
+    jmhImplementation 'com.google.guava:guava'
+    jmhImplementation 'com.palantir.safe-logging:preconditions'
+    jmhImplementation 'com.palantir.safe-logging:safe-logging'
+    jmhImplementation 'com.palantir.tracing:tracing'
+    jmhImplementation 'com.palantir.tracing:tracing-api'
+    jmhImplementation 'io.dropwizard.metrics:metrics-core'
+    jmhImplementation 'org.slf4j:slf4j-api'
 }
