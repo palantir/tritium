@@ -33,6 +33,7 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
+import org.assertj.core.api.AbstractObjectAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -142,32 +143,31 @@ final class CaffeineCacheStatsTest {
                         "cache.load.failure.count",
                         "cache.load.average.millis");
 
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            assertGauge(taggedMetricRegistry, "cache.request.count").isEqualTo(0L);
+            assertGauge(taggedMetricRegistry, "cache.hit.count").isEqualTo(0L);
+            assertGauge(taggedMetricRegistry, "cache.miss.count").isEqualTo(0L);
+        });
+
         assertThat(cache.get(0, mapping)).isEqualTo("0");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        await().atMost(Duration.ofSeconds(10))
-                .untilAsserted(() -> assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.request.count")
-                                .getValue())
-                        .isEqualTo(4L));
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
+            // await to avoid flakes as gauges may be memoized
+            assertGauge(taggedMetricRegistry, "cache.request.count").isEqualTo(4L);
+            assertGauge(taggedMetricRegistry, "cache.hit.count").isEqualTo(1L);
+            assertGauge(taggedMetricRegistry, "cache.miss.count").isEqualTo(3L);
+            assertGauge(taggedMetricRegistry, "cache.hit.ratio").isEqualTo(0.25);
 
-        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.count")
-                        .getValue())
-                .isEqualTo(1L);
-        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.miss.count")
-                        .getValue())
-                .isEqualTo(3L);
-        assertThat(getMetric(taggedMetricRegistry, Gauge.class, "cache.hit.ratio")
-                        .getValue())
-                .isEqualTo(0.25);
-
-        assertThat(taggedMetricRegistry.getMetrics())
-                .extractingByKey(MetricName.builder()
-                        .safeName("cache.stats.disabled")
-                        .putSafeTags("cache", "test")
-                        .build())
-                .isNull();
+            assertThat(taggedMetricRegistry.getMetrics())
+                    .extractingByKey(MetricName.builder()
+                            .safeName("cache.stats.disabled")
+                            .putSafeTags("cache", "test")
+                            .build())
+                    .isNull();
+        });
     }
 
     @Test
@@ -202,12 +202,21 @@ final class CaffeineCacheStatsTest {
                 .isEqualTo(1L);
     }
 
+    static AbstractObjectAssert<?, ?> assertGauge(TaggedMetricRegistry taggedMetricRegistry, String name) {
+        Gauge<?> metric = getMetric(taggedMetricRegistry, Gauge.class, name);
+        return assertThat(metric)
+                .as("metric '%s': '%s'", name, metric)
+                .isNotNull()
+                .extracting(Gauge::getValue);
+    }
+
     private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {
         return clazz.cast(metrics.getMetrics().entrySet().stream()
                 .filter(e -> name.equals(e.getKey().safeName()))
                 .filter(e -> clazz.isInstance(e.getValue()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No such metric " + name))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No such metric '" + name + "' of type " + clazz.getCanonicalName()))
                 .getValue());
     }
 }
