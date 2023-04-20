@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Avoid flakes with memoized gauges in CaffeineCacheStatsTest
+  links:
+  - https://github.com/palantir/tritium/pull/1707
