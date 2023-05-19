@@ -29,7 +29,6 @@ import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 
 public final class InstrumentationProperties {
     private static final SafeLogger log = SafeLoggerFactory.get(InstrumentationProperties.class);
@@ -53,17 +52,16 @@ public final class InstrumentationProperties {
 
     @SuppressWarnings("WeakerAccess") // public API
     public static boolean isSpecificEnabled(String name, boolean defaultValue) {
-        String qualifiedValue = getSpecific(name);
+        Map<String, String> props = instrumentationProperties.get();
+        // avoid string concatenation allocation in common case where no `instrument` properties are defined
+        if (props.isEmpty()) {
+            return defaultValue;
+        }
+        String qualifiedValue = props.get(INSTRUMENT_PREFIX + "." + name);
         if (qualifiedValue == null) {
             return defaultValue;
         }
         return "true".equalsIgnoreCase(qualifiedValue);
-    }
-
-    /** Applies the {@link #INSTRUMENT_PREFIX} and returns the current value. */
-    @Nullable
-    private static String getSpecific(String name) {
-        return instrumentationProperties().get(INSTRUMENT_PREFIX + "." + name);
     }
 
     @SuppressWarnings("WeakerAccess") // public API
@@ -72,7 +70,7 @@ public final class InstrumentationProperties {
     }
 
     private static boolean isGloballyDisabled() {
-        return "false".equalsIgnoreCase(instrumentationProperties().get(INSTRUMENT_PREFIX));
+        return "false".equalsIgnoreCase(instrumentationProperties.get().get(INSTRUMENT_PREFIX));
     }
 
     /**
@@ -88,10 +86,6 @@ public final class InstrumentationProperties {
     private static Supplier<Map<String, String>> createSupplier() {
         return Suppliers.memoizeWithExpiration(
                 InstrumentationProperties::createInstrumentationSystemProperties, 1L, TimeUnit.MINUTES);
-    }
-
-    private static Map<String, String> instrumentationProperties() {
-        return instrumentationProperties.get();
     }
 
     private static ImmutableMap<String, String> createInstrumentationSystemProperties() {
@@ -112,7 +106,9 @@ public final class InstrumentationProperties {
                         && String.valueOf(entry.getKey()).startsWith(INSTRUMENT_PREFIX))
                 .collect(ImmutableMap.toImmutableMap(
                         entry -> String.valueOf(entry.getKey()), entry -> String.valueOf(entry.getValue())));
-        log.debug("Reloaded instrumentation properties {}", UnsafeArg.of("instrumentationProperties", map));
+        if (log.isDebugEnabled()) {
+            log.debug("Reloaded instrumentation properties", UnsafeArg.of("instrumentationProperties", map));
+        }
         return map;
     }
 }
