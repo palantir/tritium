@@ -1,6 +1,6 @@
 # Run ./gradlew --write-locks to regenerate this file
 com.github.ben-manes.caffeine:caffeine:3.1.6 (1 constraints: 0c050336)
-com.google.auto.service:auto-service-annotations:1.0.1 (1 constraints: 0405f135)
+com.google.auto.service:auto-service-annotations:1.1.0 (1 constraints: 0405f335)
 com.google.code.findbugs:jsr305:3.0.2 (4 constraints: 5c3586ed)
 com.google.errorprone:error_prone_annotations:2.18.0 (8 constraints: e070f950)
 com.google.guava:failureaccess:1.0.1 (1 constraints: 140ae1b4)
