@@ -65,7 +65,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleElementVisitor8;
 import javax.lang.model.util.Types;
@@ -121,8 +120,7 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
             }
             TypeElement typeElement = (TypeElement) element;
             List<DeclaredType> allInterfaces = new ArrayList<>();
-            List<DeclaredType> minimalInterfaces = new ArrayList<>();
-            if (isInvalid(element.asType(), allInterfaces, minimalInterfaces)) {
+            if (!isValid(element.asType(), allInterfaces)) {
                 invalidElements.add(typeElement.getQualifiedName());
                 continue;
             }
@@ -135,7 +133,7 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                 continue;
             }
             try {
-                JavaFile generatedFile = generate(typeElement, allInterfaces, minimalInterfaces);
+                JavaFile generatedFile = generate(typeElement, allInterfaces);
                 try {
                     Goethe.formatAndEmit(generatedFile, filer);
                 } catch (GoetheException e) {
@@ -159,57 +157,35 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
         return currentElements;
     }
 
-    private boolean isInvalid(
-            List<? extends TypeMirror> mirrors,
-            List<DeclaredType> allInterfaces,
-            @Nullable List<DeclaredType> minimalInterfaces) {
-        for (TypeMirror mirror : mirrors) {
-            if (isInvalid(mirror, allInterfaces, minimalInterfaces)) {
-                return true;
-            }
-        }
-        return false;
+    private boolean isValid(List<? extends TypeMirror> mirrors, List<DeclaredType> allInterfaces) {
+        return mirrors.stream().allMatch(mirror -> isValid(mirror, allInterfaces));
     }
 
     /**
      * Returns true if the given {@link TypeMirror} has sufficient type information, otherwise it may need to be
      * deferred for another annotation processor to complete.
      */
-    private boolean isInvalid(
-            TypeMirror mirror, List<DeclaredType> allInterfaces, @Nullable List<DeclaredType> minimalInterfacesFinal) {
+    private boolean isValid(TypeMirror mirror, List<DeclaredType> allInterfaces) {
         if (mirror.getKind() == TypeKind.ERROR) {
-            return true;
+            return false;
         }
-        List<DeclaredType> minimalInterfaces = minimalInterfacesFinal;
         if (mirror.getKind() == TypeKind.DECLARED && types.asElement(mirror).getKind() == ElementKind.INTERFACE) {
             allInterfaces.add((DeclaredType) mirror);
-            if (minimalInterfaces != null) {
-                minimalInterfaces.add((DeclaredType) mirror);
-                minimalInterfaces = null;
-            }
         }
-        return isInvalid(((TypeElement) types.asElement(mirror)).getInterfaces(), allInterfaces, minimalInterfaces);
+        return isValid(((TypeElement) types.asElement(mirror)).getInterfaces(), allInterfaces);
     }
 
     @SuppressWarnings("checkstyle:CyclomaticComplexity")
-    private JavaFile generate(
-            TypeElement typeElement, List<DeclaredType> allInterfaces, List<DeclaredType> minimalInterfaces) {
+    private JavaFile generate(TypeElement typeElement, List<DeclaredType> allInterfaces) {
         TypeName annotatedType = TypeName.get(typeElement.asType());
         TypeName delegateType =
                 TypeElements.unwrapEmptyInterface(elements, typeElement).orElse(annotatedType);
         String packageName =
                 elements.getPackageOf(typeElement).getQualifiedName().toString();
         String className = "Instrumented" + typeElement.getSimpleName();
-        List<TypeName> interfaceNames = new ArrayList<>(minimalInterfaces.size());
-        List<TypeVariableName> typeVarNames = new ArrayList<>();
-        for (DeclaredType type : minimalInterfaces) {
-            interfaceNames.add(TypeName.get(type));
-            for (TypeMirror typeArg : type.getTypeArguments()) {
-                if (typeArg instanceof TypeVariable) {
-                    typeVarNames.add(TypeVariableName.get((TypeVariable) typeArg));
-                }
-            }
-        }
+        List<TypeVariableName> typeVarNames = typeElement.getTypeParameters().stream()
+                .map(TypeVariableName::get)
+                .collect(Collectors.toList());
 
         TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -223,7 +199,7 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
         }
 
         specBuilder
-                .addSuperinterfaces(interfaceNames)
+                .addSuperinterface(annotatedType)
                 .addTypeVariables(typeVarNames)
                 .addField(FieldSpec.builder(delegateType, DELEGATE_NAME, Modifier.PRIVATE, Modifier.FINAL)
                         .build())
