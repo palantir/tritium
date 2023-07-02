@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.processor;
 
+import com.google.auto.common.MoreElements;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -39,15 +40,10 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Generated;
@@ -59,15 +55,12 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.Elements;
-import javax.lang.model.util.SimpleElementVisitor8;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
@@ -78,7 +71,6 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
     private static final String HANDLER_NAME = "handler";
     private static final ImmutableSet<String> ANNOTATIONS = ImmutableSet.of(Instrument.class.getName());
 
-    private final Set<Name> invalidElements = new HashSet<>();
     private Messager messager;
     private Filer filer;
     private Elements elements;
@@ -106,12 +98,10 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> _annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver()) {
-            if (!invalidElements.isEmpty()) {
-                messager.printMessage(Kind.ERROR, "Processing completed with unresolved elements: " + invalidElements);
-            }
             return false;
         }
-        for (Element element : getElementsToProcess(roundEnv)) {
+
+        for (Element element : roundEnv.getElementsAnnotatedWith(Instrument.class)) {
             if (element.getKind() != ElementKind.INTERFACE) {
                 messager.printMessage(
                         Kind.ERROR,
@@ -119,23 +109,11 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                         element);
                 continue;
             }
+
             TypeElement typeElement = (TypeElement) element;
-            List<DeclaredType> allInterfaces = new ArrayList<>();
-            List<DeclaredType> minimalInterfaces = new ArrayList<>();
-            if (isInvalid(element.asType(), allInterfaces, minimalInterfaces)) {
-                invalidElements.add(typeElement.getQualifiedName());
-                continue;
-            }
-            if (allInterfaces.isEmpty()) {
-                messager.printMessage(
-                        Kind.ERROR,
-                        "Cannot generate a instrumented implementation. "
-                                + "The annotated class implements no interfaces.",
-                        typeElement);
-                continue;
-            }
+
             try {
-                JavaFile generatedFile = generate(typeElement, allInterfaces, minimalInterfaces);
+                JavaFile generatedFile = generate(typeElement);
                 try {
                     Goethe.formatAndEmit(generatedFile, filer);
                 } catch (GoetheException e) {
@@ -150,66 +128,17 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
         return false;
     }
 
-    private Set<Element> getElementsToProcess(RoundEnvironment env) {
-        Set<Element> currentElements = new HashSet<>(env.getElementsAnnotatedWith(Instrument.class));
-        for (Name name : invalidElements) {
-            currentElements.add(elements.getTypeElement(name));
-        }
-        invalidElements.clear();
-        return currentElements;
-    }
-
-    private boolean isInvalid(
-            List<? extends TypeMirror> mirrors,
-            List<DeclaredType> allInterfaces,
-            @Nullable List<DeclaredType> minimalInterfaces) {
-        for (TypeMirror mirror : mirrors) {
-            if (isInvalid(mirror, allInterfaces, minimalInterfaces)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns true if the given {@link TypeMirror} has sufficient type information, otherwise it may need to be
-     * deferred for another annotation processor to complete.
-     */
-    private boolean isInvalid(
-            TypeMirror mirror, List<DeclaredType> allInterfaces, @Nullable List<DeclaredType> minimalInterfacesFinal) {
-        if (mirror.getKind() == TypeKind.ERROR) {
-            return true;
-        }
-        List<DeclaredType> minimalInterfaces = minimalInterfacesFinal;
-        if (mirror.getKind() == TypeKind.DECLARED && types.asElement(mirror).getKind() == ElementKind.INTERFACE) {
-            allInterfaces.add((DeclaredType) mirror);
-            if (minimalInterfaces != null) {
-                minimalInterfaces.add((DeclaredType) mirror);
-                minimalInterfaces = null;
-            }
-        }
-        return isInvalid(((TypeElement) types.asElement(mirror)).getInterfaces(), allInterfaces, minimalInterfaces);
-    }
-
-    @SuppressWarnings("checkstyle:CyclomaticComplexity")
-    private JavaFile generate(
-            TypeElement typeElement, List<DeclaredType> allInterfaces, List<DeclaredType> minimalInterfaces) {
+    @SuppressWarnings("CyclomaticComplexity")
+    private JavaFile generate(TypeElement typeElement) {
         TypeName annotatedType = TypeName.get(typeElement.asType());
         TypeName delegateType =
                 TypeElements.unwrapEmptyInterface(elements, typeElement).orElse(annotatedType);
         String packageName =
                 elements.getPackageOf(typeElement).getQualifiedName().toString();
         String className = "Instrumented" + typeElement.getSimpleName();
-        List<TypeName> interfaceNames = new ArrayList<>(minimalInterfaces.size());
-        List<TypeVariableName> typeVarNames = new ArrayList<>();
-        for (DeclaredType type : minimalInterfaces) {
-            interfaceNames.add(TypeName.get(type));
-            for (TypeMirror typeArg : type.getTypeArguments()) {
-                if (typeArg instanceof TypeVariable) {
-                    typeVarNames.add(TypeVariableName.get((TypeVariable) typeArg));
-                }
-            }
-        }
+        List<TypeVariableName> typeVarNames = typeElement.getTypeParameters().stream()
+                .map(TypeVariableName::get)
+                .collect(Collectors.toList());
 
         TypeSpec.Builder specBuilder = TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -223,7 +152,7 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
         }
 
         specBuilder
-                .addSuperinterfaces(interfaceNames)
+                .addSuperinterface(annotatedType)
                 .addTypeVariables(typeVarNames)
                 .addField(FieldSpec.builder(delegateType, DELEGATE_NAME, Modifier.PRIVATE, Modifier.FINAL)
                         .build())
@@ -251,34 +180,15 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                         .addStatement("this.$1N = $1N", FILTER_NAME)
                         .build());
 
-        Map<String, List<MethodElements>> methodsByName = new HashMap<>();
-        for (DeclaredType mirror : allInterfaces) {
-            @SuppressWarnings("VoidMissingNullable") // noisy
-            SimpleElementVisitor8<Void, Void> visitor = createVisitor(typeElement, methodsByName, mirror);
-            for (Element methodElement : types.asElement(mirror).getEnclosedElements()) {
-                if (!methodElement.getModifiers().contains(Modifier.STATIC)
-                        && !methodElement.getModifiers().contains(Modifier.PRIVATE)) {
-                    methodElement.accept(visitor, null);
-                }
-            }
-        }
-        List<MethodElements> instrumentedMethods = new ArrayList<>();
-        for (List<MethodElements> methods : methodsByName.values()) {
-            for (int i = 0; i < methods.size(); i++) {
-                if (isMostSpecific(i, methods)) {
-                    instrumentedMethods.add(methods.get(i));
-                }
-            }
-        }
-        if (instrumentedMethods.isEmpty()) {
-            messager.printMessage(
-                    Kind.ERROR,
-                    "Cannot generate an instrumented implementation. The annotated interface has no methods",
-                    typeElement);
-        }
+        List<MethodElements> allMethods =
+                MoreElements.getLocalAndInheritedMethods(typeElement, types, elements).stream()
+                        .filter(method -> !Methods.isObjectMethod(elements, method))
+                        .map(method -> new MethodElements(asMemberOf(typeElement, method), method))
+                        .collect(Collectors.toList());
+
         IdentityHashMap<MethodElements, String> methodStaticFields =
-                Methods.methodStaticFieldName(instrumentedMethods, specBuilder, annotatedType);
-        for (MethodElements method : instrumentedMethods) {
+                Methods.methodStaticFieldName(allMethods, specBuilder, annotatedType);
+        for (MethodElements method : allMethods) {
             createMethod(method, specBuilder, methodStaticFields);
         }
 
@@ -337,42 +247,6 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
                 .skipJavaLangImports(true)
                 .indent("    ")
                 .build();
-    }
-
-    @SuppressWarnings("VoidMissingNullable") // noisy
-    private SimpleElementVisitor8<Void, Void> createVisitor(
-            TypeElement typeElement, Map<String, List<MethodElements>> methodsByName, DeclaredType mirror) {
-        return new SimpleElementVisitor8<>() {
-            @Nullable
-            @Override
-            public Void visitExecutable(ExecutableElement method, Void _param) {
-                if (!Methods.isObjectMethod(elements, method)) {
-                    List<MethodElements> methods = methodsByName.computeIfAbsent(
-                            method.getSimpleName().toString(), _key -> new ArrayList<>(1));
-                    methods.add(new MethodElements(asMemberOf(typeElement, mirror, method), method));
-                }
-                return null;
-            }
-        };
-    }
-
-    private boolean isMostSpecific(int index, List<MethodElements> methods) {
-        ExecutableType method = methods.get(index).type();
-        for (int j = 0; j < methods.size(); j++) {
-            if (index == j) {
-                continue;
-            }
-            ExecutableType other = methods.get(j).type();
-            if (types.isSubsignature(other, method)) {
-                if (types.isSameType(other.getReturnType(), method.getReturnType())) {
-                    return index < j;
-                }
-                if (types.isSubtype(other.getReturnType(), method.getReturnType())) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     private static void createMethod(
@@ -451,9 +325,9 @@ public final class TritiumAnnotationProcessor extends AbstractProcessor {
         typeBuilder.addMethod(methodBuilder.build());
     }
 
-    private ExecutableType asMemberOf(TypeElement typeElement, DeclaredType mirror, ExecutableElement method) {
+    private ExecutableType asMemberOf(TypeElement typeElement, ExecutableElement method) {
         try {
-            return (ExecutableType) types.asMemberOf(mirror, method);
+            return (ExecutableType) types.asMemberOf((DeclaredType) typeElement.asType(), method);
         } catch (IllegalArgumentException e) {
             // see
             // https://github.com/google/auto/blob/master/value/src/main/java/com/google/auto/value/processor/EclipseHack.java#L95

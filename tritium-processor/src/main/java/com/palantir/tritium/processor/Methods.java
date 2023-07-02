@@ -63,6 +63,10 @@ final class Methods {
      */
     static IdentityHashMap<MethodElements, String> methodStaticFieldName(
             List<MethodElements> instrumentedMethods, TypeSpec.Builder typeBuilder, TypeName delegateType) {
+        if (instrumentedMethods.isEmpty()) {
+            return new IdentityHashMap<>();
+        }
+
         List<CodeBlock> initializers = new ArrayList<>();
         IdentityHashMap<MethodElements, String> result = new IdentityHashMap<>();
         for (MethodElements method : instrumentedMethods) {

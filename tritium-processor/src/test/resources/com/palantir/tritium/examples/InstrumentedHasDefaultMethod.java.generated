@@ -11,14 +11,14 @@ import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
 public final class InstrumentedHasDefaultMethod implements HasDefaultMethod {
-    private static final Method BAR;
-
     private static final Method FOO;
+
+    private static final Method BAR;
 
     static {
         try {
-            BAR = HasDefaultMethod.class.getMethod("bar");
             FOO = HasDefaultMethod.class.getMethod("foo");
+            BAR = HasDefaultMethod.class.getMethod("bar");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -40,6 +40,22 @@ public final class InstrumentedHasDefaultMethod implements HasDefaultMethod {
     }
 
     @Override
+    public void foo() {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {});
+            try {
+                this.delegate.foo();
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.foo();
+        }
+    }
+
+    @Override
     public String bar() {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, BAR, new Object[] {});
@@ -53,22 +69,6 @@ public final class InstrumentedHasDefaultMethod implements HasDefaultMethod {
             }
         } else {
             return this.delegate.bar();
-        }
-    }
-
-    @Override
-    public void foo() {
-        if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {});
-            try {
-                this.delegate.foo();
-                Handlers.onSuccess(this.handler, invocationContext);
-            } catch (Throwable throwable) {
-                Handlers.onFailure(this.handler, invocationContext, throwable);
-                throw throwable;
-            }
-        } else {
-            this.delegate.foo();
         }
     }
 

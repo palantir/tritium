@@ -11,14 +11,14 @@ import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
 public final class InstrumentedSimple implements Simple {
-    private static final Method BAR;
-
     private static final Method FOO;
+
+    private static final Method BAR;
 
     static {
         try {
-            BAR = Simple.class.getMethod("bar", double.class);
             FOO = Simple.class.getMethod("foo");
+            BAR = Simple.class.getMethod("bar", double.class);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -38,6 +38,22 @@ public final class InstrumentedSimple implements Simple {
     }
 
     @Override
+    public void foo() {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {});
+            try {
+                this.delegate.foo();
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.foo();
+        }
+    }
+
+    @Override
     public short bar(double baz) {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext =
@@ -52,22 +68,6 @@ public final class InstrumentedSimple implements Simple {
             }
         } else {
             return this.delegate.bar(baz);
-        }
-    }
-
-    @Override
-    public void foo() {
-        if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {});
-            try {
-                this.delegate.foo();
-                Handlers.onSuccess(this.handler, invocationContext);
-            } catch (Throwable throwable) {
-                Handlers.onFailure(this.handler, invocationContext, throwable);
-                throw throwable;
-            }
-        } else {
-            this.delegate.foo();
         }
     }
 

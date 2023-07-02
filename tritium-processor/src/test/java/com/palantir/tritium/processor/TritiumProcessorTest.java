@@ -113,8 +113,7 @@ public final class TritiumProcessorTest {
 
     @Test
     public void testEmptyInterface() {
-        Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, Empty.class);
-        assertThat(compilation).hadErrorContaining("The annotated interface has no methods");
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, Empty.class);
     }
 
     @Test

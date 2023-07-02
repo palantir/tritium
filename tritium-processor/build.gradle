@@ -6,11 +6,11 @@ dependencies {
     api project(':tritium-registry')
     api project(':tritium-core')
 
-    api 'com.squareup:javapoet'
-    api 'com.google.guava:guava'
-    api 'com.google.code.findbugs:jsr305'
-    api 'com.palantir.safe-logging:preconditions'
-    api 'com.palantir.goethe:goethe'
+    implementation 'com.squareup:javapoet'
+    implementation 'com.google.auto:auto-common'
+    implementation 'com.google.guava:guava'
+    implementation 'com.palantir.goethe:goethe'
+    implementation 'com.palantir.safe-logging:preconditions'
 
     testImplementation 'com.google.testing.compile:compile-testing'
     testImplementation 'com.google.guava:guava'
