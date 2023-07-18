@@ -78,7 +78,7 @@ final class ByteBuddyInstrumentation {
 
         if (!isAccessible(interfaceClass)) {
             log.warn(
-                    "Interface {} is not accessible. Delegate {} of type {} will not be instrumented",
+                    "Interface is not accessible. Delegate of type will not be instrumented",
                     SafeArg.of("interface", interfaceClass),
                     UnsafeArg.of("delegate", delegate),
                     SafeArg.of("delegateType", delegate.getClass()));
@@ -90,8 +90,8 @@ final class ByteBuddyInstrumentation {
         ClassLoader classLoader = getClassLoader(interfaceClass);
         if (!isClassLoadable(classLoader, InvocationEventHandler.class)) {
             log.warn(
-                    "Unable to find a classloader with access to both the service interface {} and Tritium. "
-                            + "Delegate {} of type {} will not be instrumented",
+                    "Unable to find a classloader with access to both the service interface and Tritium. "
+                            + "Delegate of type will not be instrumented",
                     SafeArg.of("interface", interfaceClass),
                     UnsafeArg.of("delegate", delegate),
                     SafeArg.of("delegateType", delegate.getClass()));
@@ -107,7 +107,7 @@ final class ByteBuddyInstrumentation {
                     .newInstance(delegate, CompositeInvocationEventHandler.of(handlers), instrumentationFilter);
         } catch (ReflectiveOperationException | RuntimeException e) {
             log.error(
-                    "Failed to instrument interface {}. Delegate {} of type {} will not be instrumented",
+                    "Failed to instrument interface. Delegate of type will not be instrumented",
                     SafeArg.of("interface", interfaceClass),
                     UnsafeArg.of("delegate", delegate),
                     SafeArg.of("delegateType", delegate.getClass()),
@@ -215,7 +215,7 @@ final class ByteBuddyInstrumentation {
                 additionalInterfaces.add(additionalInterface);
             } else {
                 log.debug(
-                        "Instrumented service of type {} cannot implement {} because the interface is not accessible",
+                        "Instrumented service of type cannot implement because the interface is not accessible",
                         SafeArg.of("delegateType", delegateClass),
                         SafeArg.of("inaccessibleInterface", additionalInterface));
             }

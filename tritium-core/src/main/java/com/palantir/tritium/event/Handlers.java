@@ -80,7 +80,7 @@ public final class Handlers {
             Throwable throwable) {
         if (log.isWarnEnabled()) {
             log.warn(
-                    "Exception handling preInvocation({}): invocation of {}.{} on {} threw",
+                    "Exception handling preInvocation: invocation threw",
                     UnsafeArg.of("handler", handler),
                     SafeArg.of("class", method.getDeclaringClass().getCanonicalName()),
                     SafeArg.of("method", method.getName()),
@@ -111,7 +111,7 @@ public final class Handlers {
             Throwable throwable) {
         if (log.isWarnEnabled()) {
             log.warn(
-                    "Exception {}.onSuccess({}, {})",
+                    "Exception in onSuccess",
                     UnsafeArg.of("handler", handler),
                     UnsafeArg.of("context", context),
                     SafeArg.of(
@@ -139,7 +139,7 @@ public final class Handlers {
             Throwable throwable) {
         if (log.isWarnEnabled()) {
             log.warn(
-                    "Exception {}.onFailure({}, {})",
+                    "Exception in onFailure",
                     UnsafeArg.of("handler", handler),
                     UnsafeArg.of("context", context),
                     SafeArg.of(

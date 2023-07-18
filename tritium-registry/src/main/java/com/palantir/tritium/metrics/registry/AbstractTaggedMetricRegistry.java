@@ -135,7 +135,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     public final void registerWithReplacement(MetricName metricName, Gauge<?> gauge) {
         Metric existing = registry.put(metricName, gauge);
         if (existing instanceof Gauge) {
-            log.get().debug("Removed previously registered gauge {}", SafeArg.of("metricName", metricName));
+            log.get().debug("Removed previously registered gauge", SafeArg.of("metricName", metricName));
         } else if (existing != null) {
             // Existing should be a gauge
             registry.replace(metricName, existing);
