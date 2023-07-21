@@ -176,7 +176,9 @@ final class ByteBuddyInstrumentation {
                                                             .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC)));
                 }
             }
-            return builder.defineField("delegate", interfaceClass, Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
+
+            DynamicType.Builder<Object> initializer = builder.defineField(
+                            "delegate", interfaceClass, Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
                     .defineField(
                             "invocationEventHandler",
                             InvocationEventHandler.class,
@@ -186,10 +188,12 @@ final class ByteBuddyInstrumentation {
                             InstrumentationFilter.class,
                             Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL)
                     .defineField(METHODS_FIELD, Method[].class, Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
-                    .initializer(new StaticFieldLoadedTypeInitializer(METHODS_FIELD, allMethods.toArray(new Method[0])))
-                    .make()
-                    .load(classLoader)
-                    .getLoaded();
+                    .initializer(
+                            new StaticFieldLoadedTypeInitializer(METHODS_FIELD, allMethods.toArray(new Method[0])));
+            try (DynamicType.Unloaded<Object> unloaded = initializer.make();
+                    DynamicType.Loaded<Object> loaded = unloaded.load(classLoader)) {
+                return loaded.getLoaded();
+            }
         });
     }
 
