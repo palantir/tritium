@@ -80,9 +80,9 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      * @param context invocation context
      */
     protected final void debugIfNullContext(@Nullable InvocationContext context) {
-        if (context == null) {
+        if (context == null && log.isDebugEnabled()) {
             log.debug(
-                    "{} encountered null metric context, likely due to exception in preInvocation",
+                    "Encountered null metric context, likely due to exception in preInvocation",
                     safeClassName(getClass()));
         }
     }
