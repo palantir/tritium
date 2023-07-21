@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Ensure ByteBuddy DynamicType loader resources released
+  links:
+  - https://github.com/palantir/tritium/pull/1758
