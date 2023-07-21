@@ -20,7 +20,6 @@ import static com.palantir.logsafe.Preconditions.checkArgument;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 import static com.palantir.logsafe.Preconditions.checkState;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.palantir.logsafe.SafeArg;
@@ -59,7 +58,6 @@ final class ByteBuddyInstrumentation {
     // Reuse generated classes when possible
     private static final TypeCache<ImmutableList<Class<?>>> cache =
             new TypeCache.WithInlineExpunction<>(TypeCache.Sort.WEAK);
-    private static final Joiner UNDERSCORE_JOINER = Joiner.on('_');
     private static final String METHODS_FIELD = "methods";
 
     private ByteBuddyInstrumentation() {
@@ -326,7 +324,7 @@ final class ByteBuddyInstrumentation {
 
     private static String className(List<Class<?>> interfaceClasses) {
         return "com.palantir.tritium.proxy.Instrumented"
-                + UNDERSCORE_JOINER.join(Lists.transform(interfaceClasses, Class::getSimpleName))
+                + String.join("_", Lists.transform(interfaceClasses, Class::getSimpleName))
                 + '$'
                 + offset.getAndIncrement();
     }
