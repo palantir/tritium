@@ -53,7 +53,7 @@ namespaces:
           docs: "Example: Azul Systems, Inc."
         - name: enablePreview
           docs: "Whether the JVM is running with --enable-preview (see https://openjdk.org/jeps/12 )"
-          values: [true, false]
+          values: ['true', 'false']
       classloader.loaded:
         type: gauge
         docs: Total number of classes that have been loaded since the jvm started.
