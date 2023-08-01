@@ -5,3 +5,20 @@ acceptedBreaks:
       old: "class com.palantir.tritium.metrics.registry.MetricName.Builder"
       new: "class com.palantir.tritium.metrics.registry.MetricName.Builder"
       justification: "MetricName.Builder is final"
+  "0.71.0":
+    com.palantir.tritium:tritium-processor:
+    - code: "java.method.movedToSuperClass"
+      old: "method com.google.common.collect.ImmutableSet<java.lang.String> com.palantir.tritium.processor.TritiumAnnotationProcessor::getSupportedAnnotationTypes()"
+      new: "method java.util.Set<java.lang.String> com.palantir.delegate.processors.DelegateProcessor::getSupportedAnnotationTypes()\
+        \ @ com.palantir.tritium.processor.TritiumAnnotationProcessor"
+      justification: "Migrating to delegate-processors"
+    - code: "java.method.nowFinalInFinalClass"
+      old: "method com.google.common.collect.ImmutableSet<java.lang.String> com.palantir.tritium.processor.TritiumAnnotationProcessor::getSupportedAnnotationTypes()"
+      new: "method java.util.Set<java.lang.String> com.palantir.delegate.processors.DelegateProcessor::getSupportedAnnotationTypes()\
+        \ @ com.palantir.tritium.processor.TritiumAnnotationProcessor"
+      justification: "Migrating to delegate-processors"
+    - code: "java.method.returnTypeChanged"
+      old: "method com.google.common.collect.ImmutableSet<java.lang.String> com.palantir.tritium.processor.TritiumAnnotationProcessor::getSupportedAnnotationTypes()"
+      new: "method java.util.Set<java.lang.String> com.palantir.delegate.processors.DelegateProcessor::getSupportedAnnotationTypes()\
+        \ @ com.palantir.tritium.processor.TritiumAnnotationProcessor"
+      justification: "Migrating to delegate-processors"

@@ -32,12 +32,33 @@ dependencies {
 }
 ```
 
-Apply the `@Instrument` annotation to an interface. If the interface is defined externally, a new interface may be defined which extends the target interface, and that interface may be annotated.
+Apply the `@Instrument` annotation to methods on an interface. Only the annotated methods will be instrumented.
+```java
+interface Service {
+    @Instrument
+    String getGreeting();
+}
+```
+
+You can also apply the `@Instrument` annotation to the interface itself to instrument all methods.
 ```java
 @Instrument
 interface Service {
     String getGreeting();
 }
+```
+
+If the interface is defined externally, a new interface may be defined which extends the target interface. The `@Instrument` annotation may be applied to either individual methods or the interface itself.
+```java
+interface DelegateSupplier<T> extends Supplier<T> {
+    @Instrument
+    @Override
+    String get();
+}
+```
+```java
+@Instrument
+interface DelegateSupplier<T> extends Supplier<T> {}
 ```
 
 This generates the `InstrumentedService` wrapper implementation equivalent to the legacy dynamic proxy, with less overhead.

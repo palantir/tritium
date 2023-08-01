@@ -11,40 +11,37 @@ import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
-@Deprecated
-public final class InstrumentedDeprecatedInterface implements DeprecatedInterface {
-    private static final Method FOO_ed3d1cab;
+public final class InstrumentedDelegateToRunnableMethod implements DelegateToRunnableMethod {
+    private static final Method RUN_ae321a87;
 
     static {
         try {
-            FOO_ed3d1cab = DeprecatedInterface.class.getMethod("foo");
+            RUN_ae321a87 = Runnable.class.getMethod("run");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private final DeprecatedInterface delegate;
+    private final Runnable delegate;
 
     private final InvocationEventHandler<InvocationContext> handler;
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedDeprecatedInterface(
-            DeprecatedInterface delegate,
-            InvocationEventHandler<InvocationContext> handler,
-            InstrumentationFilter filter) {
+    private InstrumentedDelegateToRunnableMethod(
+            Runnable delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
         this.delegate = Objects.requireNonNull(delegate, "delegate");
         this.handler = Objects.requireNonNull(handler, "handler");
         this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
-    public void foo() {
+    public void run() {
         InvocationContext _invocationContext = this.handler.isEnabled()
-                ? Handlers.pre(this.handler, this.filter, this, FOO_ed3d1cab, new Object[] {})
+                ? Handlers.pre(this.handler, this.filter, this, RUN_ae321a87, new Object[] {})
                 : Handlers.disabled();
         try {
-            this.delegate.foo();
+            this.delegate.run();
             Handlers.onSuccess(this.handler, _invocationContext);
         } catch (Throwable _throwable) {
             Handlers.onFailure(this.handler, _invocationContext, _throwable);
@@ -54,20 +51,19 @@ public final class InstrumentedDeprecatedInterface implements DeprecatedInterfac
 
     @Override
     public String toString() {
-        return "InstrumentedDeprecatedInterface{" + this.delegate + "}";
+        return "InstrumentedDelegateToRunnableMethod{" + this.delegate + "}";
     }
 
-    public static InstrumentationBuilder<DeprecatedInterface, DeprecatedInterface> builder(
-            DeprecatedInterface delegate) {
-        return new InstrumentationBuilder<DeprecatedInterface, DeprecatedInterface>(
-                DeprecatedInterface.class, delegate, InstrumentedDeprecatedInterface::new);
+    public static InstrumentationBuilder<Runnable, DelegateToRunnableMethod> builder(Runnable delegate) {
+        return new InstrumentationBuilder<Runnable, DelegateToRunnableMethod>(
+                Runnable.class, delegate, InstrumentedDelegateToRunnableMethod::new);
     }
 
-    public static DeprecatedInterface trace(DeprecatedInterface delegate) {
-        return InstrumentationBuilder.trace(DeprecatedInterface.class, delegate, InstrumentedDeprecatedInterface::new);
+    public static DelegateToRunnableMethod trace(Runnable delegate) {
+        return InstrumentationBuilder.trace(Runnable.class, delegate, InstrumentedDelegateToRunnableMethod::new);
     }
 
-    public static DeprecatedInterface instrument(DeprecatedInterface delegate, TaggedMetricRegistry registry) {
+    public static DelegateToRunnableMethod instrument(Runnable delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }

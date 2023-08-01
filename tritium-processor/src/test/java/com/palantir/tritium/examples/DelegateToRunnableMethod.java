@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.processor;
+package com.palantir.tritium.examples;
 
-import java.util.Set;
+import com.palantir.tritium.annotations.Instrument;
 
-final class Parameters {
+public interface DelegateToRunnableMethod extends Runnable {
 
-    /**
-     * Returns {@code requestedName} unless it's included in {@code parameterNames}, in which case the {@code
-     * requestedName} is modified to avoid overlapping.
-     */
-    static String disambiguate(String requestedName, Set<String> parameterNames) {
-        if (parameterNames.contains(requestedName)) {
-            return disambiguate(requestedName + '_', parameterNames);
-        }
-        return requestedName;
-    }
-
-    private Parameters() {}
+    @Instrument
+    @Override
+    void run();
 }

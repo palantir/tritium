@@ -7,15 +7,16 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
 public final class InstrumentedBindsParameter implements BindsParameter {
-    private static final Method GET;
+    private static final Method GET_e93818ce;
 
     static {
         try {
-            GET = BindsParameter.class.getMethod("get");
+            GET_e93818ce = BindsParameter.class.getMethod("get");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -29,31 +30,29 @@ public final class InstrumentedBindsParameter implements BindsParameter {
 
     private InstrumentedBindsParameter(
             BindsParameter delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
-        this.delegate = delegate;
-        this.handler = handler;
-        this.filter = filter;
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
     public CharSequence get() {
-        if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, GET, new Object[] {});
-            try {
-                CharSequence returnValue = this.delegate.get();
-                Handlers.onSuccess(this.handler, invocationContext, returnValue);
-                return returnValue;
-            } catch (Throwable throwable) {
-                Handlers.onFailure(this.handler, invocationContext, throwable);
-                throw throwable;
-            }
-        } else {
-            return this.delegate.get();
+        InvocationContext _invocationContext = this.handler.isEnabled()
+                ? Handlers.pre(this.handler, this.filter, this, GET_e93818ce, new Object[] {})
+                : Handlers.disabled();
+        try {
+            CharSequence _result = this.delegate.get();
+            Handlers.onSuccess(this.handler, _invocationContext, _result);
+            return _result;
+        } catch (Throwable _throwable) {
+            Handlers.onFailure(this.handler, _invocationContext, _throwable);
+            throw _throwable;
         }
     }
 
     @Override
     public String toString() {
-        return "InstrumentedBindsParameter{" + delegate + '}';
+        return "InstrumentedBindsParameter{" + this.delegate + "}";
     }
 
     public static InstrumentationBuilder<BindsParameter, BindsParameter> builder(BindsParameter delegate) {

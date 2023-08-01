@@ -21,6 +21,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.util.List;
 
 final class TypeNames {
 
@@ -37,6 +38,14 @@ final class TypeNames {
             return ArrayTypeName.of(erased(arrayTypeName.componentType));
         }
         return input;
+    }
+
+    static List<TypeName> typeParameters(TypeName typeName) {
+        if (typeName instanceof ParameterizedTypeName) {
+            ParameterizedTypeName parameterized = (ParameterizedTypeName) typeName;
+            return parameterized.typeArguments;
+        }
+        return List.of();
     }
 
     private TypeNames() {}
