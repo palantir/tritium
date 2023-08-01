@@ -13,6 +13,10 @@ namespaces:
         type: gauge
         tags: [collector]
         docs: The accumulated collection elapsed time in milliseconds.
+      bytes.collected:
+        type: gauge
+        tags: [collector, memoryPool]
+        docs: The total bytes collected by this collector from this memory pool since the JVM started.  This can be negative if the collector moved objects into the pool.
       finalizer.queue.size:
         type: gauge
         docs: Estimate of the number of objects pending finalization. Finalizers are executed in serial on a single
