@@ -7,15 +7,16 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 
-@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor2")
 public final class InstrumentedOverlappingNames implements OverlappingNames {
-    private static final Method FOO;
+    private static final Method FOO_ffffa0f6;
 
     static {
         try {
-            FOO = OverlappingNames.class.getMethod(
+            FOO_ffffa0f6 = OverlappingNames.class.getMethod(
                     "foo", int.class, int.class, int.class, int.class, int.class, int.class, int.class, int.class,
                     int.class);
         } catch (NoSuchMethodException e) {
@@ -33,9 +34,9 @@ public final class InstrumentedOverlappingNames implements OverlappingNames {
             OverlappingNames delegate,
             InvocationEventHandler<InvocationContext> handler,
             InstrumentationFilter filter) {
-        this.delegate = delegate;
-        this.handler = handler;
-        this.filter = filter;
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
@@ -50,17 +51,18 @@ public final class InstrumentedOverlappingNames implements OverlappingNames {
             int handler,
             int delegate) {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext_ = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {
-                returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate
-            });
+            InvocationContext _invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, FOO_ffffa0f6, new Object[] {
+                        returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate
+                    });
             try {
-                int returnValue_ = this.delegate.foo(
+                int _returnValue = this.delegate.foo(
                         returnValue, result, context, invocationContext, throwable, thrown, filter, handler, delegate);
-                Handlers.onSuccess(this.handler, invocationContext_, returnValue);
-                return returnValue_;
-            } catch (Throwable throwable_) {
-                Handlers.onFailure(this.handler, invocationContext_, throwable_);
-                throw throwable_;
+                Handlers.onSuccess(this.handler, _invocationContext, _returnValue);
+                return _returnValue;
+            } catch (Throwable _throwable) {
+                Handlers.onFailure(this.handler, _invocationContext, _throwable);
+                throw _throwable;
             }
         } else {
             return this.delegate.foo(
@@ -70,7 +72,7 @@ public final class InstrumentedOverlappingNames implements OverlappingNames {
 
     @Override
     public String toString() {
-        return "InstrumentedOverlappingNames{" + delegate + '}';
+        return "InstrumentedOverlappingNames{" + this.delegate + "}";
     }
 
     public static InstrumentationBuilder<OverlappingNames, OverlappingNames> builder(OverlappingNames delegate) {
