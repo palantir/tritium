@@ -17,7 +17,6 @@
 package com.palantir.tritium.examples;
 
 import com.palantir.tritium.annotations.Instrument;
-import java.util.concurrent.Callable;
 
 @Instrument
-public abstract class DelegateToCallable<T> implements Callable<T> {}
+public interface ExtendRunnable extends Runnable {}

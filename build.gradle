@@ -54,6 +54,10 @@ allprojects {
 
     repositories {
         mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
+        maven {
+            url 'https://artifactory.palantir.build/artifactory/release-jar'
+            metadataSources { mavenPom(); ignoreGradleMetadataRedirection() }
+        }
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {

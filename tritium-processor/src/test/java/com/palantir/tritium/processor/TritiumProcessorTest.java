@@ -32,6 +32,8 @@ import com.palantir.tritium.examples.DelegateToCallable;
 import com.palantir.tritium.examples.DelegateToRunnable;
 import com.palantir.tritium.examples.DeprecatedMethod;
 import com.palantir.tritium.examples.Empty;
+import com.palantir.tritium.examples.ExtendCallable;
+import com.palantir.tritium.examples.ExtendRunnable;
 import com.palantir.tritium.examples.HasDefaultMethod;
 import com.palantir.tritium.examples.HasToString;
 import com.palantir.tritium.examples.OverlappingNames;
@@ -96,6 +98,16 @@ public final class TritiumProcessorTest {
     }
 
     @Test
+    public void testExtend() {
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, ExtendRunnable.class);
+    }
+
+    @Test
+    public void testExtendTypeParameter() {
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, ExtendCallable.class);
+    }
+
+    @Test
     public void testOverlappingNames() {
         assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, OverlappingNames.class);
     }
@@ -113,20 +125,19 @@ public final class TritiumProcessorTest {
 
     @Test
     public void testEmptyInterface() {
-        Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, Empty.class);
-        assertThat(compilation).hadErrorContaining("The annotated interface has no methods");
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, Empty.class);
     }
 
     @Test
     public void testAnnotatedAbstractClass() {
         Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, AnnotatedAbstractClass.class);
-        assertThat(compilation).hadErrorContaining("Only interfaces may be instrumented using @Instrument");
+        assertThat(compilation).hadErrorContaining("No interfaces found on annotated type: AnnotatedAbstractClass");
     }
 
     @Test
     public void testAnnotatedClass() {
         Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, AnnotatedClass.class);
-        assertThat(compilation).hadErrorContaining("Only interfaces may be instrumented using @Instrument");
+        assertThat(compilation).hadErrorContaining("No interfaces found on annotated type: AnnotatedClass");
     }
 
     private static void assertTestFileCompileAndMatches(Path basePath, Class<?> clazz) {
@@ -147,7 +158,7 @@ public final class TritiumProcessorTest {
         try {
             return Compiler.javac()
                     .withOptions("-source", "1.8", "-Werror", "-Xlint:deprecation", "-Xlint:unchecked")
-                    .withProcessors(new TritiumAnnotationProcessor())
+                    .withProcessors(new TritiumAnnotationProcessor2())
                     .compile(JavaFileObjects.forResource(clazzPath.toUri().toURL()));
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);

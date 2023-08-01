@@ -19,4 +19,4 @@ package com.palantir.tritium.examples;
 import com.palantir.tritium.annotations.Instrument;
 
 @Instrument
-public interface DelegateToRunnable extends Runnable {}
+public abstract class DelegateToRunnable implements Runnable {}

@@ -1,0 +1,42 @@
+package com.palantir.tritium.examples;
+
+import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.util.Objects;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor2")
+public final class InstrumentedEmpty implements Empty {
+    private final Empty delegate;
+
+    private final InvocationEventHandler<InvocationContext> handler;
+
+    private final InstrumentationFilter filter;
+
+    private InstrumentedEmpty(
+            Empty delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
+    }
+
+    @Override
+    public String toString() {
+        return "InstrumentedEmpty{" + this.delegate + "}";
+    }
+
+    public static InstrumentationBuilder<Empty, Empty> builder(Empty delegate) {
+        return new InstrumentationBuilder<Empty, Empty>(Empty.class, delegate, InstrumentedEmpty::new);
+    }
+
+    public static Empty trace(Empty delegate) {
+        return InstrumentationBuilder.trace(Empty.class, delegate, InstrumentedEmpty::new);
+    }
+
+    public static Empty instrument(Empty delegate, TaggedMetricRegistry registry) {
+        return builder(delegate).withTaggedMetrics(registry).withTracing().build();
+    }
+}

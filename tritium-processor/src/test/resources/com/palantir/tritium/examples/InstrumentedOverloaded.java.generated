@@ -7,27 +7,28 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 
-@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor2")
 public final class InstrumentedOverloaded implements Overloaded {
-    private static final Method CONSUME;
+    private static final Method CONSUME_ffb85b9e;
 
-    private static final Method CONSUME1;
+    private static final Method CONSUME_df0ee456;
 
-    private static final Method CONSUME2;
+    private static final Method CONSUME_a19d7e27;
 
-    private static final Method CONSUME3;
+    private static final Method CONSUME_d75bd264;
 
-    private static final Method CONSUME4;
+    private static final Method CONSUME_2cf3095c;
 
     static {
         try {
-            CONSUME = Overloaded.class.getMethod("consume", int.class);
-            CONSUME1 = Overloaded.class.getMethod("consume", String.class);
-            CONSUME2 = Overloaded.class.getMethod("consume", Object.class);
-            CONSUME3 = Overloaded.class.getMethod("consume", double[].class);
-            CONSUME4 = Overloaded.class.getMethod("consume");
+            CONSUME_ffb85b9e = Overloaded.class.getMethod("consume", int.class);
+            CONSUME_df0ee456 = Overloaded.class.getMethod("consume", String.class);
+            CONSUME_a19d7e27 = Overloaded.class.getMethod("consume", Object.class);
+            CONSUME_d75bd264 = Overloaded.class.getMethod("consume", double[].class);
+            CONSUME_2cf3095c = Overloaded.class.getMethod("consume");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -41,16 +42,16 @@ public final class InstrumentedOverloaded implements Overloaded {
 
     private InstrumentedOverloaded(
             Overloaded delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
-        this.delegate = delegate;
-        this.handler = handler;
-        this.filter = filter;
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
     public void consume(int value) {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, CONSUME, new Object[] {value});
+                    Handlers.pre(this.handler, this.filter, this, CONSUME_ffb85b9e, new Object[] {value});
             try {
                 this.delegate.consume(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -67,7 +68,7 @@ public final class InstrumentedOverloaded implements Overloaded {
     public void consume(String value) {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, CONSUME1, new Object[] {value});
+                    Handlers.pre(this.handler, this.filter, this, CONSUME_df0ee456, new Object[] {value});
             try {
                 this.delegate.consume(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -84,7 +85,7 @@ public final class InstrumentedOverloaded implements Overloaded {
     public void consume(Object value) {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, CONSUME2, new Object[] {value});
+                    Handlers.pre(this.handler, this.filter, this, CONSUME_a19d7e27, new Object[] {value});
             try {
                 this.delegate.consume(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -101,7 +102,7 @@ public final class InstrumentedOverloaded implements Overloaded {
     public void consume(double[] value) {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, CONSUME3, new Object[] {value});
+                    Handlers.pre(this.handler, this.filter, this, CONSUME_d75bd264, new Object[] {value});
             try {
                 this.delegate.consume(value);
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -118,7 +119,7 @@ public final class InstrumentedOverloaded implements Overloaded {
     public void consume() {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, CONSUME4, new Object[] {});
+                    Handlers.pre(this.handler, this.filter, this, CONSUME_2cf3095c, new Object[] {});
             try {
                 this.delegate.consume();
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -133,7 +134,7 @@ public final class InstrumentedOverloaded implements Overloaded {
 
     @Override
     public String toString() {
-        return "InstrumentedOverloaded{" + delegate + '}';
+        return "InstrumentedOverloaded{" + this.delegate + "}";
     }
 
     public static InstrumentationBuilder<Overloaded, Overloaded> builder(Overloaded delegate) {

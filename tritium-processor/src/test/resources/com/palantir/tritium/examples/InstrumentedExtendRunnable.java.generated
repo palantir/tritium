@@ -8,67 +8,65 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor2")
-public final class InstrumentedDelegateToCallable<T> implements Callable<T> {
-    private static final Method CALL_ccb78c7b;
+public final class InstrumentedExtendRunnable implements ExtendRunnable {
+    private static final Method RUN_ae321a87;
 
     static {
         try {
-            CALL_ccb78c7b = Callable.class.getMethod("call");
+            RUN_ae321a87 = ExtendRunnable.class.getMethod("run");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private final Callable<T> delegate;
+    private final ExtendRunnable delegate;
 
     private final InvocationEventHandler<InvocationContext> handler;
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedDelegateToCallable(
-            Callable<T> delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedExtendRunnable(
+            ExtendRunnable delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
         this.delegate = Objects.requireNonNull(delegate, "delegate");
         this.handler = Objects.requireNonNull(handler, "handler");
         this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
-    public T call() throws Exception {
+    public void run() {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, CALL_ccb78c7b, new Object[] {});
+                    Handlers.pre(this.handler, this.filter, this, RUN_ae321a87, new Object[] {});
             try {
-                T returnValue = this.delegate.call();
-                Handlers.onSuccess(this.handler, invocationContext, returnValue);
-                return returnValue;
+                this.delegate.run();
+                Handlers.onSuccess(this.handler, invocationContext);
             } catch (Throwable throwable) {
                 Handlers.onFailure(this.handler, invocationContext, throwable);
                 throw throwable;
             }
         } else {
-            return this.delegate.call();
+            this.delegate.run();
         }
     }
 
     @Override
     public String toString() {
-        return "InstrumentedDelegateToCallable{" + this.delegate + "}";
+        return "InstrumentedExtendRunnable{" + this.delegate + "}";
     }
 
-    public static <T> InstrumentationBuilder<Callable<T>, Callable<T>> builder(Callable<T> delegate) {
-        return new InstrumentationBuilder<Callable<T>, Callable<T>>(
-                Callable.class, delegate, InstrumentedDelegateToCallable<T>::new);
+    public static InstrumentationBuilder<ExtendRunnable, ExtendRunnable> builder(ExtendRunnable delegate) {
+        return new InstrumentationBuilder<ExtendRunnable, ExtendRunnable>(
+                ExtendRunnable.class, delegate, InstrumentedExtendRunnable::new);
     }
 
-    public static <T> Callable<T> trace(Callable<T> delegate) {
-        return InstrumentationBuilder.trace(Callable.class, delegate, InstrumentedDelegateToCallable<T>::new);
+    public static ExtendRunnable trace(ExtendRunnable delegate) {
+        return InstrumentationBuilder.trace(ExtendRunnable.class, delegate, InstrumentedExtendRunnable::new);
     }
 
-    public static <T> Callable<T> instrument(Callable<T> delegate, TaggedMetricRegistry registry) {
+    public static ExtendRunnable instrument(ExtendRunnable delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }

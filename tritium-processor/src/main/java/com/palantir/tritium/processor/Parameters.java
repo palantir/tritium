@@ -25,10 +25,11 @@ final class Parameters {
      * requestedName} is modified to avoid overlapping.
      */
     static String disambiguate(String requestedName, Set<String> parameterNames) {
-        if (parameterNames.contains(requestedName)) {
-            return disambiguate(requestedName + '_', parameterNames);
+        String name = requestedName;
+        while (parameterNames.contains(name)) {
+            name = "_" + name;
         }
-        return requestedName;
+        return name;
     }
 
     private Parameters() {}

@@ -8,29 +8,30 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor2")
-public final class InstrumentedDelegateToCallable<T> implements Callable<T> {
+public final class InstrumentedExtendCallable<T> implements ExtendCallable<T> {
     private static final Method CALL_ccb78c7b;
 
     static {
         try {
-            CALL_ccb78c7b = Callable.class.getMethod("call");
+            CALL_ccb78c7b = ExtendCallable.class.getMethod("call");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private final Callable<T> delegate;
+    private final ExtendCallable<T> delegate;
 
     private final InvocationEventHandler<InvocationContext> handler;
 
     private final InstrumentationFilter filter;
 
-    private InstrumentedDelegateToCallable(
-            Callable<T> delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+    private InstrumentedExtendCallable(
+            ExtendCallable<T> delegate,
+            InvocationEventHandler<InvocationContext> handler,
+            InstrumentationFilter filter) {
         this.delegate = Objects.requireNonNull(delegate, "delegate");
         this.handler = Objects.requireNonNull(handler, "handler");
         this.filter = Objects.requireNonNull(filter, "filter");
@@ -56,19 +57,19 @@ public final class InstrumentedDelegateToCallable<T> implements Callable<T> {
 
     @Override
     public String toString() {
-        return "InstrumentedDelegateToCallable{" + this.delegate + "}";
+        return "InstrumentedExtendCallable{" + this.delegate + "}";
     }
 
-    public static <T> InstrumentationBuilder<Callable<T>, Callable<T>> builder(Callable<T> delegate) {
-        return new InstrumentationBuilder<Callable<T>, Callable<T>>(
-                Callable.class, delegate, InstrumentedDelegateToCallable<T>::new);
+    public static <T> InstrumentationBuilder<ExtendCallable<T>, ExtendCallable<T>> builder(ExtendCallable<T> delegate) {
+        return new InstrumentationBuilder<ExtendCallable<T>, ExtendCallable<T>>(
+                ExtendCallable.class, delegate, InstrumentedExtendCallable<T>::new);
     }
 
-    public static <T> Callable<T> trace(Callable<T> delegate) {
-        return InstrumentationBuilder.trace(Callable.class, delegate, InstrumentedDelegateToCallable<T>::new);
+    public static <T> ExtendCallable<T> trace(ExtendCallable<T> delegate) {
+        return InstrumentationBuilder.trace(ExtendCallable.class, delegate, InstrumentedExtendCallable<T>::new);
     }
 
-    public static <T> Callable<T> instrument(Callable<T> delegate, TaggedMetricRegistry registry) {
+    public static <T> ExtendCallable<T> instrument(ExtendCallable<T> delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }
