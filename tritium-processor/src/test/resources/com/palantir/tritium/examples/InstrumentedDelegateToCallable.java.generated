@@ -7,16 +7,17 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
 public final class InstrumentedDelegateToCallable<T> implements DelegateToCallable<T> {
-    private static final Method CALL;
+    private static final Method CALL_ccb78c7b;
 
     static {
         try {
-            CALL = DelegateToCallable.class.getMethod("call");
+            CALL_ccb78c7b = Callable.class.getMethod("call");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -30,15 +31,16 @@ public final class InstrumentedDelegateToCallable<T> implements DelegateToCallab
 
     private InstrumentedDelegateToCallable(
             Callable<T> delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
-        this.delegate = delegate;
-        this.handler = handler;
-        this.filter = filter;
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
     public T call() throws Exception {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, CALL, new Object[] {});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, CALL_ccb78c7b, new Object[] {});
             try {
                 T returnValue = this.delegate.call();
                 Handlers.onSuccess(this.handler, invocationContext, returnValue);
@@ -54,19 +56,19 @@ public final class InstrumentedDelegateToCallable<T> implements DelegateToCallab
 
     @Override
     public String toString() {
-        return "InstrumentedDelegateToCallable{" + delegate + '}';
+        return "InstrumentedDelegateToCallable{" + this.delegate + "}";
     }
 
-    public static <T> InstrumentationBuilder<Callable<T>, DelegateToCallable<T>> builder(Callable<T> delegate) {
-        return new InstrumentationBuilder<Callable<T>, DelegateToCallable<T>>(
-                Callable.class, delegate, InstrumentedDelegateToCallable::new);
+    public static <T> InstrumentationBuilder<Callable<T>, Callable<T>> builder(Callable<T> delegate) {
+        return new InstrumentationBuilder<Callable<T>, Callable<T>>(
+                Callable.class, delegate, InstrumentedDelegateToCallable<T>::new);
     }
 
-    public static <T> DelegateToCallable<T> trace(Callable<T> delegate) {
-        return InstrumentationBuilder.trace(Callable.class, delegate, InstrumentedDelegateToCallable::new);
+    public static <T> Callable<T> trace(Callable<T> delegate) {
+        return InstrumentationBuilder.trace(Callable.class, delegate, InstrumentedDelegateToCallable<T>::new);
     }
 
-    public static <T> DelegateToCallable<T> instrument(Callable<T> delegate, TaggedMetricRegistry registry) {
+    public static <T> Callable<T> instrument(Callable<T> delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }

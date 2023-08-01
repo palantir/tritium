@@ -17,12 +17,14 @@
 package com.palantir.tritium.examples;
 
 import com.palantir.tritium.annotations.Instrument;
+import java.util.function.Supplier;
 
 @Instrument
 @SuppressWarnings("checkstyle:DesignForExtension")
-public class AnnotatedClass {
+public final class AnnotatedClass implements Supplier<String> {
 
-    public String getValue() {
+    @Override
+    public String get() {
         return "value";
     }
 }

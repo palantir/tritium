@@ -8,24 +8,25 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
 public final class InstrumentedParameterized<T> implements Parameterized<T> {
-    private static final Method CONSUME_PARAMETER;
+    private static final Method PRODUCE_PARAMETER_2ab71087;
 
-    private static final Method PRODUCE_PARAMETER;
+    private static final Method CONSUME_PARAMETER_c93c1b74;
 
-    private static final Method METHOD_PARAMETER;
+    private static final Method CONSUME_LIST_OF_PARAMETER_0236f37a;
 
-    private static final Method CONSUME_LIST_OF_PARAMETER;
+    private static final Method METHOD_PARAMETER_307142f3;
 
     static {
         try {
-            CONSUME_PARAMETER = Parameterized.class.getMethod("consumeParameter", Object.class);
-            PRODUCE_PARAMETER = Parameterized.class.getMethod("produceParameter");
-            METHOD_PARAMETER = Parameterized.class.getMethod("methodParameter", Object.class, Object.class);
-            CONSUME_LIST_OF_PARAMETER = Parameterized.class.getMethod("consumeListOfParameter", List.class);
+            PRODUCE_PARAMETER_2ab71087 = Parameterized.class.getMethod("produceParameter");
+            CONSUME_PARAMETER_c93c1b74 = Parameterized.class.getMethod("consumeParameter", Object.class);
+            CONSUME_LIST_OF_PARAMETER_0236f37a = Parameterized.class.getMethod("consumeListOfParameter", List.class);
+            METHOD_PARAMETER_307142f3 = Parameterized.class.getMethod("methodParameter", Object.class, Object.class);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -41,33 +42,16 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
             Parameterized<T> delegate,
             InvocationEventHandler<InvocationContext> handler,
             InstrumentationFilter filter) {
-        this.delegate = delegate;
-        this.handler = handler;
-        this.filter = filter;
-    }
-
-    @Override
-    public void consumeParameter(T value) {
-        if (this.handler.isEnabled()) {
-            InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, CONSUME_PARAMETER, new Object[] {value});
-            try {
-                this.delegate.consumeParameter(value);
-                Handlers.onSuccess(this.handler, invocationContext);
-            } catch (Throwable throwable) {
-                Handlers.onFailure(this.handler, invocationContext, throwable);
-                throw throwable;
-            }
-        } else {
-            this.delegate.consumeParameter(value);
-        }
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
     public T produceParameter() {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, PRODUCE_PARAMETER, new Object[] {});
+                    Handlers.pre(this.handler, this.filter, this, PRODUCE_PARAMETER_2ab71087, new Object[] {});
             try {
                 T returnValue = this.delegate.produceParameter();
                 Handlers.onSuccess(this.handler, invocationContext, returnValue);
@@ -82,10 +66,44 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
     }
 
     @Override
-    public <U extends T> T methodParameter(T first, U second) {
+    public void consumeParameter(T value) {
         if (this.handler.isEnabled()) {
             InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, METHOD_PARAMETER, new Object[] {first, second});
+                    Handlers.pre(this.handler, this.filter, this, CONSUME_PARAMETER_c93c1b74, new Object[] {value});
+            try {
+                this.delegate.consumeParameter(value);
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.consumeParameter(value);
+        }
+    }
+
+    @Override
+    public void consumeListOfParameter(List<T> value) {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(
+                    this.handler, this.filter, this, CONSUME_LIST_OF_PARAMETER_0236f37a, new Object[] {value});
+            try {
+                this.delegate.consumeListOfParameter(value);
+                Handlers.onSuccess(this.handler, invocationContext);
+            } catch (Throwable throwable) {
+                Handlers.onFailure(this.handler, invocationContext, throwable);
+                throw throwable;
+            }
+        } else {
+            this.delegate.consumeListOfParameter(value);
+        }
+    }
+
+    @Override
+    public <U extends T> T methodParameter(T first, U second) {
+        if (this.handler.isEnabled()) {
+            InvocationContext invocationContext = Handlers.pre(
+                    this.handler, this.filter, this, METHOD_PARAMETER_307142f3, new Object[] {first, second});
             try {
                 T returnValue = this.delegate.methodParameter(first, second);
                 Handlers.onSuccess(this.handler, invocationContext, returnValue);
@@ -100,34 +118,17 @@ public final class InstrumentedParameterized<T> implements Parameterized<T> {
     }
 
     @Override
-    public void consumeListOfParameter(List<T> value) {
-        if (this.handler.isEnabled()) {
-            InvocationContext invocationContext =
-                    Handlers.pre(this.handler, this.filter, this, CONSUME_LIST_OF_PARAMETER, new Object[] {value});
-            try {
-                this.delegate.consumeListOfParameter(value);
-                Handlers.onSuccess(this.handler, invocationContext);
-            } catch (Throwable throwable) {
-                Handlers.onFailure(this.handler, invocationContext, throwable);
-                throw throwable;
-            }
-        } else {
-            this.delegate.consumeListOfParameter(value);
-        }
-    }
-
-    @Override
     public String toString() {
-        return "InstrumentedParameterized{" + delegate + '}';
+        return "InstrumentedParameterized{" + this.delegate + "}";
     }
 
     public static <T> InstrumentationBuilder<Parameterized<T>, Parameterized<T>> builder(Parameterized<T> delegate) {
         return new InstrumentationBuilder<Parameterized<T>, Parameterized<T>>(
-                Parameterized.class, delegate, InstrumentedParameterized::new);
+                Parameterized.class, delegate, InstrumentedParameterized<T>::new);
     }
 
     public static <T> Parameterized<T> trace(Parameterized<T> delegate) {
-        return InstrumentationBuilder.trace(Parameterized.class, delegate, InstrumentedParameterized::new);
+        return InstrumentationBuilder.trace(Parameterized.class, delegate, InstrumentedParameterized<T>::new);
     }
 
     public static <T> Parameterized<T> instrument(Parameterized<T> delegate, TaggedMetricRegistry registry) {

@@ -7,15 +7,16 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
 public final class InstrumentedDelegateToRunnable implements DelegateToRunnable {
-    private static final Method RUN;
+    private static final Method RUN_ae321a87;
 
     static {
         try {
-            RUN = DelegateToRunnable.class.getMethod("run");
+            RUN_ae321a87 = Runnable.class.getMethod("run");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -29,15 +30,16 @@ public final class InstrumentedDelegateToRunnable implements DelegateToRunnable 
 
     private InstrumentedDelegateToRunnable(
             Runnable delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
-        this.delegate = delegate;
-        this.handler = handler;
-        this.filter = filter;
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
     public void run() {
         if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, RUN, new Object[] {});
+            InvocationContext invocationContext =
+                    Handlers.pre(this.handler, this.filter, this, RUN_ae321a87, new Object[] {});
             try {
                 this.delegate.run();
                 Handlers.onSuccess(this.handler, invocationContext);
@@ -52,19 +54,19 @@ public final class InstrumentedDelegateToRunnable implements DelegateToRunnable 
 
     @Override
     public String toString() {
-        return "InstrumentedDelegateToRunnable{" + delegate + '}';
+        return "InstrumentedDelegateToRunnable{" + this.delegate + "}";
     }
 
-    public static InstrumentationBuilder<Runnable, DelegateToRunnable> builder(Runnable delegate) {
-        return new InstrumentationBuilder<Runnable, DelegateToRunnable>(
+    public static InstrumentationBuilder<Runnable, Runnable> builder(Runnable delegate) {
+        return new InstrumentationBuilder<Runnable, Runnable>(
                 Runnable.class, delegate, InstrumentedDelegateToRunnable::new);
     }
 
-    public static DelegateToRunnable trace(Runnable delegate) {
+    public static Runnable trace(Runnable delegate) {
         return InstrumentationBuilder.trace(Runnable.class, delegate, InstrumentedDelegateToRunnable::new);
     }
 
-    public static DelegateToRunnable instrument(Runnable delegate, TaggedMetricRegistry registry) {
+    public static Runnable instrument(Runnable delegate, TaggedMetricRegistry registry) {
         return builder(delegate).withTaggedMetrics(registry).withTracing().build();
     }
 }

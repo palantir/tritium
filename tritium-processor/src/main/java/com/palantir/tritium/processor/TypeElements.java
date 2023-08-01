@@ -24,7 +24,6 @@ import java.util.Objects;
 import java.util.Optional;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
 
 final class TypeElements {
 
@@ -32,13 +31,12 @@ final class TypeElements {
      * if interface {@code A} extends {@code B}, adding no additional methods or specificity, B is returned. This
      * allows external interfaces to be instrumented without adding upstream code changes.
      */
-    static Optional<TypeName> unwrapEmptyInterface(Elements elements, TypeElement typeElement) {
+    static Optional<TypeName> unwrapEmptyInterface(TypeElement typeElement) {
         List<? extends TypeMirror> interfaces = typeElement.getInterfaces();
         if (interfaces.size() != 1) {
             return Optional.empty();
         }
-        if (typeElement.getEnclosedElements().stream()
-                .anyMatch(element -> Methods.isInstrumentable(elements, element))) {
+        if (!typeElement.getEnclosedElements().isEmpty()) {
             return Optional.empty();
         }
         TypeMirror superInterface = interfaces.get(0);
