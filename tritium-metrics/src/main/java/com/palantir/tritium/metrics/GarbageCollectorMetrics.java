@@ -25,8 +25,8 @@ import com.sun.management.GcInfo;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
 import javax.management.openmbean.CompositeData;
@@ -40,7 +40,7 @@ final class GarbageCollectorMetrics {
 
     private static final SafeLogger log = SafeLoggerFactory.get(GarbageCollectorMetrics.class);
 
-    private static Map<String, Map<String, Long>> collectorBytesCollected = new HashMap<>();
+    private static Map<String, Map<String, Long>> collectorBytesCollected = new ConcurrentHashMap<>();
 
     /**
      * Registers gauges {@code jvm.gc.count} and {@code jvm.gc.time} tagged with {@code {collector: NAME}}.
@@ -69,7 +69,7 @@ final class GarbageCollectorMetrics {
                                     }
                                 }
                             }
-                            return null;
+                            return 0L;
                         });
             }
         }
@@ -109,7 +109,7 @@ final class GarbageCollectorMetrics {
             }
             String canonicalMemoryPool = canonicalName(memoryPool);
             if (!collectorBytesCollected.containsKey(canonicalCollector)) {
-                collectorBytesCollected.put(canonicalCollector, new HashMap<>());
+                collectorBytesCollected.put(canonicalCollector, new ConcurrentHashMap<>());
             }
             Map<String, Long> memoryPoolBytesCollected = collectorBytesCollected.get(canonicalCollector);
             if (!memoryPoolBytesCollected.containsKey(canonicalMemoryPool)) {
