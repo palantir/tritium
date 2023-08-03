@@ -30,6 +30,14 @@ public final class Handlers {
     private static final SafeLogger log = SafeLoggerFactory.get(Handlers.class);
 
     /**
+     * Returns a disabled {@link InvocationContext}. This should only be used as an argument to other {@link Handlers}
+     * methods.
+     */
+    public static InvocationContext disabled() {
+        return DisabledHandlerSentinel.INSTANCE;
+    }
+
+    /**
      * The caller is expected to check {@link InvocationEventHandler#isEnabled()} prior to calling this method,
      * allowing argument array allocation to be avoided when the handler is not enabled.
      */

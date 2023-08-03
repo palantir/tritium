@@ -3,17 +3,14 @@ apply plugin: 'com.palantir.external-publish-jar'
 dependencies {
     api project(':tritium-annotations')
     api project(':tritium-api')
-    api project(':tritium-registry')
     api project(':tritium-core')
+    api project(':tritium-registry')
 
-    api 'com.squareup:javapoet'
-    api 'com.google.guava:guava'
-    api 'com.google.code.findbugs:jsr305'
-    api 'com.palantir.safe-logging:preconditions'
-    api 'com.palantir.goethe:goethe'
+    implementation 'com.google.guava:guava'
+    implementation 'com.palantir.delegate.processors:delegate-processors'
+    implementation 'com.squareup:javapoet'
 
     testImplementation 'com.google.testing.compile:compile-testing'
-    testImplementation 'com.google.guava:guava'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'

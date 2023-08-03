@@ -17,9 +17,11 @@
 package com.palantir.tritium.examples;
 
 import com.palantir.tritium.annotations.Instrument;
+import java.util.function.Supplier;
 
 @Instrument
-public abstract class AnnotatedAbstractClass {
+public abstract class AnnotatedAbstractClass implements Supplier<String> {
 
-    public abstract String getValue();
+    @Override
+    public abstract String get();
 }

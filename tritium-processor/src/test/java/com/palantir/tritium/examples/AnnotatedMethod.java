@@ -14,30 +14,14 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.processor;
+package com.palantir.tritium.examples;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.type.ExecutableType;
+import com.palantir.tritium.annotations.Instrument;
 
-final class MethodElements {
-    private final ExecutableType type;
-    private final ExecutableElement element;
+public interface AnnotatedMethod {
 
-    MethodElements(ExecutableType type, ExecutableElement element) {
-        this.type = type;
-        this.element = element;
-    }
+    @Instrument
+    String foo();
 
-    ExecutableType type() {
-        return type;
-    }
-
-    ExecutableElement element() {
-        return element;
-    }
-
-    @Override
-    public String toString() {
-        return "MethodElements{type=" + type + ", element=" + element + '}';
-    }
+    String bar();
 }

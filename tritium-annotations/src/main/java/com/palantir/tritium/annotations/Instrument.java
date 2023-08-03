@@ -30,6 +30,6 @@ import java.lang.annotation.Target;
  * When type parameters are present, the empty interface must define and pass along type parameters which
  * exactly match the target interface.
  */
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.SOURCE)
 public @interface Instrument {}

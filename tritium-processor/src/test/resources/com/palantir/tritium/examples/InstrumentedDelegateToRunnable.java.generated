@@ -7,15 +7,16 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
 public final class InstrumentedDelegateToRunnable implements DelegateToRunnable {
-    private static final Method RUN;
+    private static final Method RUN_ae321a87;
 
     static {
         try {
-            RUN = DelegateToRunnable.class.getMethod("run");
+            RUN_ae321a87 = Runnable.class.getMethod("run");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -29,30 +30,28 @@ public final class InstrumentedDelegateToRunnable implements DelegateToRunnable 
 
     private InstrumentedDelegateToRunnable(
             Runnable delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
-        this.delegate = delegate;
-        this.handler = handler;
-        this.filter = filter;
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
     public void run() {
-        if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, RUN, new Object[] {});
-            try {
-                this.delegate.run();
-                Handlers.onSuccess(this.handler, invocationContext);
-            } catch (Throwable throwable) {
-                Handlers.onFailure(this.handler, invocationContext, throwable);
-                throw throwable;
-            }
-        } else {
+        InvocationContext _invocationContext = this.handler.isEnabled()
+                ? Handlers.pre(this.handler, this.filter, this, RUN_ae321a87, new Object[] {})
+                : Handlers.disabled();
+        try {
             this.delegate.run();
+            Handlers.onSuccess(this.handler, _invocationContext);
+        } catch (Throwable _throwable) {
+            Handlers.onFailure(this.handler, _invocationContext, _throwable);
+            throw _throwable;
         }
     }
 
     @Override
     public String toString() {
-        return "InstrumentedDelegateToRunnable{" + delegate + '}';
+        return "InstrumentedDelegateToRunnable{" + this.delegate + "}";
     }
 
     public static InstrumentationBuilder<Runnable, DelegateToRunnable> builder(Runnable delegate) {

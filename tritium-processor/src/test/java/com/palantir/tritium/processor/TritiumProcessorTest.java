@@ -27,9 +27,12 @@ import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
 import com.palantir.tritium.examples.AnnotatedAbstractClass;
 import com.palantir.tritium.examples.AnnotatedClass;
+import com.palantir.tritium.examples.AnnotatedMethod;
 import com.palantir.tritium.examples.BindsParameter;
 import com.palantir.tritium.examples.DelegateToCallable;
+import com.palantir.tritium.examples.DelegateToCallableMethod;
 import com.palantir.tritium.examples.DelegateToRunnable;
+import com.palantir.tritium.examples.DelegateToRunnableMethod;
 import com.palantir.tritium.examples.DeprecatedMethod;
 import com.palantir.tritium.examples.Empty;
 import com.palantir.tritium.examples.HasDefaultMethod;
@@ -113,8 +116,22 @@ public final class TritiumProcessorTest {
 
     @Test
     public void testEmptyInterface() {
-        Compilation compilation = compileTestClass(TEST_CLASSES_BASE_DIR, Empty.class);
-        assertThat(compilation).hadErrorContaining("The annotated interface has no methods");
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, Empty.class);
+    }
+
+    @Test
+    public void testAnnotatedMethod() {
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, AnnotatedMethod.class);
+    }
+
+    @Test
+    public void testAnnotatedMethodDelegate() {
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, DelegateToRunnableMethod.class);
+    }
+
+    @Test
+    public void testAnnotatedMethodDelegateTypeParameter() {
+        assertTestFileCompileAndMatches(TEST_CLASSES_BASE_DIR, DelegateToCallableMethod.class);
     }
 
     @Test

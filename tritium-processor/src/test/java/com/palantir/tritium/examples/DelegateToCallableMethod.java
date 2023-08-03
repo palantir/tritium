@@ -17,14 +17,11 @@
 package com.palantir.tritium.examples;
 
 import com.palantir.tritium.annotations.Instrument;
-import java.util.function.Supplier;
+import java.util.concurrent.Callable;
 
-@Instrument
-@SuppressWarnings("checkstyle:DesignForExtension")
-public final class AnnotatedClass implements Supplier<String> {
+public interface DelegateToCallableMethod<T> extends Callable<T> {
 
+    @Instrument
     @Override
-    public String get() {
-        return "value";
-    }
+    T call() throws Exception;
 }

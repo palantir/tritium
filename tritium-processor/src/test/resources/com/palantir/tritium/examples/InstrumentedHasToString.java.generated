@@ -7,15 +7,16 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 
 @Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
 public final class InstrumentedHasToString implements HasToString {
-    private static final Method FOO;
+    private static final Method FOO_ed3d1cab;
 
     static {
         try {
-            FOO = HasToString.class.getMethod("foo");
+            FOO_ed3d1cab = HasToString.class.getMethod("foo");
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -29,30 +30,28 @@ public final class InstrumentedHasToString implements HasToString {
 
     private InstrumentedHasToString(
             HasToString delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
-        this.delegate = delegate;
-        this.handler = handler;
-        this.filter = filter;
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
     }
 
     @Override
     public void foo() {
-        if (this.handler.isEnabled()) {
-            InvocationContext invocationContext = Handlers.pre(this.handler, this.filter, this, FOO, new Object[] {});
-            try {
-                this.delegate.foo();
-                Handlers.onSuccess(this.handler, invocationContext);
-            } catch (Throwable throwable) {
-                Handlers.onFailure(this.handler, invocationContext, throwable);
-                throw throwable;
-            }
-        } else {
+        InvocationContext _invocationContext = this.handler.isEnabled()
+                ? Handlers.pre(this.handler, this.filter, this, FOO_ed3d1cab, new Object[] {})
+                : Handlers.disabled();
+        try {
             this.delegate.foo();
+            Handlers.onSuccess(this.handler, _invocationContext);
+        } catch (Throwable _throwable) {
+            Handlers.onFailure(this.handler, _invocationContext, _throwable);
+            throw _throwable;
         }
     }
 
     @Override
     public String toString() {
-        return "InstrumentedHasToString{" + delegate + '}';
+        return "InstrumentedHasToString{" + this.delegate + "}";
     }
 
     public static InstrumentationBuilder<HasToString, HasToString> builder(HasToString delegate) {
