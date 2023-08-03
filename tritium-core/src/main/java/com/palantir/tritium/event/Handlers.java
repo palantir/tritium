@@ -30,7 +30,8 @@ public final class Handlers {
     private static final SafeLogger log = SafeLoggerFactory.get(Handlers.class);
 
     /**
-     * Returns a disabled {@link InvocationContext}.
+     * Returns a disabled {@link InvocationContext}. This should only be used as an argument to other {@link Handlers}
+     * methods.
      */
     public static InvocationContext disabled() {
         return DisabledHandlerSentinel.INSTANCE;
