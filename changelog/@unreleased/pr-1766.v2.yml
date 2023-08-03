@@ -1,0 +1,6 @@
+type: feature
+feature:
+  description: The `@Instrument` annotation processor now supports applying the `@Instrument`
+    annotation to individual methods.
+  links:
+  - https://github.com/palantir/tritium/pull/1766
