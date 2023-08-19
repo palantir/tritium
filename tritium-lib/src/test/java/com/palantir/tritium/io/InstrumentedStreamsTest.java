@@ -51,7 +51,7 @@ class InstrumentedStreamsTest {
                     ByteArrayOutputStream output = new ByteArrayOutputStream(bytes.length);
                     InputStream instrumentedInputStream = InstrumentedStreams.input(input, registry, "in");
                     OutputStream instrumentedOutputStream = InstrumentedStreams.output(output, registry, "out")) {
-                assertThat(ByteStreams.copy(instrumentedInputStream, instrumentedOutputStream))
+                assertThat(instrumentedInputStream.transferTo(instrumentedOutputStream))
                         .isEqualTo(bytes.length);
                 assertThat(output.toByteArray()).isEqualTo(bytes);
                 assertThat(metrics.read("in").getCount()).isNotZero().isEqualTo(i * bytes.length);
@@ -82,7 +82,7 @@ class InstrumentedStreamsTest {
                 OutputStream gzipOut = new GZIPOutputStream(instrumentedRawOutputStream);
                 OutputStream instrumentedGzipOutputStream =
                         InstrumentedStreams.output(gzipOut, registry, "to-compress")) {
-            assertThat(ByteStreams.copy(instrumentedInputStream, instrumentedGzipOutputStream))
+            assertThat(instrumentedInputStream.transferTo(instrumentedGzipOutputStream))
                     .isEqualTo(totalSize);
             assertThat(metrics.read("in").getCount()).isNotZero().isEqualTo(totalSize);
             assertThat(metrics.write("to-compress").getCount())
