@@ -1,5 +1,5 @@
 com.fasterxml.jackson.*:* = 2.13.2
-com.fasterxml.jackson.core:* = 2.15.2
+com.fasterxml.jackson.core:* = 2.15.1
 com.github.ben-manes.caffeine:* = 3.1.8
 com.google.auto.service:* = 1.1.1
 com.google.code.findbugs:* = 3.0.2
@@ -14,11 +14,11 @@ com.squareup.okhttp3:* = 4.0.0
 # Keep major.minor metrics version in sync with Apache Spark
 io.dropwizard.metrics:* = 4.2.19
 io.undertow:* = 2.3.6.Final
-net.bytebuddy:* = 1.14.6
+net.bytebuddy:* = 1.14.5
 net.jqwik:* = 1.7.4
 org.assertj:* = 3.24.2
 org.awaitility:* = 4.2.0
-org.hdrhistogram:* = 2.1.12
+org.hdrhistogram:* = 2.1.11
 org.junit.jupiter:* = 5.10.0
 org.mockito:* = 5.5.0
 org.mpierce.metrics.reservoir:* = 1.1.3
