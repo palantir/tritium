@@ -1,1 +1,2 @@
 'autorelease': ['*/src/main/**/*.java']
+'🤖 fix nits': ['/versions.*']
