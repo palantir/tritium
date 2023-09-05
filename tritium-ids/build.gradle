@@ -1,0 +1,15 @@
+apply plugin: 'com.palantir.external-publish-jar'
+apply plugin: 'me.champeau.jmh'
+
+dependencies {
+    implementation 'com.google.guava:guava'
+    implementation 'com.palantir.safe-logging:logger'
+    implementation 'com.palantir.safe-logging:preconditions'
+
+    jmhImplementation 'com.fasterxml.uuid:java-uuid-generator'
+
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+}
