@@ -1,6 +1,10 @@
 apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'me.champeau.jmh'
 
+jmh {
+    jvmArgsAppend = ['-Xms2g', '-Xmx2g', '-XX:+UseG1GC']
+}
+
 dependencies {
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:logger'

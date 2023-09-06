@@ -24,48 +24,36 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 public final class UniqueIds {
     private static final SafeLogger log = SafeLoggerFactory.get(UniqueIds.class);
+    private static final int CHUNK_SIZE = 16;
 
     private UniqueIds() {}
 
-    private static final ThreadLocal<Random> random = ThreadLocal.withInitial(() -> {
+    private static final ThreadLocal<Random> SECURE_RANDOM = ThreadLocal.withInitial(UniqueIds::createSecureRandom);
+
+    static SecureRandom createSecureRandom() {
         try {
             return SecureRandom.getInstance("SHA1PRNG");
         } catch (NoSuchAlgorithmException e) {
             log.warn("Falling back to default SecureRandom", e);
             return new SecureRandom();
         }
-    });
-
-    /**
-     * Returns a unique {@link UUID} using.
-     */
-    public static UUID v4PseudoRandomUuid() {
-        return v4RandomUuid(ThreadLocalRandom.current());
     }
 
     /**
-     * Returns a unique {@link UUID}.
+     * Returns a unique randomly generated {@link UUID}.
      */
     public static UUID v4RandomUuid() {
-        return v4RandomUuid(random.get());
+        return v4RandomUuid(SECURE_RANDOM.get());
     }
 
     @VisibleForTesting
     static UUID v4RandomUuid(Random rand) {
-        return v4RandomUuid(bytes(rand));
-    }
-
-    private static UUID v4RandomUuid(byte[] data) {
-        return ietfUuid(data, 0x40);
-    }
-
-    private static UUID ietfUuid(byte[] data, int version) {
-        Preconditions.checkArgument(data.length == 16, "Invalid data length, expected 16 bytes");
-        data[6] = (byte) ((data[6] & 0x0f) | version); // version 4
+        byte[] data = bytes(rand);
+        Preconditions.checkArgument(data.length == CHUNK_SIZE, "Invalid data length, expected 16 bytes");
+        data[6] = (byte) ((data[6] & 0x0f) | 0x40); // version 4
         data[8] = (byte) ((data[8] & 0x3f) | 0x80); // IETF variant
 
         long mostSigBits = 0;

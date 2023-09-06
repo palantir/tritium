@@ -20,9 +20,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,14 +67,25 @@ public final class UniqueIdsTest {
 
     @ParameterizedTest
     @ValueSource(ints = {1, 100, 1_000, 100_000})
-    void randomUuid(int size) {
-        assertRfc4122v4(UniqueIds::v4RandomUuid, size);
+    void concurrentRequests(int size) {
+        ExecutorService executor = ForkJoinPool.commonPool();
+        try {
+            List<Future<UUID>> futures = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+                futures.add(executor.submit(() -> UniqueIds.v4RandomUuid()));
+            }
+            executor.shutdown();
+            Iterator<Future<UUID>> iterator = futures.iterator();
+            assertRfc4122v4(() -> Futures.getUnchecked(iterator.next()), size);
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @ParameterizedTest
     @ValueSource(ints = {1, 100, 1_000, 100_000})
-    void pseudoRandomUuid(int size) {
-        assertRfc4122v4(UniqueIds::v4PseudoRandomUuid, size);
+    void randomUuid(int size) {
+        assertRfc4122v4(UniqueIds::v4RandomUuid, size);
     }
 
     private static void assertRfc4122v4(Supplier<UUID> supplier, int size) {
@@ -77,6 +95,7 @@ public final class UniqueIdsTest {
             assertRfc4122v4(uuid);
             assertThat(uuids.add(uuid)).as("should be unique: %s", uuid).isTrue();
         }
+        assertThat(uuids).hasSize(size);
     }
 
     private static void assertRfc4122v4(UUID uuid) {

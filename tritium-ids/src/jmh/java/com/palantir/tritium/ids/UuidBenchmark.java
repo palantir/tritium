@@ -37,63 +37,64 @@ import org.openjdk.jmh.runner.options.TimeValue;
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.SECONDS)
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
+@Measurement(iterations = 3, time = 3, timeUnit = TimeUnit.SECONDS)
 @Threads(Threads.MAX)
+@Fork(1)
 @SuppressWarnings({"checkstyle:hideutilityclassconstructor", "VisibilityModifier", "DesignForExtension"})
 public class UuidBenchmark {
 
-    private static final SecureRandom secureRandom = new SecureRandom();
-    private static final Random random = new Random(secureRandom.nextLong());
-
-    private static final ThreadLocal<Random> threadLocalRandom =
-            ThreadLocal.withInitial(() -> new Random(secureRandom.nextLong()));
+    private final SecureRandom secureRandom = new SecureRandom();
+    private final SecureRandom sha1secureRandom = UniqueIds.createSecureRandom();
+    private final ThreadLocal<Random> threadLocalSecureRandom = ThreadLocal.withInitial(UniqueIds::createSecureRandom);
 
     @Benchmark
-    public UUID jdkRandomUuid() {
+    @Threads(1)
+    public UUID jdkRandomUuidOne() {
         return UUID.randomUUID();
     }
 
     @Benchmark
-    public UUID secureRandom() {
-        return UniqueIds.v4RandomUuid(secureRandom);
+    @Threads(Threads.MAX)
+    public UUID jdkRandomUuidMax() {
+        return UUID.randomUUID();
     }
 
     @Benchmark
-    public UUID random() {
-        return UniqueIds.v4RandomUuid(random);
-    }
-
-    @Benchmark
-    public UUID threadLocal() {
-        return UniqueIds.v4RandomUuid(threadLocalRandom.get());
-    }
-
-    @Benchmark
-    public UUID v4PseudoRandomUuid() {
-        return UniqueIds.v4PseudoRandomUuid();
-    }
-
-    @Benchmark
-    public UUID v4RandomUuid() {
+    @Threads(1)
+    public UUID v4RandomUuidOne() {
         return UniqueIds.v4RandomUuid();
     }
 
     @Benchmark
-    public UUID jugSecureRandom() {
-        return Generators.randomBasedGenerator().generate();
+    @Threads(Threads.MAX)
+    public UUID v4RandomUuidMax() {
+        return UniqueIds.v4RandomUuid();
     }
 
     @Benchmark
-    public UUID jugRandom() {
-        return Generators.randomBasedGenerator(random).generate();
+    @Threads(Threads.MAX)
+    public UUID secureRandomMax() {
+        return UniqueIds.v4RandomUuid(sha1secureRandom);
     }
 
     @Benchmark
-    public UUID jugTimeSecureRandom() {
-        return Generators.timeBasedGenerator().generate();
+    @Threads(Threads.MAX)
+    public UUID threadLocalMax() {
+        return UniqueIds.v4RandomUuid(threadLocalSecureRandom.get());
+    }
+
+    @Benchmark
+    @Threads(Threads.MAX)
+    public UUID twoLongsMax() {
+        return new UUID(secureRandom.nextLong(), secureRandom.nextLong());
+    }
+
+    @Benchmark
+    @Threads(Threads.MAX)
+    public UUID jugSecureRandomMax() {
+        return Generators.randomBasedGenerator(sha1secureRandom).generate();
     }
 
     public static void main(String[] _args) throws Exception {
