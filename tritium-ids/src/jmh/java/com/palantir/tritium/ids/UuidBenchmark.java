@@ -63,26 +63,26 @@ public class UuidBenchmark {
 
     @Benchmark
     @Threads(1)
-    public UUID v4RandomUuidOne() {
-        return UniqueIds.v4RandomUuid();
+    public UUID randomUuidV4One() {
+        return UniqueIds.randomUuidV4();
     }
 
     @Benchmark
     @Threads(Threads.MAX)
-    public UUID v4RandomUuidMax() {
-        return UniqueIds.v4RandomUuid();
+    public UUID randomUuidV4Max() {
+        return UniqueIds.randomUuidV4();
     }
 
     @Benchmark
     @Threads(Threads.MAX)
     public UUID secureRandomMax() {
-        return UniqueIds.v4RandomUuid(sha1secureRandom);
+        return UniqueIds.randomUuidV4(sha1secureRandom);
     }
 
     @Benchmark
     @Threads(Threads.MAX)
     public UUID threadLocalMax() {
-        return UniqueIds.v4RandomUuid(threadLocalSecureRandom.get());
+        return UniqueIds.randomUuidV4(threadLocalSecureRandom.get());
     }
 
     @Benchmark

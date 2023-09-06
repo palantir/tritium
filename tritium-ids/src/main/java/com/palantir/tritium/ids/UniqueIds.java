@@ -45,12 +45,12 @@ public final class UniqueIds {
     /**
      * Returns a unique randomly generated {@link UUID}.
      */
-    public static UUID v4RandomUuid() {
-        return v4RandomUuid(SECURE_RANDOM.get());
+    public static UUID randomUuidV4() {
+        return randomUuidV4(SECURE_RANDOM.get());
     }
 
     @VisibleForTesting
-    static UUID v4RandomUuid(Random rand) {
+    static UUID randomUuidV4(Random rand) {
         byte[] data = bytes(rand);
         Preconditions.checkArgument(data.length == CHUNK_SIZE, "Invalid data length, expected 16 bytes");
         data[6] = (byte) ((data[6] & 0x0f) | 0x40); // version 4
