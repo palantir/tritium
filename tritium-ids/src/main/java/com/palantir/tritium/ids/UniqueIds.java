@@ -24,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class UniqueIds {
     private static final SafeLogger log = SafeLoggerFactory.get(UniqueIds.class);
@@ -43,7 +44,16 @@ public final class UniqueIds {
     }
 
     /**
-     * Returns a unique randomly generated {@link UUID}.
+     * Returns a pseudo-randomly generated {@link UUID} in IETF RFC 4122 v4 format.
+     * Note that this should not be used in cases where one must have strong guarantees of cryptographically secure
+     * randomness and uniqueness.
+     */
+    public static UUID pseudoRandomUuidV4() {
+        return randomUuidV4(ThreadLocalRandom.current());
+    }
+
+    /**
+     * Returns a unique, cryptographically secure randomly generated {@link UUID} in IETF RFC 4122 v4 format.
      */
     public static UUID randomUuidV4() {
         return randomUuidV4(SECURE_RANDOM.get());

@@ -76,6 +76,18 @@ public class UuidBenchmark {
     }
 
     @Benchmark
+    @Threads(1)
+    public UUID pseudoRandomUuidV4One() {
+        return UniqueIds.pseudoRandomUuidV4();
+    }
+
+    @Benchmark
+    @Threads(Threads.MAX)
+    public UUID pseudoRandomUuidV4Max() {
+        return UniqueIds.pseudoRandomUuidV4();
+    }
+
+    @Benchmark
     @Threads(Threads.MAX)
     public UUID secureRandomMax() {
         return UniqueIds.randomUuidV4(sha1secureRandom);

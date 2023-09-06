@@ -27,13 +27,16 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
-import java.util.function.Supplier;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public final class UniqueIdsTest {
 
@@ -65,14 +68,20 @@ public final class UniqueIdsTest {
                 .isEqualTo(4);
     }
 
+    static Stream<Arguments> inputs() {
+        return Stream.<Callable<UUID>>of(UniqueIds::pseudoRandomUuidV4, UniqueIds::randomUuidV4)
+                .flatMap(uuidGen ->
+                        IntStream.of(1, 1_000, 100_000, 256 * 1024).mapToObj(size -> Arguments.of(uuidGen, size)));
+    }
+
     @ParameterizedTest
-    @ValueSource(ints = {1, 1_000, 100_000, 256 * 1024})
-    void concurrentRequests(int size) {
+    @MethodSource("inputs")
+    void concurrentRequests(Callable<UUID> callable, int size) throws Exception {
         ExecutorService executor = ForkJoinPool.commonPool();
         try {
             List<Future<UUID>> futures = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
-                futures.add(executor.submit(() -> UniqueIds.randomUuidV4()));
+                futures.add(executor.submit(callable));
             }
             executor.shutdown();
             Iterator<Future<UUID>> iterator = futures.iterator();
@@ -83,15 +92,15 @@ public final class UniqueIdsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {1, 1_000, 100_000, 256 * 1024})
-    void randomUuidV4(int size) {
-        assertRfc4122UuidV4(UniqueIds::randomUuidV4, size);
+    @MethodSource("inputs")
+    void generate(Callable<UUID> callable, int size) throws Exception {
+        assertRfc4122UuidV4(callable, size);
     }
 
-    private static void assertRfc4122UuidV4(Supplier<UUID> supplier, int size) {
+    private static void assertRfc4122UuidV4(Callable<UUID> supplier, int size) throws Exception {
         Set<UUID> uuids = Sets.newHashSetWithExpectedSize(size);
         for (int i = 0; i < size; i++) {
-            UUID uuid = supplier.get();
+            UUID uuid = supplier.call();
             assertRfc4122UuidV4(uuid);
             assertThat(uuids.add(uuid)).as("should be unique: %s", uuid).isTrue();
         }
