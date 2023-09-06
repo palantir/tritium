@@ -47,7 +47,9 @@ public class UuidBenchmark {
 
     private final SecureRandom secureRandom = new SecureRandom();
     private final SecureRandom sha1secureRandom = UniqueIds.createSecureRandom();
-    private final ThreadLocal<Random> threadLocalSecureRandom = ThreadLocal.withInitial(UniqueIds::createSecureRandom);
+    private final ThreadLocal<Random> threadLocalSecureRandom = ThreadLocal.withInitial(SecureRandom::new);
+    private final ThreadLocal<Random> threadLocalSha1SecureRandom =
+            ThreadLocal.withInitial(UniqueIds::createSecureRandom);
 
     @Benchmark
     @Threads(1)
@@ -83,6 +85,12 @@ public class UuidBenchmark {
     @Threads(Threads.MAX)
     public UUID threadLocalMax() {
         return UniqueIds.randomUuidV4(threadLocalSecureRandom.get());
+    }
+
+    @Benchmark
+    @Threads(Threads.MAX)
+    public UUID threadLocalSha1Max() {
+        return UniqueIds.randomUuidV4(threadLocalSha1SecureRandom.get());
     }
 
     @Benchmark
