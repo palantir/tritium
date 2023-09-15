@@ -163,7 +163,7 @@ public final class TritiumProcessorTest {
                 clazz.getSimpleName() + ".java"));
         try {
             return Compiler.javac()
-                    .withOptions("-source", "1.8", "-Werror", "-Xlint:deprecation", "-Xlint:unchecked")
+                    .withOptions("-source", "11", "-Werror", "-Xlint:deprecation", "-Xlint:unchecked")
                     .withProcessors(new TritiumAnnotationProcessor())
                     .compile(JavaFileObjects.forResource(clazzPath.toUri().toURL()));
         } catch (MalformedURLException e) {

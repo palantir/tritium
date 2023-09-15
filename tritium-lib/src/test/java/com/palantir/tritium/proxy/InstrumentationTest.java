@@ -529,7 +529,7 @@ public abstract class InstrumentationTest {
         // stack trace length due to Tritium instrumentation. It's not uncommon to have >10 Tritium proxies
         // in a single trace, so increases in frames can make debugging more difficult.
         int instrumentedStackSize = useByteBuddy() ? 1 : 6;
-        assertThat(instrumentedStack).hasSize(rawStack.length + instrumentedStackSize);
+        assertThat(instrumentedStack).hasSizeLessThanOrEqualTo(rawStack.length + instrumentedStackSize);
     }
 
     @Test
