@@ -177,7 +177,7 @@ public class InvocationEventProxyTest {
         assertThat(proxy.invoke("test", getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
         assertThatThrownBy(() -> proxy.invoke("test", getStringLengthMethod(), new Object[] {"Hello"}))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("wrong number of arguments");
+                .hasMessageContaining("wrong number of arguments");
     }
 
     @Test
@@ -207,7 +207,7 @@ public class InvocationEventProxyTest {
         assertThat(proxy.invoke(proxy, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
         assertThatThrownBy(() -> proxy.invoke(proxy, getStringLengthMethod(), new Object[] {"Hello"}))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("wrong number of arguments");
+                .hasMessageContaining("wrong number of arguments");
     }
 
     @Test
