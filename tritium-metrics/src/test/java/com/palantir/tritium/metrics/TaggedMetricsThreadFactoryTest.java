@@ -24,6 +24,9 @@ import com.codahale.metrics.Meter;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.palantir.logsafe.exceptions.SafeNullPointerException;
+import com.palantir.nylon.threads.VirtualThreads;
+import com.palantir.tritium.metrics.ExecutorMetrics.ThreadsCreated_ThreadType;
+import com.palantir.tritium.metrics.ExecutorMetrics.ThreadsRunning_ThreadType;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.Duration;
@@ -44,8 +47,55 @@ class TaggedMetricsThreadFactoryTest {
                 .build();
         ThreadFactory instrumented = MetricRegistries.instrument(registry, delegate, name);
         ExecutorMetrics metrics = ExecutorMetrics.of(registry);
-        Counter running = metrics.threadsRunning(name);
-        Meter created = metrics.threadsCreated(name);
+        Counter running = metrics.threadsRunning()
+                .executor(name)
+                .threadType(ThreadsRunning_ThreadType.PLATFORM)
+                .build();
+        Meter created = metrics.threadsCreated()
+                .executor(name)
+                .threadType(ThreadsCreated_ThreadType.PLATFORM)
+                .build();
+        assertThat(running.getCount()).isZero();
+        assertThat(created.getCount()).isZero();
+        CountDownLatch latch = new CountDownLatch(1);
+        Thread thread = instrumented.newThread(() -> Uninterruptibles.awaitUninterruptibly(latch));
+        assertThat(created.getCount()).isOne();
+        // thread has not started yet
+        assertThat(running.getCount()).isZero();
+        thread.start();
+        // Allow the thread to start in the background
+        Awaitility.waitAtMost(Duration.ofSeconds(3)).untilAsserted(() -> {
+            assertThat(created.getCount()).isOne();
+            assertThat(running.getCount()).isOne();
+        });
+        latch.countDown();
+        Awaitility.waitAtMost(Duration.ofSeconds(3)).untilAsserted(() -> {
+            assertThat(created.getCount()).isOne();
+            assertThat(running.getCount()).isZero();
+        });
+        Awaitility.waitAtMost(Duration.ofSeconds(1))
+                .untilAsserted(() -> assertThat(thread.isAlive()).isFalse());
+    }
+
+    @Test
+    void testVirtualThreadInstrumentation() {
+        String name = "name";
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        ThreadFactory delegate = VirtualThreads.get()
+                .orElseThrow(() -> new AssertionError("Expected jdk21+"))
+                .ofVirtual()
+                .name("virtual-test-", 0)
+                .factory();
+        ThreadFactory instrumented = MetricRegistries.instrument(registry, delegate, name);
+        ExecutorMetrics metrics = ExecutorMetrics.of(registry);
+        Counter running = metrics.threadsRunning()
+                .executor(name)
+                .threadType(ThreadsRunning_ThreadType.VIRTUAL)
+                .build();
+        Meter created = metrics.threadsCreated()
+                .executor(name)
+                .threadType(ThreadsCreated_ThreadType.VIRTUAL)
+                .build();
         assertThat(running.getCount()).isZero();
         assertThat(created.getCount()).isZero();
         CountDownLatch latch = new CountDownLatch(1);

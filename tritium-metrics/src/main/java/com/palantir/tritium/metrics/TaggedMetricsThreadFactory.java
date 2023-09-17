@@ -20,6 +20,9 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
+import com.palantir.nylon.threads.VirtualThreads;
+import com.palantir.tritium.metrics.ExecutorMetrics.ThreadsCreated_ThreadType;
+import com.palantir.tritium.metrics.ExecutorMetrics.ThreadsRunning_ThreadType;
 import java.util.concurrent.ThreadFactory;
 
 /**
@@ -28,23 +31,46 @@ import java.util.concurrent.ThreadFactory;
 final class TaggedMetricsThreadFactory implements ThreadFactory {
 
     private final ThreadFactory delegate;
-    private final Meter created;
-    private final Counter running;
+    // Note that there's no guarantee a given ThreadFactory implementation
+    // will always produce the same kind of thread for every invocation, so
+    // we must track both variants.
+    private final Meter createdPlatform;
+    private final Meter createdVirtual;
+    private final Counter runningPlatform;
+    private final Counter runningVirtual;
 
     TaggedMetricsThreadFactory(ThreadFactory delegate, ExecutorMetrics metrics, @Safe String name) {
         this.delegate = Preconditions.checkNotNull(delegate, "ThreadFactory is required");
         Preconditions.checkNotNull(name, "Name is required");
         Preconditions.checkNotNull(metrics, "ExecutorMetrics is required");
-        this.created = metrics.threadsCreated(name);
-        this.running = metrics.threadsRunning(name);
+        this.createdPlatform = metrics.threadsCreated()
+                .executor(name)
+                .threadType(ThreadsCreated_ThreadType.PLATFORM)
+                .build();
+        this.createdVirtual = metrics.threadsCreated()
+                .executor(name)
+                .threadType(ThreadsCreated_ThreadType.VIRTUAL)
+                .build();
+        this.runningPlatform = metrics.threadsRunning()
+                .executor(name)
+                .threadType(ThreadsRunning_ThreadType.PLATFORM)
+                .build();
+        this.runningVirtual = metrics.threadsRunning()
+                .executor(name)
+                .threadType(ThreadsRunning_ThreadType.VIRTUAL)
+                .build();
     }
 
     @Override
     public Thread newThread(Runnable runnable) {
-        Thread result = delegate.newThread(
-                new InstrumentedTask(Preconditions.checkNotNull(runnable, "Runnable is required"), running));
-        created.mark();
+        Thread result =
+                delegate.newThread(new InstrumentedTask(Preconditions.checkNotNull(runnable, "Runnable is required")));
+        createdMeterFor(result).mark();
         return result;
+    }
+
+    private Meter createdMeterFor(Thread thread) {
+        return VirtualThreads.isVirtual(thread) ? createdVirtual : createdPlatform;
     }
 
     @Override
@@ -52,24 +78,27 @@ final class TaggedMetricsThreadFactory implements ThreadFactory {
         return "TaggedMetricsThreadFactory{delegate=" + delegate + '}';
     }
 
-    private static final class InstrumentedTask implements Runnable {
+    private final class InstrumentedTask implements Runnable {
 
         private final Runnable delegate;
-        private final Counter running;
 
-        InstrumentedTask(Runnable delegate, Counter running) {
+        InstrumentedTask(Runnable delegate) {
             this.delegate = delegate;
-            this.running = running;
         }
 
         @Override
         public void run() {
+            Counter running = runningCounterFor(Thread.currentThread());
             running.inc();
             try {
                 delegate.run();
             } finally {
                 running.dec();
             }
+        }
+
+        private Counter runningCounterFor(Thread thread) {
+            return VirtualThreads.isVirtual(thread) ? runningVirtual : runningPlatform;
         }
 
         @Override
