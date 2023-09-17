@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assumptions.assumeThat;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -25,11 +26,13 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.palantir.logsafe.exceptions.SafeNullPointerException;
 import com.palantir.nylon.threads.VirtualThreads;
+import com.palantir.nylon.threads.VirtualThreads.VirtualThreadSupport;
 import com.palantir.tritium.metrics.ExecutorMetrics.ThreadsCreated_ThreadType;
 import com.palantir.tritium.metrics.ExecutorMetrics.ThreadsRunning_ThreadType;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadFactory;
 import org.awaitility.Awaitility;
@@ -81,8 +84,12 @@ class TaggedMetricsThreadFactoryTest {
     void testVirtualThreadInstrumentation() {
         String name = "name";
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
-        ThreadFactory delegate = VirtualThreads.get()
-                .orElseThrow(() -> new AssertionError("Expected jdk21+"))
+        Optional<VirtualThreadSupport> maybeVirtualThreadSupport = VirtualThreads.get();
+        assumeThat(maybeVirtualThreadSupport)
+                .as("Virtual thread tests require a runtime environment with virtual thread support")
+                .isPresent();
+        ThreadFactory delegate = maybeVirtualThreadSupport
+                .orElseThrow()
                 .ofVirtual()
                 .name("virtual-test-", 0)
                 .factory();
