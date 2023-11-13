@@ -206,7 +206,8 @@ final class JvmMetricsTest {
     void testCpuSharesUnavailable() {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
         JvmMetrics.registerCpuShares(metrics, Optional.empty());
-        assertThat(metrics.getMetrics()).isEmpty();
+        assertThat(metrics.gauge(ContainerMetrics.cpuSharesMetricName()))
+                .hasValueSatisfying(gauge -> assertThat(gauge.getValue()).isEqualTo(-2L));
     }
 
     @Test
