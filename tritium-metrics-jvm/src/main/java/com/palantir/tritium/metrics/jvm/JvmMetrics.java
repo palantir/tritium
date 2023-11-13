@@ -120,10 +120,14 @@ public final class JvmMetrics {
 
     @VisibleForTesting
     static void registerCpuShares(TaggedMetricRegistry registry, Optional<CpuSharesAccessor> maybeCpuSharesAccessor) {
-        maybeCpuSharesAccessor.ifPresentOrElse(
-                cpuSharesAccessor -> ContainerMetrics.of(registry).cpuShares((Gauge<Long>)
-                        () -> cpuSharesAccessor.getCpuShares().orElse(-1L)),
-                () -> log.info("CPU Shares information is not supported, cpu share metrics will not be reported"));
+        ContainerMetrics.of(registry)
+                .cpuShares(maybeCpuSharesAccessor
+                        .<Gauge<Long>>map(cpuSharesAccessor ->
+                                () -> cpuSharesAccessor.getCpuShares().orElse(-1L))
+                        .orElseGet(() -> {
+                            log.info("CPU Shares information is not supported, cpu share metrics will not be reported");
+                            return () -> -2L;
+                        }));
     }
 
     @SuppressWarnings("UnnecessaryLambda") // Avoid allocations in the threads-by-state loop
