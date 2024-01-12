@@ -367,11 +367,13 @@ public abstract class InstrumentationTest {
     }
 
     @Test
+    @SuppressWarnings({"EqualsWithItself", "TruthSelfEquals"}) // explicitly testing proxy equals
     void testEquals_sameInstance() {
         TestInterface proxy = Instrumentation.builder(TestInterface.class, new TestImplementation())
                 .withPerformanceTraceLogging()
                 .build();
         assertThat(proxy).isEqualTo(proxy);
+        assertThat(proxy.equals(proxy)).isTrue();
     }
 
     @Test
