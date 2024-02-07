@@ -29,5 +29,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation 'uk.org.webcompere:system-stubs-core'
+    testImplementation 'uk.org.webcompere:system-stubs-jupiter'
     testImplementation project(':tritium-test')
 }

@@ -74,10 +74,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, SystemStubsExtension.class})
 @SuppressWarnings({"NullAway", "SystemOut", "WeakerAccess"}) // mock injection, dumping metrics to standard out
 public abstract class InstrumentationTest {
+    @SystemStub
+    private SystemProperties systemProperties;
 
     private static final String EXPECTED_METRIC_NAME = TestInterface.class.getName() + ".test";
 
@@ -91,7 +96,7 @@ public abstract class InstrumentationTest {
 
     @BeforeEach
     void before() {
-        System.setProperty("instrument.dynamic-proxy", Boolean.toString(!useByteBuddy()));
+        systemProperties.set("instrument.dynamic-proxy", Boolean.toString(!useByteBuddy()));
         InstrumentationProperties.reload();
     }
 
@@ -104,7 +109,7 @@ public abstract class InstrumentationTest {
             }
             Tagged.report(reporter, taggedMetricRegistry);
         }
-        System.clearProperty("instrument.dynamic-proxy");
+        systemProperties.remove("instrument.dynamic-proxy");
         InstrumentationProperties.reload();
     }
 

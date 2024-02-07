@@ -36,15 +36,22 @@ import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
+@ExtendWith(SystemStubsExtension.class)
 final class InstrumentationPropertiesTest {
+    @SystemStub
+    private SystemProperties systemProperties;
 
     private ListeningExecutorService executorService;
 
     @BeforeEach
     void before() {
         executorService = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
-        System.clearProperty("instrument");
+        systemProperties.remove("instrument");
         System.getProperties()
                 .entrySet()
                 .removeIf(entry -> entry.getKey().toString().startsWith("instrument"));
@@ -64,29 +71,29 @@ final class InstrumentationPropertiesTest {
 
     @Test
     void testSystemPropertySupplierInstrumentFalse() {
-        System.setProperty("instrument", "false");
+        systemProperties.set("instrument", "false");
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isFalse();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentTrue() {
-        System.setProperty("instrument", "true");
+        systemProperties.set("instrument", "true");
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isTrue();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentClassFalse() {
-        System.setProperty("instrument.test", "false");
+        systemProperties.set("instrument.test", "false");
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isFalse();
     }
 
     @Test
     void testSystemPropertySupplierInstrumentClassTrue() {
-        System.clearProperty("instrument");
-        System.setProperty("instrument.test", "true");
+        systemProperties.remove("instrument");
+        systemProperties.set("instrument.test", "true");
         BooleanSupplier supplier = InstrumentationProperties.getSystemPropertySupplier("test");
         assertThat(supplier.asBoolean()).isTrue();
     }
@@ -118,12 +125,12 @@ final class InstrumentationPropertiesTest {
                 },
                 () -> {
                     barrier.await();
-                    return "setProperty: " + System.setProperty("instrument.test", "true");
+                    return "setProperty: " + systemProperties.set("instrument.test", "true");
                 },
                 () -> {
                     barrier.await();
                     for (int i = 0; i < 1000; i++) {
-                        System.setProperty("test" + i, "value" + i);
+                        systemProperties.set("test" + i, "value" + i);
                     }
                     return "setProperties: " + System.getProperties();
                 },
@@ -194,21 +201,21 @@ final class InstrumentationPropertiesTest {
 
     @Test
     void testIsSpecificEnabled_setGarbage() {
-        System.setProperty("instrument.garbage", "garbage");
+        systemProperties.set("instrument.garbage", "garbage");
         InstrumentationProperties.reload();
         assertThat(InstrumentationProperties.isSpecificEnabled("garbage")).isFalse();
     }
 
     @Test
     void testIsSpecificEnabled_setGarbage_defaultTrue() {
-        System.setProperty("instrument.garbage", "garbage");
+        systemProperties.set("instrument.garbage", "garbage");
         InstrumentationProperties.reload();
         assertThat(InstrumentationProperties.isSpecificEnabled("garbage", true)).isFalse();
     }
 
     @Test
     void testIsSpecificEnabled_setGarbage_defaultFalse() {
-        System.setProperty("instrument.garbage", "garbage");
+        systemProperties.set("instrument.garbage", "garbage");
         InstrumentationProperties.reload();
         assertThat(InstrumentationProperties.isSpecificEnabled("garbage", false))
                 .isFalse();
@@ -216,42 +223,42 @@ final class InstrumentationPropertiesTest {
 
     @Test
     void testIsSpecificEnabled_setTrue() {
-        System.setProperty("instrument.true", "true");
+        systemProperties.set("instrument.true", "true");
         InstrumentationProperties.reload();
         assertThat(InstrumentationProperties.isSpecificEnabled("true")).isTrue();
     }
 
     @Test
     void testIsSpecificEnabled_setTrue_defaultTrue() {
-        System.setProperty("instrument.true", "true");
+        systemProperties.set("instrument.true", "true");
         InstrumentationProperties.reload();
         assertThat(InstrumentationProperties.isSpecificEnabled("true", true)).isTrue();
     }
 
     @Test
     void testIsSpecificEnabled_setTrue_defaultFalse() {
-        System.setProperty("instrument.true", "true");
+        systemProperties.set("instrument.true", "true");
         InstrumentationProperties.reload();
         assertThat(InstrumentationProperties.isSpecificEnabled("true", false)).isTrue();
     }
 
     @Test
     void testIsSpecificEnabled_setFalse() {
-        System.setProperty("instrument.false", "false");
+        systemProperties.set("instrument.false", "false");
         InstrumentationProperties.reload();
         assertThat(InstrumentationProperties.isSpecificEnabled("false")).isFalse();
     }
 
     @Test
     void testIsSpecificEnabled_setFalse_defaultTrue() {
-        System.setProperty("instrument.false", "false");
+        systemProperties.set("instrument.false", "false");
         InstrumentationProperties.reload();
         assertThat(InstrumentationProperties.isSpecificEnabled("false", true)).isFalse();
     }
 
     @Test
     void testIsSpecificEnabled_setFalse_defaultFalse() {
-        System.setProperty("instrument.false", "false");
+        systemProperties.set("instrument.false", "false");
         InstrumentationProperties.reload();
         assertThat(InstrumentationProperties.isSpecificEnabled("false", false)).isFalse();
     }

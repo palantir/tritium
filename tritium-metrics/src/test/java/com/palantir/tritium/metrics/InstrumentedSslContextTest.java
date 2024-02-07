@@ -51,9 +51,14 @@ import okhttp3.Response;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.xnio.Options;
 import org.xnio.Sequence;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
+@ExtendWith(SystemStubsExtension.class)
 final class InstrumentedSslContextTest {
 
     private static final String ENABLED_CIPHER = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256";
@@ -62,15 +67,18 @@ final class InstrumentedSslContextTest {
 
     private static final int PORT = 4483;
 
+    @SystemStub
+    private SystemProperties systemProperties;
+
     @BeforeEach
     void beforeEach() {
-        System.setProperty("instrument.tls.socket", "true");
+        systemProperties.set("instrument.tls.socket", "true");
         InstrumentationProperties.reload();
     }
 
     @AfterEach
     void afterEach() {
-        System.clearProperty("instrument.tls.socket");
+        systemProperties.remove("instrument.tls.socket");
         InstrumentationProperties.reload();
     }
 
