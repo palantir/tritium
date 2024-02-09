@@ -1,10 +1,6 @@
 apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'com.palantir.metric-schema'
 
-// work around metric-schema gradle 8 task dependency
-tasks.sourcesJar.dependsOn(generateMetrics)
-tasks.sourcesJar.dependsOn(compileMetricSchema)
-
 dependencies {
     api 'io.dropwizard.metrics:metrics-core'
     api project(':tritium-api')
