@@ -23,33 +23,32 @@ import com.palantir.tritium.proxy.Instrumentation;
 import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.util.Collections;
-import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.SimpleLogger;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
+@ExtendWith(SystemStubsExtension.class)
 public class LoggingInstrumentationTest {
+    @SystemStub
+    private SystemProperties systemProperties;
 
     private static final String LOG_KEY = SimpleLogger.LOG_KEY_PREFIX + "com.palantir";
 
-    @Nullable
-    private String previousLogLevel = null;
-
     @BeforeEach
     public void before() {
-        previousLogLevel = System.setProperty(LOG_KEY, LoggingLevel.TRACE.name());
+        systemProperties.set(LOG_KEY, LoggingLevel.TRACE.name());
     }
 
     @AfterEach
     public void after() {
-        if (previousLogLevel == null) {
-            System.clearProperty(LOG_KEY);
-        } else {
-            System.setProperty(LOG_KEY, previousLogLevel);
-        }
+        systemProperties.remove(LOG_KEY);
     }
 
     @Test
@@ -93,7 +92,7 @@ public class LoggingInstrumentationTest {
         assertThat(delegate.invocationCount()).isOne();
     }
 
-    private static void testLoggingAtLevel(LoggingLevel level) {
+    private void testLoggingAtLevel(LoggingLevel level) {
         TestImplementation delegate = new TestImplementation();
         assertThat(level)
                 .isIn(LoggingLevel.ERROR, LoggingLevel.WARN, LoggingLevel.INFO, LoggingLevel.DEBUG, LoggingLevel.TRACE);
@@ -135,7 +134,7 @@ public class LoggingInstrumentationTest {
         return LoggerFactory.getLogger(LoggingInstrumentationTest.class);
     }
 
-    private static void enableLoggingForLevel(LoggingLevel level) {
-        System.setProperty(SimpleLogger.LOG_KEY_PREFIX + LoggingInstrumentationTest.class.getName(), level.name());
+    private void enableLoggingForLevel(LoggingLevel level) {
+        systemProperties.set(SimpleLogger.LOG_KEY_PREFIX + LoggingInstrumentationTest.class.getName(), level.name());
     }
 }

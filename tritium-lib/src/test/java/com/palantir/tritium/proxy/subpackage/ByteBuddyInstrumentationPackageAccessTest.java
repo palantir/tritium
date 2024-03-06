@@ -22,12 +22,19 @@ import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.proxy.Instrumentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
+@ExtendWith(SystemStubsExtension.class)
 class ByteBuddyInstrumentationPackageAccessTest {
+    @SystemStub
+    private SystemProperties systemProperties;
 
     @BeforeEach
     void before() {
-        System.setProperty("instrument.dynamic-proxy", "false");
+        systemProperties.set("instrument.dynamic-proxy", "false");
         InstrumentationProperties.reload();
     }
 

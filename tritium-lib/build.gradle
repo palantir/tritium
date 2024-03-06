@@ -28,5 +28,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter'
     testImplementation 'org.slf4j:slf4j-simple'
+    testImplementation 'uk.org.webcompere:system-stubs-core'
+    testImplementation 'uk.org.webcompere:system-stubs-jupiter'
     testImplementation project(':tritium-test')
 }

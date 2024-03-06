@@ -33,17 +33,26 @@ import com.palantir.tritium.test.TestImplementation;
 import com.palantir.tritium.test.TestInterface;
 import java.util.Map;
 import java.util.SortedMap;
-import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.impl.SimpleLogger;
 import org.slf4j.impl.TestLogs;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
+@ExtendWith(SystemStubsExtension.class)
 @SuppressWarnings("NullAway")
 public class TritiumTest {
-    static {
-        System.setProperty("org.slf4j.simpleLogger.log.performance", LoggingLevel.TRACE.name());
+    @SystemStub
+    private static SystemProperties systemProperties;
+
+    @BeforeAll
+    static void beforeAll() {
+        systemProperties.set("org.slf4j.simpleLogger.log.performance", LoggingLevel.TRACE.name());
         TestLogs.setLevel("performance", LoggingLevel.TRACE.name());
         TestLogs.logTo("/dev/null");
     }
@@ -63,21 +72,14 @@ public class TritiumTest {
             .putSafeTags("endpoint", "test")
             .build();
 
-    @Nullable
-    private String previousLogLevel = null;
-
     @BeforeEach
     public void before() {
-        previousLogLevel = System.setProperty(LOG_KEY, LoggingLevel.TRACE.name());
+        systemProperties.set(LOG_KEY, LoggingLevel.TRACE.name());
     }
 
     @AfterEach
     public void after() {
-        if (previousLogLevel == null) {
-            System.clearProperty(LOG_KEY);
-        } else {
-            System.setProperty(LOG_KEY, previousLogLevel);
-        }
+        systemProperties.remove(LOG_KEY);
 
         try (ConsoleReporter reporter =
                 ConsoleReporter.forRegistry(metricRegistry).build()) {

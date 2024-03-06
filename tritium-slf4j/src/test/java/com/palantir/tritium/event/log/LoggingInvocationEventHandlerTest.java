@@ -27,36 +27,36 @@ import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
-import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 import org.slf4j.impl.SimpleLogger;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
+@ExtendWith(SystemStubsExtension.class)
 public class LoggingInvocationEventHandlerTest {
 
     private static final String LOG_KEY = SimpleLogger.LOG_KEY_PREFIX + "com.palantir";
 
-    @Nullable
-    private String previousLogLevel = null;
+    @SystemStub
+    private SystemProperties systemProperties;
 
     @BeforeEach
     public void before() {
-        previousLogLevel = System.setProperty(LOG_KEY, LoggingLevel.TRACE.name());
+        systemProperties.set(LOG_KEY, LoggingLevel.TRACE.name());
     }
 
     @AfterEach
     public void after() {
-        if (previousLogLevel == null) {
-            System.clearProperty(LOG_KEY);
-        } else {
-            System.setProperty(LOG_KEY, previousLogLevel);
-        }
+        systemProperties.remove(LOG_KEY);
     }
 
     @Test
