@@ -23,6 +23,7 @@ import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.Safe;
+import com.palantir.tritium.metrics.caffeine.CacheMetrics.Load_Result;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Arrays;
 import java.util.concurrent.atomic.LongAdder;
@@ -60,11 +61,13 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
 
     private CacheStats(CacheMetrics metrics, @Safe String name) {
         this.name = name;
-        this.hitMeter = metrics.hitCount(name);
-        this.missMeter = metrics.missCount(name);
-        this.loadSuccessMeter = metrics.loadSuccessCount(name);
-        this.loadFailureMeter = metrics.loadFailureCount(name);
-        this.evictionsTotalMeter = metrics.evictionCount(name);
+        this.hitMeter = metrics.hit(name);
+        this.missMeter = metrics.miss(name);
+        this.loadSuccessMeter =
+                metrics.load().cache(name).result(Load_Result.SUCCESS).build();
+        this.loadFailureMeter =
+                metrics.load().cache(name).result(Load_Result.FAILURE).build();
+        this.evictionsTotalMeter = metrics.eviction(name);
         this.evictionMeters = Arrays.stream(RemovalCause.values())
                 .collect(Maps.toImmutableEnumMap(cause -> cause, cause -> metrics.evictions()
                         .cache(name)

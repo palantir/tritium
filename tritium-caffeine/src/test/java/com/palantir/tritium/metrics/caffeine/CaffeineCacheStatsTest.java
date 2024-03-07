@@ -224,35 +224,42 @@ final class CaffeineCacheStatsTest {
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .containsExactlyInAnyOrder(
-                        "cache.hit.count",
-                        "cache.miss.count",
-                        "cache.eviction.count",
+                        "cache.hit",
+                        "cache.miss",
+                        "cache.eviction",
                         "cache.evictions", // RemovalCause.EXPLICIT
                         "cache.evictions", // RemovalCause.REPLACED
                         "cache.evictions", // RemovalCause.COLLECTED
                         "cache.evictions", // RemovalCause.EXPIRED
                         "cache.evictions", // RemovalCause.SIZE
-                        "cache.load.success.count",
-                        "cache.load.failure.count");
+                        "cache.load", // success
+                        "cache.load" // failure
+                        );
 
         CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
-        assertThat(cacheMetrics.hitCount("test").getCount()).isZero();
         assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
                 .asInstanceOf(InstanceOfAssertFactories.LONG)
                 .isZero();
-        assertMeter(taggedMetricRegistry, "cache.hit.count").isZero();
-        assertMeter(taggedMetricRegistry, "cache.miss.count").isZero();
+        assertMeter(taggedMetricRegistry, "cache.hit")
+                .isEqualTo(cacheMetrics.hit("test").getCount())
+                .isZero();
+        assertMeter(taggedMetricRegistry, "cache.miss")
+                .isEqualTo(cacheMetrics.miss("test").getCount())
+                .isZero();
 
         assertThat(cache.get(0, mapping)).isEqualTo("0");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        assertMeter(taggedMetricRegistry, "cache.hit.count").isOne();
-        assertMeter(taggedMetricRegistry, "cache.miss.count").isEqualTo(3);
-        assertThat(cacheMetrics.hitCount("test").getCount()).isOne();
-        assertThat(cacheMetrics.missCount("test").getCount()).isEqualTo(3);
-        cache.cleanUp();
+        assertMeter(taggedMetricRegistry, "cache.hit")
+                .isEqualTo(cacheMetrics.hit("test").getCount())
+                .isOne();
+        assertMeter(taggedMetricRegistry, "cache.miss")
+                .isEqualTo(cacheMetrics.miss("test").getCount())
+                .isEqualTo(3);
+
+        cache.cleanUp(); // force eviction processing
         assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
                 .asInstanceOf(InstanceOfAssertFactories.LONG)
                 .isOne();
@@ -274,31 +281,42 @@ final class CaffeineCacheStatsTest {
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .containsExactlyInAnyOrder(
-                        "cache.hit.count",
-                        "cache.miss.count",
-                        "cache.eviction.count",
+                        "cache.hit",
+                        "cache.miss",
+                        "cache.eviction",
                         "cache.evictions", // RemovalCause.EXPLICIT
                         "cache.evictions", // RemovalCause.REPLACED
                         "cache.evictions", // RemovalCause.COLLECTED
                         "cache.evictions", // RemovalCause.EXPIRED
                         "cache.evictions", // RemovalCause.SIZE
-                        "cache.load.success.count",
-                        "cache.load.failure.count");
+                        "cache.load", // success
+                        "cache.load" // failure
+                        );
 
-        assertMeter(taggedMetricRegistry, "cache.hit.count").isZero();
-        assertMeter(taggedMetricRegistry, "cache.miss.count").isZero();
+        CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
+        assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
+                .asInstanceOf(InstanceOfAssertFactories.LONG)
+                .isZero();
+        assertMeter(taggedMetricRegistry, "cache.hit")
+                .isEqualTo(cacheMetrics.hit("test").getCount())
+                .isZero();
+        assertMeter(taggedMetricRegistry, "cache.miss")
+                .isEqualTo(cacheMetrics.miss("test").getCount())
+                .isZero();
 
         assertThat(cache.get(0)).isEqualTo("0");
         assertThat(cache.get(1)).isEqualTo("1");
         assertThat(cache.get(2)).isEqualTo("2");
         assertThat(cache.get(1)).isEqualTo("1");
 
-        assertMeter(taggedMetricRegistry, "cache.hit.count").isOne();
-        assertMeter(taggedMetricRegistry, "cache.miss.count").isEqualTo(3);
-        CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
-        assertThat(cacheMetrics.hitCount("test").getCount()).isOne();
-        assertThat(cacheMetrics.missCount("test").getCount()).isEqualTo(3);
-        cache.cleanUp();
+        assertMeter(taggedMetricRegistry, "cache.hit")
+                .isEqualTo(cacheMetrics.hit("test").getCount())
+                .isOne();
+        assertMeter(taggedMetricRegistry, "cache.miss")
+                .isEqualTo(cacheMetrics.miss("test").getCount())
+                .isEqualTo(3);
+
+        cache.cleanUp(); // force eviction processing
         assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
                 .asInstanceOf(InstanceOfAssertFactories.LONG)
                 .isOne();
