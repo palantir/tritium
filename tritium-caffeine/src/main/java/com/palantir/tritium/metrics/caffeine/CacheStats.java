@@ -20,11 +20,11 @@ import com.codahale.metrics.Counter;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.palantir.tritium.metrics.cache.CacheMetrics;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Arrays;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import org.checkerframework.checker.index.qual.NonNegative;
 
@@ -86,7 +86,7 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
         this.loadFailureCounter = metrics.loadFailureCount(name);
         this.evictionsTotalCounter = metrics.evictionCount(name);
         this.evictionCounters = Arrays.stream(RemovalCause.values())
-                .collect(ImmutableMap.toImmutableMap(Function.identity(), cause -> metrics.evictions()
+                .collect(Maps.toImmutableEnumMap(cause -> cause, cause -> metrics.evictions()
                         .cache(name)
                         .cause(cause.toString())
                         .build()));
