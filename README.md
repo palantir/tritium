@@ -88,12 +88,12 @@ import com.palantir.tritium.metrics.caffeine.CacheStats;
 TaggedMetricRegistry taggedMetricRegistry = ...
 CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "unique-cache-name");
 Cache<Integer, String> cache = cacheStats.register(Caffeine.newBuilder()
-        .recordStats(cacheStats.recorder())
+        .recordStats(cacheStats)
         .build());
 
 CacheStats loadingCacheStats = CacheStats.of(taggedMetricRegistry, "unique-loading-cache-name");
 LoadingCache<String, Integer> loadingCache = loadingCacheStats.register(Caffeine.newBuilder()
-        .recordStats(loadingCacheStats.recorder())
+        .recordStats(loadingCacheStats)
         .build(key::length));
 ```
 

@@ -214,10 +214,8 @@ final class CaffeineCacheStatsTest {
     @Test
     void registerTaggedMetrics() {
         CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "test");
-        Cache<Integer, String> cache = cacheStats.register(Caffeine.newBuilder()
-                .recordStats(cacheStats.recorder())
-                .maximumSize(2)
-                .build());
+        Cache<Integer, String> cache = cacheStats.register(
+                Caffeine.newBuilder().recordStats(cacheStats).maximumSize(2).build());
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .contains(
@@ -264,10 +262,8 @@ final class CaffeineCacheStatsTest {
     @Test
     void registerLoadingTaggedMetrics() {
         CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "test");
-        LoadingCache<Integer, String> cache = cacheStats.register(Caffeine.newBuilder()
-                .recordStats(cacheStats.recorder())
-                .maximumSize(2)
-                .build(mapping::apply));
+        LoadingCache<Integer, String> cache = cacheStats.register(
+                Caffeine.newBuilder().recordStats(cacheStats).maximumSize(2).build(mapping::apply));
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .contains(

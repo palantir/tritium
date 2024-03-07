@@ -31,7 +31,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.checkerframework.checker.index.qual.NonNegative;
 
-public final class CacheStats implements StatsCounter {
+public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     private final CacheMetrics metrics;
     private final String name;
     private final Counter hitCounter;
@@ -112,8 +112,9 @@ public final class CacheStats implements StatsCounter {
         return (LoadingCache<K, V>) register((Cache<K, V>) cache);
     }
 
-    public Supplier<? extends StatsCounter> recorder() {
-        return () -> this;
+    @Override
+    public StatsCounter get() {
+        return this;
     }
 
     @Override
