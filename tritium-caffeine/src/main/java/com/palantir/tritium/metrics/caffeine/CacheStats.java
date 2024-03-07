@@ -44,9 +44,9 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
      * Example usage for a {@link com.github.benmanes.caffeine.cache.Cache} or
      * {@link com.github.benmanes.caffeine.cache.LoadingCache}:
      * <pre>
-     *     LoadingCache&lt;Integer, String> cache = Caffeine.newBuilder()
+     *     LoadingCache&lt;Integer, String&gt; cache = Caffeine.newBuilder()
      *             .recordStats(CacheStats.of(taggedMetricRegistry, "your-cache-name"))
-     *             .build(key -> computeSomethingExpensive(key));
+     *             .build(key -&gt; computeSomethingExpensive(key));
      * </pre>
      * @param taggedMetricRegistry tagged metric registry to add cache metrics
      * @param name cache name

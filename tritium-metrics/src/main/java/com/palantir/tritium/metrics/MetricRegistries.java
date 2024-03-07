@@ -270,7 +270,10 @@ public final class MetricRegistries {
      * @param cache cache to instrument
      * @param name cache name
      * @throws IllegalArgumentException if name is blank
+     * @deprecated Do not use Guava caches, they are outperformed by and harder to use than Caffeine caches.
+     * Prefer {@link Caffeine#recordStats(Supplier)} and {@link CacheStats#of(TaggedMetricRegistry, String)}.
      */
+    @Deprecated // BanGuavaCaches
     @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
     public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
         checkNotNull(registry, "metric registry");

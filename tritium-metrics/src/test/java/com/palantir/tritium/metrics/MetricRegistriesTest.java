@@ -289,6 +289,7 @@ final class MetricRegistriesTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation") // testing deprecated cache registration
     void registerCacheTaggedMetrics() throws ExecutionException {
         MetricRegistries.registerCache(taggedMetricRegistry, cache, "test");
         assertThat(taggedMetricRegistry.getMetrics().keySet())
