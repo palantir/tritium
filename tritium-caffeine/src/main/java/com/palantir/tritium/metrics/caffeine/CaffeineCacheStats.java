@@ -70,16 +70,17 @@ public final class CaffeineCacheStats {
 
     /**
      * Register specified cache with the given metric registry.
-     *
+     * <p>
      * Callers should ensure that they have {@link Caffeine#recordStats() enabled stats recording}
      * {@code Caffeine.newBuilder().recordStats()} otherwise there are no cache metrics to register.
      *
      * @param registry metric registry
      * @param cache cache to instrument
      * @param name cache name
-     * @deprecated prefer {@link Caffeine#recordStats(Supplier)} and {@link CacheStats#of(TaggedMetricRegistry, String)}
+     * <p>
+     * Soon to be deprecated, prefer {@link Caffeine#recordStats(Supplier)} and {@link CacheStats#of(TaggedMetricRegistry, String)}
      */
-    @Deprecated
+    // Soon to be @Deprecated
     public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
         checkNotNull(registry, "registry");
         checkNotNull(cache, "cache");
