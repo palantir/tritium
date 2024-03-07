@@ -42,12 +42,12 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     /**
      * Creates a {@link CacheStats} instance that registers metrics for Caffeine cache statistics.
      * <p>
-     * Example method
+     * Example usage for a {@link com.github.benmanes.caffeine.cache.Cache} or
+     * {@link com.github.benmanes.caffeine.cache.LoadingCache}:
      * <pre>
-     *         CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "your-cache-name");
-     *         LoadingCache&lt;Integer, String> cache = cacheStats.register(Caffeine.newBuilder()
-     *                 .recordStats(cacheStats.record())
-     *                 .build(key -> computeSomethingExpensive(key));
+     *     LoadingCache&lt;Integer, String> cache = Caffeine.newBuilder()
+     *             .recordStats(CacheStats.of(taggedMetricRegistry, "your-cache-name"))
+     *             .build(key -> computeSomethingExpensive(key));
      * </pre>
      * @param taggedMetricRegistry tagged metric registry to add cache metrics
      * @param name cache name
@@ -58,6 +58,22 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
         return new CacheStats(CacheMetrics.of(taggedMetricRegistry), name);
     }
 
+    /**
+     * Creates a {@link CacheStats} instance that registers metrics for Caffeine cache statistics.
+     * <p>
+     * Example usage for a {@link com.github.benmanes.caffeine.cache.Cache} or
+     * {@link com.github.benmanes.caffeine.cache.LoadingCache}:
+     * <pre>
+     *     CacheMetrics metrics = CacheMetrics.of(taggedMetricRegistry);
+     *     LoadingCache&lt;Integer, String> cache = Caffeine.newBuilder()
+     *             .recordStats(CacheStats.of(metrics, "your-cache-name"))
+     *             .build(key -> computeSomethingExpensive(key));
+     * </pre>
+     * @param metrics metric instance to use for cache metrics
+     * @param name cache name
+     * @return Caffeine stats instance to register via
+     * {@link com.github.benmanes.caffeine.cache.Caffeine#recordStats(Supplier)}.
+     */
     public static CacheStats of(CacheMetrics metrics, String name) {
         return new CacheStats(metrics, name);
     }
