@@ -14,7 +14,7 @@ namespaces:
         tags: [cache]
         docs: Count of cache misses
       load:
-        type: meter
+        type: timer
         tags:
           - name: cache
           - name: result

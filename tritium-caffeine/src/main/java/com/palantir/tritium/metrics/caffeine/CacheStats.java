@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics.caffeine;
 
 import com.codahale.metrics.Counting;
 import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.google.common.collect.ImmutableMap;
@@ -26,6 +27,7 @@ import com.palantir.logsafe.Safe;
 import com.palantir.tritium.metrics.caffeine.CacheMetrics.Load_Result;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Supplier;
 import org.checkerframework.checker.index.qual.NonNegative;
@@ -34,8 +36,8 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     private final String name;
     private final Meter hitMeter;
     private final Meter missMeter;
-    private final Meter loadSuccessMeter;
-    private final Meter loadFailureMeter;
+    private final Timer loadSuccessTimer;
+    private final Timer loadFailureTimer;
     private final Meter evictionsTotalMeter;
     private final ImmutableMap<RemovalCause, Meter> evictionMeters;
     private final LongAdder totalLoadNanos = new LongAdder();
@@ -63,9 +65,9 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
         this.name = name;
         this.hitMeter = metrics.hit(name);
         this.missMeter = metrics.miss(name);
-        this.loadSuccessMeter =
+        this.loadSuccessTimer =
                 metrics.load().cache(name).result(Load_Result.SUCCESS).build();
-        this.loadFailureMeter =
+        this.loadFailureTimer =
                 metrics.load().cache(name).result(Load_Result.FAILURE).build();
         this.evictionsTotalMeter = metrics.eviction(name);
         this.evictionMeters = Arrays.stream(RemovalCause.values())
@@ -92,13 +94,13 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
 
     @Override
     public void recordLoadSuccess(@NonNegative long loadTime) {
-        loadSuccessMeter.mark();
+        loadSuccessTimer.update(loadTime, TimeUnit.NANOSECONDS);
         totalLoadNanos.add(loadTime);
     }
 
     @Override
     public void recordLoadFailure(@NonNegative long loadTime) {
-        loadFailureMeter.mark();
+        loadFailureTimer.update(loadTime, TimeUnit.NANOSECONDS);
         totalLoadNanos.add(loadTime);
     }
 
@@ -116,8 +118,8 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
         return com.github.benmanes.caffeine.cache.stats.CacheStats.of(
                 hitMeter.getCount(),
                 missMeter.getCount(),
-                loadSuccessMeter.getCount(),
-                loadFailureMeter.getCount(),
+                loadSuccessTimer.getCount(),
+                loadFailureTimer.getCount(),
                 totalLoadNanos.sum(),
                 evictionsTotalMeter.getCount(),
                 evictionMeters.values().stream().mapToLong(Counting::getCount).sum());
