@@ -21,6 +21,7 @@ import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.palantir.logsafe.Safe;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Arrays;
 import java.util.concurrent.atomic.LongAdder;
@@ -52,11 +53,11 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
      * @return Caffeine stats instance to register via
      * {@link com.github.benmanes.caffeine.cache.Caffeine#recordStats(Supplier)}.
      */
-    public static CacheStats of(TaggedMetricRegistry taggedMetricRegistry, String name) {
+    public static CacheStats of(TaggedMetricRegistry taggedMetricRegistry, @Safe String name) {
         return new CacheStats(CacheMetrics.of(taggedMetricRegistry), name);
     }
 
-    private CacheStats(CacheMetrics metrics, String name) {
+    private CacheStats(CacheMetrics metrics, @Safe String name) {
         this.name = name;
         this.hitCounter = metrics.hitCount(name);
         this.missCounter = metrics.missCount(name);
