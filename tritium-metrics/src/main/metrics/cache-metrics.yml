@@ -1,0 +1,66 @@
+options:
+  javaPackage: com.palantir.tritium.metrics.cache
+  javaVisibility: public
+namespaces:
+  cache:
+    docs: Cache statistic metrics
+    metrics:
+      estimated.size:
+        type: gauge
+        tags: [cache]
+        docs: Approximate number of entries in this cache
+      weighted.size:
+        type: gauge
+        tags: [cache]
+        docs: Approximate accumulated weight of entries in this cache
+      maximum.size:
+        type: gauge
+        tags: [cache]
+        docs: Maximum number of cache entries cache can hold if limited, otherwise -1
+      request.count:
+        type: gauge
+        tags: [cache]
+        docs: Count of cache requests
+      hit.count:
+        type: counter
+        tags: [cache]
+        docs: Count of cache hits
+      hit.ratio:
+        type: gauge
+        tags: [cache]
+        docs: Percentage of cache hits
+      miss.count:
+        type: counter
+        tags: [cache]
+        docs: Count of cache misses
+      miss.ratio:
+        type: gauge
+        tags: [cache]
+        docs: Percentage of cache misses
+      load.success.count:
+        type: counter
+        tags: [cache]
+        docs: Count of successful cache loads
+      load.failure.count:
+        type: counter
+        tags: [cache]
+        docs: Count of failed cache loads
+      load.average.millis:
+        type: gauge
+        tags: [cache]
+        docs: Average duration of cache load in milliseconds
+      evictions:
+        type: counter
+        tags: [cache, cause]
+        docs: Count of evicted entries by cause
+      eviction.count:
+        type: counter
+        tags: [cache]
+        docs: Total count of evicted entries
+      stats.disabled:
+        type: counter
+        tags: [cache]
+        docs: |
+          Registered cache does not have stats recording enabled, stats will always be zero.
+          To enable cache metrics, stats recording must be enabled when constructing the cache:
+          Caffeine.newBuilder().recordStats()
