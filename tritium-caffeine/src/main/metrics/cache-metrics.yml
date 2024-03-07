@@ -1,0 +1,37 @@
+options:
+  javaPackage: com.palantir.tritium.metrics.caffeine
+  javaVisibility: packagePrivate
+namespaces:
+  cache:
+    docs: Cache statistic metrics
+    metrics:
+      hit:
+        type: meter
+        tags: [cache]
+        docs: Count of cache hits
+      miss:
+        type: meter
+        tags: [cache]
+        docs: Count of cache misses
+      load:
+        type: timer
+        tags:
+          - name: cache
+          - name: result
+            values: [success, failure]
+        docs: Count of successful cache loads
+      evictions:
+        type: meter
+        tags: [cache, cause]
+        docs: Count of evicted entries by cause
+      eviction:
+        type: meter
+        tags: [cache]
+        docs: Total count of evicted entries
+      stats.disabled:
+        type: meter
+        tags: [cache]
+        docs: |
+          Registered cache does not have stats recording enabled, stats will always be zero.
+          To enable cache metrics, stats recording must be enabled when constructing the cache:
+          Caffeine.newBuilder().recordStats()

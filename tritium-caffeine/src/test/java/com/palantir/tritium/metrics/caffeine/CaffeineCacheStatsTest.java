@@ -17,23 +17,36 @@
 package com.palantir.tritium.metrics.caffeine;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.collection;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.awaitility.Awaitility.await;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Counting;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multimaps;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
+import org.assertj.core.api.AbstractLongAssert;
 import org.assertj.core.api.AbstractObjectAssert;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -202,21 +215,165 @@ final class CaffeineCacheStatsTest {
                 .isEqualTo(1L);
     }
 
-    static AbstractObjectAssert<?, ?> assertGauge(TaggedMetricRegistry taggedMetricRegistry, String name) {
-        Gauge<?> metric = getMetric(taggedMetricRegistry, Gauge.class, name);
+    @Test
+    void registerTaggedMetrics() {
+        Cache<Integer, String> cache = Caffeine.newBuilder()
+                .recordStats(CacheStats.of(taggedMetricRegistry, "test"))
+                .maximumSize(2)
+                .build();
+        assertThat(taggedMetricRegistry.getMetrics().keySet())
+                .extracting(MetricName::safeName)
+                .containsExactlyInAnyOrder(
+                        "cache.hit",
+                        "cache.miss",
+                        "cache.eviction",
+                        "cache.evictions", // RemovalCause.EXPLICIT
+                        "cache.evictions", // RemovalCause.REPLACED
+                        "cache.evictions", // RemovalCause.COLLECTED
+                        "cache.evictions", // RemovalCause.EXPIRED
+                        "cache.evictions", // RemovalCause.SIZE
+                        "cache.load", // success
+                        "cache.load" // failure
+                        );
+
+        CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
+        assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
+                .asInstanceOf(InstanceOfAssertFactories.LONG)
+                .isZero();
+        assertMeter(taggedMetricRegistry, "cache.hit")
+                .isEqualTo(cacheMetrics.hit("test").getCount())
+                .isZero();
+        assertMeter(taggedMetricRegistry, "cache.miss")
+                .isEqualTo(cacheMetrics.miss("test").getCount())
+                .isZero();
+
+        assertThat(cache.get(0, mapping)).isEqualTo("0");
+        assertThat(cache.get(1, mapping)).isEqualTo("1");
+        assertThat(cache.get(2, mapping)).isEqualTo("2");
+        assertThat(cache.get(1, mapping)).isEqualTo("1");
+
+        assertMeter(taggedMetricRegistry, "cache.hit")
+                .isEqualTo(cacheMetrics.hit("test").getCount())
+                .isOne();
+        assertMeter(taggedMetricRegistry, "cache.miss")
+                .isEqualTo(cacheMetrics.miss("test").getCount())
+                .isEqualTo(3);
+
+        cache.cleanUp(); // force eviction processing
+        assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
+                .asInstanceOf(InstanceOfAssertFactories.LONG)
+                .isOne();
+
+        assertThat(taggedMetricRegistry.getMetrics())
+                .extractingByKey(MetricName.builder()
+                        .safeName("cache.stats.disabled")
+                        .putSafeTags("cache", "test")
+                        .build())
+                .isNull();
+    }
+
+    @Test
+    void registerLoadingTaggedMetrics() {
+        LoadingCache<Integer, String> cache = Caffeine.newBuilder()
+                .recordStats(CacheStats.of(taggedMetricRegistry, "test"))
+                .maximumSize(2)
+                .build(mapping::apply);
+        assertThat(taggedMetricRegistry.getMetrics().keySet())
+                .extracting(MetricName::safeName)
+                .containsExactlyInAnyOrder(
+                        "cache.hit",
+                        "cache.miss",
+                        "cache.eviction",
+                        "cache.evictions", // RemovalCause.EXPLICIT
+                        "cache.evictions", // RemovalCause.REPLACED
+                        "cache.evictions", // RemovalCause.COLLECTED
+                        "cache.evictions", // RemovalCause.EXPIRED
+                        "cache.evictions", // RemovalCause.SIZE
+                        "cache.load", // success
+                        "cache.load" // failure
+                        );
+
+        CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
+        assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
+                .asInstanceOf(InstanceOfAssertFactories.LONG)
+                .isZero();
+        assertMeter(taggedMetricRegistry, "cache.hit")
+                .isEqualTo(cacheMetrics.hit("test").getCount())
+                .isZero();
+        assertMeter(taggedMetricRegistry, "cache.miss")
+                .isEqualTo(cacheMetrics.miss("test").getCount())
+                .isZero();
+
+        assertThat(cache.get(0)).isEqualTo("0");
+        assertThat(cache.get(1)).isEqualTo("1");
+        assertThat(cache.get(2)).isEqualTo("2");
+        assertThat(cache.get(1)).isEqualTo("1");
+
+        assertMeter(taggedMetricRegistry, "cache.hit")
+                .isEqualTo(cacheMetrics.hit("test").getCount())
+                .isOne();
+        assertMeter(taggedMetricRegistry, "cache.miss")
+                .isEqualTo(cacheMetrics.miss("test").getCount())
+                .isEqualTo(3);
+
+        cache.cleanUp(); // force eviction processing
+        assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
+                .asInstanceOf(InstanceOfAssertFactories.LONG)
+                .isOne();
+
+        assertThat(taggedMetricRegistry.getMetrics())
+                .extractingByKey(MetricName.builder()
+                        .safeName("cache.stats.disabled")
+                        .putSafeTags("cache", "test")
+                        .build())
+                .isNull();
+    }
+
+    static AbstractObjectAssert<?, Object> assertGauge(TaggedMetricRegistry taggedMetricRegistry, String name) {
+        return assertMetric(taggedMetricRegistry, Gauge.class, name).extracting(Gauge::getValue);
+    }
+
+    static AbstractLongAssert<?> assertMeter(TaggedMetricRegistry taggedMetricRegistry, String name) {
+        return assertMetric(taggedMetricRegistry, Meter.class, name)
+                .extracting(Counting::getCount)
+                .asInstanceOf(InstanceOfAssertFactories.LONG);
+    }
+
+    static <T extends Metric> ObjectAssert<T> assertMetric(
+            TaggedMetricRegistry taggedMetricRegistry, Class<T> clazz, String name) {
+        T metric = getMetric(taggedMetricRegistry, clazz, name);
         return assertThat(metric)
                 .as("metric '%s': '%s'", name, metric)
                 .isNotNull()
-                .extracting(Gauge::getValue);
+                .asInstanceOf(type(clazz));
     }
 
     private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {
-        return clazz.cast(metrics.getMetrics().entrySet().stream()
+        Optional<Entry<MetricName, Metric>> metric = metrics.getMetrics().entrySet().stream()
                 .filter(e -> name.equals(e.getKey().safeName()))
                 .filter(e -> clazz.isInstance(e.getValue()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No such metric '" + name + "' of type " + clazz.getCanonicalName()))
-                .getValue());
+                .findFirst();
+        if (metric.isEmpty()) {
+            Map<String, Set<String>> metricNameToType = Multimaps.asMap(metrics.getMetrics().entrySet().stream()
+                    .filter(e -> Objects.nonNull(e.getKey()))
+                    .filter(e -> Objects.nonNull(e.getValue()))
+                    .collect(ImmutableSetMultimap.toImmutableSetMultimap(
+                            e -> e.getKey().safeName(), e -> Optional.ofNullable(e.getValue())
+                                    .map(x -> x.getClass().getCanonicalName())
+                                    .orElse(""))));
+
+            assertThat(metricNameToType)
+                    .containsKey(name)
+                    .extractingByKey(name)
+                    .asInstanceOf(collection(String.class))
+                    .contains(clazz.getCanonicalName());
+
+            assertThat(metric)
+                    .as(
+                            "Metric named '%s' of type '%s' should exist but was not found in [%s]",
+                            name, clazz.getCanonicalName(), metricNameToType.keySet())
+                    .isPresent();
+        }
+        return clazz.cast(metric.orElseThrow().getValue());
     }
 }
