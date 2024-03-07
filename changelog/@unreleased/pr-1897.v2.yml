@@ -1,5 +1,18 @@
 type: improvement
 improvement:
-  description: Initial Caffeine CacheStats recorder
+  description: |
+    Initial Caffeine CacheStats recorder
+    
+    Example usage:
+    ```
+    TaggedMetricRegistry taggedMetricRegistry = ...
+    Cache<Integer, String> cache = Caffeine.newBuilder()
+            .recordStats(CacheStats.of(taggedMetricRegistry, "unique-cache-name"))
+            .build();
+
+    LoadingCache<String, Integer> loadingCache = Caffeine.newBuilder()
+            .recordStats(CacheStats.of(taggedMetricRegistry, "unique-loading-cache-name"))
+            .build(key::length);
+    ```
   links:
   - https://github.com/palantir/tritium/pull/1897
