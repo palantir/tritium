@@ -21,7 +21,6 @@ import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.palantir.tritium.metrics.cache.CacheMetrics;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Arrays;
 import java.util.concurrent.atomic.LongAdder;
@@ -32,12 +31,11 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     private final String name;
     private final Counter hitCounter;
     private final Counter missCounter;
-
-    private final LongAdder totalLoadNanos = new LongAdder();
     private final Counter loadSuccessCounter;
     private final Counter loadFailureCounter;
     private final Counter evictionsTotalCounter;
     private final ImmutableMap<RemovalCause, Counter> evictionCounters;
+    private final LongAdder totalLoadNanos = new LongAdder();
 
     /**
      * Creates a {@link CacheStats} instance that registers metrics for Caffeine cache statistics.
@@ -56,26 +54,6 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
      */
     public static CacheStats of(TaggedMetricRegistry taggedMetricRegistry, String name) {
         return new CacheStats(CacheMetrics.of(taggedMetricRegistry), name);
-    }
-
-    /**
-     * Creates a {@link CacheStats} instance that registers metrics for Caffeine cache statistics.
-     * <p>
-     * Example usage for a {@link com.github.benmanes.caffeine.cache.Cache} or
-     * {@link com.github.benmanes.caffeine.cache.LoadingCache}:
-     * <pre>
-     *     CacheMetrics metrics = CacheMetrics.of(taggedMetricRegistry);
-     *     LoadingCache&lt;Integer, String> cache = Caffeine.newBuilder()
-     *             .recordStats(CacheStats.of(metrics, "your-cache-name"))
-     *             .build(key -> computeSomethingExpensive(key));
-     * </pre>
-     * @param metrics metric instance to use for cache metrics
-     * @param name cache name
-     * @return Caffeine stats instance to register via
-     * {@link com.github.benmanes.caffeine.cache.Caffeine#recordStats(Supplier)}.
-     */
-    public static CacheStats of(CacheMetrics metrics, String name) {
-        return new CacheStats(metrics, name);
     }
 
     private CacheStats(CacheMetrics metrics, String name) {

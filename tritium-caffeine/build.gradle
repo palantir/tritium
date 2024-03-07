@@ -1,4 +1,5 @@
 apply plugin: 'com.palantir.external-publish-jar'
+apply plugin: 'com.palantir.metric-schema'
 
 dependencies {
     api 'com.github.ben-manes.caffeine:caffeine'

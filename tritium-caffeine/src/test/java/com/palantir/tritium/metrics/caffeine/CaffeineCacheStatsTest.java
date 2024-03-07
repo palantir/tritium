@@ -31,7 +31,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimaps;
-import com.palantir.tritium.metrics.cache.CacheMetrics;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -216,9 +215,8 @@ final class CaffeineCacheStatsTest {
 
     @Test
     void registerTaggedMetrics() {
-        CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
         Cache<Integer, String> cache = Caffeine.newBuilder()
-                .recordStats(CacheStats.of(cacheMetrics, "test"))
+                .recordStats(CacheStats.of(taggedMetricRegistry, "test"))
                 .maximumSize(2)
                 .build();
         assertThat(taggedMetricRegistry.getMetrics().keySet())
@@ -235,6 +233,7 @@ final class CaffeineCacheStatsTest {
                         "cache.load.success.count",
                         "cache.load.failure.count");
 
+        CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
         assertThat(cacheMetrics.hitCount("test").getCount()).isZero();
         assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
                 .asInstanceOf(InstanceOfAssertFactories.LONG)
@@ -265,9 +264,8 @@ final class CaffeineCacheStatsTest {
 
     @Test
     void registerLoadingTaggedMetrics() {
-        CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
         LoadingCache<Integer, String> cache = Caffeine.newBuilder()
-                .recordStats(CacheStats.of(cacheMetrics, "test"))
+                .recordStats(CacheStats.of(taggedMetricRegistry, "test"))
                 .maximumSize(2)
                 .build(mapping::apply);
         assertThat(taggedMetricRegistry.getMetrics().keySet())
@@ -294,6 +292,7 @@ final class CaffeineCacheStatsTest {
 
         assertCounter(taggedMetricRegistry, "cache.hit.count").isOne();
         assertCounter(taggedMetricRegistry, "cache.miss.count").isEqualTo(3);
+        CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
         assertThat(cacheMetrics.hitCount("test").getCount()).isOne();
         assertThat(cacheMetrics.missCount("test").getCount()).isEqualTo(3);
         assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())

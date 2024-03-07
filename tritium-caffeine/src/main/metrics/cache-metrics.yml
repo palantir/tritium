@@ -1,6 +1,6 @@
 options:
-  javaPackage: com.palantir.tritium.metrics.cache
-  javaVisibility: public
+  javaPackage: com.palantir.tritium.metrics.caffeine
+  javaVisibility: packagePrivate
 namespaces:
   cache:
     docs: Cache statistic metrics
