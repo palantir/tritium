@@ -80,6 +80,23 @@ Service instrumentedService = Tritium.instrument(Service.class,
         interestingService, environment.metrics());
 ```
 
+## Instrumenting a [Caffeine cache](https://github.com/ben-manes/caffeine/)
+
+```java
+import com.palantir.tritium.metrics.caffeine.CacheStats;
+
+TaggedMetricRegistry taggedMetricRegistry = ...
+CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "unique-cache-name");
+Cache<Integer, String> cache = cacheStats.register(Caffeine.newBuilder()
+        .recordStats(cacheStats.recorder())
+        .build());
+
+CacheStats loadingCacheStats = CacheStats.of(taggedMetricRegistry, "unique-loading-cache-name");
+LoadingCache<String, Integer> loadingCache = loadingCacheStats.register(Caffeine.newBuilder()
+        .recordStats(loadingCacheStats.recorder())
+        .build(key::length));
+```
+
 ## Creating a metric registry with reservoirs backed by [HDR Histograms](https://hdrhistogram.github.io/HdrHistogram/).
 
 HDR histograms are more useful if the service is long running, so the stats represents the lifetime of the server rather than using default exponential decay which can lead to some mis-interpretations of timings (especially higher percentiles and things like max dropping over time) if the consumer isn't aware of these assumptions.
