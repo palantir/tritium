@@ -16,7 +16,8 @@
 
 package com.palantir.tritium.metrics.caffeine;
 
-import com.codahale.metrics.Counter;
+import com.codahale.metrics.Counting;
+import com.codahale.metrics.Meter;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.google.common.collect.ImmutableMap;
@@ -30,12 +31,12 @@ import org.checkerframework.checker.index.qual.NonNegative;
 
 public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     private final String name;
-    private final Counter hitCounter;
-    private final Counter missCounter;
-    private final Counter loadSuccessCounter;
-    private final Counter loadFailureCounter;
-    private final Counter evictionsTotalCounter;
-    private final ImmutableMap<RemovalCause, Counter> evictionCounters;
+    private final Meter hitMeter;
+    private final Meter missMeter;
+    private final Meter loadSuccessMeter;
+    private final Meter loadFailureMeter;
+    private final Meter evictionsTotalMeter;
+    private final ImmutableMap<RemovalCause, Meter> evictionMeters;
     private final LongAdder totalLoadNanos = new LongAdder();
 
     /**
@@ -59,12 +60,12 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
 
     private CacheStats(CacheMetrics metrics, @Safe String name) {
         this.name = name;
-        this.hitCounter = metrics.hitCount(name);
-        this.missCounter = metrics.missCount(name);
-        this.loadSuccessCounter = metrics.loadSuccessCount(name);
-        this.loadFailureCounter = metrics.loadFailureCount(name);
-        this.evictionsTotalCounter = metrics.evictionCount(name);
-        this.evictionCounters = Arrays.stream(RemovalCause.values())
+        this.hitMeter = metrics.hitCount(name);
+        this.missMeter = metrics.missCount(name);
+        this.loadSuccessMeter = metrics.loadSuccessCount(name);
+        this.loadFailureMeter = metrics.loadFailureCount(name);
+        this.evictionsTotalMeter = metrics.evictionCount(name);
+        this.evictionMeters = Arrays.stream(RemovalCause.values())
                 .collect(Maps.toImmutableEnumMap(cause -> cause, cause -> metrics.evictions()
                         .cache(name)
                         .cause(cause.toString())
@@ -78,45 +79,45 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
 
     @Override
     public void recordHits(@NonNegative int count) {
-        hitCounter.inc(count);
+        hitMeter.mark(count);
     }
 
     @Override
     public void recordMisses(@NonNegative int count) {
-        missCounter.inc(count);
+        missMeter.mark(count);
     }
 
     @Override
     public void recordLoadSuccess(@NonNegative long loadTime) {
-        loadSuccessCounter.inc();
+        loadSuccessMeter.mark();
         totalLoadNanos.add(loadTime);
     }
 
     @Override
     public void recordLoadFailure(@NonNegative long loadTime) {
-        loadFailureCounter.inc();
+        loadFailureMeter.mark();
         totalLoadNanos.add(loadTime);
     }
 
     @Override
     public void recordEviction(@NonNegative int weight, RemovalCause cause) {
-        Counter counter = evictionCounters.get(cause);
+        Meter counter = evictionMeters.get(cause);
         if (counter != null) {
-            counter.inc(weight);
+            counter.mark(weight);
         }
-        evictionsTotalCounter.inc(weight);
+        evictionsTotalMeter.mark(weight);
     }
 
     @Override
     public com.github.benmanes.caffeine.cache.stats.CacheStats snapshot() {
         return com.github.benmanes.caffeine.cache.stats.CacheStats.of(
-                hitCounter.getCount(),
-                missCounter.getCount(),
-                loadSuccessCounter.getCount(),
-                loadFailureCounter.getCount(),
+                hitMeter.getCount(),
+                missMeter.getCount(),
+                loadSuccessMeter.getCount(),
+                loadFailureMeter.getCount(),
                 totalLoadNanos.sum(),
-                evictionsTotalCounter.getCount(),
-                evictionCounters.values().stream().mapToLong(Counter::getCount).sum());
+                evictionsTotalMeter.getCount(),
+                evictionMeters.values().stream().mapToLong(Counting::getCount).sum());
     }
 
     @Override

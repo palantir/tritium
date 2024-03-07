@@ -6,31 +6,31 @@ namespaces:
     docs: Cache statistic metrics
     metrics:
       hit.count:
-        type: counter
+        type: meter
         tags: [cache]
         docs: Count of cache hits
       miss.count:
-        type: counter
+        type: meter
         tags: [cache]
         docs: Count of cache misses
       load.success.count:
-        type: counter
+        type: meter
         tags: [cache]
         docs: Count of successful cache loads
       load.failure.count:
-        type: counter
+        type: meter
         tags: [cache]
         docs: Count of failed cache loads
       evictions:
-        type: counter
+        type: meter
         tags: [cache, cause]
         docs: Count of evicted entries by cause
       eviction.count:
-        type: counter
+        type: meter
         tags: [cache]
         docs: Total count of evicted entries
       stats.disabled:
-        type: counter
+        type: meter
         tags: [cache]
         docs: |
           Registered cache does not have stats recording enabled, stats will always be zero.

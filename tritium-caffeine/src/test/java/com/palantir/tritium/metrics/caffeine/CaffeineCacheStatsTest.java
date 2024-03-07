@@ -23,7 +23,9 @@ import static org.awaitility.Awaitility.await;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Counting;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -238,16 +240,16 @@ final class CaffeineCacheStatsTest {
         assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
                 .asInstanceOf(InstanceOfAssertFactories.LONG)
                 .isZero();
-        assertCounter(taggedMetricRegistry, "cache.hit.count").isZero();
-        assertCounter(taggedMetricRegistry, "cache.miss.count").isZero();
+        assertMeter(taggedMetricRegistry, "cache.hit.count").isZero();
+        assertMeter(taggedMetricRegistry, "cache.miss.count").isZero();
 
         assertThat(cache.get(0, mapping)).isEqualTo("0");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        assertCounter(taggedMetricRegistry, "cache.hit.count").isOne();
-        assertCounter(taggedMetricRegistry, "cache.miss.count").isEqualTo(3);
+        assertMeter(taggedMetricRegistry, "cache.hit.count").isOne();
+        assertMeter(taggedMetricRegistry, "cache.miss.count").isEqualTo(3);
         assertThat(cacheMetrics.hitCount("test").getCount()).isOne();
         assertThat(cacheMetrics.missCount("test").getCount()).isEqualTo(3);
         cache.cleanUp();
@@ -283,16 +285,16 @@ final class CaffeineCacheStatsTest {
                         "cache.load.success.count",
                         "cache.load.failure.count");
 
-        assertCounter(taggedMetricRegistry, "cache.hit.count").isZero();
-        assertCounter(taggedMetricRegistry, "cache.miss.count").isZero();
+        assertMeter(taggedMetricRegistry, "cache.hit.count").isZero();
+        assertMeter(taggedMetricRegistry, "cache.miss.count").isZero();
 
         assertThat(cache.get(0)).isEqualTo("0");
         assertThat(cache.get(1)).isEqualTo("1");
         assertThat(cache.get(2)).isEqualTo("2");
         assertThat(cache.get(1)).isEqualTo("1");
 
-        assertCounter(taggedMetricRegistry, "cache.hit.count").isOne();
-        assertCounter(taggedMetricRegistry, "cache.miss.count").isEqualTo(3);
+        assertMeter(taggedMetricRegistry, "cache.hit.count").isOne();
+        assertMeter(taggedMetricRegistry, "cache.miss.count").isEqualTo(3);
         CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
         assertThat(cacheMetrics.hitCount("test").getCount()).isOne();
         assertThat(cacheMetrics.missCount("test").getCount()).isEqualTo(3);
@@ -313,9 +315,9 @@ final class CaffeineCacheStatsTest {
         return assertMetric(taggedMetricRegistry, Gauge.class, name).extracting(Gauge::getValue);
     }
 
-    static AbstractLongAssert<?> assertCounter(TaggedMetricRegistry taggedMetricRegistry, String name) {
-        return assertMetric(taggedMetricRegistry, Counter.class, name)
-                .extracting(Counter::getCount)
+    static AbstractLongAssert<?> assertMeter(TaggedMetricRegistry taggedMetricRegistry, String name) {
+        return assertMetric(taggedMetricRegistry, Meter.class, name)
+                .extracting(Counting::getCount)
                 .asInstanceOf(InstanceOfAssertFactories.LONG);
     }
 
