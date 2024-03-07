@@ -250,6 +250,7 @@ final class CaffeineCacheStatsTest {
         assertCounter(taggedMetricRegistry, "cache.miss.count").isEqualTo(3);
         assertThat(cacheMetrics.hitCount("test").getCount()).isOne();
         assertThat(cacheMetrics.missCount("test").getCount()).isEqualTo(3);
+        cache.cleanUp();
         assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
                 .asInstanceOf(InstanceOfAssertFactories.LONG)
                 .isOne();
@@ -295,6 +296,7 @@ final class CaffeineCacheStatsTest {
         CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
         assertThat(cacheMetrics.hitCount("test").getCount()).isOne();
         assertThat(cacheMetrics.missCount("test").getCount()).isEqualTo(3);
+        cache.cleanUp();
         assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
                 .asInstanceOf(InstanceOfAssertFactories.LONG)
                 .isOne();
