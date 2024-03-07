@@ -17,9 +17,6 @@
 package com.palantir.tritium.metrics.caffeine;
 
 import com.codahale.metrics.Counter;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.google.common.collect.ImmutableMap;
@@ -32,7 +29,6 @@ import java.util.function.Supplier;
 import org.checkerframework.checker.index.qual.NonNegative;
 
 public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
-    private final CacheMetrics metrics;
     private final String name;
     private final Counter hitCounter;
     private final Counter missCounter;
@@ -67,7 +63,6 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     }
 
     private CacheStats(CacheMetrics metrics, String name) {
-        this.metrics = metrics;
         this.name = name;
         this.hitCounter = metrics.hitCount(name);
         this.missCounter = metrics.missCount(name);
@@ -79,37 +74,6 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
                         .cache(name)
                         .cause(cause.toString())
                         .build()));
-        metrics.requestCount().cache(name).build(() -> hitCounter.getCount() + missCounter.getCount());
-    }
-
-    public <K, V, C extends Cache<K, V>> C register(C cache) {
-        metrics.estimatedSize().cache(name).build(cache::estimatedSize);
-        metrics.maximumSize().cache(name).build(() -> cache.policy()
-                .eviction()
-                .map(Policy.Eviction::getMaximum)
-                .orElse(-1L));
-        metrics.weightedSize().cache(name).build(() -> cache.policy()
-                .eviction()
-                .flatMap(e -> e.weightedSize().stream().boxed().findFirst())
-                .orElse(0L));
-        metrics.hitRatio().cache(name).build(() -> {
-            double hitCount = hitCounter.getCount();
-            return hitCount / (hitCount + missCounter.getCount());
-        });
-        metrics.missRatio().cache(name).build(() -> {
-            double missCount = missCounter.getCount();
-            return missCount / (hitCounter.getCount() + missCount);
-        });
-        metrics.loadAverageMillis()
-                .cache(name)
-                .build(() ->
-                        // convert nanoseconds to milliseconds
-                        totalLoadNanos.sum() / 1_000_000.0d);
-        return cache;
-    }
-
-    public <K, V> LoadingCache<K, V> register(LoadingCache<K, V> cache) {
-        return (LoadingCache<K, V>) register((Cache<K, V>) cache);
     }
 
     @Override
