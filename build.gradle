@@ -67,7 +67,6 @@ allprojects {
             options.errorprone {
                 option('NullAway:AnnotatedPackages', 'com.palantir,com.google.common')
                 option('NullAway:CheckOptionalEmptiness', 'true')
-                option('AllSuggestionsAsWarnings') // https://github.com/google/error-prone/pull/3301
 
                 // warnings not explicitly provided by error-prone
                 error 'NullAway',
@@ -86,6 +85,10 @@ allprojects {
                         'StaticOrDefaultInterfaceMethod', // Android specific
                         'Var', // high noise, low signal
                         'Varifier' // don't `var`ify everything yet as this conflicts with baseline VarUsage
+
+                errorproneArgs = [
+                    '-XepAllSuggestionsAsWarnings',
+                ]
             }
         }
     })
