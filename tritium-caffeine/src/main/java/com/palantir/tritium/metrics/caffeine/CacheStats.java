@@ -20,6 +20,7 @@ import com.codahale.metrics.Counting;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
@@ -31,6 +32,7 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.checkerframework.checker.index.qual.NonNegative;
 
@@ -47,16 +49,14 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     private final LongAdder totalLoadTime = new LongAdder();
 
     /**
-     * Creates a {@link CacheStats} instance that registers metrics for Caffeine cache statistics.
+     * Creates a {@link CacheStats} instance that can be used to record metrics for Caffeine cache statistics.
      * <p>
-     * Example usage for a {@link com.github.benmanes.caffeine.cache.Cache} or
-     * {@link com.github.benmanes.caffeine.cache.LoadingCache}:
+     * Example usage:
      * <pre>
-     *     CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "your-cache-name")
-     *     LoadingCache&lt;Integer, String&gt; cache = Caffeine.newBuilder()
-     *             .recordStats(cacheStats)
-     *             .build(key -&gt; computeSomethingExpensive(key));
-     *     cacheStats.register(cache);
+     *     Cache&lt;Integer, String&gt; cache = CacheStats.of(taggedMetricRegistry, "your-cache-name")
+     *             .register(stats -> Caffeine.newBuilder()
+     *                     .recordStats(stats)
+     *                     .build());
      * </pre>
      * @param taggedMetricRegistry tagged metric registry to add cache metrics
      * @param name cache name
@@ -68,12 +68,24 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     }
 
     /**
-     * Registers additional metrics for a Caffeine cache.
-     *
-     * @param cache cache for which to register metrics
-     * @return the given cache instance
+     * Constructs and registers metrics for Caffeine cache statistics.
+     * <p>
+     * In order to record metrics, the {@code cacheFactory} must use the provided {@link CacheStats} with
+     * {@link Caffeine#recordStats(Supplier)})}.
+     * <p>
+     * Example usage:
+     * <pre>
+     *     Cache&lt;Integer, String&gt; cache = CacheStats.of(taggedMetricRegistry, "your-cache-name")
+     *             .register(stats -> Caffeine.newBuilder()
+     *                     .recordStats(stats)
+     *                     .build());
+     * </pre>
+     * @param cacheFactory method which will be invoked to construct the cache
+     * @return the constructed cache instance
      */
-    public <K, V, C extends Cache<K, V>> C register(C cache) {
+    public <K, V, C extends Cache<K, V>> C register(Function<CacheStats, C> cacheFactory) {
+        C cache = cacheFactory.apply(this);
+
         metrics.estimatedSize().cache(name).build(cache::estimatedSize);
         metrics.weightedSize().cache(name).build(() -> cache.policy()
                 .eviction()
@@ -83,6 +95,7 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
                 .eviction()
                 .map(Policy.Eviction::getMaximum)
                 .orElse(null));
+
         return cache;
     }
 

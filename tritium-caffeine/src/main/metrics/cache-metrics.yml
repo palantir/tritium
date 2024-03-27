@@ -46,4 +46,4 @@ namespaces:
       maximum.size:
         type: gauge
         tags: [cache]
-        docs: Maximum number of cache entries cache can hold if limited, otherwise -1
+        docs: Maximum number of cache entries cache can hold if limited
