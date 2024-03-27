@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: Add cache size metrics to `CacheStats`.
+  links:
+  - https://github.com/palantir/tritium/pull/1919

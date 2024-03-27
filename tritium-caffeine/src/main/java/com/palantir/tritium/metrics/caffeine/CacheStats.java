@@ -19,6 +19,8 @@ package com.palantir.tritium.metrics.caffeine;
 import com.codahale.metrics.Counting;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Policy;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.github.benmanes.caffeine.cache.stats.StatsCounter;
 import com.google.common.collect.ImmutableMap;
@@ -33,14 +35,16 @@ import java.util.function.Supplier;
 import org.checkerframework.checker.index.qual.NonNegative;
 
 public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
+
+    private final CacheMetrics metrics;
     private final String name;
     private final Meter hitMeter;
     private final Meter missMeter;
     private final Timer loadSuccessTimer;
     private final Timer loadFailureTimer;
-    private final Meter evictionsTotalMeter;
     private final ImmutableMap<RemovalCause, Meter> evictionMeters;
-    private final LongAdder totalLoadNanos = new LongAdder();
+    private final ImmutableMap<RemovalCause, Meter> evictionWeightMeters;
+    private final LongAdder totalLoadTime = new LongAdder();
 
     /**
      * Creates a {@link CacheStats} instance that registers metrics for Caffeine cache statistics.
@@ -48,9 +52,11 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
      * Example usage for a {@link com.github.benmanes.caffeine.cache.Cache} or
      * {@link com.github.benmanes.caffeine.cache.LoadingCache}:
      * <pre>
+     *     CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "your-cache-name")
      *     LoadingCache&lt;Integer, String&gt; cache = Caffeine.newBuilder()
-     *             .recordStats(CacheStats.of(taggedMetricRegistry, "your-cache-name"))
+     *             .recordStats(cacheStats)
      *             .build(key -&gt; computeSomethingExpensive(key));
+     *     cacheStats.register(cache);
      * </pre>
      * @param taggedMetricRegistry tagged metric registry to add cache metrics
      * @param name cache name
@@ -61,7 +67,27 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
         return new CacheStats(CacheMetrics.of(taggedMetricRegistry), name);
     }
 
+    /**
+     * Registers additional metrics for a Caffeine cache.
+     *
+     * @param cache cache for which to register metrics
+     * @return the given cache instance
+     */
+    public <K, V, C extends Cache<K, V>> C register(C cache) {
+        metrics.estimatedSize().cache(name).build(cache::estimatedSize);
+        metrics.weightedSize().cache(name).build(() -> cache.policy()
+                .eviction()
+                .flatMap(e -> e.weightedSize().stream().boxed().findFirst())
+                .orElse(null));
+        metrics.maximumSize().cache(name).build(() -> cache.policy()
+                .eviction()
+                .map(Policy.Eviction::getMaximum)
+                .orElse(null));
+        return cache;
+    }
+
     private CacheStats(CacheMetrics metrics, @Safe String name) {
+        this.metrics = metrics;
         this.name = name;
         this.hitMeter = metrics.hit(name);
         this.missMeter = metrics.miss(name);
@@ -69,9 +95,13 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
                 metrics.load().cache(name).result(Load_Result.SUCCESS).build();
         this.loadFailureTimer =
                 metrics.load().cache(name).result(Load_Result.FAILURE).build();
-        this.evictionsTotalMeter = metrics.eviction(name);
         this.evictionMeters = Arrays.stream(RemovalCause.values())
-                .collect(Maps.toImmutableEnumMap(cause -> cause, cause -> metrics.evictions()
+                .collect(Maps.toImmutableEnumMap(cause -> cause, cause -> metrics.eviction()
+                        .cache(name)
+                        .cause(cause.toString())
+                        .build()));
+        this.evictionWeightMeters = Arrays.stream(RemovalCause.values())
+                .collect(Maps.toImmutableEnumMap(cause -> cause, cause -> metrics.evictionWeight()
                         .cache(name)
                         .cause(cause.toString())
                         .build()));
@@ -95,22 +125,25 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     @Override
     public void recordLoadSuccess(@NonNegative long loadTime) {
         loadSuccessTimer.update(loadTime, TimeUnit.NANOSECONDS);
-        totalLoadNanos.add(loadTime);
+        totalLoadTime.add(loadTime);
     }
 
     @Override
     public void recordLoadFailure(@NonNegative long loadTime) {
         loadFailureTimer.update(loadTime, TimeUnit.NANOSECONDS);
-        totalLoadNanos.add(loadTime);
+        totalLoadTime.add(loadTime);
     }
 
     @Override
     public void recordEviction(@NonNegative int weight, RemovalCause cause) {
-        Meter counter = evictionMeters.get(cause);
-        if (counter != null) {
-            counter.mark(weight);
+        Meter evictionMeter = evictionMeters.get(cause);
+        if (evictionMeter != null) {
+            evictionMeter.mark();
         }
-        evictionsTotalMeter.mark(weight);
+        Meter evictionWeightMeter = evictionWeightMeters.get(cause);
+        if (evictionWeightMeter != null) {
+            evictionWeightMeter.mark(weight);
+        }
     }
 
     @Override
@@ -120,9 +153,11 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
                 missMeter.getCount(),
                 loadSuccessTimer.getCount(),
                 loadFailureTimer.getCount(),
-                totalLoadNanos.sum(),
-                evictionsTotalMeter.getCount(),
-                evictionMeters.values().stream().mapToLong(Counting::getCount).sum());
+                totalLoadTime.sum(),
+                evictionMeters.values().stream().mapToLong(Counting::getCount).sum(),
+                evictionWeightMeters.values().stream()
+                        .mapToLong(Counting::getCount)
+                        .sum());
     }
 
     @Override

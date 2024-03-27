@@ -217,28 +217,34 @@ final class CaffeineCacheStatsTest {
 
     @Test
     void registerTaggedMetrics() {
-        Cache<Integer, String> cache = Caffeine.newBuilder()
-                .recordStats(CacheStats.of(taggedMetricRegistry, "test"))
-                .maximumSize(2)
-                .build();
+        CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "test");
+        Cache<Integer, String> cache =
+                Caffeine.newBuilder().recordStats(cacheStats).maximumSize(2).build();
+        cacheStats.register(cache);
+
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .containsExactlyInAnyOrder(
                         "cache.hit",
                         "cache.miss",
-                        "cache.eviction",
-                        "cache.evictions", // RemovalCause.EXPLICIT
-                        "cache.evictions", // RemovalCause.REPLACED
-                        "cache.evictions", // RemovalCause.COLLECTED
-                        "cache.evictions", // RemovalCause.EXPIRED
-                        "cache.evictions", // RemovalCause.SIZE
+                        "cache.eviction", // RemovalCause.EXPLICIT
+                        "cache.eviction", // RemovalCause.REPLACED
+                        "cache.eviction", // RemovalCause.COLLECTED
+                        "cache.eviction", // RemovalCause.EXPIRED
+                        "cache.eviction", // RemovalCause.SIZE
+                        "cache.eviction.weight", // RemovalCause.EXPLICIT
+                        "cache.eviction.weight", // RemovalCause.REPLACED
+                        "cache.eviction.weight", // RemovalCause.COLLECTED
+                        "cache.eviction.weight", // RemovalCause.EXPIRED
+                        "cache.eviction.weight", // RemovalCause.SIZE
                         "cache.load", // success
-                        "cache.load" // failure
-                        );
+                        "cache.load", // failure
+                        "cache.estimated.size",
+                        "cache.weighted.size",
+                        "cache.maximum.size");
 
         CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
-        assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
-                .asInstanceOf(InstanceOfAssertFactories.LONG)
+        assertThat(cacheMetrics.eviction().cache("test").cause("SIZE").build().getCount())
                 .isZero();
         assertMeter(taggedMetricRegistry, "cache.hit")
                 .isEqualTo(cacheMetrics.hit("test").getCount())
@@ -260,8 +266,7 @@ final class CaffeineCacheStatsTest {
                 .isEqualTo(3);
 
         cache.cleanUp(); // force eviction processing
-        assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
-                .asInstanceOf(InstanceOfAssertFactories.LONG)
+        assertThat(cacheMetrics.eviction().cache("test").cause("SIZE").build().getCount())
                 .isOne();
 
         assertThat(taggedMetricRegistry.getMetrics())
@@ -274,28 +279,33 @@ final class CaffeineCacheStatsTest {
 
     @Test
     void registerLoadingTaggedMetrics() {
-        LoadingCache<Integer, String> cache = Caffeine.newBuilder()
-                .recordStats(CacheStats.of(taggedMetricRegistry, "test"))
-                .maximumSize(2)
-                .build(mapping::apply);
+        CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "test");
+        LoadingCache<Integer, String> cache =
+                Caffeine.newBuilder().recordStats(cacheStats).maximumSize(2).build(mapping::apply);
+        cacheStats.register(cache);
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .containsExactlyInAnyOrder(
                         "cache.hit",
                         "cache.miss",
-                        "cache.eviction",
-                        "cache.evictions", // RemovalCause.EXPLICIT
-                        "cache.evictions", // RemovalCause.REPLACED
-                        "cache.evictions", // RemovalCause.COLLECTED
-                        "cache.evictions", // RemovalCause.EXPIRED
-                        "cache.evictions", // RemovalCause.SIZE
+                        "cache.eviction", // RemovalCause.EXPLICIT
+                        "cache.eviction", // RemovalCause.REPLACED
+                        "cache.eviction", // RemovalCause.COLLECTED
+                        "cache.eviction", // RemovalCause.EXPIRED
+                        "cache.eviction", // RemovalCause.SIZE
+                        "cache.eviction.weight", // RemovalCause.EXPLICIT
+                        "cache.eviction.weight", // RemovalCause.REPLACED
+                        "cache.eviction.weight", // RemovalCause.COLLECTED
+                        "cache.eviction.weight", // RemovalCause.EXPIRED
+                        "cache.eviction.weight", // RemovalCause.SIZE
                         "cache.load", // success
-                        "cache.load" // failure
-                        );
+                        "cache.load", // failure
+                        "cache.estimated.size",
+                        "cache.weighted.size",
+                        "cache.maximum.size");
 
         CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
-        assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
-                .asInstanceOf(InstanceOfAssertFactories.LONG)
+        assertThat(cacheMetrics.eviction().cache("test").cause("SIZE").build().getCount())
                 .isZero();
         assertMeter(taggedMetricRegistry, "cache.hit")
                 .isEqualTo(cacheMetrics.hit("test").getCount())
@@ -317,8 +327,7 @@ final class CaffeineCacheStatsTest {
                 .isEqualTo(3);
 
         cache.cleanUp(); // force eviction processing
-        assertThat(cacheMetrics.evictions().cache("test").cause("SIZE").build().getCount())
-                .asInstanceOf(InstanceOfAssertFactories.LONG)
+        assertThat(cacheMetrics.eviction().cache("test").cause("SIZE").build().getCount())
                 .isOne();
 
         assertThat(taggedMetricRegistry.getMetrics())
