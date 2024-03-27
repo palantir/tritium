@@ -20,14 +20,14 @@ namespaces:
           - name: result
             values: [success, failure]
         docs: Count of successful cache loads
-      evictions:
-        type: meter
-        tags: [cache, cause]
-        docs: Count of evicted entries by cause
       eviction:
         type: meter
-        tags: [cache]
-        docs: Total count of evicted entries
+        tags: [cache, cause]
+        docs: Count of evicted entries
+      eviction.weight:
+        type: meter
+        tags: [cache, cause]
+        docs: Count of evicted weights
       stats.disabled:
         type: meter
         tags: [cache]
@@ -35,3 +35,15 @@ namespaces:
           Registered cache does not have stats recording enabled, stats will always be zero.
           To enable cache metrics, stats recording must be enabled when constructing the cache:
           Caffeine.newBuilder().recordStats()
+      estimated.size:
+        type: gauge
+        tags: [cache]
+        docs: Approximate number of entries in this cache
+      weighted.size:
+        type: gauge
+        tags: [cache]
+        docs: Approximate accumulated weight of entries in this cache
+      maximum.size:
+        type: gauge
+        tags: [cache]
+        docs: Maximum number of cache entries cache can hold if limited, otherwise -1
