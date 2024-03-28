@@ -18,37 +18,26 @@ package com.palantir.tritium.metrics.caffeine;
 
 import static com.palantir.logsafe.testing.Assertions.assertThatLoggableExceptionThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.collection;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.awaitility.Awaitility.await;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Counting;
 import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Multimaps;
 import com.palantir.logsafe.exceptions.SafeIllegalStateException;
+import com.palantir.tritium.metrics.caffeine.CacheMetrics.Request_Result;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
-import org.assertj.core.api.AbstractLongAssert;
 import org.assertj.core.api.AbstractObjectAssert;
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -159,9 +148,27 @@ final class CaffeineCacheStatsTest {
                         "cache.load.average.millis");
 
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-            assertGauge(taggedMetricRegistry, "cache.request.count").isEqualTo(0L);
-            assertGauge(taggedMetricRegistry, "cache.hit.count").isEqualTo(0L);
-            assertGauge(taggedMetricRegistry, "cache.miss.count").isEqualTo(0L);
+            assertGauge(
+                            taggedMetricRegistry,
+                            MetricName.builder()
+                                    .safeName("cache.request.count")
+                                    .putSafeTags("cache", "test")
+                                    .build())
+                    .isEqualTo(0L);
+            assertGauge(
+                            taggedMetricRegistry,
+                            MetricName.builder()
+                                    .safeName("cache.hit.count")
+                                    .putSafeTags("cache", "test")
+                                    .build())
+                    .isEqualTo(0L);
+            assertGauge(
+                            taggedMetricRegistry,
+                            MetricName.builder()
+                                    .safeName("cache.miss.count")
+                                    .putSafeTags("cache", "test")
+                                    .build())
+                    .isEqualTo(0L);
         });
 
         assertThat(cache.get(0, mapping)).isEqualTo("0");
@@ -171,10 +178,34 @@ final class CaffeineCacheStatsTest {
 
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
             // await to avoid flakes as gauges may be memoized
-            assertGauge(taggedMetricRegistry, "cache.request.count").isEqualTo(4L);
-            assertGauge(taggedMetricRegistry, "cache.hit.count").isEqualTo(1L);
-            assertGauge(taggedMetricRegistry, "cache.miss.count").isEqualTo(3L);
-            assertGauge(taggedMetricRegistry, "cache.hit.ratio").isEqualTo(0.25);
+            assertGauge(
+                            taggedMetricRegistry,
+                            MetricName.builder()
+                                    .safeName("cache.request.count")
+                                    .putSafeTags("cache", "test")
+                                    .build())
+                    .isEqualTo(4L);
+            assertGauge(
+                            taggedMetricRegistry,
+                            MetricName.builder()
+                                    .safeName("cache.hit.count")
+                                    .putSafeTags("cache", "test")
+                                    .build())
+                    .isEqualTo(1L);
+            assertGauge(
+                            taggedMetricRegistry,
+                            MetricName.builder()
+                                    .safeName("cache.miss.count")
+                                    .putSafeTags("cache", "test")
+                                    .build())
+                    .isEqualTo(3L);
+            assertGauge(
+                            taggedMetricRegistry,
+                            MetricName.builder()
+                                    .safeName("cache.hit.ratio")
+                                    .putSafeTags("cache", "test")
+                                    .build())
+                    .isEqualTo(0.25);
 
             assertThat(taggedMetricRegistry.getMetrics())
                     .extractingByKey(MetricName.builder()
@@ -226,8 +257,8 @@ final class CaffeineCacheStatsTest {
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .containsExactlyInAnyOrder(
-                        "cache.hit",
-                        "cache.miss",
+                        "cache.request", // hit
+                        "cache.request", // miss
                         "cache.eviction", // RemovalCause.EXPLICIT
                         "cache.eviction", // RemovalCause.REPLACED
                         "cache.eviction", // RemovalCause.COLLECTED
@@ -247,11 +278,19 @@ final class CaffeineCacheStatsTest {
         CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
         assertThat(cacheMetrics.eviction().cache("test").cause("SIZE").build().getCount())
                 .isZero();
-        assertMeter(taggedMetricRegistry, "cache.hit")
-                .isEqualTo(cacheMetrics.hit("test").getCount())
+        assertThat(cacheMetrics
+                        .request()
+                        .cache("test")
+                        .result(Request_Result.HIT)
+                        .build()
+                        .getCount())
                 .isZero();
-        assertMeter(taggedMetricRegistry, "cache.miss")
-                .isEqualTo(cacheMetrics.miss("test").getCount())
+        assertThat(cacheMetrics
+                        .request()
+                        .cache("test")
+                        .result(Request_Result.MISS)
+                        .build()
+                        .getCount())
                 .isZero();
 
         assertThat(cache.get(0, mapping)).isEqualTo("0");
@@ -259,11 +298,19 @@ final class CaffeineCacheStatsTest {
         assertThat(cache.get(2, mapping)).isEqualTo("2");
         assertThat(cache.get(1, mapping)).isEqualTo("1");
 
-        assertMeter(taggedMetricRegistry, "cache.hit")
-                .isEqualTo(cacheMetrics.hit("test").getCount())
+        assertThat(cacheMetrics
+                        .request()
+                        .cache("test")
+                        .result(Request_Result.HIT)
+                        .build()
+                        .getCount())
                 .isOne();
-        assertMeter(taggedMetricRegistry, "cache.miss")
-                .isEqualTo(cacheMetrics.miss("test").getCount())
+        assertThat(cacheMetrics
+                        .request()
+                        .cache("test")
+                        .result(Request_Result.MISS)
+                        .build()
+                        .getCount())
                 .isEqualTo(3);
 
         cache.cleanUp(); // force eviction processing
@@ -286,8 +333,8 @@ final class CaffeineCacheStatsTest {
         assertThat(taggedMetricRegistry.getMetrics().keySet())
                 .extracting(MetricName::safeName)
                 .containsExactlyInAnyOrder(
-                        "cache.hit",
-                        "cache.miss",
+                        "cache.request", // hit
+                        "cache.request", // miss
                         "cache.eviction", // RemovalCause.EXPLICIT
                         "cache.eviction", // RemovalCause.REPLACED
                         "cache.eviction", // RemovalCause.COLLECTED
@@ -307,11 +354,19 @@ final class CaffeineCacheStatsTest {
         CacheMetrics cacheMetrics = CacheMetrics.of(taggedMetricRegistry);
         assertThat(cacheMetrics.eviction().cache("test").cause("SIZE").build().getCount())
                 .isZero();
-        assertMeter(taggedMetricRegistry, "cache.hit")
-                .isEqualTo(cacheMetrics.hit("test").getCount())
+        assertThat(cacheMetrics
+                        .request()
+                        .cache("test")
+                        .result(Request_Result.HIT)
+                        .build()
+                        .getCount())
                 .isZero();
-        assertMeter(taggedMetricRegistry, "cache.miss")
-                .isEqualTo(cacheMetrics.miss("test").getCount())
+        assertThat(cacheMetrics
+                        .request()
+                        .cache("test")
+                        .result(Request_Result.MISS)
+                        .build()
+                        .getCount())
                 .isZero();
 
         assertThat(cache.get(0)).isEqualTo("0");
@@ -319,23 +374,24 @@ final class CaffeineCacheStatsTest {
         assertThat(cache.get(2)).isEqualTo("2");
         assertThat(cache.get(1)).isEqualTo("1");
 
-        assertMeter(taggedMetricRegistry, "cache.hit")
-                .isEqualTo(cacheMetrics.hit("test").getCount())
+        assertThat(cacheMetrics
+                        .request()
+                        .cache("test")
+                        .result(Request_Result.HIT)
+                        .build()
+                        .getCount())
                 .isOne();
-        assertMeter(taggedMetricRegistry, "cache.miss")
-                .isEqualTo(cacheMetrics.miss("test").getCount())
+        assertThat(cacheMetrics
+                        .request()
+                        .cache("test")
+                        .result(Request_Result.MISS)
+                        .build()
+                        .getCount())
                 .isEqualTo(3);
 
         cache.cleanUp(); // force eviction processing
         assertThat(cacheMetrics.eviction().cache("test").cause("SIZE").build().getCount())
                 .isOne();
-
-        assertThat(taggedMetricRegistry.getMetrics())
-                .extractingByKey(MetricName.builder()
-                        .safeName("cache.stats.disabled")
-                        .putSafeTags("cache", "test")
-                        .build())
-                .isNull();
     }
 
     @Test
@@ -350,51 +406,8 @@ final class CaffeineCacheStatsTest {
                 .hasNoArgs();
     }
 
-    static AbstractObjectAssert<?, Object> assertGauge(TaggedMetricRegistry taggedMetricRegistry, String name) {
-        return assertMetric(taggedMetricRegistry, Gauge.class, name).extracting(Gauge::getValue);
-    }
-
-    static AbstractLongAssert<?> assertMeter(TaggedMetricRegistry taggedMetricRegistry, String name) {
-        return assertMetric(taggedMetricRegistry, Meter.class, name)
-                .extracting(Counting::getCount)
-                .asInstanceOf(InstanceOfAssertFactories.LONG);
-    }
-
-    static <T extends Metric> ObjectAssert<T> assertMetric(
-            TaggedMetricRegistry taggedMetricRegistry, Class<T> clazz, String name) {
-        T metric = getMetric(taggedMetricRegistry, clazz, name);
-        return assertThat(metric)
-                .as("metric '%s': '%s'", name, metric)
-                .isNotNull()
-                .asInstanceOf(type(clazz));
-    }
-
-    private static <T extends Metric> T getMetric(TaggedMetricRegistry metrics, Class<T> clazz, String name) {
-        Optional<Entry<MetricName, Metric>> metric = metrics.getMetrics().entrySet().stream()
-                .filter(e -> name.equals(e.getKey().safeName()))
-                .filter(e -> clazz.isInstance(e.getValue()))
-                .findFirst();
-        if (metric.isEmpty()) {
-            Map<String, Set<String>> metricNameToType = Multimaps.asMap(metrics.getMetrics().entrySet().stream()
-                    .filter(e -> Objects.nonNull(e.getKey()))
-                    .filter(e -> Objects.nonNull(e.getValue()))
-                    .collect(ImmutableSetMultimap.toImmutableSetMultimap(
-                            e -> e.getKey().safeName(), e -> Optional.ofNullable(e.getValue())
-                                    .map(x -> x.getClass().getCanonicalName())
-                                    .orElse(""))));
-
-            assertThat(metricNameToType)
-                    .containsKey(name)
-                    .extractingByKey(name)
-                    .asInstanceOf(collection(String.class))
-                    .contains(clazz.getCanonicalName());
-
-            assertThat(metric)
-                    .as(
-                            "Metric named '%s' of type '%s' should exist but was not found in [%s]",
-                            name, clazz.getCanonicalName(), metricNameToType.keySet())
-                    .isPresent();
-        }
-        return clazz.cast(metric.orElseThrow().getValue());
+    static AbstractObjectAssert<?, Object> assertGauge(
+            TaggedMetricRegistry taggedMetricRegistry, MetricName metricName) {
+        return assertThat(taggedMetricRegistry.gauge(metricName)).get().extracting(Gauge::getValue);
     }
 }

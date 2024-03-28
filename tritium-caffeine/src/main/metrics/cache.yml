@@ -5,14 +5,13 @@ namespaces:
   cache:
     docs: Cache statistic metrics
     metrics:
-      hit:
+      request:
         type: meter
-        tags: [cache]
-        docs: Count of cache hits
-      miss:
-        type: meter
-        tags: [cache]
-        docs: Count of cache misses
+        tags:
+          - name: cache
+          - name: result
+            values: [hit, miss]
+        docs: Count of cache requests
       load:
         type: timer
         tags:
@@ -28,13 +27,6 @@ namespaces:
         type: meter
         tags: [cache, cause]
         docs: Count of evicted weights
-      stats.disabled:
-        type: meter
-        tags: [cache]
-        docs: |
-          Registered cache does not have stats recording enabled, stats will always be zero.
-          To enable cache metrics, stats recording must be enabled when constructing the cache:
-          Caffeine.newBuilder().recordStats()
       estimated.size:
         type: gauge
         tags: [cache]
