@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.metrics.caffeine;
 
+import static com.palantir.logsafe.Preconditions.checkState;
+
 import com.codahale.metrics.Counting;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
@@ -85,6 +87,11 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
      */
     public <K, V, C extends Cache<K, V>> C register(Function<CacheStats, C> cacheFactory) {
         C cache = cacheFactory.apply(this);
+
+        checkState(
+                cache.policy().isRecordingStats(),
+                "Registered cache is not recording stats. Registered caches must enabled stats recording with "
+                        + ".recordStats(stats).");
 
         metrics.estimatedSize().cache(name).build(cache::estimatedSize);
         metrics.weightedSize().cache(name).build(() -> cache.policy()

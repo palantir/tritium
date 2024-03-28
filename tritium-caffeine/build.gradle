@@ -14,6 +14,7 @@ dependencies {
     implementation 'io.dropwizard.metrics:metrics-core'
     implementation 'org.checkerframework:checker-qual'
 
+    testImplementation 'com.palantir.safe-logging:preconditions-assertj'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.awaitility:awaitility'
     testImplementation 'org.junit.jupiter:junit-jupiter'
