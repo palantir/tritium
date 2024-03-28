@@ -16,6 +16,7 @@
 
 package com.palantir.tritium.metrics.caffeine;
 
+import static com.palantir.logsafe.testing.Assertions.assertThatLoggableExceptionThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.collection;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
@@ -33,6 +34,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimaps;
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -334,6 +336,18 @@ final class CaffeineCacheStatsTest {
                         .putSafeTags("cache", "test")
                         .build())
                 .isNull();
+    }
+
+    @Test
+    void registerWithoutStatsRecording() {
+        CacheStats cacheStats = CacheStats.of(taggedMetricRegistry, "test");
+
+        assertThatLoggableExceptionThrownBy(() ->
+                        cacheStats.register(_stats -> Caffeine.newBuilder().build()))
+                .isInstanceOf(SafeIllegalStateException.class)
+                .hasLogMessage("Registered cache is not recording stats. Registered caches must enabled stats "
+                        + "recording with .recordStats(stats).")
+                .hasNoArgs();
     }
 
     static AbstractObjectAssert<?, Object> assertGauge(TaggedMetricRegistry taggedMetricRegistry, String name) {
