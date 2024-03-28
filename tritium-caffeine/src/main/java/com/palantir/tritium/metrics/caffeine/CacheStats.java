@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.palantir.logsafe.Safe;
 import com.palantir.tritium.metrics.caffeine.CacheMetrics.Load_Result;
+import com.palantir.tritium.metrics.caffeine.CacheMetrics.Request_Result;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -109,8 +110,9 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     private CacheStats(CacheMetrics metrics, @Safe String name) {
         this.metrics = metrics;
         this.name = name;
-        this.hitMeter = metrics.hit(name);
-        this.missMeter = metrics.miss(name);
+        this.hitMeter = metrics.request().cache(name).result(Request_Result.HIT).build();
+        this.missMeter =
+                metrics.request().cache(name).result(Request_Result.MISS).build();
         this.loadSuccessTimer =
                 metrics.load().cache(name).result(Load_Result.SUCCESS).build();
         this.loadFailureTimer =
