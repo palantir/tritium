@@ -86,13 +86,16 @@ Service instrumentedService = Tritium.instrument(Service.class,
 import com.palantir.tritium.metrics.caffeine.CacheStats;
 
 TaggedMetricRegistry taggedMetricRegistry = ...
-Cache<Integer, String> cache = Caffeine.newBuilder()
-        .recordStats(CacheStats.of(taggedMetricRegistry, "unique-cache-name"))
-        .build();
 
-LoadingCache<String, Integer> loadingCache = Caffeine.newBuilder()
-        .recordStats(CacheStats.of(taggedMetricRegistry, "unique-loading-cache-name"))
-        .build(key::length);
+Cache<Integer, String> cache = CacheStats.of(taggedMetricRegistry, "unique-cache-name")
+        .register(stats -> Caffeine.newBuilder()
+                .recordStats(stats)
+                .build());
+
+LoadingCache<String, Integer> loadingCache = CacheStats.of(taggedMetricRegistry, "unique-loading-cache-name")
+        .register(stats -> Caffeine.newBuilder()
+                .recordStats(stats)
+                .build(key::length);
 ```
 
 ## Creating a metric registry with reservoirs backed by [HDR Histograms](https://hdrhistogram.github.io/HdrHistogram/).
@@ -117,4 +120,3 @@ License
 -------
 This project is made available under the
 [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0).
-
