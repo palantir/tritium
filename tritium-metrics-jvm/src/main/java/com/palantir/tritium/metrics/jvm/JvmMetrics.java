@@ -29,6 +29,7 @@ import com.palantir.logsafe.logger.SafeLogger;
 import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.AttributeUptime_EnablePreview;
+import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.DnsCacheTtlSeconds_Cache;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
@@ -75,6 +76,7 @@ public final class JvmMetrics {
         registerThreads(metrics);
         metrics.processors(Runtime.getRuntime()::availableProcessors);
         registerCpuShares(registry, JvmDiagnostics.cpuShares());
+        registerDnsCacheMetrics(metrics);
     }
 
     private static void registerAttributes(InternalJvmMetrics metrics) {
@@ -150,6 +152,20 @@ public final class JvmMetrics {
             }
         }
         return threadsByState;
+    }
+
+    private static void registerDnsCacheMetrics(InternalJvmMetrics metrics) {
+        JvmDiagnostics.dnsCacheTtl().ifPresent(dnsCacheTtlAccessor -> {
+            metrics.dnsCacheTtlSeconds()
+                    .cache(DnsCacheTtlSeconds_Cache.POSITIVE)
+                    .build(dnsCacheTtlAccessor::getPositiveSeconds);
+            metrics.dnsCacheTtlSeconds()
+                    .cache(DnsCacheTtlSeconds_Cache.NEGATIVE)
+                    .build(dnsCacheTtlAccessor::getNegativeSeconds);
+            metrics.dnsCacheTtlSeconds()
+                    .cache(DnsCacheTtlSeconds_Cache.STALE)
+                    .build(dnsCacheTtlAccessor::getStaleSeconds);
+        });
     }
 
     private static void registerJvmMemory(TaggedMetricRegistry registry) {

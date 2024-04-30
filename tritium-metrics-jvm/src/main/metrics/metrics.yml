@@ -95,6 +95,14 @@ namespaces:
         docs: Gauge describing the number of CPUs _detected_ by the JVM.
           Note that this may not reflect the number of processors that should be used due to changes in the JDK along
           the lines of [JDK-8281181](https://bugs.openjdk.org/browse/JDK-8281181).
+      dns.cache.ttl.seconds:
+        type: gauge
+        tags:
+          - name: cache
+            values: [positive, negative, stale]
+        docs: JVM DNS cache TTL configuration. See the documentation
+              [here](https://docs.oracle.com/en/java/javase/21/core/java-networking.html#GUID-A680DADB-C4C1-40F1-B568-D9A97C917F5D).
+              A value of `-1` means values are cached forever and `0` describes no caching.
   jvm.memory:
     docs: Java virtual machine memory usage metrics.
     metrics:

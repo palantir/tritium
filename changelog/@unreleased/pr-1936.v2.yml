@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Implement metrics to report the JVM DNS cache TTL values
+  links:
+  - https://github.com/palantir/tritium/pull/1936

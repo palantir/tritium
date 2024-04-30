@@ -22,6 +22,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.RatioGauge;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MoreCollectors;
+import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.DnsCacheTtlSeconds_Cache;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -224,6 +225,28 @@ final class JvmMetricsTest {
         JvmMetrics.registerCpuShares(metrics, Optional.of(() -> OptionalLong.of(200L)));
         assertThat(metrics.gauge(ContainerMetrics.cpuSharesMetricName()))
                 .hasValueSatisfying(gauge -> assertThat(gauge.getValue()).isEqualTo(200L));
+    }
+
+    @Test
+    void testDnsCacheMetrics() {
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        JvmMetrics.register(metrics);
+        InternalJvmMetrics internalJvmMetrics = InternalJvmMetrics.of(metrics);
+        assertThat(metrics.gauge(internalJvmMetrics
+                        .dnsCacheTtlSeconds()
+                        .cache(DnsCacheTtlSeconds_Cache.POSITIVE)
+                        .buildMetricName()))
+                .hasValueSatisfying(gauge -> assertThat(gauge.getValue()).isEqualTo(30));
+        assertThat(metrics.gauge(internalJvmMetrics
+                        .dnsCacheTtlSeconds()
+                        .cache(DnsCacheTtlSeconds_Cache.NEGATIVE)
+                        .buildMetricName()))
+                .hasValueSatisfying(gauge -> assertThat(gauge.getValue()).isEqualTo(10));
+        assertThat(metrics.gauge(internalJvmMetrics
+                        .dnsCacheTtlSeconds()
+                        .cache(DnsCacheTtlSeconds_Cache.STALE)
+                        .buildMetricName()))
+                .hasValueSatisfying(gauge -> assertThat(gauge.getValue()).isEqualTo(0));
     }
 
     @SuppressWarnings("JdkObsolete")
