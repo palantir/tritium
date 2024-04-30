@@ -19,8 +19,3 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
 }
-
-moduleJvmArgs {
-    // Required for access to 'sun.net.InetAddressCachePolicy' for DNS cache metrics
-    opens 'java.base/sun.net'
-}

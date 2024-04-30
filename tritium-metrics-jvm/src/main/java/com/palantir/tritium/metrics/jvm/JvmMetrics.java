@@ -155,35 +155,17 @@ public final class JvmMetrics {
     }
 
     private static void registerDnsCacheMetrics(InternalJvmMetrics metrics) {
-        try {
-            int positiveCacheSeconds = sun.net.InetAddressCachePolicy.get();
-            int negativeCacheSeconds = sun.net.InetAddressCachePolicy.getNegative();
-            int staleCacheSeconds = getStaleDnsCacheTtlSeconds();
+        JvmDiagnostics.dnsCacheTtl().ifPresent(dnsCacheTtlAccessor -> {
             metrics.dnsCacheTtlSeconds()
                     .cache(DnsCacheTtlSeconds_Cache.POSITIVE)
-                    .build(() -> positiveCacheSeconds);
+                    .build(dnsCacheTtlAccessor::getPositiveSeconds);
             metrics.dnsCacheTtlSeconds()
                     .cache(DnsCacheTtlSeconds_Cache.NEGATIVE)
-                    .build(() -> negativeCacheSeconds);
-            metrics.dnsCacheTtlSeconds().cache(DnsCacheTtlSeconds_Cache.STALE).build(() -> staleCacheSeconds);
-        } catch (Throwable t) {
-            log.error("Failed to register DNS cache ttl metrics", t);
-        }
-    }
-
-    private static int getStaleDnsCacheTtlSeconds() {
-        if (Runtime.version().feature() >= 21) {
-            // Introduced in Java 21 by https://bugs.openjdk.org/browse/JDK-8306653
-            try {
-                return (Integer) sun.net.InetAddressCachePolicy.class
-                        .getMethod("getStale")
-                        .invoke(null);
-            } catch (ReflectiveOperationException roe) {
-                log.debug("Failed to load stale InetAddressCachePolicy", roe);
-                return 0;
-            }
-        }
-        return 0;
+                    .build(dnsCacheTtlAccessor::getNegativeSeconds);
+            metrics.dnsCacheTtlSeconds()
+                    .cache(DnsCacheTtlSeconds_Cache.STALE)
+                    .build(dnsCacheTtlAccessor::getStaleSeconds);
+        });
     }
 
     private static void registerJvmMemory(TaggedMetricRegistry registry) {
