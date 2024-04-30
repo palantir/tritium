@@ -29,6 +29,7 @@ import com.palantir.logsafe.logger.SafeLogger;
 import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.AttributeUptime_EnablePreview;
+import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.DnsCacheTtlSeconds_Cache;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
@@ -75,6 +76,7 @@ public final class JvmMetrics {
         registerThreads(metrics);
         metrics.processors(Runtime.getRuntime()::availableProcessors);
         registerCpuShares(registry, JvmDiagnostics.cpuShares());
+        registerDnsCacheMetrics(metrics);
     }
 
     private static void registerAttributes(InternalJvmMetrics metrics) {
@@ -150,6 +152,38 @@ public final class JvmMetrics {
             }
         }
         return threadsByState;
+    }
+
+    private static void registerDnsCacheMetrics(InternalJvmMetrics metrics) {
+        try {
+            int positiveCacheSeconds = sun.net.InetAddressCachePolicy.get();
+            int negativeCacheSeconds = sun.net.InetAddressCachePolicy.getNegative();
+            int staleCacheSeconds = getStaleDnsCacheTtlSeconds();
+            metrics.dnsCacheTtlSeconds()
+                    .cache(DnsCacheTtlSeconds_Cache.POSITIVE)
+                    .build(() -> positiveCacheSeconds);
+            metrics.dnsCacheTtlSeconds()
+                    .cache(DnsCacheTtlSeconds_Cache.NEGATIVE)
+                    .build(() -> negativeCacheSeconds);
+            metrics.dnsCacheTtlSeconds().cache(DnsCacheTtlSeconds_Cache.STALE).build(() -> staleCacheSeconds);
+        } catch (Throwable t) {
+            log.error("Failed to register DNS cache ttl metrics", t);
+        }
+    }
+
+    private static int getStaleDnsCacheTtlSeconds() {
+        if (Runtime.version().feature() >= 21) {
+            // Introduced in Java 21 by https://bugs.openjdk.org/browse/JDK-8306653
+            try {
+                return (Integer) sun.net.InetAddressCachePolicy.class
+                        .getMethod("getStale")
+                        .invoke(null);
+            } catch (ReflectiveOperationException roe) {
+                log.debug("Failed to load stale InetAddressCachePolicy", roe);
+                return 0;
+            }
+        }
+        return 0;
     }
 
     private static void registerJvmMemory(TaggedMetricRegistry registry) {
