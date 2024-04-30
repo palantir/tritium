@@ -10,7 +10,7 @@ com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 c
 com.google.j2objc:j2objc-annotations:3.0.0 (1 constraints: 150aeab4)
 com.palantir.delegate.processors:delegate-processors:1.1.0 (1 constraints: 0405f335)
 com.palantir.goethe:goethe:0.11.0 (1 constraints: 711660f3)
-com.palantir.jvm.diagnostics:jvm-diagnostics:0.4.0 (1 constraints: 0605f735)
+com.palantir.jvm.diagnostics:jvm-diagnostics:0.5.0 (1 constraints: 0705fa35)
 com.palantir.nylon:nylon-threads:0.4.0 (1 constraints: 0605f735)
 com.palantir.safe-logging:logger:3.7.0 (3 constraints: f31f6c22)
 com.palantir.safe-logging:logger-slf4j:3.7.0 (1 constraints: 050e6842)
