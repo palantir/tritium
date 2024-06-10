@@ -6,7 +6,10 @@ com.google.auto.service:* = 1.1.1
 com.google.code.findbugs:* = 3.0.2
 com.google.guava:guava = 33.2.1-jre
 com.google.testing.compile:* = 0.21.0
+# dependency-upgrader:OFF
+# requires JDK 17+, see https://github.com/palantir/tritium/pull/1958
 com.palantir.delegate.processors:* = 1.1.0
+# dependency-upgrader:ON
 com.palantir.jvm.diagnostics:* = 0.5.0
 com.palantir.nylon:* = 0.4.0
 com.palantir.safe-logging:* = 3.7.0
@@ -14,7 +17,7 @@ com.palantir.tracing:* = 6.18.0
 com.squareup:javapoet = 1.13.0
 com.squareup.okhttp3:* = 4.12.0
 # Keep major.minor metrics version in sync with Apache Spark
-io.dropwizard.metrics:* = 4.2.25
+io.dropwizard.metrics:* = 4.2.26
 io.undertow:* = 2.3.6.Final
 net.bytebuddy:* = 1.14.17
 net.jqwik:* = 1.8.5
