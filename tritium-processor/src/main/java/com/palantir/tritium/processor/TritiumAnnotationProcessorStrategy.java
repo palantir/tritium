@@ -27,6 +27,7 @@ import com.palantir.tritium.event.Handlers;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -188,11 +189,17 @@ enum TritiumAnnotationProcessorStrategy implements DelegateProcessorStrategy {
 
     @Override
     public void customize(CustomizeArguments arguments, TypeSpec.Builder generatedType) {
-        if (isDeprecated(arguments.type().type())) {
+        TypeElement type = arguments.type().type();
+        if (isDeprecated(type)) {
             generatedType.addAnnotation(Deprecated.class);
         }
 
-        TypeName annotatedTypeName = TypeName.get(arguments.type().type().asType());
+        SuppressWarnings suppressWarnings = type.getAnnotation(SuppressWarnings.class);
+        if (suppressWarnings != null) {
+            generatedType.addAnnotation(AnnotationSpec.get(suppressWarnings));
+        }
+
+        TypeName annotatedTypeName = TypeName.get(type.asType());
         List<AnnotatedTypeMethod> instrumentedMethods = instrumentedMethods(arguments.type());
 
         if (!instrumentedMethods.isEmpty()) {

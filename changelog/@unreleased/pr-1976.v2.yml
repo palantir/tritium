@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Propagate @SuppressWarnings on @Instrument types
+  links:
+  - https://github.com/palantir/tritium/pull/1976
