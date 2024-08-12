@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2018 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2024 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.tracing;
+package com.palantir.tritium.samples;
 
-import java.util.function.Supplier;
+import java.util.List;
 
-public interface Tracer {
+interface Sampler {
+    void observe(long value);
 
-    default Supplier<String> traceSupplier() {
-        // TODO (mpaiva): Return optional (empty if not obervable), or add another supplier.
-        return com.palantir.tracing.Tracer::getTraceId;
-    }
-
-    void startSpan(String operationName);
-
-    void completeSpan();
+    List<Sample> collect();
 }

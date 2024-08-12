@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 /**
  * Exemplar sampler with throttling that currently only supports a single exemplar - the max of the sampled values.
  */
-public final class LockFreeSampler {
+public final class LockFreeSampler implements Sampler {
 
     @Nullable
     private Sample sample;
@@ -55,6 +55,7 @@ public final class LockFreeSampler {
     }
 
     // Rate limited doObserve.
+    @Override
     public synchronized void observe(long value) {
         long currentTick = clock.getTick();
 
@@ -74,6 +75,7 @@ public final class LockFreeSampler {
         }
     }
 
+    @Override
     public synchronized List<Sample> collect() {
         if (sample == null) {
             return Collections.emptyList();

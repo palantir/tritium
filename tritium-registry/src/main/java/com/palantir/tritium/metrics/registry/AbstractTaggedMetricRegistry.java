@@ -74,7 +74,7 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     @Nonnull
     @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Histogram> histogramSupplier() {
-        return () -> new Histogram(createReservoir());
+        return () -> new HistogramWithSamples(createReservoir());
     }
 
     /**
