@@ -41,8 +41,8 @@ public final class LockFreeSampler implements Sampler {
     private final long sampleIntervalNanos;
     private final Supplier<String> traceSupplier;
 
-    public LockFreeSampler(Clock clock, long maxRetentionPeriodMillis, long sampleIntervalNanos,
-                           Supplier<String> traceSupplier) {
+    public LockFreeSampler(
+            Clock clock, long maxRetentionPeriodMillis, long sampleIntervalNanos, Supplier<String> traceSupplier) {
         this.clock = clock;
         this.maxRetentionPeriodMillis = maxRetentionPeriodMillis;
         this.sampleIntervalNanos = sampleIntervalNanos;
@@ -50,8 +50,7 @@ public final class LockFreeSampler implements Sampler {
     }
 
     public LockFreeSampler(Supplier<String> traceSupplier) {
-        this(Clock.defaultClock(), DEFAULT_MAX_RETENTION_PERIOD_MILLIS, DEFAULT_SAMPLE_INTERVAL_NANOS,
-                traceSupplier);
+        this(Clock.defaultClock(), DEFAULT_MAX_RETENTION_PERIOD_MILLIS, DEFAULT_SAMPLE_INTERVAL_NANOS, traceSupplier);
     }
 
     // Rate limited doObserve.

@@ -20,8 +20,8 @@ import java.util.function.Supplier;
 
 public interface Tracer {
 
-    default Supplier<String> traceSupplier() {
-        // TODO (mpaiva): Return optional (empty if not obervable), or add another supplier.
+    static Supplier<String> traceSupplier() {
+        // [fixme] Return optional (empty if not obervable), or add another supplier.
         return com.palantir.tracing.Tracer::getTraceId;
     }
 

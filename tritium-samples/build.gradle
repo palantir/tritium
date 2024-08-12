@@ -4,20 +4,6 @@ dependencies {
     api project(':tritium-api')
     api project(':tritium-core')
 
-    implementation project(':tritium-samples')
+    implementation 'io.dropwizard.metrics:metrics-core'
     implementation 'com.google.code.findbugs:jsr305'
-    implementation 'com.google.guava:guava'
-    implementation 'com.palantir.safe-logging:logger'
-    implementation 'com.palantir.safe-logging:preconditions'
-    implementation 'com.palantir.safe-logging:safe-logging'
-    implementation 'com.palantir.tracing:tracing'
-
-    testImplementation 'com.palantir.tracing:tracing-api'
-    testImplementation 'org.assertj:assertj-core'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api'
-    testImplementation 'org.mockito:mockito-core'
-    testImplementation 'org.mockito:mockito-junit-jupiter'
-    testImplementation 'org.slf4j:slf4j-api'
-    testImplementation project(':tritium-test')
 }

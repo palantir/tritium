@@ -46,10 +46,14 @@ public final class Sample {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Sample sample = (Sample) o;
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Sample sample = (Sample) obj;
         return value == sample.value && timestamp == sample.timestamp && Objects.equals(traceId, sample.traceId);
     }
 
@@ -60,10 +64,6 @@ public final class Sample {
 
     @Override
     public String toString() {
-        return "Sample{" +
-                "id=" + value +
-                ", timestamp=" + timestamp +
-                ", data='" + traceId + '\'' +
-                '}';
+        return "Sample{" + "id=" + value + ", timestamp=" + timestamp + ", data='" + traceId + '\'' + '}';
     }
 }

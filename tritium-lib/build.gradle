@@ -11,6 +11,7 @@ dependencies {
     api project(':tritium-slf4j')
     api project(':tritium-time')
     api project(':tritium-tracing')
+    api project(':tritium-samples')
 
     implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.google.errorprone:error_prone_annotations'
