@@ -32,7 +32,7 @@ import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import com.palantir.tritium.samples.HistogramWithSamples;
 import com.palantir.tritium.samples.LockFreeSampler;
-import com.palantir.tritium.tracing.Tracer;
+import com.palantir.tritium.samples.tracing.SamplesTracer;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,7 +77,8 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
     @Nonnull
     @SuppressWarnings("NoFunctionalReturnType") // metric factory
     protected Supplier<Histogram> histogramSupplier() {
-        return () -> new HistogramWithSamples(createReservoir(), new LockFreeSampler(Tracer::getTraceIfObservable));
+        return () ->
+                new HistogramWithSamples(createReservoir(), new LockFreeSampler(SamplesTracer::getTraceIfObservable));
     }
 
     /**

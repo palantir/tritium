@@ -17,3 +17,5 @@ include 'tritium-tracing'
 include 'tritium-annotations'
 include 'tritium-processor'
 include 'tritium-samples'
+include 'tritium-samples-tracing'
+

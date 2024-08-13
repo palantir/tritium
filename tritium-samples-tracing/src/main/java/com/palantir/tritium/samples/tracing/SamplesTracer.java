@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2018 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2024 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.tracing;
+package com.palantir.tritium.samples.tracing;
 
-public interface Tracer {
-    void startSpan(String operationName);
+import java.util.Optional;
 
-    void completeSpan();
+public class SamplesTracer {
+    public static Optional<String> getTraceIfObservable() {
+        if (!com.palantir.tracing.Tracer.isTraceObservable()) {
+            return Optional.empty();
+        }
+        return Optional.of(com.palantir.tracing.Tracer.getTraceId());
+    }
 }
