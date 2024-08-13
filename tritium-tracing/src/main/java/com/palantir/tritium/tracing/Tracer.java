@@ -17,6 +17,7 @@
 package com.palantir.tritium.tracing;
 
 public interface Tracer {
+
     void startSpan(String operationName);
 
     void completeSpan();
