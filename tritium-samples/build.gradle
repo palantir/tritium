@@ -1,9 +1,6 @@
 apply plugin: 'com.palantir.external-publish-jar'
 
 dependencies {
-    api project(':tritium-api')
-    api project(':tritium-core')
-
     implementation 'io.dropwizard.metrics:metrics-core'
     implementation 'com.google.code.findbugs:jsr305'
 }
