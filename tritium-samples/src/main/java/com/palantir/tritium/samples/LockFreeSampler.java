@@ -20,18 +20,18 @@ import com.codahale.metrics.Clock;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 
 /**
- * Exemplar sampler with throttling that currently only supports a single exemplar - the max of the sampled values.
+ * Sampler with throttling that currently only supports a single element - the max of observed values.
  */
 public final class LockFreeSampler implements Sampler {
 
-    @Nullable
-    private Sample sample;
+    private final AtomicReference<Sample> sampleRef = new AtomicReference<>(null);
 
-    private volatile long lastSampleTick = 0;
+    private final AtomicLong lastSampleTickRef = new AtomicLong(0);
 
     private final Clock clock;
 
@@ -59,31 +59,34 @@ public final class LockFreeSampler implements Sampler {
 
     // Rate limited doObserve.
     @Override
-    public synchronized void observe(long value) {
+    public void observe(long value) {
         long currentTick = clock.getTick();
 
+        long lastSampleTick = lastSampleTickRef.get();
         if (currentTick - lastSampleTick < sampleIntervalNanos) {
             return;
         }
 
-        doObserve(value, clock.getTime());
-        lastSampleTick = currentTick;
+        if (lastSampleTickRef.compareAndSet(lastSampleTick, currentTick)) {
+            doObserve(value, clock.getTime());
+        }
     }
 
     private void doObserve(long value, long currentMillis) {
-        boolean readyForNewSample = sample == null
-                || currentMillis - sample.getTimestamp() >= maxRetentionPeriodMillis
-                || value > sample.getTimestamp();
-        if (readyForNewSample) {
+        Sample existingSample = sampleRef.get();
+        if (existingSample == null
+                || currentMillis - existingSample.getTimestamp() >= maxRetentionPeriodMillis
+                || value > existingSample.getValue()) {
             Optional<String> maybeNewTrace = traceSupplier.get();
             if (maybeNewTrace.isPresent()) {
-                sample = Sample.of(value, currentMillis, maybeNewTrace.get());
+                sampleRef.set(Sample.of(value, currentMillis, maybeNewTrace.get()));
             }
         }
     }
 
     @Override
-    public synchronized List<Sample> collect() {
+    public List<Sample> collect() {
+        Sample sample = sampleRef.get();
         if (sample == null) {
             return Collections.emptyList();
         }

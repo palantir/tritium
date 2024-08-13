@@ -35,7 +35,7 @@ public final class HistogramWithSamples extends Histogram {
         sampler.observe(value);
     }
 
-    public List<Sample> getExemplars() {
+    public List<Sample> getSamples() {
         return sampler.collect();
     }
 }
