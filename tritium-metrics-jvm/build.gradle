@@ -5,6 +5,7 @@ dependencies {
     api 'io.dropwizard.metrics:metrics-core'
     api project(':tritium-registry')
     api project(':tritium-samples')
+    api project(':tritium-tracing')
 
     implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.google.guava:guava'
