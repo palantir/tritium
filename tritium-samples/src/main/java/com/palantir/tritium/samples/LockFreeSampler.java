@@ -19,6 +19,7 @@ package com.palantir.tritium.samples;
 import com.codahale.metrics.Clock;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
@@ -39,17 +40,20 @@ public final class LockFreeSampler implements Sampler {
 
     private final long maxRetentionPeriodMillis;
     private final long sampleIntervalNanos;
-    private final Supplier<String> traceSupplier;
+    private final Supplier<Optional<String>> traceSupplier;
 
     public LockFreeSampler(
-            Clock clock, long maxRetentionPeriodMillis, long sampleIntervalNanos, Supplier<String> traceSupplier) {
+            Clock clock,
+            long maxRetentionPeriodMillis,
+            long sampleIntervalNanos,
+            Supplier<Optional<String>> traceSupplier) {
         this.clock = clock;
         this.maxRetentionPeriodMillis = maxRetentionPeriodMillis;
         this.sampleIntervalNanos = sampleIntervalNanos;
         this.traceSupplier = traceSupplier;
     }
 
-    public LockFreeSampler(Supplier<String> traceSupplier) {
+    public LockFreeSampler(Supplier<Optional<String>> traceSupplier) {
         this(Clock.defaultClock(), DEFAULT_MAX_RETENTION_PERIOD_MILLIS, DEFAULT_SAMPLE_INTERVAL_NANOS, traceSupplier);
     }
 
@@ -67,10 +71,14 @@ public final class LockFreeSampler implements Sampler {
     }
 
     private void doObserve(long value, long currentMillis) {
-        if (sample == null
+        boolean readyForNewSample = sample == null
                 || currentMillis - sample.getTimestamp() >= maxRetentionPeriodMillis
-                || value > sample.getTimestamp()) {
-            sample = Sample.of(value, currentMillis, traceSupplier.get());
+                || value > sample.getTimestamp();
+        if (readyForNewSample) {
+            Optional<String> maybeNewTrace = traceSupplier.get();
+            if (maybeNewTrace.isPresent()) {
+                sample = Sample.of(value, currentMillis, maybeNewTrace.get());
+            }
         }
     }
 

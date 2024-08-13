@@ -16,13 +16,14 @@
 
 package com.palantir.tritium.tracing;
 
-import java.util.function.Supplier;
+import java.util.Optional;
 
 public interface Tracer {
-
-    static Supplier<String> traceSupplier() {
-        // [fixme] Return optional (empty if not obervable), or add another supplier.
-        return com.palantir.tracing.Tracer::getTraceId;
+    static Optional<String> getTraceIfObservable() {
+        if (!com.palantir.tracing.Tracer.isTraceObservable()) {
+            return Optional.empty();
+        }
+        return Optional.of(com.palantir.tracing.Tracer.getTraceId());
     }
 
     void startSpan(String operationName);
