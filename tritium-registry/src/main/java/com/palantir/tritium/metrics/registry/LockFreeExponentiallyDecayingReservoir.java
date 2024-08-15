@@ -19,17 +19,19 @@ package com.palantir.tritium.metrics.registry;
 import com.codahale.metrics.Clock;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Snapshot;
-import com.codahale.metrics.WeightedSnapshotMetadata;
-import com.codahale.metrics.WeightedSnapshotMetadata.WeightedSampleMetadata;
+import com.codahale.metrics.WeightedSnapshot;
+import com.codahale.metrics.WeightedSnapshot.WeightedSample;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 /**
  * {@link LockFreeExponentiallyDecayingReservoir} is based closely on the codahale
@@ -240,7 +242,13 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     @Override
     public Snapshot getSnapshot() {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
-        return new WeightedSnapshotMetadata(stateSnapshot.values.values());
+        return new WeightedSnapshot(stateSnapshot.values.values().stream()
+                .map(v -> new WeightedSample(v.value, v.weight))
+                .collect(Collectors.toSet()));
+    }
+
+    public List<SampleMetadata> getSampleMetadata() {
+        return state.values.values().stream().map(v -> v.metadata).collect(Collectors.toList());
     }
 
     public static Builder builder() {
