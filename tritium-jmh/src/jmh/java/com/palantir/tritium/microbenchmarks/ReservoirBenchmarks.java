@@ -56,9 +56,10 @@ public class ReservoirBenchmarks {
         LOCK_FREE_EXPO_DECAY() {
             @Override
             @SuppressWarnings("deprecation")
-                // explicitly testing
+            // explicitly testing
             Reservoir create() {
-                return LockFreeExponentiallyDecayingReservoirWithSamples.builder().build();
+                return LockFreeExponentiallyDecayingReservoirWithSamples.builder()
+                        .build();
             }
         },
 
