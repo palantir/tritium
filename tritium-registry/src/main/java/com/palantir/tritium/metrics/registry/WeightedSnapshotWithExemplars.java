@@ -22,38 +22,38 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A snapshot of a collection of {@link WeightedSampleMetadata}s.
+ * A {@link WeightedSnapshot} with support for storing exemplar metadata for each sample.
  */
-public final class WeightedSnapshotMetadata extends WeightedSnapshot {
+public final class WeightedSnapshotWithExemplars extends WeightedSnapshot {
 
     /**
-     * A single sample item with value and its weights for {@link WeightedSnapshotMetadata}.
+     * A single sample item with value and its weights for {@link WeightedSnapshotWithExemplars}.
      */
-    public static class WeightedSampleMetadata {
+    public static class WeightedSampleWithExemplar {
         public final long value;
         public final double weight;
-        public final SampleMetadata metadata;
+        public final ExemplarMetadata metadata;
 
-        public WeightedSampleMetadata(long value, double weight, SampleMetadata metadata) {
+        public WeightedSampleWithExemplar(long value, double weight, ExemplarMetadata metadata) {
             this.value = value;
             this.weight = weight;
             this.metadata = metadata;
         }
     }
 
-    private final List<SampleMetadata> sampleMetadatas;
+    private final List<ExemplarMetadata> exemplarMetadata;
 
     /**
      * Create a new {@link Snapshot} with the given values.
      *
      * @param values an unordered set of values in the reservoir
      */
-    public WeightedSnapshotMetadata(Collection<WeightedSampleMetadata> values) {
+    public WeightedSnapshotWithExemplars(Collection<WeightedSampleWithExemplar> values) {
         super(values.stream().map(v -> new WeightedSample(v.value, v.weight)).collect(Collectors.toList()));
-        sampleMetadatas = values.stream().map(v -> v.metadata).collect(Collectors.toList());
+        exemplarMetadata = values.stream().map(v -> v.metadata).collect(Collectors.toList());
     }
 
-    public List<SampleMetadata> getSamples() {
-        return sampleMetadatas;
+    public List<ExemplarMetadata> getSamples() {
+        return exemplarMetadata;
     }
 }

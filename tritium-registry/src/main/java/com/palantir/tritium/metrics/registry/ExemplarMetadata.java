@@ -16,6 +16,4 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import java.util.function.Supplier;
-
-public interface SampleMetadataProvider extends Supplier<SampleMetadata> {}
+public interface ExemplarMetadata {}
