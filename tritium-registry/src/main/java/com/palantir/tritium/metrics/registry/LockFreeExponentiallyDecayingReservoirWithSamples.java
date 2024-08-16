@@ -65,7 +65,7 @@ public final class LockFreeExponentiallyDecayingReservoirWithSamples implements 
     private static final double SECONDS_PER_NANO = .000_000_001D;
     private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoirWithSamples, State>
             stateUpdater = AtomicReferenceFieldUpdater.newUpdater(
-            LockFreeExponentiallyDecayingReservoirWithSamples.class, State.class, "state");
+                    LockFreeExponentiallyDecayingReservoirWithSamples.class, State.class, "state");
 
     private final int size;
     private final long rescaleThresholdNanos;
@@ -269,8 +269,7 @@ public final class LockFreeExponentiallyDecayingReservoirWithSamples implements 
         private Clock clock = Clock.defaultClock();
         private SampleMetadataProvider sampleMetadataProvider;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         /**
          * Maximum number of samples to keep in the reservoir. Once this number is reached older samples are
