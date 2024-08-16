@@ -19,11 +19,10 @@ package com.palantir.tritium.metrics.registry;
 import com.codahale.metrics.Clock;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Snapshot;
-import com.codahale.metrics.WeightedSnapshotMetadata;
-import com.codahale.metrics.WeightedSnapshotMetadata.WeightedSampleMetadata;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
+import com.palantir.tritium.metrics.registry.WeightedSnapshotMetadata.WeightedSampleMetadata;
 import java.time.Duration;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -67,8 +66,6 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     private final int size;
     private final long rescaleThresholdNanos;
     private final Clock clock;
-    private final SampleMetadataProvider sampleMetadataProvider;
-
     private volatile State state;
 
     private static final class State {
@@ -201,7 +198,6 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         this.rescaleThresholdNanos = rescaleThreshold.toNanos();
         this.state =
                 new State(alphaNanos, size, clock.getTick(), 0, new ConcurrentSkipListMap<>(), sampleMetadataProvider);
-        this.sampleMetadataProvider = sampleMetadataProvider;
     }
 
     @Override
@@ -263,8 +259,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         private Clock clock = Clock.defaultClock();
         private SampleMetadataProvider sampleMetadataProvider;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         /**
          * Maximum number of samples to keep in the reservoir. Once this number is reached older samples are
