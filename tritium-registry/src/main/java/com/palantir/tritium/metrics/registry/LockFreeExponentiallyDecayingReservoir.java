@@ -257,7 +257,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         private double alpha = DEFAULT_ALPHA;
         private Duration rescaleThreshold = DEFAULT_RESCALE_THRESHOLD;
         private Clock clock = Clock.defaultClock();
-        private SampleMetadataProvider sampleMetadataProvider;
+        private SampleMetadataProvider sampleMetadataProvider = () -> new SampleMetadata() {};
 
         private Builder() {}
 
@@ -265,9 +265,8 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
          * Maximum number of samples to keep in the reservoir. Once this number is reached older samples are
          * replaced (based on weight, with some amount of random jitter).
          */
-        public Builder sampleMetadataProvider(SampleMetadataProvider sampleMetadataProvider) {
-            this.sampleMetadataProvider =
-                    Preconditions.checkNotNull(sampleMetadataProvider, "sampleMetadataProvider is required");
+        public Builder sampleMetadataProvider(SampleMetadataProvider value) {
+            this.sampleMetadataProvider = Preconditions.checkNotNull(value, "sampleMetadataProvider is required");
             return this;
         }
 

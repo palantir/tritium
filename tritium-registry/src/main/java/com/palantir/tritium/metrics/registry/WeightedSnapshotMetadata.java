@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A statistical snapshot of a {@link WeightedSnapshotMetadata}.
+ * A snapshot of a collection of {@link WeightedSampleMetadata}s.
  */
-public class WeightedSnapshotMetadata extends WeightedSnapshot {
+public final class WeightedSnapshotMetadata extends WeightedSnapshot {
 
     /**
      * A single sample item with value and its weights for {@link WeightedSnapshotMetadata}.
