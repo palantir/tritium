@@ -18,7 +18,7 @@ package com.palantir.tritium.microbenchmarks;
 
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Reservoir;
-import com.palantir.tritium.metrics.registry.LockFreeExponentiallyDecayingReservoirWithExemplars;
+import com.palantir.tritium.metrics.registry.LockFreeExponentiallyDecayingReservoir;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -58,8 +58,7 @@ public class ReservoirBenchmarks {
             @SuppressWarnings("deprecation")
             // explicitly testing
             Reservoir create() {
-                return LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
-                        .build();
+                return LockFreeExponentiallyDecayingReservoir.builder().build();
             }
         },
 
