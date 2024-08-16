@@ -30,19 +30,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 /**
- * {@link LockFreeExponentiallyDecayingReservoirTest} is based closely on the codahale
+ * {@link LockFreeExponentiallyDecayingReservoirWithSamplesTest} is based closely on the codahale
  * <a href="https://github.com/dropwizard/metrics/blob/a314e903d7ba3c5ec47ee7c9103d73ed09a20bd6/metrics-core/src/test/java/com/codahale/metrics/ExponentiallyDecayingReservoirTest.java">
  * ExponentiallyDecayingReservoirTest.java</a>.
- *
+ * <p>
  * See {@code ExponentiallyDecayingReservoirTest.java} Licensed under the Apache License, Version 2.0. You may obtain
  * a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 @SuppressWarnings("deprecation") // explicitly testing internal version
-class LockFreeExponentiallyDecayingReservoirTest {
+class LockFreeExponentiallyDecayingReservoirWithSamplesTest {
 
     @Test
     public void aReservoirOf100OutOf1000Elements() {
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(100)
                 .alpha(0.99)
                 .rescaleThreshold(Duration.ofHours(1))
@@ -62,7 +62,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
 
     @Test
     public void aReservoirOf100OutOf10Elements() {
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(100)
                 .alpha(0.99)
                 .rescaleThreshold(Duration.ofHours(1))
@@ -82,7 +82,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
 
     @Test
     public void aHeavilyBiasedReservoirOf100OutOf1000Elements() {
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(1000)
                 .alpha(0.01)
                 .build();
@@ -102,7 +102,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void longPeriodsOfInactivityShouldNotCorruptSamplingState() {
         ManualClock clock = new ManualClock();
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(10)
                 .alpha(.15)
                 .clock(clock)
@@ -136,7 +136,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void longPeriodsOfInactivity_fetchShouldResample() {
         ManualClock clock = new ManualClock();
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(10)
                 .alpha(.015)
                 .clock(clock)
@@ -163,7 +163,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
 
     @Test
     public void emptyReservoirSnapshot_shouldReturnZeroForAllValues() {
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(100)
                 .alpha(0.015)
                 .build();
@@ -178,7 +178,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void removeZeroWeightsInSamplesToPreventNaNInMeanValues() {
         ManualClock clock = new ManualClock();
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(1028)
                 .alpha(.015)
                 .clock(clock)
@@ -209,7 +209,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
         // Run the test several times.
         for (int attempt = 0; attempt < 10; attempt++) {
             ManualClock clock = new ManualClock();
-            Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+            Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                     .size(10)
                     .alpha(.015)
                     .clock(clock)
@@ -297,7 +297,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void spotLift() {
         ManualClock clock = new ManualClock();
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(1000)
                 .alpha(.015)
                 .clock(clock)
@@ -324,7 +324,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void spotFall() {
         ManualClock clock = new ManualClock();
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(1000)
                 .alpha(.015)
                 .clock(clock)
@@ -351,7 +351,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
     @Test
     public void quantiliesShouldBeBasedOnWeights() {
         ManualClock clock = new ManualClock();
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(1000)
                 .alpha(.015)
                 .clock(clock)
@@ -385,7 +385,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
 
     private static void testShortPeriodShouldNotRescale(long startTimeNanos) {
         ManualClock clock = new ManualClock(startTimeNanos);
-        Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithSamples.builder()
                 .size(10)
                 .alpha(1)
                 .clock(clock)

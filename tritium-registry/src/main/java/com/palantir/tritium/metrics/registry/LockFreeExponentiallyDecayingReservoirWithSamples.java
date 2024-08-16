@@ -34,7 +34,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 /**
- * {@link LockFreeExponentiallyDecayingReservoir} is based closely on the codahale
+ * {@link LockFreeExponentiallyDecayingReservoirWithSamples} is based closely on the codahale
  * <a href="https://github.com/dropwizard/metrics/blob/0313a104bf785e87d7d14a18a82026225304c402/metrics-core/src/main/java/com/codahale/metrics/ExponentiallyDecayingReservoir.java">
  * ExponentiallyDecayingReservoir.java</a>, however it provides looser guarantees while completely avoiding locks.
  * <p>
@@ -60,11 +60,11 @@ import java.util.stream.Collectors;
  * @deprecated prefer upstream {@link com.codahale.metrics.LockFreeExponentiallyDecayingReservoir}.
  */
 @Deprecated
-public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
+public final class LockFreeExponentiallyDecayingReservoirWithSamples implements Reservoir {
 
     private static final double SECONDS_PER_NANO = .000_000_001D;
-    private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoir, State> stateUpdater =
-            AtomicReferenceFieldUpdater.newUpdater(LockFreeExponentiallyDecayingReservoir.class, State.class, "state");
+    private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoirWithSamples, State> stateUpdater =
+            AtomicReferenceFieldUpdater.newUpdater(LockFreeExponentiallyDecayingReservoirWithSamples.class, State.class, "state");
 
     private final int size;
     private final long rescaleThresholdNanos;
@@ -190,7 +190,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
     }
 
-    private LockFreeExponentiallyDecayingReservoir(
+    private LockFreeExponentiallyDecayingReservoirWithSamples(
             int size,
             double alpha,
             Duration rescaleThreshold,
@@ -291,7 +291,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         public Builder size(int value) {
             if (value <= 0) {
                 throw new SafeIllegalArgumentException(
-                        "LockFreeExponentiallyDecayingReservoir size must be positive", SafeArg.of("size", value));
+                        "LockFreeExponentiallyDecayingReservoirWithSamples size must be positive", SafeArg.of("size", value));
             }
             this.size = value;
             return this;
@@ -322,7 +322,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
 
         public Reservoir build() {
-            return new LockFreeExponentiallyDecayingReservoir(
+            return new LockFreeExponentiallyDecayingReservoirWithSamples(
                     size, alpha, rescaleThreshold, clock, sampleMetadataProvider);
         }
     }
