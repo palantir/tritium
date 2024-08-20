@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 /**
  * A {@link WeightedSnapshot} with support for storing exemplar metadata for each sample.
  */
-public final class WeightedSnapshotWithExemplars extends WeightedSnapshot {
+final class WeightedSnapshotWithExemplars extends WeightedSnapshot implements ExemplarsCapture {
 
     /**
      * A single sample item with value and its weights for {@link WeightedSnapshotWithExemplars}.
@@ -53,6 +53,7 @@ public final class WeightedSnapshotWithExemplars extends WeightedSnapshot {
         exemplarMetadata = values.stream().map(v -> v.metadata).collect(Collectors.toList());
     }
 
+    @Override
     public List<ExemplarMetadata> getSamples() {
         return exemplarMetadata;
     }
