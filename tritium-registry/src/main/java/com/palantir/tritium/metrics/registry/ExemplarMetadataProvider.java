@@ -16,6 +16,6 @@
 
 package com.palantir.tritium.metrics.registry;
 
-public interface ExemplarMetadataProvider {
-    ExemplarMetadata collect();
+public interface ExemplarMetadataProvider<T> {
+    T collect();
 }

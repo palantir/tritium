@@ -81,7 +81,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
         private volatile int count;
 
-        private final ExemplarMetadataProvider exemplarMetadataProvider;
+        private final ExemplarMetadataProvider<T> exemplarMetadataProvider;
 
         State(
                 double alphaNanos,
