@@ -57,7 +57,7 @@ import java.util.function.BiConsumer;
  * @deprecated prefer upstream {@link com.codahale.metrics.LockFreeExponentiallyDecayingReservoir}.
  */
 @Deprecated
-public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
+public final class LockFreeExponentiallyDecayingReservoir<T> implements Reservoir {
 
     private static final double SECONDS_PER_NANO = .000_000_001D;
     private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoir, State> stateUpdater =
@@ -66,9 +66,9 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     private final int size;
     private final long rescaleThresholdNanos;
     private final Clock clock;
-    private volatile State state;
+    private volatile State<T> state;
 
-    private static final class State {
+    private static final class State<T> {
 
         private static final AtomicIntegerFieldUpdater<State> countUpdater =
                 AtomicIntegerFieldUpdater.newUpdater(State.class, "count");
@@ -77,7 +77,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         private final int size;
         private final long startTick;
         // Count is updated after samples are successfully added to the map.
-        private final ConcurrentSkipListMap<Double, WeightedSampleWithExemplar> values;
+        private final ConcurrentSkipListMap<Double, WeightedSampleWithExemplar<T>> values;
 
         private volatile int count;
 
@@ -88,8 +88,8 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
                 int size,
                 long startTick,
                 int count,
-                ConcurrentSkipListMap<Double, WeightedSampleWithExemplar> values,
-                ExemplarMetadataProvider exemplarMetadataProvider) {
+                ConcurrentSkipListMap<Double, WeightedSampleWithExemplar<T>> values,
+                ExemplarMetadataProvider<T> exemplarMetadataProvider) {
             this.alphaNanos = alphaNanos;
             this.size = size;
             this.startTick = startTick;
@@ -108,13 +108,9 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
 
         private void addSample(
-                double priority,
-                long value,
-                double itemWeight,
-                boolean bypassIncrement,
-                ExemplarMetadata exemplarMetadata) {
-            if (values.putIfAbsent(priority, new WeightedSampleWithExemplar(value, itemWeight, exemplarMetadata))
-                            == null
+                double priority, long value, double itemWeight, boolean bypassIncrement, T exemplarMetadata) {
+            if (values.putIfAbsent(priority, new WeightedSampleWithExemplar<T>(value, itemWeight, exemplarMetadata))
+                    == null
                     && (bypassIncrement || countUpdater.incrementAndGet(this) > size)) {
                 values.pollFirstEntry();
             }
@@ -138,13 +134,13 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
          * landmark L′ (and then use this new L′ at query time). This can be done with
          * a linear pass over whatever data structure is being used."
          */
-        State rescale(long newTick) {
+        State<T> rescale(long newTick) {
             long durationNanos = newTick - startTick;
             double scalingFactor = Math.exp(-alphaNanos * durationNanos);
             int newCount = 0;
-            ConcurrentSkipListMap<Double, WeightedSampleWithExemplar> newValues = new ConcurrentSkipListMap<>();
+            ConcurrentSkipListMap<Double, WeightedSampleWithExemplar<T>> newValues = new ConcurrentSkipListMap<>();
             if (Double.compare(scalingFactor, 0) != 0) {
-                RescalingConsumer consumer = new RescalingConsumer(scalingFactor, newValues);
+                RescalingConsumer<T> consumer = new RescalingConsumer<>(scalingFactor, newValues);
                 values.forEach(consumer);
                 // make sure the counter is in sync with the number of stored samples.
                 newCount = consumer.count;
@@ -155,7 +151,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
                 Preconditions.checkNotNull(newValues.pollFirstEntry(), "Expected an entry");
                 newCount--;
             }
-            return new State(alphaNanos, size, newTick, newCount, newValues, exemplarMetadataProvider);
+            return new State<>(alphaNanos, size, newTick, newCount, newValues, exemplarMetadataProvider);
         }
 
         private double weight(long durationNanos) {
@@ -163,24 +159,24 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
     }
 
-    private static final class RescalingConsumer implements BiConsumer<Double, WeightedSampleWithExemplar> {
+    private static final class RescalingConsumer<T> implements BiConsumer<Double, WeightedSampleWithExemplar<T>> {
         private final double scalingFactor;
-        private final ConcurrentSkipListMap<Double, WeightedSampleWithExemplar> values;
+        private final ConcurrentSkipListMap<Double, WeightedSampleWithExemplar<T>> values;
         private int count;
 
-        RescalingConsumer(double scalingFactor, ConcurrentSkipListMap<Double, WeightedSampleWithExemplar> values) {
+        RescalingConsumer(double scalingFactor, ConcurrentSkipListMap<Double, WeightedSampleWithExemplar<T>> values) {
             this.scalingFactor = scalingFactor;
             this.values = values;
         }
 
         @Override
-        public void accept(Double priority, WeightedSampleWithExemplar sample) {
+        public void accept(Double priority, WeightedSampleWithExemplar<T> sample) {
             double newWeight = sample.weight * scalingFactor;
             if (Double.compare(newWeight, 0) == 0) {
                 return;
             }
-            WeightedSampleWithExemplar newSample =
-                    new WeightedSampleWithExemplar(sample.value, newWeight, sample.metadata);
+            WeightedSampleWithExemplar<T> newSample =
+                    new WeightedSampleWithExemplar<T>(sample.value, newWeight, sample.metadata);
             if (values.put(priority * scalingFactor, newSample) == null) {
                 count++;
             }
@@ -192,13 +188,13 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
             double alpha,
             Duration rescaleThreshold,
             Clock clock,
-            ExemplarMetadataProvider exemplarMetadataProvider) {
+            ExemplarMetadataProvider<T> exemplarMetadataProvider) {
         // Scale alpha to nanoseconds
         double alphaNanos = alpha * SECONDS_PER_NANO;
         this.size = size;
         this.clock = clock;
         this.rescaleThresholdNanos = rescaleThreshold.toNanos();
-        this.state = new State(
+        this.state = new State<T>(
                 alphaNanos, size, clock.getTick(), 0, new ConcurrentSkipListMap<>(), exemplarMetadataProvider);
     }
 
@@ -213,18 +209,18 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         rescaleIfNeeded(now).update(value, now);
     }
 
-    private State rescaleIfNeeded(long currentTick) {
+    private State<T> rescaleIfNeeded(long currentTick) {
         // This method is optimized for size so the check may be quickly inlined.
         // Rescaling occurs substantially less frequently than the check itself.
-        State stateSnapshot = this.state;
+        State<T> stateSnapshot = this.state;
         if (currentTick - stateSnapshot.startTick >= rescaleThresholdNanos) {
             return doRescale(currentTick, stateSnapshot);
         }
         return stateSnapshot;
     }
 
-    private State doRescale(long currentTick, State stateSnapshot) {
-        State newState = stateSnapshot.rescale(currentTick);
+    private State<T> doRescale(long currentTick, State<T> stateSnapshot) {
+        State<T> newState = stateSnapshot.rescale(currentTick);
         if (stateUpdater.compareAndSet(this, stateSnapshot, newState)) {
             // newState successfully installed
             return newState;
@@ -237,12 +233,12 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
     @Override
     public Snapshot getSnapshot() {
-        State stateSnapshot = rescaleIfNeeded(clock.getTick());
-        return new WeightedSnapshotWithExemplars(stateSnapshot.values.values());
+        State<T> stateSnapshot = rescaleIfNeeded(clock.getTick());
+        return new WeightedSnapshotWithExemplars<T>(stateSnapshot.values.values());
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
     }
 
     /**
@@ -250,7 +246,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
      * confidence level with a 5% margin of error assuming a normal distribution, and an alpha
      * factor of 0.015, which heavily biases the reservoir to the past 5 minutes of measurements.
      */
-    public static final class Builder {
+    public static final class Builder<T> {
         private static final int DEFAULT_SIZE = 1028;
         private static final double DEFAULT_ALPHA = 0.015D;
         private static final Duration DEFAULT_RESCALE_THRESHOLD = Duration.ofHours(1);
@@ -259,15 +255,16 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         private double alpha = DEFAULT_ALPHA;
         private Duration rescaleThreshold = DEFAULT_RESCALE_THRESHOLD;
         private Clock clock = Clock.defaultClock();
-        private ExemplarMetadataProvider exemplarMetadataProvider = () -> new ExemplarMetadata() {};
+        private ExemplarMetadataProvider<T> exemplarMetadataProvider = () -> null;
 
-        private Builder() {}
+        private Builder() {
+        }
 
         /**
          * Maximum number of samples to keep in the reservoir. Once this number is reached older samples are
          * replaced (based on weight, with some amount of random jitter).
          */
-        public Builder exemplarProvider(ExemplarMetadataProvider value) {
+        public Builder<T> exemplarProvider(ExemplarMetadataProvider<T> value) {
             this.exemplarMetadataProvider = Preconditions.checkNotNull(value, "exemplarMetadataProvider is required");
             return this;
         }
@@ -276,7 +273,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
          * Maximum number of samples to keep in the reservoir. Once this number is reached older samples are
          * replaced (based on weight, with some amount of random jitter).
          */
-        public Builder size(int value) {
+        public Builder<T> size(int value) {
             if (value <= 0) {
                 throw new SafeIllegalArgumentException(
                         "LockFreeExponentiallyDecayingReservoir size must be positive", SafeArg.of("size", value));
@@ -288,7 +285,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         /**
          * Alpha is the exponential decay factor. Higher values bias results more heavily toward newer values.
          */
-        public Builder alpha(double value) {
+        public Builder<T> alpha(double value) {
             this.alpha = value;
             return this;
         }
@@ -296,7 +293,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         /**
          * Interval at which this reservoir is rescaled.
          */
-        public Builder rescaleThreshold(Duration value) {
+        public Builder<T> rescaleThreshold(Duration value) {
             this.rescaleThreshold = Preconditions.checkNotNull(value, "rescaleThreshold is required");
             return this;
         }
@@ -304,13 +301,13 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         /**
          * Clock instance used for decay.
          */
-        public Builder clock(Clock value) {
+        public Builder<T> clock(Clock value) {
             this.clock = Preconditions.checkNotNull(value, "clock is required");
             return this;
         }
 
         public Reservoir build() {
-            return new LockFreeExponentiallyDecayingReservoir(
+            return new LockFreeExponentiallyDecayingReservoir<>(
                     size, alpha, rescaleThreshold, clock, exemplarMetadataProvider);
         }
     }
