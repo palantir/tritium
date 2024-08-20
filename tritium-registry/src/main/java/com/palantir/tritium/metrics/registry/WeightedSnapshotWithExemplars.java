@@ -58,6 +58,7 @@ final class WeightedSnapshotWithExemplars<T> extends WeightedSnapshot implements
     }
 
     @Override
+    @SuppressWarnings("unchecked") // instance check on the provider guarantees the cast is safe
     public <U> List<U> getSamples(ExemplarMetadataProvider<U> provider) {
         if (this.provider == provider) {
             return (List<U>) exemplarMetadatas;

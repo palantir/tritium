@@ -110,7 +110,7 @@ public final class LockFreeExponentiallyDecayingReservoir<T> implements Reservoi
         private void addSample(
                 double priority, long value, double itemWeight, boolean bypassIncrement, T exemplarMetadata) {
             if (values.putIfAbsent(priority, new WeightedSampleWithExemplar<T>(value, itemWeight, exemplarMetadata))
-                    == null
+                            == null
                     && (bypassIncrement || countUpdater.incrementAndGet(this) > size)) {
                 values.pollFirstEntry();
             }
@@ -234,7 +234,8 @@ public final class LockFreeExponentiallyDecayingReservoir<T> implements Reservoi
     @Override
     public Snapshot getSnapshot() {
         State<T> stateSnapshot = rescaleIfNeeded(clock.getTick());
-        return new WeightedSnapshotWithExemplars<T>(stateSnapshot.values.values());
+        return new WeightedSnapshotWithExemplars<>(
+                stateSnapshot.exemplarMetadataProvider, stateSnapshot.values.values());
     }
 
     public static <T> Builder<T> builder() {
@@ -257,8 +258,7 @@ public final class LockFreeExponentiallyDecayingReservoir<T> implements Reservoi
         private Clock clock = Clock.defaultClock();
         private ExemplarMetadataProvider<T> exemplarMetadataProvider = () -> null;
 
-        private Builder() {
-        }
+        private Builder() {}
 
         /**
          * Maximum number of samples to keep in the reservoir. Once this number is reached older samples are
