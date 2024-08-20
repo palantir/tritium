@@ -103,7 +103,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
             double priority = itemWeight / ThreadLocalRandom.current().nextDouble();
             boolean mapIsFull = count >= size;
             if (!mapIsFull || values.firstKey() < priority) {
-                addSample(priority, value, itemWeight, mapIsFull, exemplarMetadataProvider.get());
+                addSample(priority, value, itemWeight, mapIsFull, exemplarMetadataProvider.collect());
             }
         }
 
