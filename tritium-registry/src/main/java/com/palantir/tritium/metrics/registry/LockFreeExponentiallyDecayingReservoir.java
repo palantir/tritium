@@ -261,7 +261,8 @@ public final class LockFreeExponentiallyDecayingReservoir<T> implements Reservoi
         private double alpha = DEFAULT_ALPHA;
         private Duration rescaleThreshold = DEFAULT_RESCALE_THRESHOLD;
         private Clock clock = Clock.defaultClock();
-        private ExemplarMetadataProvider<T> exemplarMetadataProvider = () -> null;
+        private ExemplarMetadataProvider<T> exemplarMetadataProvider =
+                () -> null; // TODO: provider should return optional
 
         private Builder() {}
 
