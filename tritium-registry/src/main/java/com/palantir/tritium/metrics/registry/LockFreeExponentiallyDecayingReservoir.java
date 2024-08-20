@@ -56,13 +56,17 @@ import java.util.function.BiConsumer;
  *
  * @deprecated prefer upstream {@link com.codahale.metrics.LockFreeExponentiallyDecayingReservoir}.
  */
-@SuppressWarnings("RawTypes")
+@SuppressWarnings("unchecked")
 @Deprecated
 public final class LockFreeExponentiallyDecayingReservoir<T> implements Reservoir {
 
     private static final double SECONDS_PER_NANO = .000_000_001D;
-    private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoir, State> stateUpdater =
-            AtomicReferenceFieldUpdater.newUpdater(LockFreeExponentiallyDecayingReservoir.class, State.class, "state");
+    private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoir<?>, State<?>> stateUpdater =
+            AtomicReferenceFieldUpdater.newUpdater(
+                    (Class<LockFreeExponentiallyDecayingReservoir<?>>)
+                            (Class<?>) LockFreeExponentiallyDecayingReservoir.class,
+                    (Class<State<?>>) (Class<?>) State.class,
+                    "state");
 
     private final int size;
     private final long rescaleThresholdNanos;
@@ -71,8 +75,8 @@ public final class LockFreeExponentiallyDecayingReservoir<T> implements Reservoi
 
     private static final class State<T> {
 
-        private static final AtomicIntegerFieldUpdater<State> countUpdater =
-                AtomicIntegerFieldUpdater.newUpdater(State.class, "count");
+        private static final AtomicIntegerFieldUpdater<State<?>> countUpdater =
+                AtomicIntegerFieldUpdater.newUpdater((Class<State<?>>) (Class<?>) State.class, "count");
 
         private final double alphaNanos;
         private final int size;
