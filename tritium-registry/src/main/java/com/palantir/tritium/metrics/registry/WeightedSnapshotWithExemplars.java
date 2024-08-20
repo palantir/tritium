@@ -24,37 +24,37 @@ import java.util.stream.Collectors;
 /**
  * A {@link WeightedSnapshot} with support for storing exemplar metadata for each sample.
  */
-final class WeightedSnapshotWithExemplars<T> extends WeightedSnapshot implements ExemplarsCapture<T> {
+final class WeightedSnapshotWithExemplars extends WeightedSnapshot implements ExemplarsCapture {
 
     /**
      * A single sample item with value and its weights for {@link WeightedSnapshotWithExemplars}.
      */
-    public static class WeightedSampleWithExemplar<T> {
+    public static class WeightedSampleWithExemplar {
         public final long value;
         public final double weight;
-        public final T metadata;
+        public final ExemplarMetadata metadata;
 
-        public WeightedSampleWithExemplar(long value, double weight, T metadata) {
+        public WeightedSampleWithExemplar(long value, double weight, ExemplarMetadata metadata) {
             this.value = value;
             this.weight = weight;
             this.metadata = metadata;
         }
     }
 
-    private final List<T> exemplarMetadata;
+    private final List<ExemplarMetadata> exemplarMetadata;
 
     /**
      * Create a new {@link Snapshot} with the given values.
      *
      * @param values an unordered set of values in the reservoir
      */
-    public WeightedSnapshotWithExemplars(Collection<WeightedSampleWithExemplar<T>> values) {
+    public WeightedSnapshotWithExemplars(Collection<WeightedSampleWithExemplar> values) {
         super(values.stream().map(v -> new WeightedSample(v.value, v.weight)).collect(Collectors.toList()));
         exemplarMetadata = values.stream().map(v -> v.metadata).collect(Collectors.toList());
     }
 
     @Override
-    public List<T> getSamples() {
+    public List<ExemplarMetadata> getSamples() {
         return exemplarMetadata;
     }
 }

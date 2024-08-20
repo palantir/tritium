@@ -16,8 +16,4 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import java.util.List;
-
-public interface ExemplarsCapture {
-    List<ExemplarMetadata> getSamples();
-}
+public interface ExemplarMetadata {}
