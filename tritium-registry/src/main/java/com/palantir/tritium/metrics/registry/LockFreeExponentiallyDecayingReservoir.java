@@ -56,6 +56,7 @@ import java.util.function.BiConsumer;
  *
  * @deprecated prefer upstream {@link com.codahale.metrics.LockFreeExponentiallyDecayingReservoir}.
  */
+@SuppressWarnings("RawTypes")
 @Deprecated
 public final class LockFreeExponentiallyDecayingReservoir<T> implements Reservoir {
 
