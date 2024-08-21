@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import java.util.Optional;
+
 public interface ExemplarMetadataProvider<T> {
-    T collect();
+    Optional<T> collect();
 }

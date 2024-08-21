@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link WeightedSnapshot} with support for storing exemplar metadata for each sample.
@@ -36,9 +37,9 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
 
         public final long value;
         public final double weight;
-        public final Object metadata;
+        public final Optional<?> metadata;
 
-        public WeightedSampleWithExemplar(long value, double weight, Object metadata) {
+        WeightedSampleWithExemplar(long value, double weight, Optional<?> metadata) {
             this.value = value;
             this.weight = weight;
             this.metadata = metadata;
@@ -46,7 +47,7 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
     }
 
     private final WeightedSnapshot weightedSnapshot;
-    private final ExemplarMetadataProvider<?> provider;
+    private final ExemplarMetadataProvider<?> exemplarProvider;
     private final List<Object> exemplarMetadatas;
 
     /**
@@ -54,24 +55,25 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
      *
      * @param values an unordered set of values in the reservoir
      */
-    public WeightedSnapshotWithExemplars(
-            ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
+    WeightedSnapshotWithExemplars(ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
         final List<WeightedSample> weightedSamples = new ArrayList<>();
         this.exemplarMetadatas = new ArrayList<>();
 
         values.forEach(v -> {
             weightedSamples.add(new WeightedSample(v.value, v.weight));
-            exemplarMetadatas.add(v.metadata);
+            if (v.metadata.isPresent()) {
+                exemplarMetadatas.add(v.metadata);
+            }
         });
 
         this.weightedSnapshot = new WeightedSnapshot(weightedSamples);
-        this.provider = provider;
+        this.exemplarProvider = provider;
     }
 
     @Override
     @SuppressWarnings("unchecked") // instance check on the provider guarantees the cast is safe
     public <U> List<U> getSamples(ExemplarMetadataProvider<U> provider) {
-        if (this.provider == provider) {
+        if (this.exemplarProvider == provider) {
             return (List<U>) exemplarMetadatas;
         }
         return Collections.emptyList();

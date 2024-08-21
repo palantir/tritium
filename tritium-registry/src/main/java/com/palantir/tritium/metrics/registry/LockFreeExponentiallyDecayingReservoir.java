@@ -24,6 +24,7 @@ import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import com.palantir.tritium.metrics.registry.WeightedSnapshotWithExemplars.WeightedSampleWithExemplar;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -108,7 +109,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
 
         private void addSample(
-                double priority, long value, double itemWeight, boolean bypassIncrement, Object exemplarMetadata) {
+                double priority, long value, double itemWeight, boolean bypassIncrement, Optional<?> exemplarMetadata) {
             if (values.putIfAbsent(priority, new WeightedSampleWithExemplar(value, itemWeight, exemplarMetadata))
                             == null
                     && (bypassIncrement || countUpdater.incrementAndGet(this) > size)) {
@@ -255,8 +256,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         private double alpha = DEFAULT_ALPHA;
         private Duration rescaleThreshold = DEFAULT_RESCALE_THRESHOLD;
         private Clock clock = Clock.defaultClock();
-        private ExemplarMetadataProvider<?> exemplarMetadataProvider =
-                () -> null; // TODO: provider should return optional
+        private ExemplarMetadataProvider<?> exemplarMetadataProvider = Optional::empty;
 
         private Builder() {}
 
