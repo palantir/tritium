@@ -17,20 +17,23 @@ package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.WeightedSnapshot;
+import com.codahale.metrics.WeightedSnapshot.WeightedSample;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A {@link WeightedSnapshot} with support for storing exemplar metadata for each sample.
  */
-final class WeightedSnapshotWithExemplars extends WeightedSnapshot implements ExemplarsCapture {
+final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsCapture {
 
     /**
      * A single sample item with value and its weights for {@link WeightedSnapshotWithExemplars}.
      */
     public static class WeightedSampleWithExemplar {
+
         public final long value;
         public final double weight;
         public final Object metadata;
@@ -42,6 +45,7 @@ final class WeightedSnapshotWithExemplars extends WeightedSnapshot implements Ex
         }
     }
 
+    private final WeightedSnapshot weightedSnapshot;
     private final ExemplarMetadataProvider<?> provider;
     private final List<Object> exemplarMetadatas;
 
@@ -52,8 +56,15 @@ final class WeightedSnapshotWithExemplars extends WeightedSnapshot implements Ex
      */
     public WeightedSnapshotWithExemplars(
             ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
-        super(values.stream().map(v -> new WeightedSample(v.value, v.weight)).collect(Collectors.toList()));
-        exemplarMetadatas = values.stream().map(v -> v.metadata).collect(Collectors.toList());
+        final List<WeightedSample> weightedSamples = new ArrayList<>();
+        this.exemplarMetadatas = new ArrayList<>();
+
+        values.forEach(v -> {
+            weightedSamples.add(new WeightedSample(v.value, v.weight));
+            exemplarMetadatas.add(v.metadata);
+        });
+
+        this.weightedSnapshot = new WeightedSnapshot(weightedSamples);
         this.provider = provider;
     }
 
@@ -64,5 +75,47 @@ final class WeightedSnapshotWithExemplars extends WeightedSnapshot implements Ex
             return (List<U>) exemplarMetadatas;
         }
         return Collections.emptyList();
+    }
+
+    /* All Snapshot methods are delegated to the weightedSnapshot */
+
+    @Override
+    public double getValue(double quantile) {
+        return weightedSnapshot.getValue(quantile);
+    }
+
+    @Override
+    public long[] getValues() {
+        return weightedSnapshot.getValues();
+    }
+
+    @Override
+    public int size() {
+        return weightedSnapshot.size();
+    }
+
+    @Override
+    public long getMax() {
+        return weightedSnapshot.getMax();
+    }
+
+    @Override
+    public double getMean() {
+        return weightedSnapshot.getMean();
+    }
+
+    @Override
+    public long getMin() {
+        return weightedSnapshot.getMin();
+    }
+
+    @Override
+    public double getStdDev() {
+        return weightedSnapshot.getStdDev();
+    }
+
+    @Override
+    public void dump(OutputStream output) {
+        weightedSnapshot.dump(output);
     }
 }
