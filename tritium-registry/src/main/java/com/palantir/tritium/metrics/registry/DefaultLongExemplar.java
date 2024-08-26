@@ -16,8 +16,26 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import java.util.List;
+final class DefaultLongExemplar<T> implements LongExemplar<T> {
+    private final T metadata;
+    private final long value;
 
-public interface ExemplarsCapture {
-    <T> List<LongExemplar<T>> getSamples(ExemplarMetadataProvider<T> provider);
+    private DefaultLongExemplar(T metadata, long value) {
+        this.metadata = metadata;
+        this.value = value;
+    }
+
+    public static <V> LongExemplar<V> of(V metadata, long value) {
+        return new DefaultLongExemplar<>(metadata, value);
+    }
+
+    @Override
+    public T metadata() {
+        return metadata;
+    }
+
+    @Override
+    public long value() {
+        return value;
+    }
 }

@@ -20,5 +20,5 @@ import javax.annotation.Nullable;
 
 public interface ExemplarMetadataProvider<T> {
     @Nullable
-    T collect();
+    T collect(long value);
 }

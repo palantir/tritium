@@ -48,7 +48,7 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
 
     private final WeightedSnapshot weightedSnapshot;
     private final ExemplarMetadataProvider<?> exemplarProvider;
-    private final List<Object> exemplarMetadatas;
+    private final List<LongExemplar<Object>> exemplarMetadatas;
 
     /**
      * Create a new {@link Snapshot} with the given values.
@@ -62,7 +62,7 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
         values.forEach(v -> {
             weightedSamples.add(new WeightedSample(v.value, v.weight));
             if (v.metadata != null) {
-                exemplarMetadatas.add(v.metadata);
+                exemplarMetadatas.add(DefaultLongExemplar.of(v.metadata, v.value));
             }
         });
 
@@ -70,11 +70,16 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
         this.exemplarProvider = provider;
     }
 
+    /**
+     * Returns the exemplars captured from the given provider. If the provider is different from the
+     * one used to create this snapshot, an empty list is returned.
+     * Only exemplars for which the provider returned non-null metadata are returned.
+     */
     @Override
     @SuppressWarnings("unchecked") // instance check on the provider guarantees the cast is safe
-    public <U> List<U> getSamples(ExemplarMetadataProvider<U> provider) {
+    public <U> List<LongExemplar<U>> getSamples(ExemplarMetadataProvider<U> provider) {
         if (this.exemplarProvider == provider) {
-            return (List<U>) exemplarMetadatas;
+            return (List<LongExemplar<U>>) (List<?>) exemplarMetadatas;
         }
         return Collections.emptyList();
     }

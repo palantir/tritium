@@ -16,8 +16,8 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import java.util.List;
+public interface LongExemplar<T> {
+    T metadata();
 
-public interface ExemplarsCapture {
-    <T> List<LongExemplar<T>> getSamples(ExemplarMetadataProvider<T> provider);
+    long value();
 }
