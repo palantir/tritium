@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import javax.annotation.Nullable;
 
 /**
  * A {@link WeightedSnapshot} with support for storing exemplar metadata for each sample.
@@ -37,9 +37,9 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
 
         public final long value;
         public final double weight;
-        public final Optional<?> metadata;
+        public final @Nullable Object metadata;
 
-        WeightedSampleWithExemplar(long value, double weight, Optional<?> metadata) {
+        WeightedSampleWithExemplar(long value, double weight, @Nullable Object metadata) {
             this.value = value;
             this.weight = weight;
             this.metadata = metadata;
@@ -61,7 +61,7 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
 
         values.forEach(v -> {
             weightedSamples.add(new WeightedSample(v.value, v.weight));
-            if (v.metadata.isPresent()) {
+            if (v.metadata != null) {
                 exemplarMetadatas.add(v.metadata);
             }
         });

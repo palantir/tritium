@@ -16,8 +16,9 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
 
 public interface ExemplarMetadataProvider<T> {
-    Optional<T> collect();
+    @Nullable
+    T collect();
 }

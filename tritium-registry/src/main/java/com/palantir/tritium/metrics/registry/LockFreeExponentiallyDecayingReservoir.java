@@ -30,6 +30,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.BiConsumer;
+import javax.annotation.Nullable;
 
 /**
  * {@link LockFreeExponentiallyDecayingReservoir} is based closely on the codahale
@@ -109,7 +110,11 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
 
         private void addSample(
-                double priority, long value, double itemWeight, boolean bypassIncrement, Optional<?> exemplarMetadata) {
+                double priority,
+                long value,
+                double itemWeight,
+                boolean bypassIncrement,
+                @Nullable Object exemplarMetadata) {
             if (values.putIfAbsent(priority, new WeightedSampleWithExemplar(value, itemWeight, exemplarMetadata))
                             == null
                     && (bypassIncrement || countUpdater.incrementAndGet(this) > size)) {
