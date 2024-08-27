@@ -21,7 +21,6 @@ import com.codahale.metrics.WeightedSnapshot.WeightedSample;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -94,7 +93,7 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
         if (this.exemplarProvider == provider) {
             return (List<LongExemplar<U>>) (List<?>) exemplarMetadatas;
         }
-        return Collections.emptyList();
+        return List.of();
     }
 
     /* All Snapshot methods are delegated to the weightedSnapshot */
