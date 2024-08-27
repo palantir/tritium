@@ -16,8 +16,12 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import com.palantir.logsafe.Safe;
+
 public interface LongExemplar<T> {
+    @Safe
     T metadata();
 
+    @Safe
     long value();
 }

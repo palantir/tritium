@@ -16,9 +16,11 @@
 
 package com.palantir.tritium.metrics.registry;
 
+import com.palantir.logsafe.Safe;
 import javax.annotation.Nullable;
 
 public interface ExemplarMetadataProvider<T> {
     @Nullable
+    @Safe
     T collect();
 }
