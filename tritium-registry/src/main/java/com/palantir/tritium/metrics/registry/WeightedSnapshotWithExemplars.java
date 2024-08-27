@@ -33,6 +33,7 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
     /**
      * A single sample item with value and its weights for {@link WeightedSnapshotWithExemplars}.
      */
+    @SuppressWarnings("VisibilityModifier")
     public static class WeightedSampleWithExemplar {
 
         public final long value;
