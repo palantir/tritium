@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
  * {@link LockFreeExponentiallyDecayingReservoirTest} is based closely on the codahale
  * <a href="https://github.com/dropwizard/metrics/blob/a314e903d7ba3c5ec47ee7c9103d73ed09a20bd6/metrics-core/src/test/java/com/codahale/metrics/ExponentiallyDecayingReservoirTest.java">
  * ExponentiallyDecayingReservoirTest.java</a>.
- * <p>
+ *
  * See {@code ExponentiallyDecayingReservoirTest.java} Licensed under the Apache License, Version 2.0. You may obtain
  * a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
