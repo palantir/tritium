@@ -104,7 +104,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
             double priority = itemWeight / ThreadLocalRandom.current().nextDouble();
             boolean mapIsFull = count >= size;
             if (!mapIsFull || values.firstKey() < priority) {
-                addSample(priority, value, itemWeight, mapIsFull, exemplarMetadataProvider.collect(value));
+                addSample(priority, value, itemWeight, mapIsFull, exemplarMetadataProvider.collect());
             }
         }
 
@@ -260,7 +260,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         private double alpha = DEFAULT_ALPHA;
         private Duration rescaleThreshold = DEFAULT_RESCALE_THRESHOLD;
         private Clock clock = Clock.defaultClock();
-        private ExemplarMetadataProvider<?> exemplarMetadataProvider = _v -> null;
+        private ExemplarMetadataProvider<?> exemplarMetadataProvider = () -> null;
 
         private Builder() {}
 
