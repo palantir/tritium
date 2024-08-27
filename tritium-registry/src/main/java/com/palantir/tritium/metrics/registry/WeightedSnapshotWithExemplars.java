@@ -31,19 +31,31 @@ import javax.annotation.Nullable;
 final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsCapture {
 
     /**
-     * A single sample item with value and its weights for {@link WeightedSnapshotWithExemplars}.
+     * A single sample item with value, weights and optional exemplar metadata.
      */
-    @SuppressWarnings("VisibilityModifier")
-    public static class WeightedSampleWithExemplar {
+    static class WeightedSampleWithExemplar {
 
-        public final long value;
-        public final double weight;
-        public final @Nullable Object metadata;
+        private final long value;
+        private final double weight;
+        private final @Nullable Object exemplarMetadata;
 
-        WeightedSampleWithExemplar(long value, double weight, @Nullable Object metadata) {
+        WeightedSampleWithExemplar(long value, double weight, @Nullable Object exemplarMetadata) {
             this.value = value;
             this.weight = weight;
-            this.metadata = metadata;
+            this.exemplarMetadata = exemplarMetadata;
+        }
+
+        public long getValue() {
+            return value;
+        }
+
+        public double getWeight() {
+            return weight;
+        }
+
+        @Nullable
+        public Object getExemplarMetadata() {
+            return exemplarMetadata;
         }
     }
 
@@ -62,8 +74,8 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
 
         values.forEach(v -> {
             weightedSamples.add(new WeightedSample(v.value, v.weight));
-            if (v.metadata != null) {
-                exemplarMetadatas.add(DefaultLongExemplar.of(v.metadata, v.value));
+            if (v.exemplarMetadata != null) {
+                exemplarMetadatas.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
             }
         });
 

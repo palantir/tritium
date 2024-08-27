@@ -176,12 +176,12 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
         @Override
         public void accept(Double priority, WeightedSampleWithExemplar sample) {
-            double newWeight = sample.weight * scalingFactor;
+            double newWeight = sample.getWeight() * scalingFactor;
             if (Double.compare(newWeight, 0) == 0) {
                 return;
             }
             WeightedSampleWithExemplar newSample =
-                    new WeightedSampleWithExemplar(sample.value, newWeight, sample.metadata);
+                    new WeightedSampleWithExemplar(sample.getValue(), newWeight, sample.getExemplarMetadata());
             if (values.put(priority * scalingFactor, newSample) == null) {
                 count++;
             }
