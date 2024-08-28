@@ -44,23 +44,23 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
             this.exemplarMetadata = exemplarMetadata;
         }
 
-        public long getValue() {
+        long value() {
             return value;
         }
 
-        public double getWeight() {
+        double weight() {
             return weight;
         }
 
         @Nullable
-        public Object getExemplarMetadata() {
+        Object exemplarMetadata() {
             return exemplarMetadata;
         }
     }
 
     private final WeightedSnapshot weightedSnapshot;
     private final ExemplarMetadataProvider<?> exemplarProvider;
-    private final List<LongExemplar<Object>> exemplarMetadatas;
+    private final List<LongExemplar<Object>> exemplars;
 
     /**
      * Create a new {@link Snapshot} with the given values.
@@ -72,18 +72,18 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
     WeightedSnapshotWithExemplars(ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
         ImmutableList.Builder<WeightedSample> weightedSamplesBuilder =
                 ImmutableList.builderWithExpectedSize(values.size());
-        ImmutableList.Builder<LongExemplar<Object>> metadatasBuilder = null;
+        ImmutableList.Builder<LongExemplar<Object>> exemplarsBuilder = null;
 
         for (WeightedSampleWithExemplar v : values) {
             weightedSamplesBuilder.add(new WeightedSample(v.value, v.weight));
             if (v.exemplarMetadata != null) {
-                if (metadatasBuilder == null) {
-                    metadatasBuilder = ImmutableList.builder();
+                if (exemplarsBuilder == null) {
+                    exemplarsBuilder = ImmutableList.builder();
                 }
-                metadatasBuilder.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
+                exemplarsBuilder.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
             }
         }
-        this.exemplarMetadatas = (metadatasBuilder == null) ? ImmutableList.of() : metadatasBuilder.build();
+        this.exemplars = (exemplarsBuilder == null) ? ImmutableList.of() : exemplarsBuilder.build();
 
         this.weightedSnapshot = new WeightedSnapshot(weightedSamplesBuilder.build());
         this.exemplarProvider = provider;
@@ -98,7 +98,7 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
     @SuppressWarnings("unchecked") // instance check on the provider guarantees the cast is safe
     public <U> List<LongExemplar<U>> getSamples(ExemplarMetadataProvider<U> provider) {
         if (this.exemplarProvider == provider) {
-            return (List<LongExemplar<U>>) (List<?>) exemplarMetadatas;
+            return (List<LongExemplar<U>>) (List<?>) exemplars;
         }
         return List.of();
     }
