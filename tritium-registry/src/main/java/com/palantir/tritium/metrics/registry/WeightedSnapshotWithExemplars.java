@@ -18,8 +18,8 @@ package com.palantir.tritium.metrics.registry;
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.WeightedSnapshot;
 import com.codahale.metrics.WeightedSnapshot.WeightedSample;
+import com.google.common.collect.ImmutableList;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -65,20 +65,27 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
     /**
      * Create a new {@link Snapshot} with the given values.
      *
+     * @param provider the provider used to capture exemplar metadata. The {@link ExemplarsCapture} will only return
+     * exemplars to clients able to input the same provider instance, to guarantee type-safety.
      * @param values an unordered set of values in the reservoir
      */
     WeightedSnapshotWithExemplars(ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
-        final List<WeightedSample> weightedSamples = new ArrayList<>();
-        this.exemplarMetadatas = new ArrayList<>();
+        ImmutableList.Builder<WeightedSample> weightedSamplesBuilder =
+                ImmutableList.builderWithExpectedSize(values.size());
+        ImmutableList.Builder<LongExemplar<Object>> metadatasBuilder = null;
 
-        values.forEach(v -> {
-            weightedSamples.add(new WeightedSample(v.value, v.weight));
+        for (WeightedSampleWithExemplar v : values) {
+            weightedSamplesBuilder.add(new WeightedSample(v.value, v.weight));
             if (v.exemplarMetadata != null) {
-                exemplarMetadatas.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
+                if (metadatasBuilder == null) {
+                    metadatasBuilder = ImmutableList.builder();
+                }
+                metadatasBuilder.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
             }
-        });
+        }
+        this.exemplarMetadatas = (metadatasBuilder == null) ? ImmutableList.of() : metadatasBuilder.build();
 
-        this.weightedSnapshot = new WeightedSnapshot(weightedSamples);
+        this.weightedSnapshot = new WeightedSnapshot(weightedSamplesBuilder.build());
         this.exemplarProvider = provider;
     }
 
