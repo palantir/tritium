@@ -32,37 +32,27 @@ import java.util.function.BiConsumer;
 import javax.annotation.Nullable;
 
 /**
- * {@link LockFreeExponentiallyDecayingReservoir} is based closely on the codahale
- * <a href="https://github.com/dropwizard/metrics/blob/0313a104bf785e87d7d14a18a82026225304c402/metrics-core/src/main/java/com/codahale/metrics/ExponentiallyDecayingReservoir.java">
- * ExponentiallyDecayingReservoir.java</a>, however it provides looser guarantees while completely avoiding locks.
  * <p>
- * This implementation is being contributed upstream:
- * <a href="https://github.com/dropwizard/metrics/pull/1656">metrics#1656</a>
+ * {@link LockFreeExponentiallyDecayingReservoirWithExemplars} is based on the codahale
+ * <a href="https://github.com/dropwizard/metrics/blob/1418393d0476d3eb6147bc567797e5d2a71d0b83/metrics-core/src/main/java/com/codahale/metrics/LockFreeExponentiallyDecayingReservoir.java">LockFreeExponentiallyDecayingReservoir.java</a>
+ * and adds support for capturing exemplar metadata, maintaining basically every other aspect of its original design.
  * <p>
- * Looser guarantees:
- * <ul>
- *     <li> Updates which occur concurrently with rescaling may be discarded if the orphaned state node is updated after
- *     rescale has replaced it. This condition has a greater probability as the rescale interval is reduced due to the
- *     increased frequency of rescaling. {@link #rescaleThresholdNanos} values below 30 seconds are not recommended.
- *     <li> Given a small rescale threshold, updates may attempt to rescale into a new bucket, but lose the CAS race
- *     and update into a newer bucket than expected. In these cases the measurement weight is reduced accordingly.
- *     <li>In the worst case, all concurrent threads updating the reservoir may attempt to rescale rather than
- *     a single thread holding an exclusive write lock. It's expected that the configuration is set such that
- *     rescaling is substantially less common than updating at peak load. Even so, when size is reasonably small
- *     it can be more efficient to rescale than to park and context switch.
- * </ul>
+ * Exemplar metadata is captured via the provided {@link ExemplarMetadataProvider}, which is invoked every time a
+ * sample is selected to be added to the reservoir (ie for certain occurrences of {@link Reservoir#update(long)}).
+ * <p>
+ * The captured metadata is then exposed in the {@link ExemplarsCapture} returned by {@link Reservoir#getSnapshot()}:
+ * even though the signature of {@link Reservoir#getSnapshot()} is unchanged, the returned {@link Snapshot} is actually
+ * a concrete implementation of {@link Snapshot} that is also guaranteed to implement {@link ExemplarsCapture}.
  * <p>
  * See {@link com.codahale.metrics.ExponentiallyDecayingReservoir} Copyright 2010-2012 Coda Hale and Yammer, Inc.
  * Licensed under the Apache License, Version 2.0. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * @deprecated prefer upstream {@link com.codahale.metrics.LockFreeExponentiallyDecayingReservoir}.
  */
-@Deprecated
-public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
+public final class LockFreeExponentiallyDecayingReservoirWithExemplars implements Reservoir {
 
     private static final double SECONDS_PER_NANO = .000_000_001D;
-    private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoir, State> stateUpdater =
-            AtomicReferenceFieldUpdater.newUpdater(LockFreeExponentiallyDecayingReservoir.class, State.class, "state");
+    private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoirWithExemplars, State>
+            stateUpdater = AtomicReferenceFieldUpdater.newUpdater(
+                    LockFreeExponentiallyDecayingReservoirWithExemplars.class, State.class, "state");
 
     private final int size;
     private final long rescaleThresholdNanos;
@@ -188,7 +178,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
     }
 
-    private LockFreeExponentiallyDecayingReservoir(
+    private LockFreeExponentiallyDecayingReservoirWithExemplars(
             int size,
             double alpha,
             Duration rescaleThreshold,
@@ -281,7 +271,8 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         public Builder size(int value) {
             if (value <= 0) {
                 throw new SafeIllegalArgumentException(
-                        "LockFreeExponentiallyDecayingReservoir size must be positive", SafeArg.of("size", value));
+                        "LockFreeExponentiallyDecayingReservoirWithExemplars size must be positive",
+                        SafeArg.of("size", value));
             }
             this.size = value;
             return this;
@@ -312,7 +303,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
 
         public Reservoir build() {
-            return new LockFreeExponentiallyDecayingReservoir(
+            return new LockFreeExponentiallyDecayingReservoirWithExemplars(
                     size, alpha, rescaleThreshold, clock, exemplarMetadataProvider);
         }
     }
