@@ -265,8 +265,9 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         private Builder() {}
 
         /**
-         * Maximum number of samples to keep in the reservoir. Once this number is reached older samples are
-         * replaced (based on weight, with some amount of random jitter).
+         * {@link ExemplarMetadataProvider} to provide exemplar metadata for each sample. It will be invoked
+         * every time a call to {@link Reservoir#update(long)} actually results in the sample being added to the
+         * reservoir.
          */
         public Builder exemplarProvider(ExemplarMetadataProvider<?> value) {
             this.exemplarMetadataProvider = Preconditions.checkNotNull(value, "exemplarMetadataProvider is required");
