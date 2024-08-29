@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: The `cache.stats.disabled` metric is listed in metric-schema
+  links:
+  - https://github.com/palantir/tritium/pull/2005
