@@ -39,3 +39,7 @@ namespaces:
         type: gauge
         tags: [cache]
         docs: Maximum number of cache entries cache can hold if limited
+      stats.disabled:
+        type: meter
+        tags: [cache]
+        docs: Meter marked when `CaffeineCacheStats.registerCache` is called on a cache that does not record stats using `caffeineBuilder.recordStats()`.
