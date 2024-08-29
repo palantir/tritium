@@ -34,10 +34,11 @@ import org.junit.jupiter.api.Test;
  * <a href="https://github.com/palantir/tritium/blob/develop/tritium-registry/src/test/java/com/palantir/tritium/metrics/registry/LockFreeExponentiallyDecayingReservoirTest.java">
  * LockFreeExponentiallyDecayingReservoirTest.java</a>.
  * <p>
- * See {@code LockFreeExponentiallyDecayingReservoirTest.java} Licensed under the Apache License, Version 2.0. You may obtain
- * a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * See {@code LockFreeExponentiallyDecayingReservoirTest.java} Licensed under the Apache License, Version 2.0. You may
+ * obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 class LockFreeExponentiallyDecayingReservoirWithExemplarsTest {
+    /* Tests for original functionality, also available in LockFreeExponentiallyDecayingReservoir */
 
     @Test
     public void aReservoirOf100OutOf1000Elements() {
@@ -380,6 +381,53 @@ class LockFreeExponentiallyDecayingReservoirWithExemplarsTest {
         testShortPeriodShouldNotRescale(0);
         // Now revalidate using an edge case nanoTime value just prior to wrapping
         testShortPeriodShouldNotRescale(Long.MAX_VALUE - TimeUnit.MINUTES.toNanos(30));
+    }
+
+    /* Tests for exemplar capturing functionality */
+
+    @Test
+    public void exemplarValuesAreCapturedFromProvider() {
+        final AtomicInteger providerMetadata = new AtomicInteger(0);
+        ExemplarMetadataProvider<Integer> provider = providerMetadata::get;
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                .size(100)
+                .alpha(0.99)
+                .rescaleThreshold(Duration.ofHours(1))
+                .exemplarProvider(provider)
+                .build();
+        for (int i = 0; i < 1000; i++) {
+            providerMetadata.set(i);
+            reservoir.update(i);
+        }
+
+        assertThat(reservoir.getSnapshot()).isInstanceOf(ExemplarsCapture.class);
+        ExemplarsCapture exemplarsCapture = (ExemplarsCapture) reservoir.getSnapshot();
+
+        // Verify that returned exemplar values are attributed correctly
+        assertThat(exemplarsCapture.getSamples(provider)).hasSize(100);
+        exemplarsCapture.getSamples(provider).forEach(exemplar -> {
+            assertThat(exemplar.value()).isEqualTo((long) exemplar.metadata());
+        });
+    }
+
+    @Test
+    public void nullExemplarsAreAbsentFromReturnedSnapshot() {
+        ExemplarMetadataProvider<Integer> provider = () -> null;
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                .size(100)
+                .alpha(0.99)
+                .rescaleThreshold(Duration.ofHours(1))
+                .exemplarProvider(provider)
+                .build();
+        for (int i = 0; i < 1000; i++) {
+            reservoir.update(i);
+        }
+
+        assertThat(reservoir.getSnapshot()).isInstanceOf(ExemplarsCapture.class);
+        ExemplarsCapture exemplarsCapture = (ExemplarsCapture) reservoir.getSnapshot();
+
+        // No exemplars should be returned since the provider didn't return non-null metadata
+        assertThat(exemplarsCapture.getSamples(provider)).isEmpty();
     }
 
     private static void testShortPeriodShouldNotRescale(long startTimeNanos) {
