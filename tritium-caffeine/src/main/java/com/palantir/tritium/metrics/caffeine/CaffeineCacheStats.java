@@ -78,9 +78,9 @@ public final class CaffeineCacheStats {
      * @param cache cache to instrument
      * @param name cache name
      * <p>
-     * Soon to be deprecated, prefer {@link Caffeine#recordStats(Supplier)} and {@link CacheStats#of(TaggedMetricRegistry, String)}
+     * @deprecated Prefer {@link Caffeine#recordStats(Supplier)} and {@link CacheStats#of(TaggedMetricRegistry, String)}
      */
-    // Soon to be @Deprecated
+    @Deprecated
     public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
         checkNotNull(registry, "registry");
         checkNotNull(cache, "cache");
