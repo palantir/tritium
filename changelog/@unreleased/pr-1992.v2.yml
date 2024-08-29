@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: LockFreeExponentiallyDecayingReservoir keeps track of samples
+  links:
+  - https://github.com/palantir/tritium/pull/1992
