@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Deprecate CaffeineCacheStats.registerCache
+  links:
+  - https://github.com/palantir/tritium/pull/2003
