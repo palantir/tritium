@@ -78,7 +78,7 @@ public final class CaffeineCacheStats {
      * @param cache cache to instrument
      * @param name cache name
      * <p>
-     * @deprecated Prefer {@link CacheStats#of(TaggedMetricRegistry, String)}.{@link CacheStats#register(Function) register(stats ->) {@link Caffeine#recordStats(Supplier) Caffeine.newBuilder().recordStats(stats)}...  
+     * @deprecated Prefer {@link CacheStats#of(TaggedMetricRegistry, String)}.{@link CacheStats#register(Function) register(stats ->} {@link Caffeine#recordStats(Supplier) Caffeine.newBuilder().recordStats(stats)}}...
      * <p/>
      * See <a href="https://github.com/palantir/tritium?tab=readme-ov-file#instrumenting-a-caffeine-cache">Instrumenting a [Caffeine cache](https://github.com/ben-manes/caffeine/)</a>
      */
