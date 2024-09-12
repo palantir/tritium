@@ -18,7 +18,6 @@ package com.palantir.tritium.metrics.jvm;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.RatioGauge;
-import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.ThreadDeadlockDetector;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
@@ -31,6 +30,7 @@ import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.AttributeUptime_EnablePreview;
 import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.DnsCacheTtlSeconds_Cache;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -69,8 +69,7 @@ public final class JvmMetrics {
         OperatingSystemMetrics.register(registry);
         SafepointMetrics.register(registry);
         registerAttributes(metrics);
-        MetricRegistries.registerAll(
-                registry, "jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
+        registerJvmBufferPools(registry);
         registerClassLoading(metrics);
         registerJvmMemory(registry);
         registerThreads(metrics);
@@ -214,6 +213,22 @@ public final class JvmMetrics {
                 return (used < 0 || max < 0) ? RATIO_NAN : RatioGauge.Ratio.of(used, max);
             }
         });
+    }
+
+    private static void registerJvmBufferPools(TaggedMetricRegistry registry) {
+        JvmBuffersMetrics jvmBuffersMetrics = JvmBuffersMetrics.of(registry);
+        for (BufferPoolMXBean pool : ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)) {
+            String poolName = pool.getName();
+            if (poolName.equals("direct")) {
+                jvmBuffersMetrics.directCount(nonNegative(pool::getCount));
+                jvmBuffersMetrics.directUsed(nonNegative(pool::getMemoryUsed));
+                jvmBuffersMetrics.directCapacity(nonNegative(pool::getTotalCapacity));
+            } else if (poolName.equals("mapped")) {
+                jvmBuffersMetrics.mappedCount(nonNegative(pool::getCount));
+                jvmBuffersMetrics.mappedUsed(nonNegative(pool::getMemoryUsed));
+                jvmBuffersMetrics.mappedCapacity(nonNegative(pool::getTotalCapacity));
+            }
+        }
     }
 
     /**

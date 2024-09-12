@@ -148,3 +148,24 @@ namespaces:
       non-heap.usage:
         type: gauge
         docs: Ratio of `jvm.memory.non-heap.used` to `jvm.memory.non-heap.max`.
+  jvm.buffers:
+    docs: Java virtual machine buffer pool metrics.
+    metrics:
+      direct.count:
+        type: gauge
+        docs: Number of buffers in the direct buffer pool.
+      direct.used:
+        type: gauge
+        docs: Total memory used by the direct buffer pool.
+      direct.capacity:
+        type: gauge
+        docs: Total capacity of the direct buffer pool.
+      mapped.count:
+        type: gauge
+        docs: Number of buffers in the mapped buffer pool.
+      mapped.used:
+        type: gauge
+        docs: Total memory used by the mapped buffer pool.
+      mapped.capacity:
+        type: gauge
+        docs: Total capacity of the mapped buffer pool.
