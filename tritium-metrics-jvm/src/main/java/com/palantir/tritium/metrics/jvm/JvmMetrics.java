@@ -219,11 +219,11 @@ public final class JvmMetrics {
         JvmBuffersMetrics jvmBuffersMetrics = JvmBuffersMetrics.of(registry);
         for (BufferPoolMXBean pool : ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)) {
             String poolName = pool.getName();
-            if (poolName.equals("direct")) {
+            if ("direct".equals(poolName)) {
                 jvmBuffersMetrics.directCount(nonNegative(pool::getCount));
                 jvmBuffersMetrics.directUsed(nonNegative(pool::getMemoryUsed));
                 jvmBuffersMetrics.directCapacity(nonNegative(pool::getTotalCapacity));
-            } else if (poolName.equals("mapped")) {
+            } else if ("mapped".equals(poolName)) {
                 jvmBuffersMetrics.mappedCount(nonNegative(pool::getCount));
                 jvmBuffersMetrics.mappedUsed(nonNegative(pool::getMemoryUsed));
                 jvmBuffersMetrics.mappedCapacity(nonNegative(pool::getTotalCapacity));
