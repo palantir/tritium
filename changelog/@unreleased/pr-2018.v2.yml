@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Use metric-schema to report JVM Buffer Pool metrics
+  links:
+  - https://github.com/palantir/tritium/pull/2018
