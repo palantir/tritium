@@ -27,6 +27,7 @@ apply plugin: 'java'
 apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'com.palantir.git-version'
+apply plugin: 'com.palantir.jdks'
 apply plugin: 'com.palantir.baseline-java-versions'
 apply plugin: 'com.palantir.jdks.latest'
 
@@ -123,4 +124,8 @@ allprojects {
     tasks.check.dependsOn(checkImplicitDependencies)
     tasks.check.dependsOn(checkUnusedDependencies)
     tasks.check.dependsOn(checkUnusedConstraints)
+}
+
+jdks {
+    daemonTarget = 17
 }
