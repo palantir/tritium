@@ -26,31 +26,34 @@ import java.lang.annotation.Target;
  * when modifying this element.
  */
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.MODULE})
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface PerformanceSensitive {
-
-    /**
-     * This element is sensitive to object allocations.
-     */
-    String Allocations = "Allocations";
-
-    /**
-     * This element is sensitive to cache access patterns.
-     */
-    String Cache = "Cache";
-
-    /**
-     * This element is sensitive to overall latency.
-     */
-    String Latency = "Latency";
-
-    /**
-     * This element is sensitive to overall throughput.
-     */
-    String Throughput = "Throughput";
 
     /**
      * The reasons this element is considered performance sensitive.
      */
-    String[] value();
+    Consideration[] value();
+
+    enum Consideration {
+
+        /**
+         * This element is sensitive to object allocations.
+         */
+        Allocations,
+
+        /**
+         * This element is sensitive to cache access patterns.
+         */
+        Cache,
+
+        /**
+         * This element is sensitive to overall latency.
+         */
+        Latency,
+
+        /**
+         * This element is sensitive to overall throughput.
+         */
+        Throughput,
+    }
 }

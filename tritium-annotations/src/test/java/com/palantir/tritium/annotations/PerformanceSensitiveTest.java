@@ -18,6 +18,7 @@ package com.palantir.tritium.annotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.palantir.tritium.annotations.PerformanceSensitive.Consideration;
 import org.junit.jupiter.api.Test;
 
 public class PerformanceSensitiveTest {
@@ -28,11 +29,10 @@ public class PerformanceSensitiveTest {
     }
 
     @PerformanceSensitive({
-        "test",
-        PerformanceSensitive.Allocations,
-        PerformanceSensitive.Cache,
-        PerformanceSensitive.Latency,
-        PerformanceSensitive.Throughput,
+        Consideration.Allocations,
+        Consideration.Cache,
+        Consideration.Latency,
+        Consideration.Throughput,
     })
     static long expensive() {
         long sum = 0;
