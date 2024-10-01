@@ -1,0 +1,5 @@
+type: improvement
+improvement:
+  description: Document module, class, and/or method performance characteristics.
+  links:
+  - https://github.com/palantir/tritium/pull/2037
