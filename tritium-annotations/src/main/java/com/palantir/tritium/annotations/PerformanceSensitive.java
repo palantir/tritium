@@ -39,21 +39,21 @@ public @interface PerformanceSensitive {
         /**
          * This element is sensitive to object allocations.
          */
-        Allocations,
+        ALLOCATION,
 
         /**
          * This element is sensitive to cache access patterns.
          */
-        Cache,
+        CACHE,
 
         /**
          * This element is sensitive to overall latency.
          */
-        Latency,
+        LATENCY,
 
         /**
          * This element is sensitive to overall throughput.
          */
-        Throughput,
+        THROUGHPUT,
     }
 }

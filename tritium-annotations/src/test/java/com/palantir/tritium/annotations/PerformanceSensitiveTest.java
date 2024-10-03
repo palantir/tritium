@@ -29,10 +29,10 @@ public class PerformanceSensitiveTest {
     }
 
     @PerformanceSensitive({
-        Consideration.Allocations,
-        Consideration.Cache,
-        Consideration.Latency,
-        Consideration.Throughput,
+        Consideration.ALLOCATION,
+        Consideration.CACHE,
+        Consideration.LATENCY,
+        Consideration.THROUGHPUT,
     })
     static long expensive() {
         long sum = 0;
