@@ -6,10 +6,7 @@ com.google.auto.service:* = 1.1.1
 com.google.code.findbugs:* = 3.0.2
 com.google.guava:guava = 33.3.1-jre
 com.google.testing.compile:* = 0.21.0
-# dependency-upgrader:OFF
-# requires JDK 17+, see https://github.com/palantir/tritium/pull/1958
-com.palantir.delegate.processors:* = 1.1.0
-# dependency-upgrader:ON
+com.palantir.delegate.processors:* = 1.2.0
 com.palantir.jvm.diagnostics:* = 0.5.0
 com.palantir.nylon:* = 0.4.0
 com.palantir.safe-logging:* = 3.7.0
