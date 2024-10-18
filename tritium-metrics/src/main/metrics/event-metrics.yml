@@ -1,0 +1,15 @@
+options:
+  javaPackage: com.palantir.tritium.event.metrics
+  javaVisibility: packagePrivate
+namespaces:
+  instrumentation:
+    docs: Instrumentation metrics.
+    metrics:
+      invocation:
+        type: timer
+        tags:
+          - name: service-name
+          - name: endpoint
+          - name: result
+            values: [ success, failure ]
+        docs: A timer of the time it took to execute an invocation.

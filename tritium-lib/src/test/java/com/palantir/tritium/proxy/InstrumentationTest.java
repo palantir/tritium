@@ -64,6 +64,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.function.Supplier;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -334,28 +335,48 @@ public abstract class InstrumentationTest {
     void testTaggedMetrics() {
         TestImplementation delegate = new TestImplementation();
         TestInterface runnable = Instrumentation.builder(TestInterface.class, delegate)
-                .withTaggedMetrics(taggedMetricRegistry, "testPrefix")
+                .withTaggedMetrics(taggedMetricRegistry, "")
                 .withMetrics(metrics)
                 .build();
         assertThat(delegate.invocationCount()).isZero();
         runnable.test();
         assertThat(delegate.invocationCount()).isOne();
         Map<MetricName, Metric> taggedMetrics = taggedMetricRegistry.getMetrics();
-        assertThat(taggedMetrics.keySet())
-                .containsExactly(
-                        MetricName.builder()
-                                .safeName("testPrefix")
-                                .putSafeTags("service-name", "TestInterface")
-                                .putSafeTags("endpoint", "test")
-                                .build(),
-                        // The failures metric is created eagerly
-                        MetricName.builder().safeName("failures").build());
+        assertThat(taggedMetrics.entrySet()).singleElement().satisfies(entry -> {
+            assertThat(entry.getKey().safeName()).isEqualTo("instrumentation.invocation");
+            assertThat(entry.getKey().safeTags())
+                    .containsEntry("service-name", "TestInterface")
+                    .containsEntry("endpoint", "test")
+                    .containsEntry("result", "success");
+            assertThat(entry.getValue())
+                    .asInstanceOf(InstanceOfAssertFactories.type(Timer.class))
+                    .extracting(Timer::getCount, InstanceOfAssertFactories.LONG)
+                    .isOne();
+        });
+    }
 
-        assertThat(taggedMetrics.values())
-                .first()
-                .isInstanceOf(Timer.class)
-                .extracting(m -> ((Timer) m).getCount())
-                .isEqualTo(1L);
+    @Test
+    void testTaggedMetrics_serviceName() {
+        TestImplementation delegate = new TestImplementation();
+        TestInterface runnable = Instrumentation.builder(TestInterface.class, delegate)
+                .withTaggedMetrics(taggedMetricRegistry, "testServiceName")
+                .withMetrics(metrics)
+                .build();
+        assertThat(delegate.invocationCount()).isZero();
+        runnable.test();
+        assertThat(delegate.invocationCount()).isOne();
+        Map<MetricName, Metric> taggedMetrics = taggedMetricRegistry.getMetrics();
+        assertThat(taggedMetrics.entrySet()).singleElement().satisfies(entry -> {
+            assertThat(entry.getKey().safeName()).isEqualTo("instrumentation.invocation");
+            assertThat(entry.getKey().safeTags())
+                    .containsEntry("service-name", "testServiceName")
+                    .containsEntry("endpoint", "test")
+                    .containsEntry("result", "success");
+            assertThat(entry.getValue())
+                    .asInstanceOf(InstanceOfAssertFactories.type(Timer.class))
+                    .extracting(Timer::getCount, InstanceOfAssertFactories.LONG)
+                    .isOne();
+        });
     }
 
     @Test

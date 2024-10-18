@@ -1,0 +1,7 @@
+type: improvement
+improvement:
+  description: Instrumentation metrics are now defined using metric-schema. There
+    is a single metric name for all instrumented classes with tags for the service
+    name, endpoint, and result.
+  links:
+  - https://github.com/palantir/tritium/pull/1962

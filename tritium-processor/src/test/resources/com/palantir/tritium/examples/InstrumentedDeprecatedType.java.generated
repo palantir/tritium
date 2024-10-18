@@ -1,0 +1,71 @@
+package com.palantir.tritium.examples;
+
+import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
+import com.palantir.tritium.api.event.InstrumentationFilter;
+import com.palantir.tritium.event.Handlers;
+import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.InvocationEventHandler;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.reflect.Method;
+import java.util.Objects;
+import javax.annotation.processing.Generated;
+
+@Generated("com.palantir.tritium.processor.TritiumAnnotationProcessor")
+@SuppressWarnings("deprecation")
+public final class InstrumentedDeprecatedType implements DeprecatedType {
+    private static final Method FOO_ed3d1cab;
+
+    static {
+        try {
+            FOO_ed3d1cab = DeprecatedType.class.getMethod("foo");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private final DeprecatedType delegate;
+
+    private final InvocationEventHandler<InvocationContext> handler;
+
+    private final InstrumentationFilter filter;
+
+    private InstrumentedDeprecatedType(
+            DeprecatedType delegate, InvocationEventHandler<InvocationContext> handler, InstrumentationFilter filter) {
+        this.delegate = Objects.requireNonNull(delegate, "delegate");
+        this.handler = Objects.requireNonNull(handler, "handler");
+        this.filter = Objects.requireNonNull(filter, "filter");
+    }
+
+    @Override
+    public DeprecatedType.Foo foo() {
+        InvocationContext _invocationContext = this.handler.isEnabled()
+                ? Handlers.pre(this.handler, this.filter, this, FOO_ed3d1cab, new Object[] {})
+                : Handlers.disabled();
+        try {
+            DeprecatedType.Foo _result = this.delegate.foo();
+            Handlers.onSuccess(this.handler, _invocationContext, _result);
+            return _result;
+        } catch (Throwable _throwable) {
+            Handlers.onFailure(this.handler, _invocationContext, _throwable);
+            throw _throwable;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "InstrumentedDeprecatedType{" + this.delegate + "}";
+    }
+
+    public static InstrumentationBuilder<DeprecatedType, DeprecatedType> builder(DeprecatedType delegate) {
+        return new InstrumentationBuilder<DeprecatedType, DeprecatedType>(
+                DeprecatedType.class, delegate, InstrumentedDeprecatedType::new);
+    }
+
+    public static DeprecatedType trace(DeprecatedType delegate) {
+        return InstrumentationBuilder.trace(DeprecatedType.class, delegate, InstrumentedDeprecatedType::new);
+    }
+
+    public static DeprecatedType instrument(DeprecatedType delegate, TaggedMetricRegistry registry) {
+        return builder(delegate).withTaggedMetrics(registry).withTracing().build();
+    }
+}

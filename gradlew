@@ -55,12 +55,21 @@
 #       Darwin, MinGW, and NonStop.
 #
 #   (3) This script is generated from the Groovy template
-#       https://github.com/gradle/gradle/blob/HEAD/subprojects/plugins/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
+#       https://github.com/gradle/gradle/blob/HEAD/platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
 #       within the Gradle project.
 #
 #       You can find Gradle at https://github.com/gradle/gradle/.
 #
 ##############################################################################
+# >>> Gradle JDK setup >>>
+# !! Contents within this block are managed by 'palantir/gradle-jdks' !!
+if [ -f gradle/gradle-jdks-setup.sh ]; then
+    if ! . gradle/gradle-jdks-setup.sh; then
+        echo "Failed to set up JDK, running gradle/gradle-jdks-setup.sh failed with non-zero exit code"
+        exit 1
+    fi
+fi
+# <<< Gradle JDK setup <<<
 
 # Attempt to set APP_HOME
 

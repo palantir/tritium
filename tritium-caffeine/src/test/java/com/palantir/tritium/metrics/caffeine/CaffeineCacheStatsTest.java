@@ -24,6 +24,7 @@ import static org.awaitility.Awaitility.await;
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -121,7 +122,7 @@ final class CaffeineCacheStatsTest {
                 .extracting(Gauge::getValue)
                 .isEqualTo(3L);
 
-        assertThat(metricRegistry.getCounters())
+        assertThat(metricRegistry.getMeters())
                 .extractingByKey("test.cache.stats.disabled")
                 .isNull();
     }
@@ -208,10 +209,7 @@ final class CaffeineCacheStatsTest {
                     .isEqualTo(0.25);
 
             assertThat(taggedMetricRegistry.getMetrics())
-                    .extractingByKey(MetricName.builder()
-                            .safeName("cache.stats.disabled")
-                            .putSafeTags("cache", "test")
-                            .build())
+                    .extractingByKey(CacheMetrics.statsDisabledMetricName("test"))
                     .isNull();
         });
     }
@@ -221,12 +219,12 @@ final class CaffeineCacheStatsTest {
         Cache<Integer, String> cache = Caffeine.newBuilder().build();
         CaffeineCacheStats.registerCache(metricRegistry, cache, "test");
         String disabledMetricName = "test.cache.stats.disabled";
-        assertThat(metricRegistry.getCounters())
+        assertThat(metricRegistry.getMeters())
                 .hasSize(1)
                 .containsOnlyKeys(disabledMetricName)
                 .extractingByKey(disabledMetricName)
-                .isInstanceOf(Counter.class)
-                .extracting(Counter::getCount)
+                .isInstanceOf(Meter.class)
+                .extracting(Meter::getCount)
                 .isEqualTo(1L);
     }
 
@@ -234,17 +232,14 @@ final class CaffeineCacheStatsTest {
     void registerCacheWithoutRecordingStatsTagged() {
         Cache<Integer, String> cache = Caffeine.newBuilder().build();
         CaffeineCacheStats.registerCache(taggedMetricRegistry, cache, "test");
-        MetricName disabledMetricName = MetricName.builder()
-                .safeName("cache.stats.disabled")
-                .putSafeTags("cache", "test")
-                .build();
+        MetricName disabledMetricName = CacheMetrics.statsDisabledMetricName("test");
         assertThat(taggedMetricRegistry.getMetrics())
                 .hasSize(1)
                 .containsOnlyKeys(disabledMetricName)
                 .extractingByKey(disabledMetricName)
-                .isInstanceOf(Counter.class)
-                .asInstanceOf(type(Counter.class))
-                .extracting(Counter::getCount)
+                .isInstanceOf(Meter.class)
+                .asInstanceOf(type(Meter.class))
+                .extracting(Meter::getCount)
                 .isEqualTo(1L);
     }
 
@@ -318,10 +313,7 @@ final class CaffeineCacheStatsTest {
                 .isOne();
 
         assertThat(taggedMetricRegistry.getMetrics())
-                .extractingByKey(MetricName.builder()
-                        .safeName("cache.stats.disabled")
-                        .putSafeTags("cache", "test")
-                        .build())
+                .extractingByKey(CacheMetrics.statsDisabledMetricName("test"))
                 .isNull();
     }
 

@@ -18,8 +18,8 @@ package com.palantir.tritium.metrics.caffeine;
 
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -38,7 +38,6 @@ import java.util.function.Supplier;
 public final class CaffeineCacheStats {
 
     private static final SafeLogger log = SafeLoggerFactory.get(CaffeineCacheStats.class);
-    private static final String STATS_DISABLED = "cache.stats.disabled";
 
     private CaffeineCacheStats() {}
 
@@ -64,7 +63,10 @@ public final class CaffeineCacheStats {
                     .getMetrics()
                     .forEach((key, value) -> MetricRegistries.registerWithReplacement(registry, key, value));
         } else {
-            warnNotRecordingStats(name, registry.counter(MetricRegistry.name(name, STATS_DISABLED)));
+            warnNotRecordingStats(
+                    name,
+                    registry.meter(MetricRegistry.name(
+                            name, CacheMetrics.statsDisabledMetricName(name).safeName())));
         }
     }
 
@@ -88,14 +90,12 @@ public final class CaffeineCacheStats {
         if (cache.policy().isRecordingStats()) {
             CaffeineCacheTaggedMetrics.create(cache, name).getMetrics().forEach(registry::registerWithReplacement);
         } else {
-            warnNotRecordingStats(
-                    name,
-                    registry.counter(InternalCacheMetrics.taggedMetricName(name).apply(STATS_DISABLED)));
+            warnNotRecordingStats(name, CacheMetrics.of(registry).statsDisabled(name));
         }
     }
 
-    private static void warnNotRecordingStats(@Safe String name, Counter counter) {
-        counter.inc();
+    private static void warnNotRecordingStats(@Safe String name, Meter counter) {
+        counter.mark();
         log.warn(
                 "Registered cache does not have stats recording enabled, stats will always be zero. "
                         + "To enable cache metrics, stats recording must be enabled when constructing the cache: "

@@ -23,6 +23,7 @@ import com.palantir.logsafe.exceptions.SafeRuntimeException;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InvocationContext;
+import com.palantir.tritium.event.metrics.InstrumentationMetrics.Invocation_Result;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
@@ -46,16 +47,17 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
         TestImplementation testInterface = new TestImplementation();
 
         TaggedMetricsServiceInvocationEventHandler handler =
-                new TaggedMetricsServiceInvocationEventHandler(registry, "quux");
+                new TaggedMetricsServiceInvocationEventHandler(registry, "serviceName");
 
         invokeMethod(handler, testInterface, "doFoo", "bar", /* success= */ true);
 
         Map<MetricName, Metric> metrics = registry.getMetrics();
-        MetricName expectedMetricName = MetricName.builder()
-                .safeName("quux")
-                .putSafeTags("service-name", "TestImplementation")
-                .putSafeTags("endpoint", "doFoo")
-                .build();
+        MetricName expectedMetricName = InstrumentationMetrics.of(registry)
+                .invocation()
+                .serviceName("serviceName")
+                .endpoint("doFoo")
+                .result(Invocation_Result.SUCCESS)
+                .buildMetricName();
         assertThat(metrics).containsKey(expectedMetricName);
     }
 
@@ -65,17 +67,17 @@ final class TaggedMetricsServiceInvocationEventHandlerTest {
         TestImplementation testInterface = new TestImplementation();
 
         TaggedMetricsServiceInvocationEventHandler handler =
-                new TaggedMetricsServiceInvocationEventHandler(registry, "quux");
+                new TaggedMetricsServiceInvocationEventHandler(registry, "serviceName");
 
         invokeMethod(handler, testInterface, "doFoo", "bar", /* success= */ false);
 
         Map<MetricName, Metric> metrics = registry.getMetrics();
-        MetricName expectedMetricName = MetricName.builder()
-                .safeName("quux-failures")
-                .putSafeTags("service-name", "TestImplementation")
-                .putSafeTags("endpoint", "doFoo")
-                .putSafeTags("cause", SafeRuntimeException.class.getName())
-                .build();
+        MetricName expectedMetricName = InstrumentationMetrics.of(registry)
+                .invocation()
+                .serviceName("serviceName")
+                .endpoint("doFoo")
+                .result(Invocation_Result.FAILURE)
+                .buildMetricName();
         assertThat(metrics).containsKey(expectedMetricName);
     }
 

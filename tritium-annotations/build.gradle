@@ -11,4 +11,8 @@ dependencies {
     implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'org.slf4j:slf4j-api'
+
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
 }

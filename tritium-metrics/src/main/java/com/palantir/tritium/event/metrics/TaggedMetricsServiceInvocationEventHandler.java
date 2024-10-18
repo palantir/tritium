@@ -16,16 +16,13 @@
 
 package com.palantir.tritium.event.metrics;
 
-import static com.palantir.logsafe.Preconditions.checkNotNull;
-
-import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import com.palantir.logsafe.Safe;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
 import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
-import com.palantir.tritium.metrics.registry.MetricName;
+import com.palantir.tritium.event.metrics.InstrumentationMetrics.Invocation_Result;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,37 +41,33 @@ import javax.annotation.Nullable;
  *
  * <ul>
  *   <li>Metric Name: the service name supplied to the constructor
- *   <li>Tag - service-name: The simple name of the invoked class
+ *   <li>Tag - service-name: The service name
  *   <li>Tag - endpoint: The name of the method that was invoked
- *   <li>Tag - cause: When an error is hit, this will be filled with the full class name of the cause.
+ *   <li>Tag - result: {@code success} if the method completed normally or {@code failure} if the method completed
+ *   exceptionally.
  * </ul>
  */
 public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
-    private static final String FAILURES_METRIC_NAME = "failures";
-    private static final MetricName FAILURES_METRIC =
-            MetricName.builder().safeName(FAILURES_METRIC_NAME).build();
-
-    private final TaggedMetricRegistry taggedMetricRegistry;
-
-    @Safe
-    private final String serviceName;
-
-    private final Meter globalFailureMeter;
-    private final ConcurrentMap<Method, Timer> timerCache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Method, Timer> successTimerCache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Method, Timer> failureTimerCache = new ConcurrentHashMap<>();
     private final Function<Method, Timer> onSuccessTimerMappingFunction;
+    private final Function<Method, Timer> onFailureTimerMappingFunction;
 
     public TaggedMetricsServiceInvocationEventHandler(
             TaggedMetricRegistry taggedMetricRegistry, @Safe String serviceName) {
         super(getEnabledSupplier(serviceName));
-        this.taggedMetricRegistry = checkNotNull(taggedMetricRegistry, "metricRegistry");
-        this.serviceName = checkNotNull(serviceName, "serviceName");
-        this.globalFailureMeter = taggedMetricRegistry.meter(FAILURES_METRIC);
-        this.onSuccessTimerMappingFunction = method -> taggedMetricRegistry.timer(MetricName.builder()
-                .safeName(serviceName)
-                .putSafeTags("service-name", method.getDeclaringClass().getSimpleName())
-                .putSafeTags("endpoint", method.getName())
-                .build());
+        InstrumentationMetrics metrics = InstrumentationMetrics.of(taggedMetricRegistry);
+        this.onSuccessTimerMappingFunction = method -> metrics.invocation()
+                .serviceName(serviceName)
+                .endpoint(method.getName())
+                .result(Invocation_Result.SUCCESS)
+                .build();
+        this.onFailureTimerMappingFunction = method -> metrics.invocation()
+                .serviceName(serviceName)
+                .endpoint(method.getName())
+                .result(Invocation_Result.FAILURE)
+                .build();
     }
 
     @SuppressWarnings("NoFunctionalReturnType") // helper
@@ -98,24 +91,20 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
         }
     }
 
-    private Timer getSuccessTimer(Method method) {
-        return timerCache.computeIfAbsent(method, onSuccessTimerMappingFunction);
-    }
-
     @Override
-    public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause) {
-        globalFailureMeter.mark();
+    public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable _cause) {
         debugIfNullContext(context);
         if (context != null) {
-            MetricName failuresMetricName = MetricName.builder()
-                    .safeName(serviceName + "-" + FAILURES_METRIC_NAME)
-                    .putSafeTags(
-                            "service-name",
-                            context.getMethod().getDeclaringClass().getSimpleName())
-                    .putSafeTags("endpoint", context.getMethod().getName())
-                    .putSafeTags("cause", cause.getClass().getName())
-                    .build();
-            taggedMetricRegistry.meter(failuresMetricName).mark();
+            long nanos = System.nanoTime() - context.getStartTimeNanos();
+            getFailureTimer(context.getMethod()).update(nanos, TimeUnit.NANOSECONDS);
         }
+    }
+
+    private Timer getSuccessTimer(Method method) {
+        return successTimerCache.computeIfAbsent(method, onSuccessTimerMappingFunction);
+    }
+
+    private Timer getFailureTimer(Method method) {
+        return failureTimerCache.computeIfAbsent(method, onFailureTimerMappingFunction);
     }
 }
