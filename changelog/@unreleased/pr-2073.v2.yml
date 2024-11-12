@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Fix jmhCompileGeneratedClasses configuration
+  links:
+  - https://github.com/palantir/tritium/pull/2073
