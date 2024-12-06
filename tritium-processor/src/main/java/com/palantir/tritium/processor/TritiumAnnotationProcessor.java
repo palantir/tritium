@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.processor;
 
-import com.palantir.delegate.processors.DelegateProcessor;
+import com.palantir.delegate.processor.DelegateProcessor;
 
 public final class TritiumAnnotationProcessor extends DelegateProcessor {
 

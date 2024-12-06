@@ -16,11 +16,12 @@
 
 package com.palantir.tritium.processor;
 
-import com.squareup.javapoet.ArrayTypeName;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeVariableName;
-import com.squareup.javapoet.WildcardTypeName;
+import com.palantir.javapoet.ArrayTypeName;
+import com.palantir.javapoet.ClassName;
+import com.palantir.javapoet.ParameterizedTypeName;
+import com.palantir.javapoet.TypeName;
+import com.palantir.javapoet.TypeVariableName;
+import com.palantir.javapoet.WildcardTypeName;
 import java.util.List;
 
 final class TypeNames {
@@ -28,14 +29,14 @@ final class TypeNames {
     static TypeName erased(TypeName input) {
         if (input instanceof ParameterizedTypeName) {
             ParameterizedTypeName parameterizedTypeName = (ParameterizedTypeName) input;
-            return parameterizedTypeName.rawType;
+            return parameterizedTypeName.rawType();
         }
         if (input instanceof WildcardTypeName || input instanceof TypeVariableName) {
-            return TypeName.OBJECT;
+            return ClassName.OBJECT;
         }
         if (input instanceof ArrayTypeName) {
             ArrayTypeName arrayTypeName = (ArrayTypeName) input;
-            return ArrayTypeName.of(erased(arrayTypeName.componentType));
+            return ArrayTypeName.of(erased(arrayTypeName.componentType()));
         }
         return input;
     }
@@ -43,7 +44,7 @@ final class TypeNames {
     static List<TypeName> typeParameters(TypeName typeName) {
         if (typeName instanceof ParameterizedTypeName) {
             ParameterizedTypeName parameterized = (ParameterizedTypeName) typeName;
-            return parameterized.typeArguments;
+            return parameterized.typeArguments();
         }
         return List.of();
     }

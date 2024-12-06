@@ -16,10 +16,20 @@
 
 package com.palantir.tritium.processor;
 
-import com.palantir.delegate.processors.AnnotatedType;
-import com.palantir.delegate.processors.AnnotatedTypeMethod;
-import com.palantir.delegate.processors.DelegateProcessorStrategy;
-import com.palantir.delegate.processors.LocalVariable;
+import com.palantir.delegate.processor.AnnotatedType;
+import com.palantir.delegate.processor.AnnotatedTypeMethod;
+import com.palantir.delegate.processor.DelegateProcessorStrategy;
+import com.palantir.delegate.processor.LocalVariable;
+import com.palantir.javapoet.AnnotationSpec;
+import com.palantir.javapoet.ClassName;
+import com.palantir.javapoet.CodeBlock;
+import com.palantir.javapoet.FieldSpec;
+import com.palantir.javapoet.MethodSpec;
+import com.palantir.javapoet.ParameterSpec;
+import com.palantir.javapoet.ParameterizedTypeName;
+import com.palantir.javapoet.TypeName;
+import com.palantir.javapoet.TypeSpec;
+import com.palantir.javapoet.TypeVariableName;
 import com.palantir.tritium.annotations.Instrument;
 import com.palantir.tritium.annotations.internal.InstrumentationBuilder;
 import com.palantir.tritium.api.event.InstrumentationFilter;
@@ -27,22 +37,12 @@ import com.palantir.tritium.event.Handlers;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -225,8 +225,9 @@ enum TritiumAnnotationProcessorStrategy implements DelegateProcessorStrategy {
             generatedType.addStaticBlock(staticBlock.build());
         }
 
+        List<TypeVariableName> typeVariables = generatedType.build().typeVariables();
         generatedType.addMethod(MethodSpec.methodBuilder("builder")
-                .addTypeVariables(generatedType.typeVariables)
+                .addTypeVariables(typeVariables)
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(ParameterizedTypeName.get(
                         ClassName.get(InstrumentationBuilder.class), arguments.delegateTypeName(), annotatedTypeName))
@@ -241,7 +242,7 @@ enum TritiumAnnotationProcessorStrategy implements DelegateProcessorStrategy {
                         arguments.generatedTypeName())
                 .build());
         generatedType.addMethod(MethodSpec.methodBuilder("trace")
-                .addTypeVariables(generatedType.typeVariables)
+                .addTypeVariables(typeVariables)
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(annotatedTypeName)
                 .addParameter(ParameterSpec.builder(arguments.delegateTypeName(), "delegate")
@@ -253,7 +254,7 @@ enum TritiumAnnotationProcessorStrategy implements DelegateProcessorStrategy {
                         arguments.generatedTypeName())
                 .build());
         generatedType.addMethod(MethodSpec.methodBuilder("instrument")
-                .addTypeVariables(generatedType.typeVariables)
+                .addTypeVariables(typeVariables)
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(annotatedTypeName)
                 .addParameter(ParameterSpec.builder(arguments.delegateTypeName(), "delegate")
@@ -267,7 +268,7 @@ enum TritiumAnnotationProcessorStrategy implements DelegateProcessorStrategy {
     private static List<AnnotatedTypeMethod> instrumentedMethods(AnnotatedType type) {
         return type.methods().stream()
                 .filter(method -> isInstrumented(type, method))
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     private static boolean isInstrumented(DelegateMethodArguments arguments) {

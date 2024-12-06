@@ -19,12 +19,12 @@ package com.palantir.tritium.processor;
 import com.google.common.base.CaseFormat;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import com.squareup.javapoet.ArrayTypeName;
-import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeVariableName;
-import com.squareup.javapoet.WildcardTypeName;
+import com.palantir.javapoet.ArrayTypeName;
+import com.palantir.javapoet.ClassName;
+import com.palantir.javapoet.ParameterizedTypeName;
+import com.palantir.javapoet.TypeName;
+import com.palantir.javapoet.TypeVariableName;
+import com.palantir.javapoet.WildcardTypeName;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 import javax.lang.model.element.ExecutableElement;
@@ -61,14 +61,14 @@ enum Names {
         }
         if (input instanceof ParameterizedTypeName) {
             ParameterizedTypeName parameterizedTypeName = (ParameterizedTypeName) input;
-            return simpleName(parameterizedTypeName.rawType);
+            return simpleName(parameterizedTypeName.rawType());
         }
         if (input instanceof WildcardTypeName || input instanceof TypeVariableName) {
             return Object.class.getSimpleName();
         }
         if (input instanceof ArrayTypeName) {
             ArrayTypeName arrayTypeName = (ArrayTypeName) input;
-            return simpleName(arrayTypeName.componentType) + "[]";
+            return simpleName(arrayTypeName.componentType()) + "[]";
         }
         throw new IllegalArgumentException("Unknown type-name: " + input);
     }
