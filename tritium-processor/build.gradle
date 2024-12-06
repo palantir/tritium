@@ -7,8 +7,8 @@ dependencies {
     api project(':tritium-registry')
 
     implementation 'com.google.guava:guava'
-    implementation 'com.palantir.delegate.processors:delegate-processors'
-    implementation 'com.squareup:javapoet'
+    implementation 'com.palantir.delegate.processors:delegate-processor'
+    implementation 'com.palantir.javapoet:javapoet'
 
     testImplementation 'com.google.testing.compile:compile-testing'
     testImplementation 'org.assertj:assertj-core'
