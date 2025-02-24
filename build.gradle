@@ -60,6 +60,11 @@ allprojects {
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {
+        dependencies {
+            testRuntimeOnly 'org.junit.platform:junit-platform-engine'
+            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        }
+
         tasks.withType(JavaCompile).configureEach {
             options.compilerArgs += [
                 '-Werror',
