@@ -5,7 +5,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.palantir.baseline:gradle-baseline-java:6.4.0'
+        classpath 'com.palantir.baseline:gradle-baseline-java:6.18.0'
         classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.31.0'
         classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.19.0'
         classpath 'com.palantir.gradle.failure-reports:gradle-failure-reports:1.13.0'
@@ -60,11 +60,6 @@ allprojects {
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {
-        dependencies {
-            testRuntimeOnly 'org.junit.platform:junit-platform-engine'
-            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-        }
-
         tasks.withType(JavaCompile).configureEach {
             options.compilerArgs += [
                 '-Werror',
@@ -97,6 +92,18 @@ allprojects {
                 errorproneArgs = [
                     '-XepAllSuggestionsAsWarnings',
                 ]
+            }
+        }
+
+        plugins.withId('me.champeau.jmh') {
+            // https://github.com/melix/jmh-gradle-plugin/issues/248
+            tasks.jmhCompileGeneratedClasses {
+                options.annotationProcessorPath = configurations.jmhAnnotationProcessor
+                options.errorprone {
+                    enabled = true
+                    // JMH generates duplicate field names like byte p000, p001, p002
+                    disable('HidingField')
+                }
             }
         }
     })
