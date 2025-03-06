@@ -28,18 +28,3 @@ dependencies {
     jmhImplementation 'io.dropwizard.metrics:metrics-core'
     jmhImplementation 'org.slf4j:slf4j-api'
 }
-
-// https://github.com/melix/jmh-gradle-plugin/issues/248
-tasks.jmhCompileGeneratedClasses {
-    options.annotationProcessorPath = configurations.jmhAnnotationProcessor
-}
-
-plugins.withId("net.ltgt.errorprone") {
-    tasks.jmhCompileGeneratedClasses {
-        options.errorprone {
-            enabled = true
-            // JMH generates duplicate field names like byte p000, p001, p002
-            disable("HidingField")
-        }
-    }
-}
