@@ -21,7 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Do not use, will be removed in future release.

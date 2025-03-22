@@ -19,7 +19,6 @@ package com.palantir.tritium.metrics;
 import java.security.KeyManagementException;
 import java.security.SecureRandom;
 import java.util.Objects;
-import javax.annotation.Nullable;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLContextSpi;
@@ -29,6 +28,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
+import org.jspecify.annotations.Nullable;
 
 final class InstrumentedSslContext extends SSLContext {
 

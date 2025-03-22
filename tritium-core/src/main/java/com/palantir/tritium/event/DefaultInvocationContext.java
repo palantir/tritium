@@ -19,7 +19,7 @@ package com.palantir.tritium.event;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import java.lang.reflect.Method;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultInvocationContext implements InvocationContext {
 

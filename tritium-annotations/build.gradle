@@ -3,14 +3,15 @@ apply plugin: 'com.palantir.external-publish-jar'
 dependencies {
     api project(':tritium-api')
     api project(':tritium-lib')
+
+    implementation 'com.palantir.safe-logging:preconditions'
+    implementation 'org.jspecify:jspecify'
+    implementation 'org.slf4j:slf4j-api'
     implementation project(':tritium-core')
     implementation project(':tritium-metrics')
     implementation project(':tritium-registry')
     implementation project(':tritium-slf4j')
     implementation project(':tritium-tracing')
-    implementation 'com.google.code.findbugs:jsr305'
-    implementation 'com.palantir.safe-logging:preconditions'
-    implementation 'org.slf4j:slf4j-api'
 
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'

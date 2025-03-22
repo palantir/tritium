@@ -5,7 +5,6 @@ dependencies {
     api 'io.dropwizard.metrics:metrics-core'
     api project(':tritium-registry')
 
-    implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.jvm.diagnostics:jvm-diagnostics'
     implementation 'com.palantir.safe-logging:logger'
@@ -13,6 +12,7 @@ dependencies {
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'io.dropwizard.metrics:metrics-core'
     implementation 'io.dropwizard.metrics:metrics-jvm'
+    implementation 'org.jspecify:jspecify'
     implementation project(':tritium-metrics')
 
     testImplementation 'org.assertj:assertj-core'

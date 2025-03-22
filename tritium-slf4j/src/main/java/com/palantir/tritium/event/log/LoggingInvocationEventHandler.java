@@ -30,8 +30,8 @@ import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.function.BiConsumer;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 /** {@link InvocationEventHandler} that times every method invocation and logs to specified logger. */
@@ -81,7 +81,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     @Override
     public final InvocationContext preInvocation(
-            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+            @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 
@@ -91,7 +91,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     @Override
-    public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable _cause) {
+    public final void onFailure(@Nullable InvocationContext context, @NonNull Throwable _cause) {
         logInvocation(context);
     }
 

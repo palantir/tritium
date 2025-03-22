@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2024 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2025 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics.registry;
+@NullMarked
+package com.palantir.tritium.time;
 
-import com.palantir.logsafe.Safe;
-import org.jspecify.annotations.Nullable;
-
-public interface ExemplarMetadataProvider<@Safe T> {
-    @Nullable
-    T collect();
-}
+import org.jspecify.annotations.NullMarked;

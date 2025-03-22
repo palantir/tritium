@@ -30,8 +30,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An implementation of {@link AbstractInvocationEventHandler} whose purpose is to provide tagged metrics for classes
@@ -77,7 +77,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
 
     @Override
     public final InvocationContext preInvocation(
-            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+            @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 
@@ -92,7 +92,7 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     @Override
-    public final void onFailure(@Nullable InvocationContext context, @Nonnull Throwable _cause) {
+    public final void onFailure(@Nullable InvocationContext context, @NonNull Throwable _cause) {
         debugIfNullContext(context);
         if (context != null) {
             long nanos = System.nanoTime() - context.getStartTimeNanos();

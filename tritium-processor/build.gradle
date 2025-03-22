@@ -9,6 +9,7 @@ dependencies {
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.delegate.processors:delegate-processor'
     implementation 'com.palantir.javapoet:javapoet'
+    implementation 'org.jspecify:jspecify'
 
     testImplementation 'com.google.testing.compile:compile-testing'
     testImplementation 'org.assertj:assertj-core'

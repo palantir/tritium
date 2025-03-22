@@ -21,10 +21,10 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Objects;
-import javax.annotation.Nullable;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import org.jspecify.annotations.Nullable;
 
 final class InstrumentedSslSocketFactory extends SSLSocketFactory {
 

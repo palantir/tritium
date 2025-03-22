@@ -13,6 +13,7 @@ dependencies {
     implementation 'com.palantir.safe-logging:safe-logging'
     implementation 'io.dropwizard.metrics:metrics-core'
     implementation 'org.checkerframework:checker-qual'
+    implementation 'org.jspecify:jspecify'
 
     testImplementation 'com.palantir.safe-logging:preconditions-assertj'
     testImplementation 'org.assertj:assertj-core'
