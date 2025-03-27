@@ -17,7 +17,7 @@
 package com.palantir.tritium.event;
 
 import java.lang.reflect.Method;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /** Represents the state when an invocation event occurred. */
 public interface InvocationContext {

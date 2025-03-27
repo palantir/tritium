@@ -17,8 +17,8 @@
 package com.palantir.tritium.event;
 
 import java.lang.reflect.Method;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface for handing invocation events.
@@ -46,7 +46,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      *     {@code java.lang.Boolean}.
      * @return the current invocation context. Null values are not recommended but are supported
      */
-    C preInvocation(@Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args);
+    C preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args);
 
     /**
      * Invoked with the result of the invocation when it is successful.
@@ -65,5 +65,5 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
      * @param cause the throwable which caused the failure.
      */
-    void onFailure(@Nullable InvocationContext context, @Nonnull Throwable cause);
+    void onFailure(@Nullable InvocationContext context, @NonNull Throwable cause);
 }

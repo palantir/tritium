@@ -31,7 +31,7 @@ import com.palantir.tritium.tracing.TracingInvocationEventHandler;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongPredicate;
 import java.util.stream.IntStream;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;

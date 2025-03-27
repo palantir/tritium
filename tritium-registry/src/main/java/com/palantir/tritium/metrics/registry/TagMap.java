@@ -33,8 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.function.BiConsumer;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link TagMap} is a {@link SortedMap} implementation optimized for creation performance and memory overhead.
@@ -319,7 +319,7 @@ final class TagMap implements SortedMap<String, String> {
     }
 
     @Override
-    public void putAll(@Nonnull Map<? extends String, ? extends String> _map) {
+    public void putAll(@NonNull Map<? extends String, ? extends String> _map) {
         throw new UnsupportedOperationException("immutable");
     }
 
@@ -334,7 +334,7 @@ final class TagMap implements SortedMap<String, String> {
         throw new UnsupportedOperationException("immutable");
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<String> keySet() {
         String[] local = this.values;
@@ -345,7 +345,7 @@ final class TagMap implements SortedMap<String, String> {
         return Collections.unmodifiableSet(set);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Collection<String> values() {
         String[] local = this.values;
@@ -356,7 +356,7 @@ final class TagMap implements SortedMap<String, String> {
         return Collections.unmodifiableCollection(list);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public Set<Entry<String, String>> entrySet() {
         return new TagMapEntrySet(values);
@@ -393,13 +393,13 @@ final class TagMap implements SortedMap<String, String> {
             return false;
         }
 
-        @Nonnull
+        @NonNull
         @Override
         public Iterator<Entry<String, String>> iterator() {
             return new TagMapEntrySetIterator(values);
         }
 
-        @Nonnull
+        @NonNull
         @Override
         public Object[] toArray() {
             String[] local = values;
@@ -446,17 +446,17 @@ final class TagMap implements SortedMap<String, String> {
         }
 
         @Override
-        public boolean addAll(@Nonnull Collection<? extends Entry<String, String>> _collection) {
+        public boolean addAll(@NonNull Collection<? extends Entry<String, String>> _collection) {
             throw new UnsupportedOperationException("immutable");
         }
 
         @Override
-        public boolean retainAll(@Nonnull Collection<?> _collection) {
+        public boolean retainAll(@NonNull Collection<?> _collection) {
             throw new UnsupportedOperationException("immutable");
         }
 
         @Override
-        public boolean removeAll(@Nonnull Collection<?> _collection) {
+        public boolean removeAll(@NonNull Collection<?> _collection) {
             throw new UnsupportedOperationException("immutable");
         }
 

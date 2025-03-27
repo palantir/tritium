@@ -19,7 +19,7 @@ package com.palantir.tritium.metrics.registry;
 import com.google.common.collect.ImmutableSortedMap;
 import com.palantir.logsafe.Preconditions;
 import java.util.SortedMap;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 final class RealMetricName implements MetricName {
 

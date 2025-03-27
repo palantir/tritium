@@ -29,8 +29,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 final class CompositeInvocationEventHandlerTest {
@@ -95,7 +95,7 @@ final class CompositeInvocationEventHandlerTest {
                 NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(/* isEnabled= */ true) {
                     @Override
                     public InvocationContext preInvocation(
-                            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+                            @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
                         return DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
@@ -112,7 +112,7 @@ final class CompositeInvocationEventHandlerTest {
                 NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(/* isEnabled= */ true) {
                     @Override
                     public InvocationContext preInvocation(
-                            @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+                            @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
                         return DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
@@ -212,7 +212,7 @@ final class CompositeInvocationEventHandlerTest {
     private static final class SimpleInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
         @Override
         public InvocationContext preInvocation(
-                @Nonnull Object instance, @Nonnull Method method, @Nonnull Object[] args) {
+                @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
             return DefaultInvocationContext.of(instance, method, args);
         }
 
@@ -220,6 +220,6 @@ final class CompositeInvocationEventHandlerTest {
         public void onSuccess(@Nullable InvocationContext _context, @Nullable Object _result) {}
 
         @Override
-        public void onFailure(@Nullable InvocationContext _context, @Nonnull Throwable _cause) {}
+        public void onFailure(@Nullable InvocationContext _context, @NonNull Throwable _cause) {}
     }
 }

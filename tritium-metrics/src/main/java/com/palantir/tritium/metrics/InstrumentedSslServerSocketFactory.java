@@ -24,12 +24,12 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.channels.ServerSocketChannel;
 import java.util.Objects;
-import javax.annotation.Nullable;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
+import org.jspecify.annotations.Nullable;
 
 final class InstrumentedSslServerSocketFactory extends SSLServerSocketFactory {
 

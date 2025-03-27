@@ -32,7 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 abstract class InvocationEventProxy implements InvocationHandler {
     private static final Object[] EMPTY_ARRAY = new Object[0];

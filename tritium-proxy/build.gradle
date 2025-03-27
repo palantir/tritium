@@ -1,6 +1,8 @@
 apply plugin: 'com.palantir.external-publish-jar'
 
 dependencies {
+    implementation 'org.jspecify:jspecify'
+
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'

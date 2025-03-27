@@ -3,12 +3,12 @@ apply plugin: 'com.palantir.external-publish-jar'
 dependencies {
     api project(':tritium-api')
 
-    implementation 'com.google.code.findbugs:jsr305'
     implementation 'com.google.errorprone:error_prone_annotations'
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:logger'
     implementation 'com.palantir.safe-logging:preconditions'
     implementation 'com.palantir.safe-logging:safe-logging'
+    implementation 'org.jspecify:jspecify'
 
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.awaitility:awaitility'

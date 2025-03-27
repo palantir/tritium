@@ -1,5 +1,5 @@
 apply plugin: 'com.palantir.external-publish-jar'
 
 dependencies {
-    implementation 'com.google.code.findbugs:jsr305'
+    implementation 'org.jspecify:jspecify'
 }

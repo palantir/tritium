@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableList;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link WeightedSnapshot} with support for storing exemplar metadata for each sample.

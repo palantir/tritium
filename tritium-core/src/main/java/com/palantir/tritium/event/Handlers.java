@@ -23,7 +23,7 @@ import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
 import java.util.Objects;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public final class Handlers {
 

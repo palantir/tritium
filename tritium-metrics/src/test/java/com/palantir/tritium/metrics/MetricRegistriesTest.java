@@ -49,7 +49,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.SortedMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
@@ -70,7 +70,7 @@ final class MetricRegistriesTest {
             .recordStats()
             .build(new CacheLoader<Integer, String>() {
                 @Override
-                public String load(@Nonnull Integer key) {
+                public String load(@NonNull Integer key) {
                     return String.valueOf(key);
                 }
             });

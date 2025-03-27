@@ -20,7 +20,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
 import java.util.Map;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * ABI backcompat stub for code which was previously generated with immutables.
