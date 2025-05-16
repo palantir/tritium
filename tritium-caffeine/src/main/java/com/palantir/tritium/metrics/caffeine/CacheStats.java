@@ -21,6 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkState;
 import com.codahale.metrics.Counting;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
+import com.github.benmanes.caffeine.cache.AsyncCache;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Policy;
@@ -71,6 +72,28 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     }
 
     /**
+     * Registers additional metrics for a Caffeine cache.
+     *
+     * @param cache cache for which to register metrics
+     */
+    public <K, V> void register(Cache<K, V> cache) {
+        checkState(
+                cache.policy().isRecordingStats(),
+                "Registered cache is not recording stats. Registered caches must enabled stats recording with "
+                        + ".recordStats(stats).");
+
+        metrics.estimatedSize().cache(name).build(cache::estimatedSize);
+        metrics.weightedSize().cache(name).build(() -> cache.policy()
+                .eviction()
+                .flatMap(e -> e.weightedSize().stream().boxed().findFirst())
+                .orElse(null));
+        metrics.maximumSize().cache(name).build(() -> cache.policy()
+                .eviction()
+                .map(Policy.Eviction::getMaximum)
+                .orElse(null));
+    }
+
+    /**
      * Constructs and registers metrics for Caffeine cache statistics.
      * <p>
      * In order to record metrics, the {@code cacheFactory} must use the provided {@link CacheStats} with
@@ -89,20 +112,31 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     public <K, V, C extends Cache<K, V>> C register(Function<CacheStats, C> cacheFactory) {
         C cache = cacheFactory.apply(this);
 
-        checkState(
-                cache.policy().isRecordingStats(),
-                "Registered cache is not recording stats. Registered caches must enabled stats recording with "
-                        + ".recordStats(stats).");
+        register(cache);
 
-        metrics.estimatedSize().cache(name).build(cache::estimatedSize);
-        metrics.weightedSize().cache(name).build(() -> cache.policy()
-                .eviction()
-                .flatMap(e -> e.weightedSize().stream().boxed().findFirst())
-                .orElse(null));
-        metrics.maximumSize().cache(name).build(() -> cache.policy()
-                .eviction()
-                .map(Policy.Eviction::getMaximum)
-                .orElse(null));
+        return cache;
+    }
+
+    /**
+     * Constructs and registers metrics for Caffeine cache statistics.
+     * <p>
+     * In order to record metrics, the {@code cacheFactory} must use the provided {@link CacheStats} with
+     * {@link Caffeine#recordStats(Supplier)})}.
+     * <p>
+     * Example usage:
+     * <pre>
+     *     AsyncCache&lt;Integer, String&gt; cache = CacheStats.of(taggedMetricRegistry, "your-cache-name")
+     *             .register(stats -> Caffeine.newBuilder()
+     *                     .recordStats(stats)
+     *                     .buildAsync());
+     * </pre>
+     * @param cacheFactory method which will be invoked to construct the cache
+     * @return the constructed cache instance
+     */
+    public <K, V, C extends AsyncCache<K, V>> C registerAsync(Function<CacheStats, C> cacheFactory) {
+        C cache = cacheFactory.apply(this);
+
+        register(cache.synchronous());
 
         return cache;
     }
