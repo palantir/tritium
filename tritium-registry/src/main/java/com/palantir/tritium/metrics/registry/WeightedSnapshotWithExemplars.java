@@ -18,9 +18,10 @@ package com.palantir.tritium.metrics.registry;
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.WeightedSnapshot;
 import com.codahale.metrics.WeightedSnapshot.WeightedSample;
-import com.google.common.collect.ImmutableList;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 
@@ -70,22 +71,21 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
      * @param values an unordered set of values in the reservoir
      */
     WeightedSnapshotWithExemplars(ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
-        ImmutableList.Builder<WeightedSample> weightedSamplesBuilder =
-                ImmutableList.builderWithExpectedSize(values.size());
-        ImmutableList.Builder<LongExemplar<Object>> exemplarsBuilder = null;
+        List<WeightedSample> weightedSamplesBuilder = new ArrayList<>(values.size());
+        List<LongExemplar<Object>> exemplarsBuilder = null;
 
         for (WeightedSampleWithExemplar v : values) {
             weightedSamplesBuilder.add(new WeightedSample(v.value, v.weight));
             if (v.exemplarMetadata != null) {
                 if (exemplarsBuilder == null) {
-                    exemplarsBuilder = ImmutableList.builder();
+                    exemplarsBuilder = new ArrayList<>();
                 }
                 exemplarsBuilder.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
             }
         }
-        this.exemplars = (exemplarsBuilder == null) ? ImmutableList.of() : exemplarsBuilder.build();
+        this.exemplars = (exemplarsBuilder == null) ? List.of() : Collections.unmodifiableList(exemplarsBuilder);
 
-        this.weightedSnapshot = new WeightedSnapshot(weightedSamplesBuilder.build());
+        this.weightedSnapshot = new WeightedSnapshot(Collections.unmodifiableList(weightedSamplesBuilder));
         this.exemplarProvider = provider;
     }
 
