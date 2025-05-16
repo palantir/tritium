@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: Add a `CacheStats.registerAsync` to support metrics when using `AsyncCache`.
+  links:
+  - https://github.com/palantir/tritium/pull/2176
