@@ -1,0 +1,7 @@
+type: fix
+fix:
+  description: The executor queued duration metric no longer excludes small measurements.
+    This ensures that the metrics accurately measure the time between submission and
+    execution.
+  links:
+  - https://github.com/palantir/tritium/pull/2184
