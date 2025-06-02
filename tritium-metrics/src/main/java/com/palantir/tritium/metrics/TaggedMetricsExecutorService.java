@@ -29,14 +29,6 @@ import org.jspecify.annotations.Nullable;
 
 final class TaggedMetricsExecutorService extends AbstractExecutorService {
 
-    // 250ms minimum threshold is required to update the queued duration timer.
-    // The queued duration is an estimate based on time between a task being submitted
-    // and beginning to execute, there is always a delta between these operations, but
-    // it doesn't necessarily mean there's a queue at all. We assume anything longer than
-    // this threshold, which should be longer than pauses in most cases, is the result
-    // of queueing.
-    private static final long QUEUED_DURATION_MINIMUM_THRESHOLD_NANOS = 250_000_000L;
-
     private final ExecutorService delegate;
     private final String name;
 
@@ -148,12 +140,8 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
 
         @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         void stopQueueTimer() {
-            Timer queuedDurationTimer = queuedDuration;
-            if (queuedDurationTimer != null) {
-                long queuedDurationNanos = System.nanoTime() - created;
-                if (queuedDurationNanos > QUEUED_DURATION_MINIMUM_THRESHOLD_NANOS) {
-                    queuedDurationTimer.update(queuedDurationNanos, TimeUnit.NANOSECONDS);
-                }
+            if (queuedDuration != null) {
+                queuedDuration.update(System.nanoTime() - created, TimeUnit.NANOSECONDS);
             }
         }
     }
@@ -184,12 +172,8 @@ final class TaggedMetricsExecutorService extends AbstractExecutorService {
 
         @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         void stopQueueTimer() {
-            Timer queuedDurationTimer = queuedDuration;
-            if (queuedDurationTimer != null) {
-                long queuedDurationNanos = System.nanoTime() - created;
-                if (queuedDurationNanos > QUEUED_DURATION_MINIMUM_THRESHOLD_NANOS) {
-                    queuedDurationTimer.update(queuedDurationNanos, TimeUnit.NANOSECONDS);
-                }
+            if (queuedDuration != null) {
+                queuedDuration.update(System.nanoTime() - created, TimeUnit.NANOSECONDS);
             }
         }
     }
