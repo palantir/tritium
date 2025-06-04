@@ -111,6 +111,10 @@ allprojects {
     })
 
     tasks.withType(Test).configureEach {
+        dependencies {
+            testRuntimeOnly 'net.jqwik:jqwik-engine'
+        }
+
         useJUnitPlatform {
             includeEngines 'jqwik', 'junit-jupiter'
         }
