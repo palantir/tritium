@@ -1,7 +1,7 @@
 com.fasterxml.jackson.*:* = 2.13.3
 com.fasterxml.jackson.core:* = 2.18.3
 com.fasterxml.uuid:* = 4.2.0
-com.github.ben-manes.caffeine:* = 3.2.0
+com.github.ben-manes.caffeine:* = 3.2.1
 com.google.auto.service:* = 1.1.1
 com.google.code.findbugs:* = 3.0.2
 com.google.guava:guava = 33.4.8-jre
@@ -17,7 +17,7 @@ com.squareup.okhttp3:* = 4.12.0
 io.dropwizard.metrics:* = 4.2.32
 io.undertow:* = 2.3.18.Final
 net.bytebuddy:* = 1.17.5
-net.jqwik:* = 1.9.2
+net.jqwik:* = 1.9.3
 org.assertj:* = 3.27.3
 org.awaitility:* = 4.3.0
 org.hdrhistogram:* = 2.2.2
