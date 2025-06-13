@@ -27,6 +27,12 @@ namespaces:
     docs: JVM Metrics
     # The default 'JvmMetrics' name collides with the public JvmMetrics utility.
     shortName: InternalJvm
+    tags:
+      - name: nativeImage
+        docs: If the service is running as a native image
+        values:
+          - value: true
+          - value: false
     metrics:
       safepoint.time:
         type: gauge

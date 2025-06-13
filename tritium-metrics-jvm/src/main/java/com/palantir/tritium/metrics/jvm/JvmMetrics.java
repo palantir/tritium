@@ -64,7 +64,10 @@ public final class JvmMetrics {
         Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
         MetricRegistries.registerGarbageCollection(registry);
         MetricRegistries.registerMemoryPools(registry);
-        InternalJvmMetrics metrics = InternalJvmMetrics.of(registry);
+        InternalJvmMetrics metrics = InternalJvmMetrics.builder()
+                .registry(registry)
+                .nativeImage(GraalImageInfo.NATIVE)
+                .build();
         Jdk9CompatibleFileDescriptorRatioGauge.register(metrics);
         OperatingSystemMetrics.register(registry);
         SafepointMetrics.register(registry);
