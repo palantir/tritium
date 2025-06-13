@@ -64,10 +64,7 @@ public final class JvmMetrics {
         Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
         MetricRegistries.registerGarbageCollection(registry);
         MetricRegistries.registerMemoryPools(registry);
-        InternalJvmMetrics metrics = InternalJvmMetrics.builder()
-                .registry(registry)
-                .nativeImage(GraalImageInfo.NATIVE)
-                .build();
+        InternalJvmMetrics metrics = InternalJvmMetrics.of(registry);
         Jdk9CompatibleFileDescriptorRatioGauge.register(metrics);
         OperatingSystemMetrics.register(registry);
         SafepointMetrics.register(registry);
@@ -181,7 +178,10 @@ public final class JvmMetrics {
 
     @VisibleForTesting
     static void registerJvmMemory(TaggedMetricRegistry registry, MemoryMXBean memoryBean) {
-        JvmMemoryMetrics metrics = JvmMemoryMetrics.of(registry);
+        JvmMemoryMetrics metrics = JvmMemoryMetrics.builder()
+                .registry(registry)
+                .nativeImage(GraalImageInfo.NATIVE)
+                .build();
         // jvm.memory.total
         metrics.totalInit(nonNegative(() -> totalHeapPlusNonHeap(memoryBean, MemoryUsage::getInit)));
         metrics.totalUsed(nonNegative(() -> totalHeapPlusNonHeap(memoryBean, MemoryUsage::getUsed)));

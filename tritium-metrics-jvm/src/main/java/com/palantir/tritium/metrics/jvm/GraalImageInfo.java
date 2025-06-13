@@ -16,7 +16,7 @@
 
 package com.palantir.tritium.metrics.jvm;
 
-import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.InternalJvm_NativeImage;
+import com.palantir.tritium.metrics.jvm.JvmMemoryMetrics.JvmMemory_NativeImage;
 
 public final class GraalImageInfo {
 
@@ -26,9 +26,9 @@ public final class GraalImageInfo {
      */
     private static final String PROPERTY_IMAGE_CODE_KEY = "org.graalvm.nativeimage.imagecode";
 
-    public static final InternalJvm_NativeImage NATIVE = System.getProperty(PROPERTY_IMAGE_CODE_KEY) != null
-            ? InternalJvm_NativeImage.TRUE
-            : InternalJvm_NativeImage.FALSE;
+    public static final JvmMemory_NativeImage NATIVE = System.getProperty(PROPERTY_IMAGE_CODE_KEY) != null
+            ? JvmMemory_NativeImage.TRUE
+            : JvmMemory_NativeImage.FALSE;
 
     private GraalImageInfo() {}
 }

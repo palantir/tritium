@@ -27,12 +27,6 @@ namespaces:
     docs: JVM Metrics
     # The default 'JvmMetrics' name collides with the public JvmMetrics utility.
     shortName: InternalJvm
-    tags:
-      - name: nativeImage
-        docs: If the service is running as a native image
-        values:
-          - value: true
-          - value: false
     metrics:
       safepoint.time:
         type: gauge
@@ -111,6 +105,12 @@ namespaces:
               A value of `-1` means values are cached forever and `0` describes no caching.
   jvm.memory:
     docs: Java virtual machine memory usage metrics.
+    tags:
+      - name: nativeImage
+        docs: If the service is running as a native image
+        values:
+          - value: true
+          - value: false
     metrics:
       total.init:
         type: gauge
