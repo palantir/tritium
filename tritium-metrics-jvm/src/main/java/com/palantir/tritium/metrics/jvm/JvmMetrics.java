@@ -91,6 +91,7 @@ public final class JvmMetrics {
                         runtimeMxBean.getInputArguments().contains("--enable-preview")
                                 ? AttributeUptime_EnablePreview.TRUE
                                 : AttributeUptime_EnablePreview.FALSE)
+                .nativeImage(GraalImageInfo.NATIVE)
                 .build(runtimeMxBean::getUptime);
     }
 
@@ -178,10 +179,7 @@ public final class JvmMetrics {
 
     @VisibleForTesting
     static void registerJvmMemory(TaggedMetricRegistry registry, MemoryMXBean memoryBean) {
-        JvmMemoryMetrics metrics = JvmMemoryMetrics.builder()
-                .registry(registry)
-                .nativeImage(GraalImageInfo.NATIVE)
-                .build();
+        JvmMemoryMetrics metrics = JvmMemoryMetrics.of(registry);
         // jvm.memory.total
         metrics.totalInit(nonNegative(() -> totalHeapPlusNonHeap(memoryBean, MemoryUsage::getInit)));
         metrics.totalUsed(nonNegative(() -> totalHeapPlusNonHeap(memoryBean, MemoryUsage::getUsed)));

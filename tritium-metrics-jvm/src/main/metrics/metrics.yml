@@ -54,6 +54,9 @@ namespaces:
         - name: enablePreview
           docs: "Whether the JVM is running with --enable-preview (see https://openjdk.org/jeps/12 )"
           values: ['true', 'false']
+        - name: nativeImage
+          docs: "If the service is running as a native image"
+          values: ['true', 'false']
       classloader.loaded:
         type: gauge
         docs: Total number of classes that have been loaded since the jvm started.
@@ -105,12 +108,6 @@ namespaces:
               A value of `-1` means values are cached forever and `0` describes no caching.
   jvm.memory:
     docs: Java virtual machine memory usage metrics.
-    tags:
-      - name: nativeImage
-        docs: If the service is running as a native image
-        values:
-          - value: true
-          - value: false
     metrics:
       total.init:
         type: gauge
