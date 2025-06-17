@@ -91,6 +91,7 @@ public final class JvmMetrics {
                         runtimeMxBean.getInputArguments().contains("--enable-preview")
                                 ? AttributeUptime_EnablePreview.TRUE
                                 : AttributeUptime_EnablePreview.FALSE)
+                .nativeImage(GraalImageInfo.NATIVE)
                 .build(runtimeMxBean::getUptime);
     }
 
