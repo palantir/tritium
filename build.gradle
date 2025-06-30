@@ -18,7 +18,6 @@ buildscript {
         classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.69.0'
         classpath 'com.palantir.metricschema:gradle-metric-schema:0.33.0'
         classpath 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone:2.9.0'
-        classpath 'gradle.plugin.org.inferred:gradle-processors:3.7.0'
         classpath 'me.champeau.jmh:jmh-gradle-plugin:0.7.3'
     }
 }
@@ -43,7 +42,7 @@ allprojects {
     version gitVersion()
 
     apply plugin: 'java-library'
-    apply plugin: 'org.inferred.processors'  // installs the "processor" configuration needed for baseline-error-prone
+      // installs the "processor" configuration needed for baseline-error-prone
     apply plugin: 'com.palantir.baseline-class-uniqueness'
     apply plugin: 'com.palantir.baseline-exact-dependencies'
     apply plugin: 'com.palantir.baseline-null-away'
