@@ -71,21 +71,16 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
      * @param values an unordered set of values in the reservoir
      */
     WeightedSnapshotWithExemplars(ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
-        List<WeightedSample> weightedSamplesBuilder = new ArrayList<>(values.size());
-        List<LongExemplar<Object>> exemplarsBuilder = null;
-
-        for (WeightedSampleWithExemplar v : values) {
-            weightedSamplesBuilder.add(new WeightedSample(v.value, v.weight));
+        List<WeightedSample> weightedSamples = new ArrayList<>(values.size());
+        List<LongExemplar<Object>> exemplarsBuilder = new ArrayList<>();
+        values.forEach(v -> {
+            weightedSamples.add(new WeightedSample(v.value, v.weight));
             if (v.exemplarMetadata != null) {
-                if (exemplarsBuilder == null) {
-                    exemplarsBuilder = new ArrayList<>();
-                }
                 exemplarsBuilder.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
             }
-        }
-        this.exemplars = (exemplarsBuilder == null) ? List.of() : Collections.unmodifiableList(exemplarsBuilder);
-
-        this.weightedSnapshot = new WeightedSnapshot(Collections.unmodifiableList(weightedSamplesBuilder));
+        });
+        this.exemplars = Collections.unmodifiableList(exemplarsBuilder);
+        this.weightedSnapshot = new WeightedSnapshot(Collections.unmodifiableList(weightedSamples));
         this.exemplarProvider = provider;
     }
 
