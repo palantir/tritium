@@ -19,7 +19,7 @@ dependencies {
         exclude group: 'org.hdrhistogram', module: 'HdrHistogram'
     }
 
-    testImplementation 'com.squareup.okhttp3:okhttp'
+    testImplementation 'com.squareup.okhttp3:okhttp-jvm'
     testImplementation 'io.undertow:undertow-core'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.awaitility:awaitility'
