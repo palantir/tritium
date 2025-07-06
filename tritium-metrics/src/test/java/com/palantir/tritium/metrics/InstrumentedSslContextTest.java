@@ -30,7 +30,14 @@ import io.undertow.server.handlers.ResponseCodeHandler;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.Arrays;
@@ -85,8 +92,9 @@ final class InstrumentedSslContextTest {
     @Test
     void testClientInstrumentationHttpsUrlConnection() throws Exception {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        String contextName = "client-context";
         try (Closeable ignored = server(newServerContext())) {
-            SSLContext context = MetricRegistries.instrument(metrics, newClientContext(), "client-context");
+            SSLContext context = MetricRegistries.instrument(metrics, newClientContext(), contextName);
             HttpsURLConnection con = (HttpsURLConnection) new URL("https://localhost:" + PORT).openConnection();
             con.setSSLSocketFactory(context.getSocketFactory());
             assertThat(con.getResponseCode()).isEqualTo(200);
@@ -96,7 +104,39 @@ final class InstrumentedSslContextTest {
                 metrics,
                 MetricName.builder()
                         .safeName("tls.handshake")
-                        .putSafeTags("context", "client-context")
+                        .putSafeTags("context", contextName)
+                        .putSafeTags("cipher", ENABLED_CIPHER)
+                        .putSafeTags("protocol", ENABLED_PROTOCOL)
+                        .build());
+        assertThat(metrics.getMetrics()).containsOnlyKeys(name);
+        assertThat(metrics.meter(name).getCount()).isOne();
+    }
+
+    @Test
+    void testClientInstrumentationJdkHttpClient() throws Exception {
+        TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+
+        String contextName = "jdk-client";
+        SSLContext sslContext = MetricRegistries.instrument(metrics, newClientContext(), contextName);
+        HttpClient client = HttpClient.newBuilder()
+                .sslContext(sslContext)
+                .version(Version.HTTP_1_1)
+                .build();
+        try (Closeable ignored = server(newServerContext())) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .GET()
+                    .uri(URI.create("https://localhost:" + PORT))
+                    .build();
+            HttpResponse<String> response = client.send(request, BodyHandlers.ofString(StandardCharsets.UTF_8));
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.version()).isEqualTo(Version.HTTP_1_1);
+        }
+
+        MetricName name = findName(
+                metrics,
+                MetricName.builder()
+                        .safeName("tls.handshake")
+                        .putSafeTags("context", contextName)
                         .putSafeTags("cipher", ENABLED_CIPHER)
                         .putSafeTags("protocol", ENABLED_PROTOCOL)
                         .build());
@@ -107,8 +147,9 @@ final class InstrumentedSslContextTest {
     @Test
     void testClientInstrumentationOkHttp() throws Exception {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        String contextName = "okhttp-client";
         SSLSocketFactory socketFactory =
-                MetricRegistries.instrument(metrics, newClientContext().getSocketFactory(), "okhttp-client");
+                MetricRegistries.instrument(metrics, newClientContext().getSocketFactory(), contextName);
         OkHttpClient client = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(false)
                 .sslSocketFactory(socketFactory, newTrustManager())
@@ -128,7 +169,7 @@ final class InstrumentedSslContextTest {
                 metrics,
                 MetricName.builder()
                         .safeName("tls.handshake")
-                        .putSafeTags("context", "okhttp-client")
+                        .putSafeTags("context", contextName)
                         .putSafeTags("cipher", ENABLED_CIPHER)
                         .putSafeTags("protocol", ENABLED_PROTOCOL)
                         .build());
@@ -139,8 +180,9 @@ final class InstrumentedSslContextTest {
     @Test
     void testClientInstrumentationOkHttpHttp2() throws Exception {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
+        String contextName = "okhttp-client";
         SSLSocketFactory socketFactory =
-                MetricRegistries.instrument(metrics, newClientContext().getSocketFactory(), "okhttp-client");
+                MetricRegistries.instrument(metrics, newClientContext().getSocketFactory(), contextName);
         OkHttpClient client = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(false)
                 .sslSocketFactory(socketFactory, newTrustManager())
@@ -160,7 +202,7 @@ final class InstrumentedSslContextTest {
                 metrics,
                 MetricName.builder()
                         .safeName("tls.handshake")
-                        .putSafeTags("context", "okhttp-client")
+                        .putSafeTags("context", contextName)
                         .putSafeTags("cipher", ENABLED_CIPHER)
                         .putSafeTags("protocol", ENABLED_PROTOCOL)
                         .build());
@@ -178,7 +220,8 @@ final class InstrumentedSslContextTest {
                 .retryOnConnectionFailure(false)
                 .sslSocketFactory(newClientContext().getSocketFactory(), newTrustManager())
                 .build();
-        try (Closeable ignored = server(MetricRegistries.instrument(metrics, newServerContext(), "h2-server"));
+        String contextName = "h2-server";
+        try (Closeable ignored = server(MetricRegistries.instrument(metrics, newServerContext(), contextName));
                 Response response = client.newCall(new Request.Builder()
                                 .url("https://localhost:" + PORT)
                                 .get()
@@ -193,7 +236,7 @@ final class InstrumentedSslContextTest {
                 metrics,
                 MetricName.builder()
                         .safeName("tls.handshake")
-                        .putSafeTags("context", "h2-server")
+                        .putSafeTags("context", contextName)
                         .putSafeTags("cipher", ENABLED_CIPHER)
                         .putSafeTags("protocol", ENABLED_PROTOCOL)
                         .build());
@@ -204,7 +247,8 @@ final class InstrumentedSslContextTest {
     @Test
     void testServerInstrumentation() throws Exception {
         TaggedMetricRegistry metrics = new DefaultTaggedMetricRegistry();
-        try (Closeable ignored = server(MetricRegistries.instrument(metrics, newServerContext(), "server-context"))) {
+        String contextName = "server-context";
+        try (Closeable ignored = server(MetricRegistries.instrument(metrics, newServerContext(), contextName))) {
             HttpsURLConnection con = (HttpsURLConnection) new URL("https://localhost:" + PORT).openConnection();
             con.setSSLSocketFactory(newClientContext().getSocketFactory());
             assertThat(con.getResponseCode()).isEqualTo(200);
@@ -214,7 +258,7 @@ final class InstrumentedSslContextTest {
                 metrics,
                 MetricName.builder()
                         .safeName("tls.handshake")
-                        .putSafeTags("context", "server-context")
+                        .putSafeTags("context", contextName)
                         .putSafeTags("cipher", ENABLED_CIPHER)
                         .putSafeTags("protocol", ENABLED_PROTOCOL)
                         .build());
