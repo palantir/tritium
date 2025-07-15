@@ -1,5 +1,4 @@
 com.fasterxml.jackson.*:* = 2.13.3
-com.fasterxml.jackson.core:* = 2.19.1
 com.fasterxml.uuid:* = 4.2.0
 com.github.ben-manes.caffeine:* = 3.2.2
 com.google.auto.service:* = 1.1.1
