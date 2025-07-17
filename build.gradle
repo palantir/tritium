@@ -73,24 +73,6 @@ allprojects {
                 option('NullAway:AnnotatedPackages', 'com.palantir,com.google.common')
                 option('NullAway:CheckOptionalEmptiness', 'true')
 
-                // warnings not explicitly provided by error-prone
-                error 'NullAway',
-                        'Slf4jLogsafeArgs',
-                        'PreferCollectionTransform',
-                        'PreferListsPartition',
-                        'PreferSafeLoggingPreconditions',
-                        'PreferSafeLoggableExceptions',
-                        'PreferSafeLogger'
-
-
-                disable 'AndroidJdkLibsChecker', // ignore Android
-                        'Java7ApiChecker', // tritium requires JDK 11+
-                        'Java8ApiChecker', // tritium requires JDK 11+
-                        'MemberName', // false positives on ignored lambda args
-                        'StaticOrDefaultInterfaceMethod', // Android specific
-                        'Var', // high noise, low signal
-                        'Varifier' // don't `var`ify everything yet as this conflicts with baseline VarUsage
-
                 errorproneArgs = [
                     '-XepAllSuggestionsAsWarnings',
                 ]
