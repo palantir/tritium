@@ -122,7 +122,8 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
      *     <li>{@link Logger#error(String, Object...)}</li>
      * </ul>
      */
-    @SuppressWarnings("NoFunctionalReturnType") // internal functionality
+    @SuppressWarnings({"NoFunctionalReturnType", "for-rollout:StatementSwitchToExpressionSwitch"
+    }) // internal functionality
     private static BiConsumer<String, Object[]> bindToLevel(Logger logger, LoggingLevel level) {
         switch (level) {
             case TRACE:
@@ -144,6 +145,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         return new SafeIllegalArgumentException("Unsupported logging level", SafeArg.of("level", level));
     }
 
+    @SuppressWarnings("for-rollout:StatementSwitchToExpressionSwitch")
     private static BooleanSupplier createEnabledSupplier(Logger logger, LoggingLevel level) {
         checkNotNull(logger, "logger");
         checkNotNull(level, "level");

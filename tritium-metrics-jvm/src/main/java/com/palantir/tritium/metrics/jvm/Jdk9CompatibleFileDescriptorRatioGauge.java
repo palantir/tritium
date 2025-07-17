@@ -35,8 +35,8 @@ final class Jdk9CompatibleFileDescriptorRatioGauge {
 
     static void register(InternalJvmMetrics metrics) {
         OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();
-        if (osMxBean instanceof UnixOperatingSystemMXBean) {
-            UnixOperatingSystemMXBean unix = (UnixOperatingSystemMXBean) osMxBean;
+        if (osMxBean instanceof UnixOperatingSystemMXBean unix) {
+
             metrics.filedescriptor(new RatioGauge() {
                 @Override
                 protected Ratio getRatio() {

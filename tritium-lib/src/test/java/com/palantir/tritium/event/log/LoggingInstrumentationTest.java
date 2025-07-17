@@ -92,6 +92,7 @@ public class LoggingInstrumentationTest {
         assertThat(delegate.invocationCount()).isOne();
     }
 
+    @SuppressWarnings("for-rollout:StatementSwitchToExpressionSwitch")
     private void testLoggingAtLevel(LoggingLevel level) {
         TestImplementation delegate = new TestImplementation();
         assertThat(level)

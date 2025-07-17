@@ -268,8 +268,8 @@ final class InstrumentedSslEngine extends SSLEngine {
         if (this == other) {
             return true;
         }
-        if (other instanceof InstrumentedSslEngine) {
-            InstrumentedSslEngine that = (InstrumentedSslEngine) other;
+        if (other instanceof InstrumentedSslEngine that) {
+
             return engine.equals(that.engine) && name.equals(that.name);
         }
         return false;

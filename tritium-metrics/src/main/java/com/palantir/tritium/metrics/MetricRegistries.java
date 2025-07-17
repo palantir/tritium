@@ -504,16 +504,16 @@ public final class MetricRegistries {
             MetricName metricName = MetricName.builder().safeName(safeName).build();
             if (metric instanceof Gauge) {
                 registry.registerWithReplacement(metricName, (Gauge<?>) metric);
-            } else if (metric instanceof Counter) {
-                registry.counter(metricName, () -> (Counter) metric);
-            } else if (metric instanceof Histogram) {
-                registry.histogram(metricName, () -> (Histogram) metric);
-            } else if (metric instanceof Meter) {
-                registry.meter(metricName, () -> (Meter) metric);
-            } else if (metric instanceof Timer) {
-                registry.timer(metricName, () -> (Timer) metric);
-            } else if (metric instanceof MetricSet) {
-                registerAll(registry, safeName, (MetricSet) metric);
+            } else if (metric instanceof Counter counter) {
+                registry.counter(metricName, () -> counter);
+            } else if (metric instanceof Histogram histogram) {
+                registry.histogram(metricName, () -> histogram);
+            } else if (metric instanceof Meter meter) {
+                registry.meter(metricName, () -> meter);
+            } else if (metric instanceof Timer timer) {
+                registry.timer(metricName, () -> timer);
+            } else if (metric instanceof MetricSet metricSet) {
+                registerAll(registry, safeName, metricSet);
             } else {
                 throw new SafeIllegalArgumentException("Unknown Metric Type", SafeArg.of("type", metric.getClass()));
             }
