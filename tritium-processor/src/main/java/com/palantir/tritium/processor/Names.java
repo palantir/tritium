@@ -60,14 +60,12 @@ enum Names {
             return className.simpleName();
         }
         if (input instanceof ParameterizedTypeName parameterizedTypeName) {
-
             return simpleName(parameterizedTypeName.rawType());
         }
         if (input instanceof WildcardTypeName || input instanceof TypeVariableName) {
             return Object.class.getSimpleName();
         }
         if (input instanceof ArrayTypeName arrayTypeName) {
-
             return simpleName(arrayTypeName.componentType()) + "[]";
         }
         throw new IllegalArgumentException("Unknown type-name: " + input);

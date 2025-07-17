@@ -28,14 +28,12 @@ final class TypeNames {
 
     static TypeName erased(TypeName input) {
         if (input instanceof ParameterizedTypeName parameterizedTypeName) {
-
             return parameterizedTypeName.rawType();
         }
         if (input instanceof WildcardTypeName || input instanceof TypeVariableName) {
             return ClassName.OBJECT;
         }
         if (input instanceof ArrayTypeName arrayTypeName) {
-
             return ArrayTypeName.of(erased(arrayTypeName.componentType()));
         }
         return input;
@@ -43,7 +41,6 @@ final class TypeNames {
 
     static List<TypeName> typeParameters(TypeName typeName) {
         if (typeName instanceof ParameterizedTypeName parameterized) {
-
             return parameterized.typeArguments();
         }
         return List.of();

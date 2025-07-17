@@ -96,8 +96,8 @@ final class InstrumentedSslServerSocketFactory extends SSLServerSocketFactory {
     }
 
     private ServerSocket wrap(ServerSocket serverSocket) throws IOException {
-        if (serverSocket instanceof SSLServerSocket sSLServerSocket) {
-            return new InstrumentedServerSocket(sSLServerSocket, listener);
+        if (serverSocket instanceof SSLServerSocket sslServerSocket) {
+            return new InstrumentedServerSocket(sslServerSocket, listener);
         }
         return serverSocket;
     }
@@ -223,8 +223,8 @@ final class InstrumentedSslServerSocketFactory extends SSLServerSocketFactory {
         }
 
         private Socket wrap(Socket socket) {
-            if (socket instanceof SSLSocket sSLSocket && HandshakeInstrumentation.isSocketInstrumentationEnabled()) {
-                sSLSocket.addHandshakeCompletedListener(listener);
+            if (socket instanceof SSLSocket sslSocket && HandshakeInstrumentation.isSocketInstrumentationEnabled()) {
+                sslSocket.addHandshakeCompletedListener(listener);
             }
             return socket;
         }

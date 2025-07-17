@@ -21,7 +21,6 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import com.google.common.collect.ImmutableList;
 import com.palantir.logsafe.Arg;
 import com.palantir.logsafe.SafeArg;
-import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import com.palantir.tritium.api.functions.BooleanSupplier;
 import com.palantir.tritium.event.AbstractInvocationEventHandler;
 import com.palantir.tritium.event.DefaultInvocationContext;
@@ -122,47 +121,28 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
      *     <li>{@link Logger#error(String, Object...)}</li>
      * </ul>
      */
-    @SuppressWarnings({"NoFunctionalReturnType", "for-rollout:StatementSwitchToExpressionSwitch"
-    }) // internal functionality
+    @SuppressWarnings("NoFunctionalReturnType") // internal functionality
     private static BiConsumer<String, Object[]> bindToLevel(Logger logger, LoggingLevel level) {
-        switch (level) {
-            case TRACE:
-                return logger::trace;
-            case DEBUG:
-                return logger::debug;
-            case INFO:
-                return logger::info;
-            case WARN:
-                return logger::warn;
-            case ERROR:
-                return logger::error;
-        }
-        throw invalidLoggingLevel(level);
+        return switch (level) {
+            case TRACE -> logger::trace;
+            case DEBUG -> logger::debug;
+            case INFO -> logger::info;
+            case WARN -> logger::warn;
+            case ERROR -> logger::error;
+        };
     }
 
-    private static SafeIllegalArgumentException invalidLoggingLevel(LoggingLevel level) {
-        checkNotNull(level, "level");
-        return new SafeIllegalArgumentException("Unsupported logging level", SafeArg.of("level", level));
-    }
-
-    @SuppressWarnings("for-rollout:StatementSwitchToExpressionSwitch")
     private static BooleanSupplier createEnabledSupplier(Logger logger, LoggingLevel level) {
         checkNotNull(logger, "logger");
         checkNotNull(level, "level");
         if (getSystemPropertySupplier(LoggingInvocationEventHandler.class).getAsBoolean()) {
-            switch (level) {
-                case TRACE:
-                    return logger::isTraceEnabled;
-                case DEBUG:
-                    return logger::isDebugEnabled;
-                case INFO:
-                    return logger::isInfoEnabled;
-                case WARN:
-                    return logger::isWarnEnabled;
-                case ERROR:
-                    return logger::isErrorEnabled;
-            }
-            throw invalidLoggingLevel(level);
+            return switch (level) {
+                case TRACE -> logger::isTraceEnabled;
+                case DEBUG -> logger::isDebugEnabled;
+                case INFO -> logger::isInfoEnabled;
+                case WARN -> logger::isWarnEnabled;
+                case ERROR -> logger::isErrorEnabled;
+            };
         } else {
             return () -> false;
         }

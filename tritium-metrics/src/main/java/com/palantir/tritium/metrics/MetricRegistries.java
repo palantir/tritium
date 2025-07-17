@@ -35,6 +35,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheStats;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
@@ -512,8 +513,8 @@ public final class MetricRegistries {
                 registry.meter(metricName, () -> meter);
             } else if (metric instanceof Timer timer) {
                 registry.timer(metricName, () -> timer);
-            } else if (metric instanceof MetricSet metricSet) {
-                registerAll(registry, safeName, metricSet);
+            } else if (metric instanceof MetricSet set) {
+                registerAll(registry, safeName, set);
             } else {
                 throw new SafeIllegalArgumentException("Unknown Metric Type", SafeArg.of("type", metric.getClass()));
             }

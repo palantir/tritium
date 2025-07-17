@@ -74,7 +74,6 @@ final class RealMetricName implements MetricName {
         if (this == other) {
             return true;
         }
-
         return safeName().equals(otherMetric.safeName()) && safeTags().equals(otherMetric.safeTags());
     }
 

@@ -27,9 +27,9 @@ final class OperatingSystemMetrics {
         OperatingSystemMXBean osMxBean = ManagementFactory.getOperatingSystemMXBean();
         osMetrics.loadNorm1(() -> osMxBean.getSystemLoadAverage() / osMxBean.getAvailableProcessors());
         osMetrics.load1(osMxBean::getSystemLoadAverage);
-        if (osMxBean instanceof com.sun.management.OperatingSystemMXBean sunBean) {
+        if (osMxBean instanceof com.sun.management.OperatingSystemMXBean sunMxBean) {
 
-            ProcessMetrics.of(registry).cpuUtilization(sunBean::getProcessCpuLoad);
+            ProcessMetrics.of(registry).cpuUtilization(sunMxBean::getProcessCpuLoad);
         }
     }
 
