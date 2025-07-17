@@ -35,6 +35,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheStats;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
@@ -504,16 +505,16 @@ public final class MetricRegistries {
             MetricName metricName = MetricName.builder().safeName(safeName).build();
             if (metric instanceof Gauge) {
                 registry.registerWithReplacement(metricName, (Gauge<?>) metric);
-            } else if (metric instanceof Counter) {
-                registry.counter(metricName, () -> (Counter) metric);
-            } else if (metric instanceof Histogram) {
-                registry.histogram(metricName, () -> (Histogram) metric);
-            } else if (metric instanceof Meter) {
-                registry.meter(metricName, () -> (Meter) metric);
-            } else if (metric instanceof Timer) {
-                registry.timer(metricName, () -> (Timer) metric);
-            } else if (metric instanceof MetricSet) {
-                registerAll(registry, safeName, (MetricSet) metric);
+            } else if (metric instanceof Counter counter) {
+                registry.counter(metricName, () -> counter);
+            } else if (metric instanceof Histogram histogram) {
+                registry.histogram(metricName, () -> histogram);
+            } else if (metric instanceof Meter meter) {
+                registry.meter(metricName, () -> meter);
+            } else if (metric instanceof Timer timer) {
+                registry.timer(metricName, () -> timer);
+            } else if (metric instanceof MetricSet set) {
+                registerAll(registry, safeName, set);
             } else {
                 throw new SafeIllegalArgumentException("Unknown Metric Type", SafeArg.of("type", metric.getClass()));
             }

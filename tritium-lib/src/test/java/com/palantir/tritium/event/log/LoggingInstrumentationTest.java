@@ -111,21 +111,21 @@ public class LoggingInstrumentationTest {
         instrumented.multiArgumentMethod("test", 1, Collections.singletonList("hello"));
 
         switch (level) {
-            case ERROR:
+            case ERROR -> {
                 assertThat(logger.isErrorEnabled()).isTrue();
-                break;
-            case WARN:
+            }
+            case WARN -> {
                 assertThat(logger.isWarnEnabled()).isTrue();
-                break;
-            case INFO:
+            }
+            case INFO -> {
                 assertThat(logger.isInfoEnabled()).isTrue();
-                break;
-            case DEBUG:
+            }
+            case DEBUG -> {
                 assertThat(logger.isDebugEnabled()).isTrue();
-                break;
-            case TRACE:
+            }
+            case TRACE -> {
                 assertThat(logger.isTraceEnabled()).isTrue();
-                break;
+            }
         }
         assertThat(delegate.invocationCount()).isOne();
     }

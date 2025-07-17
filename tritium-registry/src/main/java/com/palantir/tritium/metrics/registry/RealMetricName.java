@@ -68,13 +68,12 @@ final class RealMetricName implements MetricName {
     @Override
     @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
     public boolean equals(@Nullable Object other) {
-        if (!(other instanceof MetricName)) {
+        if (!(other instanceof MetricName otherMetric)) {
             return false;
         }
         if (this == other) {
             return true;
         }
-        MetricName otherMetric = (MetricName) other;
         return safeName().equals(otherMetric.safeName()) && safeTags().equals(otherMetric.safeTags());
     }
 
@@ -91,8 +90,8 @@ final class RealMetricName implements MetricName {
     }
 
     private static TagMap withEntry(SortedMap<String, String> tags, String extraTagName, String extraTagValue) {
-        if (tags instanceof TagMap) {
-            return ((TagMap) tags).withEntry(extraTagName, extraTagValue);
+        if (tags instanceof TagMap tagMap) {
+            return tagMap.withEntry(extraTagName, extraTagValue);
         }
         return withEntryFallback(tags, extraTagName, extraTagValue);
     }

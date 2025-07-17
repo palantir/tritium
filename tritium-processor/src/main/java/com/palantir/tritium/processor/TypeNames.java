@@ -27,23 +27,20 @@ import java.util.List;
 final class TypeNames {
 
     static TypeName erased(TypeName input) {
-        if (input instanceof ParameterizedTypeName) {
-            ParameterizedTypeName parameterizedTypeName = (ParameterizedTypeName) input;
+        if (input instanceof ParameterizedTypeName parameterizedTypeName) {
             return parameterizedTypeName.rawType();
         }
         if (input instanceof WildcardTypeName || input instanceof TypeVariableName) {
             return ClassName.OBJECT;
         }
-        if (input instanceof ArrayTypeName) {
-            ArrayTypeName arrayTypeName = (ArrayTypeName) input;
+        if (input instanceof ArrayTypeName arrayTypeName) {
             return ArrayTypeName.of(erased(arrayTypeName.componentType()));
         }
         return input;
     }
 
     static List<TypeName> typeParameters(TypeName typeName) {
-        if (typeName instanceof ParameterizedTypeName) {
-            ParameterizedTypeName parameterized = (ParameterizedTypeName) typeName;
+        if (typeName instanceof ParameterizedTypeName parameterized) {
             return parameterized.typeArguments();
         }
         return List.of();

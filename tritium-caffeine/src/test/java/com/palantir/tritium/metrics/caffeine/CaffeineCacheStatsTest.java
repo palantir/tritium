@@ -67,8 +67,8 @@ final class CaffeineCacheStatsTest {
     private static Object getValue(Metric metric) {
         if (metric instanceof Gauge) {
             return ((Gauge<?>) metric).getValue();
-        } else if (metric instanceof Counter) {
-            return ((Counter) metric).getCount();
+        } else if (metric instanceof Counter counter) {
+            return counter.getCount();
         }
         return metric;
     }

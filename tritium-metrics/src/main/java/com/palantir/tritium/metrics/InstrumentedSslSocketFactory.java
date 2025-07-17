@@ -107,8 +107,8 @@ final class InstrumentedSslSocketFactory extends SSLSocketFactory {
     }
 
     private Socket wrap(Socket socket) {
-        if (socket instanceof SSLSocket && HandshakeInstrumentation.isSocketInstrumentationEnabled()) {
-            ((SSLSocket) socket).addHandshakeCompletedListener(listener);
+        if (socket instanceof SSLSocket sslSocket && HandshakeInstrumentation.isSocketInstrumentationEnabled()) {
+            sslSocket.addHandshakeCompletedListener(listener);
         }
         return socket;
     }

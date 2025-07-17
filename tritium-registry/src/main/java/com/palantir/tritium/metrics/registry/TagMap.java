@@ -56,8 +56,8 @@ final class TagMap implements SortedMap<String, String> {
     private final String[] values;
 
     static TagMap of(Map<String, String> data) {
-        if (data instanceof TagMap) {
-            return (TagMap) data;
+        if (data instanceof TagMap tagMap) {
+            return tagMap;
         }
         if (data.isEmpty()) {
             return EMPTY;
@@ -188,8 +188,8 @@ final class TagMap implements SortedMap<String, String> {
         if (other == this) {
             return true;
         }
-        if (other instanceof TagMap) {
-            return Arrays.equals(values, ((TagMap) other).values);
+        if (other instanceof TagMap tagMap) {
+            return Arrays.equals(values, tagMap.values);
         }
         if (!(other instanceof Map)) {
             return false;
@@ -474,8 +474,8 @@ final class TagMap implements SortedMap<String, String> {
             if (!(other instanceof Set)) {
                 return false;
             }
-            if (other instanceof TagMapEntrySet) {
-                return Arrays.equals(values, ((TagMapEntrySet) other).values);
+            if (other instanceof TagMapEntrySet tagMapEntrySet) {
+                return Arrays.equals(values, tagMapEntrySet.values);
             }
             Set<?> otherSet = (Set<?>) other;
             return size() == otherSet.size() && containsAll(otherSet) && otherSet.containsAll(this);

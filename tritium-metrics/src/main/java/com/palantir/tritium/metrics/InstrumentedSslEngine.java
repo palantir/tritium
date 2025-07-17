@@ -59,8 +59,8 @@ final class InstrumentedSslEngine extends SSLEngine {
     // Extracts a delegate SSLEngine instance if the input is wrapped.
     static SSLEngine extractDelegate(SSLEngine maybeInstrumented) {
         SSLEngine current = maybeInstrumented;
-        while (current instanceof InstrumentedSslEngine) {
-            current = ((InstrumentedSslEngine) current).engine;
+        while (current instanceof InstrumentedSslEngine engine) {
+            current = engine.engine;
         }
         return current;
     }
@@ -268,8 +268,7 @@ final class InstrumentedSslEngine extends SSLEngine {
         if (this == other) {
             return true;
         }
-        if (other instanceof InstrumentedSslEngine) {
-            InstrumentedSslEngine that = (InstrumentedSslEngine) other;
+        if (other instanceof InstrumentedSslEngine that) {
             return engine.equals(that.engine) && name.equals(that.name);
         }
         return false;

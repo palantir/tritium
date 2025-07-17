@@ -56,18 +56,16 @@ enum Names {
         if (input.isPrimitive()) {
             return input.toString();
         }
-        if (input instanceof ClassName) {
-            return ((ClassName) input).simpleName();
+        if (input instanceof ClassName className) {
+            return className.simpleName();
         }
-        if (input instanceof ParameterizedTypeName) {
-            ParameterizedTypeName parameterizedTypeName = (ParameterizedTypeName) input;
+        if (input instanceof ParameterizedTypeName parameterizedTypeName) {
             return simpleName(parameterizedTypeName.rawType());
         }
         if (input instanceof WildcardTypeName || input instanceof TypeVariableName) {
             return Object.class.getSimpleName();
         }
-        if (input instanceof ArrayTypeName) {
-            ArrayTypeName arrayTypeName = (ArrayTypeName) input;
+        if (input instanceof ArrayTypeName arrayTypeName) {
             return simpleName(arrayTypeName.componentType()) + "[]";
         }
         throw new IllegalArgumentException("Unknown type-name: " + input);
