@@ -54,10 +54,6 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
      * @return tracing event handler
      */
     public static InvocationEventHandler<InvocationContext> create(String component) {
-        if (RemotingCompatibleTracingInvocationEventHandler.requiresRemotingFallback()) {
-            return RemotingCompatibleTracingInvocationEventHandler.create(component);
-        }
-        //noinspection deprecation
         return new TracingInvocationEventHandler(component);
     }
 
