@@ -15,7 +15,7 @@ com.squareup.okhttp3:* = 5.1.0
 # Keep major.minor metrics version in sync with Apache Spark
 io.dropwizard.metrics:* = 4.2.33
 io.undertow:* = 2.3.18.Final
-net.bytebuddy:* = 1.17.6
+net.bytebuddy:* = 1.17.7
 net.jqwik:* = 1.9.3
 org.assertj:* = 3.27.4
 org.awaitility:* = 4.3.0
