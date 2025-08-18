@@ -229,7 +229,8 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
     @Override
     public Snapshot getSnapshot() {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
-        return new WeightedSnapshotWithExemplars(stateSnapshot.exemplarMetadataProvider, stateSnapshot.values.values());
+        return WeightedSnapshotWithExemplars.snapshot(
+                stateSnapshot.exemplarMetadataProvider, stateSnapshot.values.values());
     }
 
     public static Builder builder() {

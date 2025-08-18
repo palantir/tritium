@@ -18,9 +18,11 @@ package com.palantir.tritium.metrics.registry;
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.WeightedSnapshot;
 import com.codahale.metrics.WeightedSnapshot.WeightedSample;
-import com.google.common.collect.ImmutableList;
+import com.palantir.logsafe.Preconditions;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 
@@ -62,6 +64,13 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
     private final ExemplarMetadataProvider<?> exemplarProvider;
     private final List<LongExemplar<Object>> exemplars;
 
+    private WeightedSnapshotWithExemplars(
+            ExemplarMetadataProvider<?> provider, List<LongExemplar<Object>> exemplars, WeightedSnapshot snapshot) {
+        this.exemplars = Collections.unmodifiableList(exemplars);
+        this.weightedSnapshot = Preconditions.checkNotNull(snapshot, "snapshot");
+        this.exemplarProvider = Preconditions.checkNotNull(provider, "provider");
+    }
+
     /**
      * Create a new {@link Snapshot} with the given values.
      *
@@ -69,24 +78,21 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
      * exemplars to clients able to input the same provider instance, to guarantee type-safety.
      * @param values an unordered set of values in the reservoir
      */
-    WeightedSnapshotWithExemplars(ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
-        ImmutableList.Builder<WeightedSample> weightedSamplesBuilder =
-                ImmutableList.builderWithExpectedSize(values.size());
-        ImmutableList.Builder<LongExemplar<Object>> exemplarsBuilder = null;
-
-        for (WeightedSampleWithExemplar v : values) {
-            weightedSamplesBuilder.add(new WeightedSample(v.value, v.weight));
+    static Snapshot snapshot(ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
+        List<WeightedSample> weightedSamples = new ArrayList<>(values.size());
+        List<LongExemplar<Object>> exemplars = new ArrayList<>();
+        values.forEach(v -> {
+            weightedSamples.add(new WeightedSample(v.value, v.weight));
             if (v.exemplarMetadata != null) {
-                if (exemplarsBuilder == null) {
-                    exemplarsBuilder = ImmutableList.builder();
-                }
-                exemplarsBuilder.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
+                exemplars.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
             }
-        }
-        this.exemplars = (exemplarsBuilder == null) ? ImmutableList.of() : exemplarsBuilder.build();
+        });
 
-        this.weightedSnapshot = new WeightedSnapshot(weightedSamplesBuilder.build());
-        this.exemplarProvider = provider;
+        WeightedSnapshot weightedSnapshot = new WeightedSnapshot(weightedSamples);
+        if (exemplars.isEmpty()) {
+            return weightedSnapshot;
+        }
+        return new WeightedSnapshotWithExemplars(provider, exemplars, weightedSnapshot);
     }
 
     /**
