@@ -1,5 +1,6 @@
 apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'com.palantir.metric-schema'
+apply plugin: 'org.revapi.revapi-gradle-plugin'
 
 dependencies {
     api 'io.dropwizard.metrics:metrics-core'
