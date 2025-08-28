@@ -13,7 +13,7 @@ com.palantir.tracing:* = 6.27.0
 com.palantir.javapoet:javapoet = 0.7.0
 com.squareup.okhttp3:* = 5.1.0
 # Keep major.minor metrics version in sync with Apache Spark
-io.dropwizard.metrics:* = 4.2.34
+io.dropwizard.metrics:* = 4.2.35
 io.undertow:* = 2.3.18.Final
 net.bytebuddy:* = 1.17.7
 net.jqwik:* = 1.9.3
