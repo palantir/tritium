@@ -90,14 +90,14 @@ public final class OptimizedSlidingTimeWindowMovingAverages implements MovingAve
     private Instant oldestBucketTime;
 
     /**
-     * Creates a new {@link com.codahale.metrics.SlidingTimeWindowMovingAverages}.
+     * Creates a new {@link OptimizedSlidingTimeWindowMovingAverages}.
      */
     OptimizedSlidingTimeWindowMovingAverages() {
         this(Clock.defaultClock());
     }
 
     /**
-     * Creates a new {@link com.codahale.metrics.SlidingTimeWindowMovingAverages}.
+     * Creates a new {@link OptimizedSlidingTimeWindowMovingAverages}.
      *
      * @param clock the clock to use for the meter ticks
      */
