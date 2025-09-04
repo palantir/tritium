@@ -25,11 +25,9 @@ import com.codahale.metrics.SlidingTimeWindowArrayReservoir;
 import com.google.common.annotations.VisibleForTesting;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.IntStream;
 
 /**
  * Optimized fork of {@link com.codahale.metrics.SlidingTimeWindowMovingAverages}, see
@@ -66,7 +64,7 @@ public final class OptimizedSlidingTimeWindowMovingAverages implements MovingAve
      * One counter per time bucket/slot (i.e. per second, see TICK_INTERVAL) for the entire
      * time window (i.e. 15 minutes, see TIME_WINDOW_DURATION_MINUTES).
      */
-    private final List<LongAdder> buckets;
+    private final LongAdder[] buckets;
 
     /**
      * Index into buckets, pointing at the bucket containing the oldest counts.
@@ -92,7 +90,7 @@ public final class OptimizedSlidingTimeWindowMovingAverages implements MovingAve
     /**
      * Creates a new {@link OptimizedSlidingTimeWindowMovingAverages}.
      */
-    OptimizedSlidingTimeWindowMovingAverages() {
+    public OptimizedSlidingTimeWindowMovingAverages() {
         this(Clock.defaultClock());
     }
 
@@ -101,14 +99,15 @@ public final class OptimizedSlidingTimeWindowMovingAverages implements MovingAve
      *
      * @param clock the clock to use for the meter ticks
      */
-    OptimizedSlidingTimeWindowMovingAverages(Clock clock) {
+    public OptimizedSlidingTimeWindowMovingAverages(Clock clock) {
         this.clock = clock;
         final long startTime = clock.getTick();
         this.lastTick = new AtomicLong(startTime);
 
-        this.buckets = IntStream.range(0, NUMBER_OF_BUCKETS)
-                .mapToObj(_i -> new LongAdder())
-                .toList();
+        this.buckets = new LongAdder[NUMBER_OF_BUCKETS];
+        for (int i = 0; i < NUMBER_OF_BUCKETS; i++) {
+            this.buckets[i] = new LongAdder();
+        }
         this.bucketBaseTime = Instant.ofEpochSecond(0L, startTime);
         this.oldestBucketTime = bucketBaseTime;
         this.oldestBucketIndex = 0;
@@ -117,7 +116,7 @@ public final class OptimizedSlidingTimeWindowMovingAverages implements MovingAve
 
     @Override
     public void update(long value) {
-        buckets.get(currentBucketIndex).add(value);
+        buckets[currentBucketIndex].add(value);
     }
 
     @Override
@@ -195,14 +194,14 @@ public final class OptimizedSlidingTimeWindowMovingAverages implements MovingAve
     private void cleanBucketRange(int fromIndex, int toIndex) {
         if (fromIndex < toIndex) {
             for (int i = fromIndex; i < toIndex; i++) {
-                buckets.get(i).reset();
+                buckets[i].reset();
             }
         } else {
             for (int i = fromIndex; i < NUMBER_OF_BUCKETS; i++) {
-                buckets.get(i).reset();
+                buckets[i].reset();
             }
             for (int i = 0; i < toIndex; i++) {
-                buckets.get(i).reset();
+                buckets[i].reset();
             }
         }
     }
@@ -216,14 +215,14 @@ public final class OptimizedSlidingTimeWindowMovingAverages implements MovingAve
         long sum = 0;
         if (fromIndex < toIndex) {
             for (int i = fromIndex; i < toIndex; i++) {
-                sum += buckets.get(i).longValue();
+                sum += buckets[i].longValue();
             }
         } else {
             for (int i = fromIndex; i < NUMBER_OF_BUCKETS; i++) {
-                sum += buckets.get(i).longValue();
+                sum += buckets[i].longValue();
             }
             for (int i = 0; i < toIndex; i++) {
-                sum += buckets.get(i).longValue();
+                sum += buckets[i].longValue();
             }
         }
         return sum;
