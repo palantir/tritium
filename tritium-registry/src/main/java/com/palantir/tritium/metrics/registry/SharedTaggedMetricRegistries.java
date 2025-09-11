@@ -28,6 +28,7 @@ public final class SharedTaggedMetricRegistries {
      *
      * @deprecated avoid using the global singleton
      */
+    @SuppressWarnings("for-rollout:deprecation")
     @Deprecated
     public static TaggedMetricRegistry getSingleton() {
         return DefaultTaggedMetricRegistry.getDefault();
