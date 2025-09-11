@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.checkerframework.checker.index.qual.NonNegative;
 
 public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
 
@@ -169,29 +168,29 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
     }
 
     @Override
-    public void recordHits(@NonNegative int count) {
+    public void recordHits(int count) {
         hitMeter.mark(count);
     }
 
     @Override
-    public void recordMisses(@NonNegative int count) {
+    public void recordMisses(int count) {
         missMeter.mark(count);
     }
 
     @Override
-    public void recordLoadSuccess(@NonNegative long loadTime) {
+    public void recordLoadSuccess(long loadTime) {
         loadSuccessTimer.update(loadTime, TimeUnit.NANOSECONDS);
         totalLoadTime.add(loadTime);
     }
 
     @Override
-    public void recordLoadFailure(@NonNegative long loadTime) {
+    public void recordLoadFailure(long loadTime) {
         loadFailureTimer.update(loadTime, TimeUnit.NANOSECONDS);
         totalLoadTime.add(loadTime);
     }
 
     @Override
-    public void recordEviction(@NonNegative int weight, RemovalCause cause) {
+    public void recordEviction(int weight, RemovalCause cause) {
         Meter evictionMeter = evictionMeters.get(cause);
         if (evictionMeter != null) {
             evictionMeter.mark();
