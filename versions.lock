@@ -48,29 +48,13 @@ io.dropwizard.metrics:metrics-core:4.2.36 (2 constraints: 3314e788)
 
 io.dropwizard.metrics:metrics-jvm:4.2.36 (1 constraints: 4105493b)
 
-io.smallrye.common:smallrye-common-annotation:2.6.0 (1 constraints: c30d1c36)
-
-io.smallrye.common:smallrye-common-constraint:2.6.0 (4 constraints: 8a413caf)
-
-io.smallrye.common:smallrye-common-cpu:2.6.0 (2 constraints: 731c91d2)
-
-io.smallrye.common:smallrye-common-expression:2.4.0 (1 constraints: b10e835a)
-
-io.smallrye.common:smallrye-common-function:2.6.0 (2 constraints: 5c215988)
-
-io.smallrye.common:smallrye-common-net:2.4.0 (1 constraints: b10e835a)
-
-io.smallrye.common:smallrye-common-os:2.4.0 (1 constraints: b10e835a)
-
-io.smallrye.common:smallrye-common-ref:2.4.0 (1 constraints: b10e835a)
-
 net.bytebuddy:byte-buddy:1.17.7 (4 constraints: 9e2bda6c)
 
 org.hdrhistogram:HdrHistogram:2.2.2 (1 constraints: 0805fd35)
 
-org.jboss.logging:jboss-logging:3.6.1.Final (7 constraints: c4838fcc)
+org.jboss.logging:jboss-logging:3.4.3.Final (3 constraints: f2300ed8)
 
-org.jboss.threads:jboss-threads:3.7.0.Final (3 constraints: bb2a49e6)
+org.jboss.threads:jboss-threads:3.5.0.Final (3 constraints: b92aebe5)
 
 org.jetbrains:annotations:26.0.2 (2 constraints: 1420d600)
 
@@ -80,7 +64,7 @@ org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:1.1.3 (1 constraint
 
 org.slf4j:slf4j-api:2.0.17 (8 constraints: 766e4975)
 
-org.wildfly.common:wildfly-common:2.0.0 (2 constraints: 581ab548)
+org.wildfly.common:wildfly-common:1.5.4.Final (2 constraints: 741cfbf1)
 
 
 
@@ -100,7 +84,7 @@ com.squareup.okhttp3:okhttp-jvm:5.1.0 (1 constraints: 08050736)
 
 com.squareup.okio:okio-jvm:3.15.0 (1 constraints: fd0da246)
 
-io.undertow:undertow-core:2.3.19.Final (1 constraints: 59075461)
+io.undertow:undertow-core:2.3.18.Final (1 constraints: 58074d61)
 
 junit:junit:4.13.2 (2 constraints: de1ce71a)
 
