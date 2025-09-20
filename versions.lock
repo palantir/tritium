@@ -48,7 +48,7 @@ io.dropwizard.metrics:metrics-core:4.2.37 (2 constraints: 35141489)
 
 io.dropwizard.metrics:metrics-jvm:4.2.37 (1 constraints: 42054a3b)
 
-net.bytebuddy:byte-buddy:1.17.7 (4 constraints: 752b7f4f)
+net.bytebuddy:byte-buddy:1.17.7 (4 constraints: 762bad4f)
 
 org.hdrhistogram:HdrHistogram:2.2.2 (1 constraints: 0805fd35)
 
@@ -88,7 +88,7 @@ io.undertow:undertow-core:2.3.18.Final (1 constraints: 58074d61)
 
 junit:junit:4.13.2 (2 constraints: de1ce71a)
 
-net.bytebuddy:byte-buddy-agent:1.17.7 (2 constraints: df1a8f63)
+net.bytebuddy:byte-buddy-agent:1.17.7 (2 constraints: e01abd63)
 
 net.jqwik:jqwik:1.9.3 (1 constraints: 0f050e36)
 
@@ -134,9 +134,9 @@ org.junit.platform:junit-platform-engine:1.13.4 (3 constraints: bc2dc41a)
 
 org.junit.platform:junit-platform-launcher:1.13.4 (1 constraints: 3b05363b)
 
-org.mockito:mockito-core:5.19.0 (2 constraints: 3a14bf87)
+org.mockito:mockito-core:5.20.0 (2 constraints: 2a143986)
 
-org.mockito:mockito-junit-jupiter:5.19.0 (1 constraints: 41055c3b)
+org.mockito:mockito-junit-jupiter:5.20.0 (1 constraints: 3905453b)
 
 org.objenesis:objenesis:3.3 (1 constraints: b20a14bd)
 
