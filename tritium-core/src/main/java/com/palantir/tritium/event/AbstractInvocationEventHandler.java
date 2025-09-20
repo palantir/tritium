@@ -104,7 +104,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
     }
 
     @SuppressWarnings("WeakerAccess") // public API
-    public static Object[] nullToEmpty(@Nullable Object[] args) {
+    public static Object[] nullToEmpty(Object @Nullable [] args) {
         return (args == null) ? NO_ARGS : args;
     }
 }

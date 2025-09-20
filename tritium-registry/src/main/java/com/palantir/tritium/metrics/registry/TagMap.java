@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics.registry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
+import com.palantir.logsafe.Preconditions;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,7 +109,7 @@ final class TagMap implements SortedMap<String, String> {
             int valuesIndex = 2 * i;
             String key = keys[i];
             values[valuesIndex] = key;
-            values[valuesIndex + 1] = data.get(key);
+            values[valuesIndex + 1] = Preconditions.checkNotNull(data.get(key), "value");
         }
         return values;
     }

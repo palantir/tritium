@@ -21,6 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -61,14 +62,19 @@ public final class AnnotationHelper {
     @Deprecated
     public static final class MethodSignature {
         private final String methodName;
-        private final Class<?>[] parameterTypes;
+        private final Class<?> @NonNull [] parameterTypes;
 
         private static final Class<?>[] NO_ARGS = new Class<?>[0];
 
-        private MethodSignature(String methodName, @Nullable Class<?>... parameterTypes) {
+        private MethodSignature(String methodName, Class<?> @Nullable [] parameterTypes) {
             this.methodName = checkNotNull(methodName);
-            this.parameterTypes =
-                    (parameterTypes == null || parameterTypes.length == 0) ? NO_ARGS : parameterTypes.clone();
+            this.parameterTypes = nullToEmpty(parameterTypes);
+        }
+
+        @SuppressWarnings("NullAway")
+        private static Class<?> @NonNull [] nullToEmpty(Class<?> @Nullable [] types) {
+            @Nullable Class<?>[] parameterTypes = (types == null || types.length == 0) ? null : types.clone();
+            return parameterTypes == null ? NO_ARGS : parameterTypes;
         }
 
         public String getMethodName() {

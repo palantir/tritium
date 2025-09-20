@@ -72,7 +72,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
     /** Optimized to avoid excessive stack frames for readable stack traces. */
     @Override
     @Nullable
-    public final Object invoke(Object proxy, Method method, @Nullable Object[] nullableArgs) throws Throwable {
+    public final Object invoke(Object proxy, Method method, Object @Nullable [] nullableArgs) throws Throwable {
         Object[] arguments = nullableArgs == null ? EMPTY_ARRAY : nullableArgs;
         if (isSpecialMethod(method, arguments)) {
             return handleSpecialMethod(proxy, method, arguments);

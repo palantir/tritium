@@ -102,7 +102,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         }
     }
 
-    private void logInvocation(Method method, @Nullable Object[] nullableArgs, long durationNanos) {
+    private void logInvocation(Method method, Object @Nullable [] nullableArgs, long durationNanos) {
         if (isEnabled() && durationPredicate.test(durationNanos)) {
             Object[] args = nullToEmpty(nullableArgs);
             logger.accept(getMessagePattern(args), getLogParams(method, args, durationNanos, level));

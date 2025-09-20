@@ -30,18 +30,18 @@ public class DefaultInvocationContext implements InvocationContext {
     private final Method method;
     private final Object[] args;
 
-    protected DefaultInvocationContext(long startTimeNanos, Object instance, Method method, @Nullable Object[] args) {
+    protected DefaultInvocationContext(long startTimeNanos, Object instance, Method method, Object @Nullable [] args) {
         this.startTimeNanos = startTimeNanos;
         this.instance = instance;
         this.method = method;
         this.args = toNonNullClone(args);
     }
 
-    private static Object[] toNonNullClone(@Nullable Object[] args) {
+    private static Object[] toNonNullClone(Object @Nullable [] args) {
         return args == null ? NO_ARGS : args.clone();
     }
 
-    public static InvocationContext of(Object instance, Method method, @Nullable Object[] args) {
+    public static InvocationContext of(Object instance, Method method, Object @Nullable [] args) {
         return new DefaultInvocationContext(
                 System.nanoTime(), checkNotNull(instance, "instance"), checkNotNull(method, "method"), args);
     }
