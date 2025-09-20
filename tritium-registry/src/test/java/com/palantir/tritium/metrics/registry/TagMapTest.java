@@ -24,6 +24,8 @@ import com.google.common.collect.Ordering;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class TagMapTest {
@@ -89,5 +91,20 @@ class TagMapTest {
         assertThat(TagMap.isNaturalOrder(immutableSortedMapComparator))
                 .as("Expected ImmutableSortedMap comparator %s to be natural", immutableSortedMapComparator)
                 .isTrue();
+    }
+
+    @Test
+    void testNullValueBecomesEmpty() {
+        Map<String, String> map = new HashMap<>();
+        map.put("a", null);
+        map.put("b", "");
+        map.put("c", "null");
+        assertThat(TagMap.of(map)).satisfies(tagMap -> {
+            assertThat(tagMap).hasSameSizeAs(map);
+            assertThat(tagMap.keySet())
+                    .containsExactlyInAnyOrderElementsOf(map.keySet())
+                    .allSatisfy(value -> assertThat(value).isNotNull());
+            assertThat(tagMap.values()).allSatisfy(value -> assertThat(value).isNotNull());
+        });
     }
 }
