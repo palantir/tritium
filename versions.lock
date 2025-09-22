@@ -106,7 +106,7 @@ org.apache.commons:commons-math3:3.6.1 (1 constraints: bf0adbcc)
 
 org.apiguardian:apiguardian-api:1.1.2 (11 constraints: 9293fa1e)
 
-org.assertj:assertj-core:3.27.5 (2 constraints: a61994e0)
+org.assertj:assertj-core:3.27.6 (2 constraints: a719cee0)
 
 org.awaitility:awaitility:4.3.0 (1 constraints: 09050836)
 
