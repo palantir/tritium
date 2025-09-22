@@ -20,7 +20,6 @@ import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings("DesignForExtension")
@@ -33,8 +32,7 @@ public class ThrowingInvocationEventHandler implements InvocationEventHandler<In
     }
 
     @Override
-    public InvocationContext preInvocation(
-            @NonNull Object _instance, @NonNull Method _method, @NonNull Object[] _args) {
+    public InvocationContext preInvocation(Object _instance, Method _method, @Nullable Object @Nullable [] _args) {
         throw new SafeIllegalStateException("preInvocation always throws");
     }
 
@@ -44,7 +42,7 @@ public class ThrowingInvocationEventHandler implements InvocationEventHandler<In
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext _context, @NonNull Throwable _cause) {
+    public void onFailure(@Nullable InvocationContext _context, Throwable _cause) {
         throw new SafeIllegalStateException("onFailure always throws");
     }
 

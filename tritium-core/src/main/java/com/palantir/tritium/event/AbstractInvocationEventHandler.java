@@ -95,7 +95,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
      * Returns system property based boolean supplier for the specified class.
      *
      * @param clazz instrumentation handler class
-     * @return false if "instrument.fully.qualified.class.Name" is set to "false", otherwise true
+     * @return `false` if "instrument.fully.qualified.class.Name" is set to "false", otherwise true
      */
     protected static com.palantir.tritium.api.functions.BooleanSupplier getSystemPropertySupplier(
             Class<? extends InvocationEventHandler<InvocationContext>> clazz) {
@@ -104,7 +104,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
     }
 
     @SuppressWarnings("WeakerAccess") // public API
-    public static Object[] nullToEmpty(Object @Nullable [] args) {
+    public static @Nullable Object[] nullToEmpty(@Nullable Object @Nullable [] args) {
         return (args == null) ? NO_ARGS : args;
     }
 }

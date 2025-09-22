@@ -17,7 +17,6 @@
 package com.palantir.tritium.event;
 
 import java.lang.reflect.Method;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /** No-op implementation of {@link InvocationEventHandler}. */
@@ -30,7 +29,7 @@ public enum NoOpInvocationEventHandler implements InvocationEventHandler<Invocat
     }
 
     @Override
-    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+    public InvocationContext preInvocation(Object instance, Method method, @Nullable Object @Nullable [] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 
@@ -40,7 +39,7 @@ public enum NoOpInvocationEventHandler implements InvocationEventHandler<Invocat
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext _context, @NonNull Throwable _cause) {
+    public void onFailure(@Nullable InvocationContext _context, Throwable _cause) {
         // no-op
     }
 }

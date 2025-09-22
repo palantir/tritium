@@ -54,7 +54,7 @@ public class InvocationEventProxyTest {
     private InstrumentationFilter mockFilter;
 
     @Mock
-    private InvocationEventHandler<InvocationContext> mockHandler;
+    private InvocationEventHandler<@NonNull InvocationContext> mockHandler;
 
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
@@ -73,7 +73,7 @@ public class InvocationEventProxyTest {
     @Test
     @SuppressWarnings("checkstyle:illegalthrows")
     public void testInstrumentPreInvocation() throws Throwable {
-        InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler();
+        InvocationEventHandler<@NonNull InvocationContext> testHandler = new SimpleHandler();
         InvocationEventProxy proxy = createTestProxy(testHandler);
 
         assertThat(proxy.invoke(this, getStringLengthMethod(), EMPTY_ARGS)).isEqualTo("test".length());
@@ -98,7 +98,7 @@ public class InvocationEventProxyTest {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler() {
             @Override
             public InvocationContext preInvocation(
-                    @NonNull Object _instance, @NonNull Method _method, @NonNull Object[] _args) {
+                    Object _instance, Method _method, @Nullable Object @Nullable [] _args) {
                 throw new IllegalStateException("expected");
             }
         };
@@ -299,7 +299,7 @@ public class InvocationEventProxyTest {
         return TestInterface.class.getMethod("throwsCheckedException");
     }
 
-    private static class SimpleHandler implements InvocationEventHandler<InvocationContext> {
+    private static class SimpleHandler implements InvocationEventHandler<@NonNull InvocationContext> {
         @Override
         public boolean isEnabled() {
             return true;
@@ -307,7 +307,7 @@ public class InvocationEventProxyTest {
 
         @Override
         public InvocationContext preInvocation(
-                @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+                @NonNull Object instance, @NonNull Method method, @Nullable Object @Nullable [] args) {
             return DefaultInvocationContext.of(instance, method, args);
         }
 

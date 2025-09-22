@@ -21,7 +21,6 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public final class CompositeInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
@@ -52,7 +51,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     }
 
     @Override
-    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+    public InvocationContext preInvocation(Object instance, Method method, @Nullable Object [] args) {
         @Nullable InvocationContext[] contexts = new InvocationContext[handlers.length];
 
         for (int i = 0; i < handlers.length; i++) {
@@ -71,21 +70,21 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
-    private void success(@Nullable InvocationContext @NonNull [] contexts, @Nullable Object result) {
+    private void success(@Nullable InvocationContext[] contexts, @Nullable Object result) {
         for (int i = contexts.length - 1; i > -1; i--) {
             Handlers.onSuccess(handlers[i], contexts[i], result);
         }
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @NonNull Throwable cause) {
+    public void onFailure(@Nullable InvocationContext context, Throwable cause) {
         debugIfNullContext(context);
         if (context != null) {
             failure(((CompositeInvocationContext) context).getContexts(), cause);
         }
     }
 
-    private void failure(@Nullable InvocationContext @NonNull [] contexts, @NonNull Throwable cause) {
+    private void failure(@Nullable InvocationContext[] contexts, Throwable cause) {
         for (int i = contexts.length - 1; i > -1; i--) {
             Handlers.onFailure(handlers[i], contexts[i], cause);
         }
@@ -98,19 +97,16 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
 
     static class CompositeInvocationContext extends DefaultInvocationContext {
 
-        private final @Nullable InvocationContext @NonNull [] contexts;
+        private final @Nullable InvocationContext[] contexts;
 
         CompositeInvocationContext(
-                Object instance,
-                Method method,
-                Object @Nullable [] args,
-                @Nullable InvocationContext @NonNull [] contexts) {
+                Object instance, Method method, Object @Nullable [] args, @Nullable InvocationContext[] contexts) {
             super(System.nanoTime(), instance, method, args);
             this.contexts = checkNotNull(contexts);
         }
 
         @Nullable
-        InvocationContext @NonNull [] getContexts() {
+        InvocationContext[] getContexts() {
             return contexts;
         }
     }
