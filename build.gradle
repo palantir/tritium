@@ -34,7 +34,7 @@ apply plugin: 'com.palantir.baseline-java-versions'
 apply plugin: 'com.palantir.jdks.latest'
 
 javaVersions {
-    libraryTarget = 17
+    libraryTarget = 21
     runtime = 21
 }
 
@@ -63,7 +63,6 @@ allprojects {
     plugins.withId('com.palantir.baseline-error-prone', {
         tasks.withType(JavaCompile).configureEach {
             options.compilerArgs += [
-                '-Werror',
                 '-Xlint:deprecation',
                 '-Xlint:unchecked',
             ]

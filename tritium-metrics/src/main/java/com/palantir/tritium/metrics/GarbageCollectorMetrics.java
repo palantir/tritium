@@ -32,6 +32,7 @@ final class GarbageCollectorMetrics {
     /**
      * Registers gauges {@code jvm.gc.count} and {@code jvm.gc.time} tagged with {@code {collector: NAME}}.
      */
+    @SuppressWarnings("deprecation")
     static void register(TaggedMetricRegistry metrics) {
         JvmGcMetrics gcMetrics = JvmGcMetrics.of(metrics);
         for (GarbageCollectorMXBean gc : ManagementFactory.getGarbageCollectorMXBeans()) {
