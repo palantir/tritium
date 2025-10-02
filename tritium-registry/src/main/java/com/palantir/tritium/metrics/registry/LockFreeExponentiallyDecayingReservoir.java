@@ -62,7 +62,6 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
     private static final double SECONDS_PER_NANO = .000_000_001D;
 
-    @SuppressWarnings("for-rollout:deprecation")
     private static final AtomicReferenceFieldUpdater<LockFreeExponentiallyDecayingReservoir, State> stateUpdater =
             AtomicReferenceFieldUpdater.newUpdater(LockFreeExponentiallyDecayingReservoir.class, State.class, "state");
 
@@ -286,7 +285,6 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
             return this;
         }
 
-        @SuppressWarnings("for-rollout:deprecation")
         public Reservoir build() {
             return new LockFreeExponentiallyDecayingReservoir(size, alpha, rescaleThreshold, clock);
         }
