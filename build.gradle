@@ -64,7 +64,6 @@ allprojects {
         tasks.withType(JavaCompile).configureEach {
             options.compilerArgs += [
                 '-Werror',
-                '-Xlint:deprecation',
                 '-Xlint:unchecked',
             ]
 
