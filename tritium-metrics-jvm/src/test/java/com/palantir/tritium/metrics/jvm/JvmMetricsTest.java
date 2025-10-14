@@ -32,15 +32,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalLong;
+import java.util.*;
+import java.util.stream.Stream;
 import javax.management.ObjectName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 final class JvmMetricsTest {
 
@@ -93,6 +91,13 @@ final class JvmMetricsTest {
             "os.load.norm.1",
             "process.cpu.utilization");
 
+    private static Stream<String> jvmMemoryLongGaugeNames() {
+        return EXPECTED_NAMES.stream()
+                .filter(name -> name.startsWith("jvm.memory."))
+                .filter(name -> !name.endsWith(".usage")) // RatioGauges
+                .filter(name -> !name.startsWith("jvm.memory.pools")); // tagged by memoryPool
+    }
+
     @Test
     void testExpectedMetrics() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
@@ -101,6 +106,18 @@ final class JvmMetricsTest {
                         .map(MetricName::safeName)
                         .collect(ImmutableSet.toImmutableSet()))
                 .containsAll(EXPECTED_NAMES);
+    }
+
+    @ParameterizedTest
+    @MethodSource("jvmMemoryLongGaugeNames")
+    @SuppressWarnings("unchecked")
+    void testJvmMemoryTotalMaxIsPositive(String safeName) {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        JvmMetrics.register(registry);
+        Gauge<Long> jvmMemoryTotalMax =
+                find(registry, MetricName.builder().safeName(safeName).build(), Gauge.class);
+        assertThat(jvmMemoryTotalMax)
+                .satisfies(gauge -> assertThat(gauge.getValue()).isPositive());
     }
 
     @Test
