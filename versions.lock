@@ -80,9 +80,9 @@ com.google.truth:truth:1.4.5 (1 constraints: 1d1219fb)
 
 com.palantir.safe-logging:preconditions-assertj:3.9.0 (1 constraints: 0e051536)
 
-com.squareup.okhttp3:okhttp-jvm:5.2.0 (1 constraints: 09050a36)
+com.squareup.okhttp3:okhttp-jvm:5.2.1 (1 constraints: 0a050b36)
 
-com.squareup.okio:okio-jvm:3.16.0 (1 constraints: fe0da546)
+com.squareup.okio:okio-jvm:3.16.1 (1 constraints: ff0da646)
 
 io.undertow:undertow-core:2.3.18.Final (1 constraints: 58074d61)
 
@@ -118,7 +118,7 @@ org.jboss.xnio:xnio-api:3.8.16.Final (2 constraints: d71a2474)
 
 org.jboss.xnio:xnio-nio:3.8.16.Final (1 constraints: f80dc53d)
 
-org.jetbrains.kotlin:kotlin-stdlib:2.2.20 (2 constraints: be19e21c)
+org.jetbrains.kotlin:kotlin-stdlib:2.2.20 (2 constraints: f019d436)
 
 org.junit.jupiter:junit-jupiter:6.0.0 (1 constraints: 47070770)
 
