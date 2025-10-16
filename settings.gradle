@@ -11,6 +11,7 @@ apply plugin: 'com.palantir.jdks.settings'
 rootProject.name = 'tritium'
 
 include 'tritium-api'
+include 'tritium-cache'
 include 'tritium-caffeine'
 include 'tritium-core'
 include 'tritium-ids'
