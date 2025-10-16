@@ -12,7 +12,6 @@ com.palantir.safe-logging:* = 3.9.0
 com.palantir.tracing:* = 6.28.0
 com.palantir.javapoet:javapoet = 0.7.0
 com.squareup.okhttp3:* = 5.2.1
-# Keep major.minor metrics version in sync with Apache Spark
 io.dropwizard.metrics:* = 4.2.37
 io.undertow:* = 2.3.18.Final
 net.bytebuddy:* = 1.17.8
