@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics.jvm;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.RatioGauge;
+import com.codahale.metrics.RatioGauge.Ratio;
 import com.codahale.metrics.jvm.ThreadDeadlockDetector;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Suppliers;
@@ -30,6 +31,7 @@ import com.palantir.tritium.metrics.MetricRegistries;
 import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.AttributeUptime_EnablePreview;
 import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.DnsCacheTtlSeconds_Cache;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import java.lang.Thread.State;
 import java.lang.management.BufferPoolMXBean;
 import java.lang.management.ClassLoadingMXBean;
 import java.lang.management.ManagementFactory;
@@ -50,7 +52,7 @@ import org.jspecify.annotations.Nullable;
 /** {@link JvmMetrics} provides a standard set of metrics for debugging java services. */
 public final class JvmMetrics {
     private static final SafeLogger log = SafeLoggerFactory.get(JvmMetrics.class);
-    private static final RatioGauge.Ratio RATIO_NAN = RatioGauge.Ratio.of(Double.NaN, Double.NaN);
+    private static final Ratio RATIO_NAN = Ratio.of(Double.NaN, Double.NaN);
 
     /**
      * Registers a default set of metrics.
@@ -109,15 +111,14 @@ public final class JvmMetrics {
         ThreadDeadlockDetector deadlockDetector = new ThreadDeadlockDetector(threads);
         metrics.threadsDeadlockCount(
                 () -> deadlockDetector.getDeadlockedThreads().size());
-        Supplier<Map<Thread.State, Integer>> threadsByStateSupplier =
+        Supplier<Map<State, Integer>> threadsByStateSupplier =
                 Suppliers.memoizeWithExpiration(() -> threadsByState(threads), 10, TimeUnit.SECONDS);
-        metrics.threadsNewCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.NEW, 0));
-        metrics.threadsRunnableCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.RUNNABLE, 0));
-        metrics.threadsBlockedCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.BLOCKED, 0));
-        metrics.threadsWaitingCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.WAITING, 0));
-        metrics.threadsTimedWaitingCount(
-                () -> threadsByStateSupplier.get().getOrDefault(Thread.State.TIMED_WAITING, 0));
-        metrics.threadsTerminatedCount(() -> threadsByStateSupplier.get().getOrDefault(Thread.State.TERMINATED, 0));
+        metrics.threadsNewCount(() -> threadsByStateSupplier.get().getOrDefault(State.NEW, 0));
+        metrics.threadsRunnableCount(() -> threadsByStateSupplier.get().getOrDefault(State.RUNNABLE, 0));
+        metrics.threadsBlockedCount(() -> threadsByStateSupplier.get().getOrDefault(State.BLOCKED, 0));
+        metrics.threadsWaitingCount(() -> threadsByStateSupplier.get().getOrDefault(State.WAITING, 0));
+        metrics.threadsTimedWaitingCount(() -> threadsByStateSupplier.get().getOrDefault(State.TIMED_WAITING, 0));
+        metrics.threadsTerminatedCount(() -> threadsByStateSupplier.get().getOrDefault(State.TERMINATED, 0));
     }
 
     @VisibleForTesting
@@ -133,19 +134,19 @@ public final class JvmMetrics {
     }
 
     @SuppressWarnings("UnnecessaryLambda") // Avoid allocations in the threads-by-state loop
-    private static final BiFunction<Thread.State, Integer, Integer> incrementThreadState = (_state, input) -> {
+    private static final BiFunction<State, Integer, Integer> incrementThreadState = (_state, input) -> {
         int existingValue = input == null ? 0 : input;
         return existingValue + 1;
     };
 
-    private static Map<Thread.State, Integer> threadsByState(ThreadMXBean threads) {
+    private static Map<State, Integer> threadsByState(ThreadMXBean threads) {
         // max-depth zero to avoid creating stack traces, we're only interested in high level metadata
         ThreadInfo[] loadedThreadInfo = threads.getThreadInfo(threads.getAllThreadIds(), 0);
-        Map<Thread.State, Integer> threadsByState = new EnumMap<>(Thread.State.class);
+        Map<State, Integer> threadsByState = new EnumMap<>(State.class);
         for (ThreadInfo threadInfo : loadedThreadInfo) {
             // Threads may have been destroyed between ThreadMXBean.getAllThreadIds and ThreadMXBean.getThreadInfo
             if (threadInfo != null) {
-                Thread.State threadState = threadInfo.getThreadState();
+                State threadState = threadInfo.getThreadState();
                 if (threadState != null) {
                     threadsByState.compute(threadState, incrementThreadState);
                 }
@@ -192,11 +193,11 @@ public final class JvmMetrics {
         metrics.heapCommitted(nonNegative(() -> memoryBean.getHeapMemoryUsage().getCommitted()));
         metrics.heapUsage(new RatioGauge() {
             @Override
-            protected RatioGauge.Ratio getRatio() {
+            protected Ratio getRatio() {
                 MemoryUsage heapMemoryUsage = memoryBean.getHeapMemoryUsage();
                 double used = heapMemoryUsage.getUsed();
                 double max = heapMemoryUsage.getMax();
-                return (used < 0 || max < 0) ? RATIO_NAN : RatioGauge.Ratio.of(used, max);
+                return (used < 0 || max < 0) ? RATIO_NAN : Ratio.of(used, max);
             }
         });
         // jvm.memory.non-heap
@@ -207,11 +208,11 @@ public final class JvmMetrics {
                 nonNegative(() -> memoryBean.getNonHeapMemoryUsage().getCommitted()));
         metrics.nonHeapUsage(new RatioGauge() {
             @Override
-            protected RatioGauge.Ratio getRatio() {
+            protected Ratio getRatio() {
                 MemoryUsage nonHeapMemoryUsage = memoryBean.getNonHeapMemoryUsage();
                 double used = nonHeapMemoryUsage.getUsed();
                 double max = nonHeapMemoryUsage.getMax();
-                return (used < 0 || max < 0) ? RATIO_NAN : RatioGauge.Ratio.of(used, max);
+                return (used < 0 || max < 0) ? RATIO_NAN : Ratio.of(used, max);
             }
         });
     }
@@ -258,5 +259,53 @@ public final class JvmMetrics {
 
     private JvmMetrics() {
         throw new UnsupportedOperationException();
+    }
+
+    /** {@link ToggleableJvmMetrics} is like {@link JvmMetrics}, but provides the ability to opt out of some metrics. */
+    public static final class ToggleableJvmMetrics {
+        private final boolean enableThreadsMetrics;
+
+        private ToggleableJvmMetrics(boolean enableThreadsMetrics) {
+            this.enableThreadsMetrics = enableThreadsMetrics;
+        }
+
+        public static final class Builder {
+            private boolean enableThreadsMetrics = true;
+
+            public Builder withThreadsMetrics(boolean threadsMetrics) {
+                this.enableThreadsMetrics = threadsMetrics;
+                return this;
+            }
+
+            public ToggleableJvmMetrics build() {
+                return new ToggleableJvmMetrics(enableThreadsMetrics);
+            }
+        }
+
+        /**
+         * Registers the set of enabled metrics.
+         *
+         * @param registry metric registry
+         */
+        @SuppressWarnings("checkstyle:CyclomaticComplexity")
+        public void register(TaggedMetricRegistry registry) {
+            Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
+            InternalJvmMetrics metrics = InternalJvmMetrics.of(registry);
+            MetricRegistries.registerGarbageCollection(registry);
+            MetricRegistries.registerMemoryPools(registry);
+            Jdk9CompatibleFileDescriptorRatioGauge.register(metrics);
+            OperatingSystemMetrics.register(registry);
+            SafepointMetrics.register(registry);
+            registerAttributes(metrics);
+            registerJvmBufferPools(registry);
+            registerClassLoading(metrics);
+            registerJvmMemory(registry);
+            if (enableThreadsMetrics) {
+                registerThreads(metrics);
+            }
+            metrics.processors(Runtime.getRuntime()::availableProcessors);
+            registerCpuShares(registry, JvmDiagnostics.cpuShares());
+            registerDnsCacheMetrics(metrics);
+        }
     }
 }
