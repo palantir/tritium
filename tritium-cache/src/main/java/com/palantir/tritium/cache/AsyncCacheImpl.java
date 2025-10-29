@@ -122,7 +122,7 @@ class AsyncCacheImpl<K, V> implements AsyncCache<K, V> {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            throw new SafeRuntimeException("Cache load interrupted", e);
         }
     }
 
