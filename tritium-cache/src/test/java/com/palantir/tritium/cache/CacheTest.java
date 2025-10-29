@@ -280,7 +280,7 @@ final class CacheTest {
     }
 
     @Test
-    void entries_sync() {
+    void entries_sync() throws Exception {
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch finishLatch = new CountDownLatch(1);
 
@@ -302,6 +302,8 @@ final class CacheTest {
             });
         });
 
+        startLatch.await();
+
         assertThat(cache.entries())
                 .isUnmodifiable()
                 .toIterable()
@@ -313,7 +315,7 @@ final class CacheTest {
     }
 
     @Test
-    void entries_async() {
+    void entries_async() throws Exception {
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch finishLatch = new CountDownLatch(1);
 
@@ -334,6 +336,8 @@ final class CacheTest {
                 return "value2";
             });
         });
+
+        startLatch.await();
 
         assertThat(cache.entries())
                 .isUnmodifiable()
