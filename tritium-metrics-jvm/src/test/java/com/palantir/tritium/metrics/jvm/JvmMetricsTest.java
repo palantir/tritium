@@ -22,6 +22,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.RatioGauge;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MoreCollectors;
+import com.google.common.collect.Sets;
 import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.DnsCacheTtlSeconds_Cache;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
@@ -39,47 +40,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
 import javax.management.ObjectName;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 final class JvmMetricsTest {
 
-    private static final ImmutableSet<String> EXPECTED_NAMES = ImmutableSet.of(
-            "jvm.attribute.uptime",
-            "jvm.buffers.direct.capacity",
-            "jvm.buffers.direct.count",
-            "jvm.buffers.direct.used",
-            "jvm.buffers.mapped.capacity",
-            "jvm.buffers.mapped.count",
-            "jvm.buffers.mapped.used",
-            "jvm.classloader.loaded",
-            "jvm.classloader.unloaded",
-            "jvm.filedescriptor",
-            "jvm.gc.time",
-            "jvm.gc.count",
-            "jvm.gc.finalizer.queue.size",
-            "jvm.memory.heap.usage",
-            "jvm.memory.pools.committed",
-            "jvm.memory.total.max",
-            "jvm.memory.pools.used",
-            "jvm.memory.pools.init",
-            "jvm.memory.pools.usage",
-            "jvm.memory.pools.max",
-            "jvm.memory.heap.committed",
-            "jvm.memory.total.committed",
-            "jvm.memory.total.used",
-            "jvm.memory.total.init",
-            "jvm.memory.pools.used-after-gc",
-            "jvm.memory.heap.used",
-            "jvm.memory.heap.init",
-            "jvm.memory.non-heap.init",
-            "jvm.memory.non-heap.usage",
-            "jvm.memory.non-heap.used",
-            "jvm.memory.non-heap.committed",
-            "jvm.memory.non-heap.max",
-            "jvm.memory.heap.max",
-            "jvm.processors",
-            "jvm.safepoint.time",
+    private static final ImmutableSet<@NotNull String> EXPECTED_THREAD_METRIC_NAMES = ImmutableSet.of(
             "jvm.threads.timed-waiting.count",
             "jvm.threads.waiting.count",
             "jvm.threads.count",
@@ -88,10 +55,50 @@ final class JvmMetricsTest {
             "jvm.threads.daemon.count",
             "jvm.threads.runnable.count",
             "jvm.threads.terminated.count",
-            "jvm.threads.blocked.count",
-            "os.load.1",
-            "os.load.norm.1",
-            "process.cpu.utilization");
+            "jvm.threads.blocked.count");
+
+    private static final ImmutableSet<@NotNull String> EXPECTED_NAMES = ImmutableSet.<String>builder()
+            .addAll(EXPECTED_THREAD_METRIC_NAMES)
+            .addAll(List.of(
+                    "jvm.attribute.uptime",
+                    "jvm.buffers.direct.capacity",
+                    "jvm.buffers.direct.count",
+                    "jvm.buffers.direct.used",
+                    "jvm.buffers.mapped.capacity",
+                    "jvm.buffers.mapped.count",
+                    "jvm.buffers.mapped.used",
+                    "jvm.classloader.loaded",
+                    "jvm.classloader.unloaded",
+                    "jvm.filedescriptor",
+                    "jvm.gc.time",
+                    "jvm.gc.count",
+                    "jvm.gc.finalizer.queue.size",
+                    "jvm.memory.heap.usage",
+                    "jvm.memory.pools.committed",
+                    "jvm.memory.total.max",
+                    "jvm.memory.pools.used",
+                    "jvm.memory.pools.init",
+                    "jvm.memory.pools.usage",
+                    "jvm.memory.pools.max",
+                    "jvm.memory.heap.committed",
+                    "jvm.memory.total.committed",
+                    "jvm.memory.total.used",
+                    "jvm.memory.total.init",
+                    "jvm.memory.pools.used-after-gc",
+                    "jvm.memory.heap.used",
+                    "jvm.memory.heap.init",
+                    "jvm.memory.non-heap.init",
+                    "jvm.memory.non-heap.usage",
+                    "jvm.memory.non-heap.used",
+                    "jvm.memory.non-heap.committed",
+                    "jvm.memory.non-heap.max",
+                    "jvm.memory.heap.max",
+                    "jvm.processors",
+                    "jvm.safepoint.time",
+                    "os.load.1",
+                    "os.load.norm.1",
+                    "process.cpu.utilization"))
+            .build();
 
     @Test
     void testExpectedMetrics() {
@@ -101,6 +108,16 @@ final class JvmMetricsTest {
                         .map(MetricName::safeName)
                         .collect(ImmutableSet.toImmutableSet()))
                 .containsAll(EXPECTED_NAMES);
+    }
+
+    @Test
+    void testToggleableExpectedMetrics() {
+        TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+        JvmMetrics.registerWithoutThreadMetrics(registry);
+        assertThat(registry.getMetrics().keySet().stream()
+                        .map(MetricName::safeName)
+                        .collect(ImmutableSet.toImmutableSet()))
+                .containsAll(Sets.difference(EXPECTED_NAMES, EXPECTED_THREAD_METRIC_NAMES));
     }
 
     @Test
