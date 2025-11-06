@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MoreCollectors;
 import com.google.common.collect.Sets;
 import com.palantir.tritium.metrics.jvm.InternalJvmMetrics.DnsCacheTtlSeconds_Cache;
-import com.palantir.tritium.metrics.jvm.JvmMetrics.ToggleableJvmMetrics;
 import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
 import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
@@ -114,7 +113,7 @@ final class JvmMetricsTest {
     @Test
     void testToggleableExpectedMetrics() {
         TaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
-        new ToggleableJvmMetrics.Builder().withThreadsMetrics(false).build().register(registry);
+        JvmMetrics.registerWithoutThreadMetrics(registry);
         assertThat(registry.getMetrics().keySet().stream()
                         .map(MetricName::safeName)
                         .collect(ImmutableSet.toImmutableSet()))

@@ -63,6 +63,28 @@ public final class JvmMetrics {
      * @param registry metric registry
      */
     public static void register(TaggedMetricRegistry registry) {
+        registerJvmMetrics(registry, true);
+    }
+
+    /**
+     * Registers a default set of metrics.
+     *
+     * <p>This includes {@link MetricRegistries#registerGarbageCollection(TaggedMetricRegistry)} and
+     * {@link MetricRegistries#registerMemoryPools(TaggedMetricRegistry)},
+     * but does not include gauges for threads by state.
+     *
+     * @param registry metric registry
+     */
+    public static void registerWithoutThreadMetrics(TaggedMetricRegistry registry) {
+        registerJvmMetrics(registry, false);
+    }
+
+    /**
+     * Registers the set of enabled metrics.
+     *
+     * @param registry metric registry
+     */
+    private static void registerJvmMetrics(TaggedMetricRegistry registry, boolean enableThreadsMetrics) {
         Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
         MetricRegistries.registerGarbageCollection(registry);
         MetricRegistries.registerMemoryPools(registry);
@@ -74,7 +96,9 @@ public final class JvmMetrics {
         registerJvmBufferPools(registry);
         registerClassLoading(metrics);
         registerJvmMemory(registry);
-        registerThreads(metrics);
+        if (enableThreadsMetrics) {
+            registerThreads(metrics);
+        }
         metrics.processors(Runtime.getRuntime()::availableProcessors);
         registerCpuShares(registry, JvmDiagnostics.cpuShares());
         registerDnsCacheMetrics(metrics);
@@ -259,53 +283,5 @@ public final class JvmMetrics {
 
     private JvmMetrics() {
         throw new UnsupportedOperationException();
-    }
-
-    /** {@link ToggleableJvmMetrics} is like {@link JvmMetrics}, but provides the ability to opt out of some metrics. */
-    public static final class ToggleableJvmMetrics {
-        private final boolean enableThreadsMetrics;
-
-        private ToggleableJvmMetrics(boolean enableThreadsMetrics) {
-            this.enableThreadsMetrics = enableThreadsMetrics;
-        }
-
-        public static final class Builder {
-            private boolean enableThreadsMetrics = true;
-
-            public Builder withThreadsMetrics(boolean threadsMetrics) {
-                this.enableThreadsMetrics = threadsMetrics;
-                return this;
-            }
-
-            public ToggleableJvmMetrics build() {
-                return new ToggleableJvmMetrics(enableThreadsMetrics);
-            }
-        }
-
-        /**
-         * Registers the set of enabled metrics.
-         *
-         * @param registry metric registry
-         */
-        @SuppressWarnings("checkstyle:CyclomaticComplexity")
-        public void register(TaggedMetricRegistry registry) {
-            Preconditions.checkNotNull(registry, "TaggedMetricRegistry is required");
-            InternalJvmMetrics metrics = InternalJvmMetrics.of(registry);
-            MetricRegistries.registerGarbageCollection(registry);
-            MetricRegistries.registerMemoryPools(registry);
-            Jdk9CompatibleFileDescriptorRatioGauge.register(metrics);
-            OperatingSystemMetrics.register(registry);
-            SafepointMetrics.register(registry);
-            registerAttributes(metrics);
-            registerJvmBufferPools(registry);
-            registerClassLoading(metrics);
-            registerJvmMemory(registry);
-            if (enableThreadsMetrics) {
-                registerThreads(metrics);
-            }
-            metrics.processors(Runtime.getRuntime()::availableProcessors);
-            registerCpuShares(registry, JvmDiagnostics.cpuShares());
-            registerDnsCacheMetrics(metrics);
-        }
     }
 }
