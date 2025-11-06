@@ -12,7 +12,7 @@ com.google.errorprone:error_prone_annotations:2.41.0 (8 constraints: 2e717baa)
 
 com.google.guava:failureaccess:1.0.3 (1 constraints: 160ae3b4)
 
-com.google.guava:guava:33.5.0-jre (6 constraints: 7e5b03ac)
+com.google.guava:guava:33.5.0-jre (6 constraints: 775be2ab)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
@@ -24,7 +24,7 @@ com.palantir.goethe:goethe:0.14.0 (1 constraints: 011643da)
 
 com.palantir.javapoet:javapoet:0.7.0 (3 constraints: 992669bf)
 
-com.palantir.jvm.diagnostics:jvm-diagnostics:0.5.0 (1 constraints: 0705fa35)
+com.palantir.jvm.diagnostics:jvm-diagnostics:0.6.0 (1 constraints: 0805fd35)
 
 com.palantir.nylon:nylon-threads:0.4.0 (1 constraints: 0605f735)
 
@@ -38,9 +38,9 @@ com.palantir.safe-logging:preconditions:3.9.0 (4 constraints: 29342cae)
 
 com.palantir.safe-logging:safe-logging:3.9.0 (7 constraints: b562ef3e)
 
-com.palantir.tracing:tracing:6.28.0 (1 constraints: 4205633b)
+com.palantir.tracing:tracing:6.29.0 (1 constraints: 4305663b)
 
-com.palantir.tracing:tracing-api:6.28.0 (2 constraints: 19124b19)
+com.palantir.tracing:tracing-api:6.29.0 (2 constraints: 1b127719)
 
 com.squareup:javapoet:1.13.0 (1 constraints: f50b65f7)
 
@@ -78,7 +78,7 @@ org.jspecify:jspecify:1.0.0 (10 constraints: b49cd429)
 
 org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:1.1.3 (1 constraints: 0705f635)
 
-org.slf4j:slf4j-api:2.0.17 (8 constraints: 766e4975)
+org.slf4j:slf4j-api:2.0.17 (8 constraints: 6f6e956f)
 
 org.wildfly.common:wildfly-common:2.0.0 (2 constraints: 581ab548)
 
@@ -96,9 +96,9 @@ com.google.truth:truth:1.4.5 (1 constraints: 1d1219fb)
 
 com.palantir.safe-logging:preconditions-assertj:3.9.0 (1 constraints: 0e051536)
 
-com.squareup.okhttp3:okhttp-jvm:5.2.1 (1 constraints: 0a050b36)
+com.squareup.okhttp3:okhttp-jvm:5.3.0 (1 constraints: 0a050d36)
 
-com.squareup.okio:okio-jvm:3.16.1 (1 constraints: ff0da646)
+com.squareup.okio:okio-jvm:3.16.2 (1 constraints: 000ea746)
 
 io.undertow:undertow-core:2.3.20.Final (1 constraints: 51071d61)
 
@@ -134,21 +134,21 @@ org.jboss.xnio:xnio-api:3.8.16.Final (2 constraints: d71a2474)
 
 org.jboss.xnio:xnio-nio:3.8.16.Final (1 constraints: f80dc53d)
 
-org.jetbrains.kotlin:kotlin-stdlib:2.2.20 (2 constraints: f019d436)
+org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (2 constraints: f119f936)
 
-org.junit.jupiter:junit-jupiter:6.0.0 (1 constraints: 47070770)
+org.junit.jupiter:junit-jupiter:6.0.1 (1 constraints: 48070970)
 
-org.junit.jupiter:junit-jupiter-api:6.0.0 (5 constraints: 59437be7)
+org.junit.jupiter:junit-jupiter-api:6.0.1 (5 constraints: 5d433ee9)
 
-org.junit.jupiter:junit-jupiter-engine:6.0.0 (1 constraints: 030eca3b)
+org.junit.jupiter:junit-jupiter-engine:6.0.1 (1 constraints: 040ecb3b)
 
-org.junit.jupiter:junit-jupiter-params:6.0.0 (2 constraints: 0a13fa3a)
+org.junit.jupiter:junit-jupiter-params:6.0.1 (2 constraints: 0c13243b)
 
-org.junit.platform:junit-platform-commons:6.0.0 (4 constraints: 6d3408f0)
+org.junit.platform:junit-platform-commons:6.0.1 (4 constraints: 6f343bf0)
 
-org.junit.platform:junit-platform-engine:6.0.0 (3 constraints: 562da8c7)
+org.junit.platform:junit-platform-engine:6.0.1 (3 constraints: 582dddc7)
 
-org.junit.platform:junit-platform-launcher:6.0.0 (1 constraints: 08050936)
+org.junit.platform:junit-platform-launcher:6.0.1 (1 constraints: 09050a36)
 
 org.mockito:mockito-core:5.20.0 (2 constraints: 2a143986)
 
