@@ -21,6 +21,7 @@ import static com.palantir.logsafe.Preconditions.checkState;
 import com.google.common.collect.Iterators;
 import com.google.errorprone.annotations.MustBeClosed;
 import com.palantir.logsafe.exceptions.SafeRuntimeException;
+import com.palantir.tracing.Tracers;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,9 +36,11 @@ import org.jspecify.annotations.Nullable;
 
 class AsyncCacheImpl<K, V> implements AsyncCache<K, V> {
 
+    private final String loadOperation;
     private final com.github.benmanes.caffeine.cache.AsyncCache<K, V> cache;
 
-    AsyncCacheImpl(com.github.benmanes.caffeine.cache.AsyncCache<K, V> cache) {
+    AsyncCacheImpl(String name, com.github.benmanes.caffeine.cache.AsyncCache<K, V> cache) {
+        this.loadOperation = name + " cache load";
         this.cache = cache;
     }
 
@@ -51,8 +54,8 @@ class AsyncCacheImpl<K, V> implements AsyncCache<K, V> {
     @Nullable
     public final V get(K key, Function<? super K, ? extends V> mappingFunction) {
         CompletableFuture<V> future;
-        try (ValueFactory<K, V> valueFactory = new ValueFactory<>(mappingFunction)) {
-            future = cache.get(key, valueFactory);
+        try (Loader<K, V> loader = loader(mappingFunction)) {
+            future = cache.get(key, loader);
         }
 
         return await(future);
@@ -68,9 +71,8 @@ class AsyncCacheImpl<K, V> implements AsyncCache<K, V> {
             Iterable<? extends K> keys,
             Function<? super Set<? extends K>, ? extends Map<? extends K, ? extends V>> mappingFunction) {
         CompletableFuture<Map<K, V>> future;
-        try (ValueFactory<Set<? extends K>, Map<? extends K, ? extends V>> valueFactory =
-                new ValueFactory<>(mappingFunction)) {
-            future = cache.getAll(keys, valueFactory);
+        try (Loader<Set<? extends K>, Map<? extends K, ? extends V>> loader = loader(mappingFunction)) {
+            future = cache.getAll(keys, loader);
         }
 
         return await(future);
@@ -126,22 +128,28 @@ class AsyncCacheImpl<K, V> implements AsyncCache<K, V> {
         }
     }
 
+    @MustBeClosed
+    private <I, O> Loader<I, O> loader(Function<? super I, ? extends O> mappingFunction) {
+        return new Loader<>(loadOperation, mappingFunction);
+    }
+
     // This class exists to ensure that we do not start loading values until the entry is inserted into the cache.
     // This ensures that invalidateAll will remove entries that are being loaded.
     //
     // By default, Caffeine creates async cache entries with something like CompletableFuture.supplyAsync. If the load
     // completes and invalidateAll is called before the entry is inserted into the cache, then we may insert a stale
     // entry into the cache.
-    private static final class ValueFactory<I, O>
-            implements BiFunction<I, Executor, CompletableFuture<O>>, AutoCloseable {
+    private static final class Loader<I, O> implements BiFunction<I, Executor, CompletableFuture<O>>, AutoCloseable {
 
+        private final String loadOperation;
         private final Function<? super I, ? extends O> mappingFunction;
 
         @Nullable
         private Runnable runnable;
 
         @MustBeClosed
-        ValueFactory(Function<? super I, ? extends O> mappingFunction) {
+        Loader(String loadOperation, Function<? super I, ? extends O> mappingFunction) {
+            this.loadOperation = loadOperation;
             this.mappingFunction = mappingFunction;
         }
 
@@ -153,13 +161,13 @@ class AsyncCacheImpl<K, V> implements AsyncCache<K, V> {
 
             runnable = () -> {
                 try {
-                    executor.execute(() -> {
+                    executor.execute(Tracers.wrap(loadOperation, () -> {
                         try {
                             future.complete(mappingFunction.apply(key));
                         } catch (Throwable t) {
                             future.completeExceptionally(t);
                         }
-                    });
+                    }));
                 } catch (Throwable t) {
                     future.obtrudeException(t);
                 }

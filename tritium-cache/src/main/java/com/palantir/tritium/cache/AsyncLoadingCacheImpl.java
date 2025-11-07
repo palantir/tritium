@@ -23,8 +23,9 @@ class AsyncLoadingCacheImpl<K, V> extends AsyncCacheImpl<K, V> implements AsyncL
 
     private final Function<K, V> mappingFunction;
 
-    AsyncLoadingCacheImpl(com.github.benmanes.caffeine.cache.AsyncCache<K, V> cache, CacheLoader<K, V> cacheLoader) {
-        super(cache);
+    AsyncLoadingCacheImpl(
+            String name, com.github.benmanes.caffeine.cache.AsyncCache<K, V> cache, CacheLoader<K, V> cacheLoader) {
+        super(name, cache);
         this.mappingFunction = CacheLoaders.newMappingFunction(cacheLoader);
     }
 

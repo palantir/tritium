@@ -129,17 +129,17 @@ final class CacheBuilder<K, V>
 
     @Override
     public AsyncCache<K, V> buildAsync() {
-        return new AsyncCacheImpl<>(buildAsyncCache());
+        return new AsyncCacheImpl<>(checkNotNull(name), buildAsyncCache());
     }
 
     @Override
     public AsyncLoadingCache<K, V> buildAsyncWithLoader(CacheLoader<K, V> cacheLoader) {
-        return new AsyncLoadingCacheImpl<>(buildAsyncCache(), cacheLoader);
+        return new AsyncLoadingCacheImpl<>(checkNotNull(name), buildAsyncCache(), cacheLoader);
     }
 
     @Override
     public AsyncBulkLoadingCache<K, V> buildAsyncWithBulkLoader(BulkCacheLoader<K, V> cacheLoader) {
-        return new AsyncBulkLoadingCacheImpl<>(buildAsyncCache(), cacheLoader);
+        return new AsyncBulkLoadingCacheImpl<>(checkNotNull(name), buildAsyncCache(), cacheLoader);
     }
 
     private com.github.benmanes.caffeine.cache.Cache<K, V> buildSyncCache() {
@@ -156,14 +156,14 @@ final class CacheBuilder<K, V>
             Function<C, com.github.benmanes.caffeine.cache.Cache<K, V>> synchronous) {
         CacheStats cacheStats;
         if (taggedMetrics != null) {
-            cacheStats = CacheStats.of(taggedMetrics, checkNotNull(name, "name"));
+            cacheStats = CacheStats.of(taggedMetrics, checkNotNull(name));
         } else {
             cacheStats = null;
         }
 
         Caffeine<K, V> builder = ((Caffeine<K, V>) Caffeine.newBuilder())
                 .maximumSize(maximumSize)
-                .executor(checkNotNull(executorFactory, "executorFactory").create(name + "-cache"));
+                .executor(checkNotNull(executorFactory).create(name + "-cache"));
         if (weigher != null) {
             builder = builder.weigher(new WeigherAdapter<>(weigher));
         }

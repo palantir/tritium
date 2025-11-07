@@ -25,8 +25,8 @@ class AsyncBulkLoadingCacheImpl<K, V> extends AsyncLoadingCacheImpl<K, V> implem
 
     private final Function<Set<? extends K>, Map<K, V>> bulkMappingFunction;
 
-    AsyncBulkLoadingCacheImpl(AsyncCache<K, V> cache, BulkCacheLoader<K, V> cacheLoader) {
-        super(cache, cacheLoader);
+    AsyncBulkLoadingCacheImpl(String name, AsyncCache<K, V> cache, BulkCacheLoader<K, V> cacheLoader) {
+        super(name, cache, cacheLoader);
         this.bulkMappingFunction = CacheLoaders.newBulkMappingFunction(cacheLoader);
     }
 

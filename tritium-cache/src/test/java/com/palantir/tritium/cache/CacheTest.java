@@ -19,6 +19,12 @@ package com.palantir.tritium.cache;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.palantir.tracing.Observability;
+import com.palantir.tracing.Tracer;
+import com.palantir.tracing.Tracers;
+import com.palantir.tracing.api.OpenSpan;
+import com.palantir.tracing.api.Span;
+import com.palantir.tracing.api.SpanType;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +48,7 @@ final class CacheTest {
 
     @AfterEach
     void after() {
+        Tracer.getAndClearTrace();
         executor.shutdownNow();
     }
 
@@ -347,6 +354,56 @@ final class CacheTest {
         finishLatch.countDown();
 
         assertThat(future).succeedsWithin(1, TimeUnit.SECONDS).isEqualTo("value2");
+    }
+
+    @Test
+    void tracing_sync() throws Exception {
+        SyncCache<String, String> cache = Cache.<String, String>builder()
+                .name("test")
+                .maximumSize(10)
+                .noExpiry()
+                .noMetrics()
+                .executor(_name -> executor)
+                .buildSync();
+
+        String traceId = Tracers.randomId();
+        Tracer.initTraceWithSpan(Observability.SAMPLE, traceId, "root", SpanType.LOCAL);
+
+        OpenSpan parentSpan = Tracer.startSpan("parent");
+
+        cache.get("key", _key -> {
+            Span span = Tracer.completeSpan().orElseThrow();
+            assertThat(span.getTraceId()).isEqualTo(traceId);
+            assertThat(span.getSpanId()).isEqualTo(parentSpan.getSpanId());
+            assertThat(span.getOperation()).isEqualTo("parent");
+
+            return "value";
+        });
+    }
+
+    @Test
+    void tracing_async() throws Exception {
+        AsyncCache<String, String> cache = Cache.<String, String>builder()
+                .name("test")
+                .maximumSize(10)
+                .noExpiry()
+                .noMetrics()
+                .executor(_name -> executor)
+                .buildAsync();
+
+        String traceId = Tracers.randomId();
+        Tracer.initTraceWithSpan(Observability.SAMPLE, traceId, "root", SpanType.LOCAL);
+
+        OpenSpan parentSpan = Tracer.startSpan("parent");
+
+        cache.get("key", _key -> {
+            Span span = Tracer.completeSpan().orElseThrow();
+            assertThat(span.getTraceId()).isEqualTo(traceId);
+            assertThat(span.getParentSpanId()).contains(parentSpan.getSpanId());
+            assertThat(span.getOperation()).isEqualTo("test cache load");
+
+            return "value";
+        });
     }
 
     private interface DefaultExpiry<K, V> extends Expiry<K, V> {
