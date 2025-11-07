@@ -35,6 +35,8 @@ final class SafepointMetrics {
         Optional<SafepointTimeAccessor> safepointTimeAccessor = JvmDiagnostics.totalSafepointTime();
         if (safepointTimeAccessor.isPresent()) {
             InternalJvmMetrics.of(registry).safepointTime(safepointTimeAccessor.get()::safepointTimeMilliseconds);
+            InternalJvmMetrics.of(registry)
+                    .safepointSyncTime(safepointTimeAccessor.get()::safepointSyncTimeMilliseconds);
         } else {
             log.info("Could not get the total safepoint time, these metrics will not be registered.");
         }

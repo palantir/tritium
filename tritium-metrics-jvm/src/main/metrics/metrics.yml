@@ -31,6 +31,9 @@ namespaces:
       safepoint.time:
         type: gauge
         docs: The accumulated elapsed time waiting at safepoints in ms (equivalent to `+PrintGCApplicationStoppedTime`). It helps debugging stop-the-world GCing, or biased locking going badly. See https://stackoverflow.com/questions/29666057/analyzing-gc-logs/29673564#29673564 for details.
+      safepoint.sync.time:
+        type: gauge
+        docs: The accumulated elapsed time waiting to reach safepoints in ms ("time to safepoint", equivalent to the sync field in `+PrintSafepointStatistics`).
       filedescriptor:
         type: gauge
         docs: Ratio of open file descriptors to the maximum allowed open file descriptors. When this value reaches 1, attempts to open files (including sockets) will fail.

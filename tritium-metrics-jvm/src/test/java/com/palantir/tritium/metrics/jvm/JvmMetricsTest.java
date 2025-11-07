@@ -181,6 +181,12 @@ final class JvmMetricsTest {
                 registry, MetricName.builder().safeName("jvm.safepoint.time").build(), Gauge.class);
         assertThat(safepointTime)
                 .satisfies(gauge -> assertThat(gauge.getValue()).isNotNegative());
+        Gauge<Long> safepointSyncTime = (Gauge<Long>) find(
+                registry,
+                MetricName.builder().safeName("jvm.safepoint.sync.time").build(),
+                Gauge.class);
+        assertThat(safepointSyncTime)
+                .satisfies(gauge -> assertThat(gauge.getValue()).isNotNegative());
     }
 
     @Test
