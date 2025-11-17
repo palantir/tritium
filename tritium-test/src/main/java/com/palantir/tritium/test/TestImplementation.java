@@ -46,9 +46,7 @@ public class TestImplementation implements TestInterface, Runnable, MoreSpecific
 
     @Override
     public void bulk(Set<?> set) {
-        for (Object unused : set) {
-            test();
-        }
+        set.forEach(_v -> test());
     }
 
     @Override
