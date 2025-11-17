@@ -54,11 +54,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
-@SuppressWarnings({
-    "BanGuavaCaches", // this implementation is explicitly for Guava caches
-    "JdkObsolete", // SortedMap is part of Metrics API
-    "NullAway"
-})
+@SuppressWarnings({"BanGuavaCaches", "NullAway"})
 final class MetricRegistriesTest {
 
     private MetricRegistry metrics = new MetricRegistry();
@@ -229,7 +225,7 @@ final class MetricRegistriesTest {
         cache.getUnchecked(2);
         cache.getUnchecked(1);
 
-        @SuppressWarnings("rawtypes")
+        @SuppressWarnings({"rawtypes", "for-rollout:RawTypes"})
         SortedMap<String, Gauge> gauges = metrics.getGauges();
         waitAtMost(Duration.ofSeconds(15)).untilAsserted(() -> {
             assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(3L);
@@ -273,7 +269,7 @@ final class MetricRegistriesTest {
                         "test.cache.miss.ratio",
                         "test.cache.request.count");
 
-        @SuppressWarnings("rawtypes")
+        @SuppressWarnings({"rawtypes", "for-rollout:RawTypes"})
         SortedMap<String, Gauge> gauges = metrics.getGauges();
         waitAtMost(Duration.ofSeconds(15)).untilAsserted(() -> {
             assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(0L);

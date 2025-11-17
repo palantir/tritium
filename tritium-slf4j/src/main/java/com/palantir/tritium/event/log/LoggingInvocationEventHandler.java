@@ -62,13 +62,13 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
      * @deprecated uSe {@link #LoggingInvocationEventHandler(Logger, LoggingLevel, java.util.function.LongPredicate)}
      */
     @Deprecated
-    @SuppressWarnings({"FunctionalInterfaceClash", "InlineMeSuggester"}) // back compat
+    // back compat
     public LoggingInvocationEventHandler(
             Logger logger, LoggingLevel level, com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
         this(logger, level, (java.util.function.LongPredicate) durationPredicate);
     }
 
-    @SuppressWarnings("FunctionalInterfaceClash") // back compat
+    // back compat
     public LoggingInvocationEventHandler(
             Logger logger, LoggingLevel level, java.util.function.LongPredicate durationPredicate) {
         super((java.util.function.BooleanSupplier)
@@ -178,7 +178,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     static Object[] getLogParams(Method method, Object[] args, long durationNanos, LoggingLevel level) {
-        @SuppressWarnings("rawtypes") // arrays don't support generics
+        @SuppressWarnings({"rawtypes", "for-rollout:RawTypes"}) // arrays don't support generics
         Arg[] logParams = new Arg[3 + args.length];
         logParams[0] = SafeArg.of("class", method.getDeclaringClass().getSimpleName());
         logParams[1] = SafeArg.of("method", method.getName());

@@ -80,7 +80,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
 @ExtendWith({MockitoExtension.class, SystemStubsExtension.class})
-@SuppressWarnings({"NullAway", "SystemOut", "WeakerAccess"}) // mock injection, dumping metrics to standard out
+@SuppressWarnings({"NullAway", "WeakerAccess"}) // mock injection, dumping metrics to standard out
 public abstract class InstrumentationTest {
     @SystemStub
     private SystemProperties systemProperties;
@@ -126,14 +126,15 @@ public abstract class InstrumentationTest {
     @Test
     void testDeprecatedEmptyHandlers() {
         TestInterface delegate = new TestImplementation();
-        @SuppressWarnings({"deprecation", "InlineMeInliner"}) // explicitly testing
-        TestInterface instrumented = Instrumentation.wrap(TestInterface.class, delegate, Collections.emptyList());
+        @SuppressWarnings("deprecation") // explicitly testing
+        TestInterface instrumented = Instrumentation.wrap(
+                TestInterface.class, delegate, Collections.emptyList(), InstrumentationFilters.INSTRUMENT_ALL);
         assertThat(instrumented).isEqualTo(delegate);
         assertThat(Proxy.isProxyClass(instrumented.getClass())).isFalse();
     }
 
     @Test
-    @SuppressWarnings("JdkObsolete") // SortedMap is part of Metrics API
+    // SortedMap is part of Metrics API
     void testBuilder() {
         TestImplementation delegate = new TestImplementation();
 
@@ -393,7 +394,7 @@ public abstract class InstrumentationTest {
     }
 
     @Test
-    @SuppressWarnings({"EqualsWithItself", "TruthSelfEquals"}) // explicitly testing proxy equals
+    @SuppressWarnings({"EqualsWithItself", "for-rollout:SelfAssertion"}) // explicitly testing proxy equals
     void testEquals_sameInstance() {
         TestInterface proxy = Instrumentation.builder(TestInterface.class, new TestImplementation())
                 .withPerformanceTraceLogging()
