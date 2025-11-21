@@ -22,7 +22,7 @@ com.palantir.delegate.processors:delegate-processor:2.0.0 (1 constraints: 0405f5
 
 com.palantir.goethe:goethe:0.14.0 (1 constraints: 011643da)
 
-com.palantir.javapoet:javapoet:0.7.0 (3 constraints: 992669bf)
+com.palantir.javapoet:javapoet:0.8.0 (3 constraints: 9a26cbbf)
 
 com.palantir.jvm.diagnostics:jvm-diagnostics:0.6.0 (1 constraints: 0805fd35)
 
@@ -64,7 +64,7 @@ io.smallrye.common:smallrye-common-os:2.4.0 (1 constraints: b10e835a)
 
 io.smallrye.common:smallrye-common-ref:2.4.0 (1 constraints: b10e835a)
 
-net.bytebuddy:byte-buddy:1.17.8 (4 constraints: 772b1f50)
+net.bytebuddy:byte-buddy:1.18.1 (4 constraints: 712b754d)
 
 org.hdrhistogram:HdrHistogram:2.2.2 (1 constraints: 0805fd35)
 
@@ -96,15 +96,15 @@ com.google.truth:truth:1.4.5 (1 constraints: 1d1219fb)
 
 com.palantir.safe-logging:preconditions-assertj:3.9.0 (1 constraints: 0e051536)
 
-com.squareup.okhttp3:okhttp-jvm:5.3.0 (1 constraints: 0a050d36)
+com.squareup.okhttp3:okhttp-jvm:5.3.2 (1 constraints: 0c050f36)
 
-com.squareup.okio:okio-jvm:3.16.2 (1 constraints: 000ea746)
+com.squareup.okio:okio-jvm:3.16.4 (1 constraints: 020ea946)
 
 io.undertow:undertow-core:2.3.20.Final (1 constraints: 51071d61)
 
 junit:junit:4.13.2 (2 constraints: de1ce71a)
 
-net.bytebuddy:byte-buddy-agent:1.17.8 (2 constraints: e01abd63)
+net.bytebuddy:byte-buddy-agent:1.18.1 (2 constraints: e01abd63)
 
 net.jqwik:jqwik:1.9.3 (1 constraints: 0f050e36)
 
