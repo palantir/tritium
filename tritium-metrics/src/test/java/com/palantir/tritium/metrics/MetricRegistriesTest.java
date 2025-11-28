@@ -225,7 +225,7 @@ final class MetricRegistriesTest {
         cache.getUnchecked(2);
         cache.getUnchecked(1);
 
-        @SuppressWarnings({"rawtypes", "for-rollout:RawTypes"})
+        @SuppressWarnings("rawtypes")
         SortedMap<String, Gauge> gauges = metrics.getGauges();
         waitAtMost(Duration.ofSeconds(15)).untilAsserted(() -> {
             assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(3L);
@@ -269,7 +269,7 @@ final class MetricRegistriesTest {
                         "test.cache.miss.ratio",
                         "test.cache.request.count");
 
-        @SuppressWarnings({"rawtypes", "for-rollout:RawTypes"})
+        @SuppressWarnings("rawtypes")
         SortedMap<String, Gauge> gauges = metrics.getGauges();
         waitAtMost(Duration.ofSeconds(15)).untilAsserted(() -> {
             assertThat(gauges.get("test.cache.request.count").getValue()).isEqualTo(0L);
