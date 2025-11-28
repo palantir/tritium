@@ -48,7 +48,7 @@ public final class Tagged {
         Map<MetricName, Metric> metrics = taggedMetricRegistry.getMetrics();
         if (!metrics.isEmpty()) {
             System.out.println("Tagged Metrics:");
-            @SuppressWarnings({"rawtypes", "for-rollout:RawTypes"})
+            @SuppressWarnings("rawtypes")
             ImmutableSortedMap<String, Gauge> gauges = filter(metrics, Gauge.class);
             ImmutableSortedMap<String, Counter> counters = filter(metrics, Counter.class);
             ImmutableSortedMap<String, Histogram> histograms = filter(metrics, Histogram.class);

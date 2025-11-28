@@ -158,7 +158,7 @@ final class InstrumentationPropertiesTest {
         assertThat(barrier.getParties()).isEqualTo(expectedTaskCount);
         assertThat(barrier.getNumberWaiting()).isZero();
 
-        @SuppressWarnings({"rawtypes", "unchecked", "for-rollout:RawTypes"}) // guaranteed by ListenableExecutorService
+        @SuppressWarnings({"rawtypes", "unchecked"}) // guaranteed by ListenableExecutorService
         List<ListenableFuture<Object>> futures = (List) executorService.invokeAll(tasks);
 
         ListenableFuture<List<Object>> successfulAsList = Futures.successfulAsList(futures);

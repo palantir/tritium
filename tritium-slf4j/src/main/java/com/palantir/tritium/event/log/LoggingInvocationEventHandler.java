@@ -178,7 +178,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
     }
 
     static Object[] getLogParams(Method method, Object[] args, long durationNanos, LoggingLevel level) {
-        @SuppressWarnings({"rawtypes", "for-rollout:RawTypes"}) // arrays don't support generics
+        @SuppressWarnings("rawtypes") // arrays don't support generics
         Arg[] logParams = new Arg[3 + args.length];
         logParams[0] = SafeArg.of("class", method.getDeclaringClass().getSimpleName());
         logParams[1] = SafeArg.of("method", method.getName());
