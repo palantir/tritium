@@ -44,12 +44,9 @@ public class TestImplementation implements TestInterface, Runnable, MoreSpecific
         test();
     }
 
-    @SuppressWarnings("unused")
     @Override
     public void bulk(Set<?> set) {
-        for (Object object : set) {
-            test();
-        }
+        set.forEach(_v -> test());
     }
 
     @Override
@@ -88,7 +85,7 @@ public class TestImplementation implements TestInterface, Runnable, MoreSpecific
     }
 
     @SuppressWarnings("ExtendsErrorOrThrowable") // explicilty testing arbitrary Throwable handling
-    public static final class TestThrowable extends Throwable {
+    public static final class TestThrowable extends RuntimeException {
         TestThrowable() {
             super(TestThrowable.class.getSimpleName());
         }

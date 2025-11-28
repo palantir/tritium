@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.byLessThan;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -56,12 +57,11 @@ class UtcTimestampTest {
                 .isEqualTo(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC));
     }
 
-    @SuppressWarnings({"JavaTimeSystemDefaultTimeZone", "JavaTimeDefaultTimeZone"
-    }) // explicitly testing system default time zone
+    @SuppressWarnings("JavaTimeSystemDefaultTimeZone") // explicitly testing system default time zone
     static List<Clock> clocks() {
         return List.of(
                 Clock.systemUTC(),
-                Clock.systemDefaultZone(),
+                Clock.system(ZoneId.systemDefault()),
                 Clock.system(ZoneOffset.UTC),
                 Clock.system(ZoneOffset.ofHours(-4)),
                 Clock.system(ZoneOffset.ofHours(-5)),
