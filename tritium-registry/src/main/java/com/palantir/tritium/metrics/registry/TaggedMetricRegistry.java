@@ -100,7 +100,7 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
      * @param gauge gauge
      */
     // This differs from MetricRegistry and takes the Gauge directly rather than a Supplier<Gauge>
-    @SuppressWarnings({"deprecation", "UnsafeGaugeRegistration"}) // explicitly using as desired
+    @SuppressWarnings({"UnsafeGaugeRegistration", "deprecation"}) // explicitly using as desired
     default void registerWithReplacement(MetricName metricName, Gauge<?> gauge) {
         Gauge<?> existing = gauge(metricName, gauge);
         if (existing == gauge) {
@@ -108,7 +108,7 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
         }
         remove(metricName).ifPresent(_removed -> LoggerFactory.getLogger(getClass())
                 .debug("Removed previously registered gauge {}", SafeArg.of("metricName", metricName)));
-        gauge(metricName, gauge);
+        registerWithReplacement(metricName, gauge);
     }
 
     /**

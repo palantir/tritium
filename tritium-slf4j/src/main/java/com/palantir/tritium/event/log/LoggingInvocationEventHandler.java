@@ -62,13 +62,13 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
      * @deprecated uSe {@link #LoggingInvocationEventHandler(Logger, LoggingLevel, java.util.function.LongPredicate)}
      */
     @Deprecated
-    @SuppressWarnings({"FunctionalInterfaceClash", "InlineMeSuggester"}) // back compat
+    // back compat
     public LoggingInvocationEventHandler(
             Logger logger, LoggingLevel level, com.palantir.tritium.api.functions.LongPredicate durationPredicate) {
         this(logger, level, (java.util.function.LongPredicate) durationPredicate);
     }
 
-    @SuppressWarnings("FunctionalInterfaceClash") // back compat
+    // back compat
     public LoggingInvocationEventHandler(
             Logger logger, LoggingLevel level, java.util.function.LongPredicate durationPredicate) {
         super((java.util.function.BooleanSupplier)

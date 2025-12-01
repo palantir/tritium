@@ -54,11 +54,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mpierce.metrics.reservoir.hdrhistogram.HdrHistogramReservoir;
 
-@SuppressWarnings({
-    "BanGuavaCaches", // this implementation is explicitly for Guava caches
-    "JdkObsolete", // SortedMap is part of Metrics API
-    "NullAway"
-})
+@SuppressWarnings({"BanGuavaCaches", "NullAway"})
 final class MetricRegistriesTest {
 
     private MetricRegistry metrics = new MetricRegistry();
