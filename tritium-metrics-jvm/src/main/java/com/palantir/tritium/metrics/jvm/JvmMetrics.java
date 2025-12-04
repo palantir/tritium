@@ -71,7 +71,7 @@ public final class JvmMetrics {
      *
      * <p>This includes {@link MetricRegistries#registerGarbageCollection(TaggedMetricRegistry)} and
      * {@link MetricRegistries#registerMemoryPools(TaggedMetricRegistry)},
-     * but does not include gauges for threads by state.
+     * but does not include gauges for threads by state, or gauges for the virtual thread scheduler.
      *
      * @param registry metric registry
      */
@@ -98,6 +98,7 @@ public final class JvmMetrics {
         registerJvmMemory(registry);
         if (enableThreadsMetrics) {
             registerThreads(metrics);
+            VirtualThreadsMetrics.register(registry);
         }
         metrics.processors(Runtime.getRuntime()::availableProcessors);
         registerCpuShares(registry, JvmDiagnostics.cpuShares());

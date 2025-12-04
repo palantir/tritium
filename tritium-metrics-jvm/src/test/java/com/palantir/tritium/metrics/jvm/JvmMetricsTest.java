@@ -57,8 +57,15 @@ final class JvmMetricsTest {
             "jvm.threads.terminated.count",
             "jvm.threads.blocked.count");
 
+    private static final ImmutableSet<@NotNull String> EXPECTED_VIRTUAL_THREAD_METRIC_NAMES = ImmutableSet.of(
+            "jvm.threads.virtual.parallelism",
+            "jvm.threads.virtual.poolSize",
+            "jvm.threads.virtual.mounted",
+            "jvm.threads.virtual.queued");
+
     private static final ImmutableSet<@NotNull String> EXPECTED_NAMES = ImmutableSet.<String>builder()
             .addAll(EXPECTED_THREAD_METRIC_NAMES)
+            .addAll(EXPECTED_VIRTUAL_THREAD_METRIC_NAMES)
             .addAll(List.of(
                     "jvm.attribute.uptime",
                     "jvm.buffers.direct.capacity",
@@ -117,7 +124,9 @@ final class JvmMetricsTest {
         assertThat(registry.getMetrics().keySet().stream()
                         .map(MetricName::safeName)
                         .collect(ImmutableSet.toImmutableSet()))
-                .containsAll(Sets.difference(EXPECTED_NAMES, EXPECTED_THREAD_METRIC_NAMES));
+                .containsAll(Sets.difference(
+                        EXPECTED_NAMES,
+                        Sets.union(EXPECTED_THREAD_METRIC_NAMES, EXPECTED_VIRTUAL_THREAD_METRIC_NAMES)));
     }
 
     @Test

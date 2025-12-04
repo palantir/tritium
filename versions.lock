@@ -24,7 +24,7 @@ com.palantir.goethe:goethe:0.17.0 (1 constraints: 04164cda)
 
 com.palantir.javapoet:javapoet:0.9.0 (3 constraints: a526d7c0)
 
-com.palantir.jvm.diagnostics:jvm-diagnostics:0.6.0 (1 constraints: 0805fd35)
+com.palantir.jvm.diagnostics:jvm-diagnostics:0.7.0 (1 constraints: 09050036)
 
 com.palantir.nylon:nylon-threads:0.4.0 (1 constraints: 0605f735)
 

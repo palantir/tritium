@@ -96,6 +96,18 @@ namespaces:
       threads.terminated.count:
         type: gauge
         docs: Number of live threads in the `TERMINATED` state.
+      threads.virtual.parallelism:
+        type: gauge
+        docs: The target parallelism used by the virtual thread scheduler.
+      threads.virtual.poolSize:
+        type: gauge
+        docs: The current number of platform (carrier) threads that the virtual thread scheduler has started, but have not terminated.
+      threads.virtual.mounted:
+        type: gauge
+        docs: Estimated number of virtual threads currently mounted to a carrier thread.
+      threads.virtual.queued:
+        type: gauge
+        docs: Estimated number of virtual threads currently queued waiting to be scheduled onto a carrier thread.
       processors:
         type: gauge
         docs: Gauge describing the number of CPUs _detected_ by the JVM.
