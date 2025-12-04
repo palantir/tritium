@@ -29,10 +29,12 @@ final class VirtualThreadsMetrics {
     static void register(TaggedMetricRegistry registry) {
         Optional<VirtualThreadSchedulerAccessor> accessor = JvmDiagnostics.virtualThreadScheduler();
         if (accessor.isPresent()) {
-            InternalJvmMetrics.of(registry).threadsVirtualParallelism(accessor.get()::getParallelism);
-            InternalJvmMetrics.of(registry).threadsVirtualPoolSize(accessor.get()::getPoolSize);
-            InternalJvmMetrics.of(registry).threadsVirtualMounted(accessor.get()::getMountedVirtualThreadCount);
-            InternalJvmMetrics.of(registry).threadsVirtualQueued(accessor.get()::getQueuedVirtualThreadCount);
+            InternalJvmMetrics internalJvmMetrics = InternalJvmMetrics.of(registry);
+            VirtualThreadSchedulerAccessor virtualThreads = accessor.get();
+            internalJvmMetrics.threadsVirtualParallelism(virtualThreads::getParallelism);
+            internalJvmMetrics.threadsVirtualPoolSize(virtualThreads::getPoolSize);
+            internalJvmMetrics.threadsVirtualMounted(virtualThreads::getMountedVirtualThreadCount);
+            internalJvmMetrics.threadsVirtualQueued(virtualThreads::getQueuedVirtualThreadCount);
         } else {
             // logged at debug to avoid spamming, many services are still using jdk21 which does not support
             // this metric reporting
