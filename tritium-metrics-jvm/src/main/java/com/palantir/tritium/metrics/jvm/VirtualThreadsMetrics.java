@@ -25,9 +25,9 @@ import java.util.Optional;
 
 final class VirtualThreadsMetrics {
     private static final SafeLogger log = SafeLoggerFactory.get(VirtualThreadsMetrics.class);
-    private static final Optional<VirtualThreadSchedulerAccessor> accessor = JvmDiagnostics.virtualThreadScheduler();
 
     static void register(TaggedMetricRegistry registry) {
+        Optional<VirtualThreadSchedulerAccessor> accessor = JvmDiagnostics.virtualThreadScheduler();
         if (accessor.isPresent()) {
             InternalJvmMetrics.of(registry).threadsVirtualParallelism(accessor.get()::getParallelism);
             InternalJvmMetrics.of(registry).threadsVirtualPoolSize(accessor.get()::getPoolSize);
