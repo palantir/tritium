@@ -70,7 +70,7 @@ public final class Handlers {
             InstrumentationFilter filter,
             Object instance,
             Method method,
-            Object[] args) {
+            @Nullable Object[] args) {
         try {
             return handler.isEnabled() && filter.shouldInstrument(instance, method, args)
                     ? handler.preInvocation(instance, method, args)
@@ -143,7 +143,7 @@ public final class Handlers {
     private static void logOnFailureFailure(
             InvocationEventHandler<?> handler,
             @Nullable InvocationContext context,
-            Throwable thrown,
+            @Nullable Throwable thrown,
             Throwable throwable) {
         if (log.isWarnEnabled()) {
             log.warn(
@@ -179,6 +179,7 @@ public final class Handlers {
             throw fail();
         }
 
+        @Nullable
         @Override
         public Object[] getArgs() {
             throw fail();

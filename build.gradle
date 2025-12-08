@@ -70,6 +70,7 @@ allprojects {
             options.errorprone {
                 option('NullAway:AnnotatedPackages', 'com.palantir,com.google.common')
                 option('NullAway:CheckOptionalEmptiness', 'true')
+                option('NullAway:JSpecifyMode', 'true')
 
                 errorproneArgs = [
                     '-XepAllSuggestionsAsWarnings',

@@ -27,7 +27,6 @@ import com.palantir.tritium.event.InstrumentationProperties;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public final class TracingInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
@@ -58,7 +57,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+    public InvocationContext preInvocation(Object instance, Method method, @Nullable Object @Nullable [] args) {
         InvocationContext context = DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
         Tracer.fastStartSpan(operationName);
@@ -75,7 +74,7 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @NonNull Throwable _cause) {
+    public void onFailure(@Nullable InvocationContext context, Throwable _cause) {
         complete(context);
     }
 

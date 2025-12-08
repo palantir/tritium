@@ -28,20 +28,24 @@ public class DefaultInvocationContext implements InvocationContext {
     private final long startTimeNanos;
     private final Object instance;
     private final Method method;
-    private final Object[] args;
+    private final @Nullable Object[] args;
 
-    protected DefaultInvocationContext(long startTimeNanos, Object instance, Method method, @Nullable Object[] args) {
+    protected DefaultInvocationContext(
+            long startTimeNanos, Object instance, Method method, @Nullable Object @Nullable [] args) {
         this.startTimeNanos = startTimeNanos;
         this.instance = instance;
         this.method = method;
         this.args = toNonNullClone(args);
     }
 
-    private static Object[] toNonNullClone(@Nullable Object[] args) {
-        return args == null ? NO_ARGS : args.clone();
+    private static @Nullable Object[] toNonNullClone(@Nullable Object @Nullable [] args) {
+        if (args == null) {
+            return NO_ARGS;
+        }
+        return args.clone();
     }
 
-    public static InvocationContext of(Object instance, Method method, @Nullable Object[] args) {
+    public static InvocationContext of(Object instance, Method method, @Nullable Object @Nullable [] args) {
         return new DefaultInvocationContext(
                 System.nanoTime(), checkNotNull(instance, "instance"), checkNotNull(method, "method"), args);
     }
@@ -61,7 +65,10 @@ public class DefaultInvocationContext implements InvocationContext {
         return method;
     }
 
+    @Nullable
     @Override
+    @SuppressWarnings("NullAway") // false positive
+    // Method returns @Nullable Object [], but overridden method returns Object []
     public final Object[] getArgs() {
         return args;
     }

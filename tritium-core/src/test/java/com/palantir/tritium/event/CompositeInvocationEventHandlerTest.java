@@ -95,7 +95,7 @@ final class CompositeInvocationEventHandlerTest {
                 NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(/* isEnabled= */ true) {
                     @Override
                     public InvocationContext preInvocation(
-                            @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+                            Object instance, Method method, @Nullable Object @Nullable [] args) {
                         return DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
@@ -112,7 +112,7 @@ final class CompositeInvocationEventHandlerTest {
                 NoOpInvocationEventHandler.INSTANCE, new ThrowingInvocationEventHandler(/* isEnabled= */ true) {
                     @Override
                     public InvocationContext preInvocation(
-                            @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+                            Object instance, Method method, @Nullable Object @Nullable [] args) {
                         return DefaultInvocationContext.of(instance, method, args);
                     }
                 }));
@@ -209,10 +209,10 @@ final class CompositeInvocationEventHandlerTest {
         return new ThrowingInvocationEventHandler(isEnabled);
     }
 
-    private static final class SimpleInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
+    private static final class SimpleInvocationEventHandler
+            extends AbstractInvocationEventHandler<@NonNull InvocationContext> {
         @Override
-        public InvocationContext preInvocation(
-                @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+        public InvocationContext preInvocation(Object instance, Method method, @Nullable Object @Nullable [] args) {
             return DefaultInvocationContext.of(instance, method, args);
         }
 

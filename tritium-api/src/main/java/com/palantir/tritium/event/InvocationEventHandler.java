@@ -46,7 +46,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      *     {@code java.lang.Boolean}.
      * @return the current invocation context. Null values are not recommended but are supported
      */
-    C preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args);
+    C preInvocation(Object instance, Method method, @Nullable Object @NonNull [] args);
 
     /**
      * Invoked with the result of the invocation when it is successful.

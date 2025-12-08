@@ -27,7 +27,6 @@ import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /** {@link InvocationEventHandler} that records method timing and failures using Dropwizard metrics. */
@@ -47,7 +46,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this.serviceName = checkNotNull(serviceName, "serviceName");
     }
 
-    @SuppressWarnings("InconsistentOverloads")
+    @SuppressWarnings({"InconsistentOverloads", "unused"})
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry,
             Class<?> _serviceClass,
@@ -58,7 +57,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this.serviceName = checkNotNull(serviceName, "serviceName");
     }
 
-    @SuppressWarnings("WeakerAccess") // public API
+    @SuppressWarnings({"WeakerAccess", "unused"}) // public API
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry, Class<?> serviceClass, @Safe @Nullable String globalGroupPrefix) {
         this(metricRegistry, serviceClass, checkNotNull(serviceClass.getName()), globalGroupPrefix);
@@ -71,7 +70,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+    public InvocationContext preInvocation(Object instance, Method method, @Nullable Object @Nullable [] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 
@@ -84,7 +83,7 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public void onFailure(@Nullable InvocationContext context, @NonNull Throwable _cause) {
+    public void onFailure(@Nullable InvocationContext context, Throwable _cause) {
         markGlobalFailure();
         debugIfNullContext(context);
         if (context != null) {
