@@ -26,17 +26,17 @@ com.palantir.javapoet:javapoet:0.9.0 (3 constraints: a526d7c0)
 
 com.palantir.jvm.diagnostics:jvm-diagnostics:0.7.0 (1 constraints: 09050036)
 
-com.palantir.nylon:nylon-threads:0.4.0 (1 constraints: 0605f735)
+com.palantir.nylon:nylon-threads:0.5.0 (1 constraints: 0705fa35)
 
-com.palantir.safe-logging:logger:3.9.0 (3 constraints: f91f1a23)
+com.palantir.safe-logging:logger:3.9.0 (3 constraints: fc1f9223)
 
 com.palantir.safe-logging:logger-slf4j:3.9.0 (1 constraints: 070e6e42)
 
 com.palantir.safe-logging:logger-spi:3.9.0 (2 constraints: 1d1e0c7c)
 
-com.palantir.safe-logging:preconditions:3.9.0 (4 constraints: 29342cae)
+com.palantir.safe-logging:preconditions:3.9.0 (4 constraints: 2c344caf)
 
-com.palantir.safe-logging:safe-logging:3.9.0 (7 constraints: b562ef3e)
+com.palantir.safe-logging:safe-logging:3.9.0 (7 constraints: b862a141)
 
 com.palantir.tracing:tracing:6.29.0 (1 constraints: 4305663b)
 
@@ -48,15 +48,15 @@ io.dropwizard.metrics:metrics-core:4.2.37 (2 constraints: 35141489)
 
 io.dropwizard.metrics:metrics-jvm:4.2.37 (1 constraints: 42054a3b)
 
-io.smallrye.common:smallrye-common-annotation:2.6.0 (1 constraints: c30d1c36)
+io.smallrye.common:smallrye-common-annotation:2.14.0 (1 constraints: f20d0944)
 
-io.smallrye.common:smallrye-common-constraint:2.6.0 (4 constraints: 8a413caf)
+io.smallrye.common:smallrye-common-constraint:2.14.0 (4 constraints: e841a41c)
 
-io.smallrye.common:smallrye-common-cpu:2.6.0 (2 constraints: 731c91d2)
+io.smallrye.common:smallrye-common-cpu:2.14.0 (2 constraints: a21c34e8)
 
 io.smallrye.common:smallrye-common-expression:2.4.0 (1 constraints: b10e835a)
 
-io.smallrye.common:smallrye-common-function:2.6.0 (2 constraints: 5c215988)
+io.smallrye.common:smallrye-common-function:2.14.0 (2 constraints: 8b21dfa9)
 
 io.smallrye.common:smallrye-common-net:2.4.0 (1 constraints: b10e835a)
 
@@ -70,7 +70,7 @@ org.hdrhistogram:HdrHistogram:2.2.2 (1 constraints: 0805fd35)
 
 org.jboss.logging:jboss-logging:3.6.1.Final (7 constraints: c4838fcc)
 
-org.jboss.threads:jboss-threads:3.7.0.Final (3 constraints: bb2a49e6)
+org.jboss.threads:jboss-threads:3.9.2 (3 constraints: a9288ee8)
 
 org.jetbrains:annotations:26.0.2 (2 constraints: 1420d600)
 
@@ -80,7 +80,7 @@ org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:1.1.3 (1 constraint
 
 org.slf4j:slf4j-api:2.0.17 (8 constraints: 6f6e956f)
 
-org.wildfly.common:wildfly-common:2.0.0 (2 constraints: 581ab548)
+org.wildfly.common:wildfly-common:2.0.1 (2 constraints: 591adc48)
 
 
 
