@@ -24,19 +24,19 @@ com.palantir.goethe:goethe:0.17.0 (1 constraints: 04164cda)
 
 com.palantir.javapoet:javapoet:0.9.0 (3 constraints: a526d7c0)
 
-com.palantir.jvm.diagnostics:jvm-diagnostics:0.7.0 (1 constraints: 09050036)
+com.palantir.jvm.diagnostics:jvm-diagnostics:0.8.0 (1 constraints: 0a050336)
 
 com.palantir.nylon:nylon-threads:0.5.0 (1 constraints: 0705fa35)
 
-com.palantir.safe-logging:logger:3.9.0 (3 constraints: fc1f9223)
+com.palantir.safe-logging:logger:3.9.0 (4 constraints: f4322f1c)
 
 com.palantir.safe-logging:logger-slf4j:3.9.0 (1 constraints: 070e6e42)
 
 com.palantir.safe-logging:logger-spi:3.9.0 (2 constraints: 1d1e0c7c)
 
-com.palantir.safe-logging:preconditions:3.9.0 (4 constraints: 2c344caf)
+com.palantir.safe-logging:preconditions:3.9.0 (5 constraints: 244765ce)
 
-com.palantir.safe-logging:safe-logging:3.9.0 (7 constraints: b862a141)
+com.palantir.safe-logging:safe-logging:3.9.0 (8 constraints: b075204f)
 
 com.palantir.tracing:tracing:6.29.0 (1 constraints: 4305663b)
 
@@ -78,7 +78,7 @@ org.jspecify:jspecify:1.0.0 (10 constraints: b49cd429)
 
 org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:1.1.3 (1 constraints: 0705f635)
 
-org.slf4j:slf4j-api:2.0.17 (8 constraints: 6f6e956f)
+org.slf4j:slf4j-api:2.0.17 (7 constraints: 495b9640)
 
 org.wildfly.common:wildfly-common:2.0.1 (2 constraints: 591adc48)
 
