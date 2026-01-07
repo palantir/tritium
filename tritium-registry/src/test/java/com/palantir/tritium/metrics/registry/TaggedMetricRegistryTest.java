@@ -16,28 +16,19 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.ExponentiallyDecayingReservoir;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.Timer;
+import com.codahale.metrics.*;
 import com.palantir.tritium.registry.test.TestTaggedMetricRegistries;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
+
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mockito;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 final class TaggedMetricRegistryTest {
 
@@ -94,7 +85,8 @@ final class TaggedMetricRegistryTest {
 
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
-    @SuppressWarnings("deprecation") // explicitly testing
+    @SuppressWarnings("deprecation")
+        // explicitly testing
     void testGauge(TaggedMetricRegistry registry) {
         Gauge<Integer> gauge1 = registry.gauge(METRIC_1, intGauge(1));
         Gauge<Integer> gauge2 = registry.gauge(METRIC_2, intGauge(2));
@@ -109,7 +101,8 @@ final class TaggedMetricRegistryTest {
 
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
-    @SuppressWarnings("deprecation") // explicitly testing
+    @SuppressWarnings("deprecation")
+        // explicitly testing
     void testReplaceGauge(TaggedMetricRegistry registry) {
         assertThat(registry.getMetrics()).doesNotContainKey(METRIC_1);
         Gauge<Integer> gauge1 = intGauge(1);
@@ -221,7 +214,8 @@ final class TaggedMetricRegistryTest {
 
     @ParameterizedTest
     @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
-    @SuppressWarnings("deprecation") // explicitly testing
+    @SuppressWarnings("deprecation")
+        // explicitly testing
     void testRemoveMetric(TaggedMetricRegistry registry) {
         Gauge<Integer> gauge = intGauge(42);
         Gauge<Integer> registeredGauge = registry.gauge(METRIC_1, gauge);
@@ -341,5 +335,92 @@ final class TaggedMetricRegistryTest {
                                 .putSafeTags(tagKey, tagValue)
                                 .build(),
                         meter);
+    }
+
+    /**
+     * Regression test: If a TaggedMetricRegistry interface implementation uses a lambda, then
+     * registerWithReplacement will create an infinite loop as the delegate's lamba call `() -> gauge.getValue()`
+     * allocates a new object in memory.
+     */
+    @SuppressWarnings("deprecation")
+    @org.junit.jupiter.api.Test
+    void testRegisterWithReplacementWhenGaugeMethodWraps() {
+        TaggedMetricRegistry delegate = new DefaultTaggedMetricRegistry();
+        TaggedMetricRegistry wrappingRegistry = new TaggedMetricRegistry() {
+            @Override
+            public <T> Gauge<T> gauge(MetricName metricName, Gauge<T> gauge) {
+                return delegate.gauge(metricName, () -> gauge.getValue());
+            }
+
+            @Override
+            public Optional<Metric> remove(MetricName metricName) {
+                return delegate.remove(metricName);
+            }
+
+            // Unused methods - just delegate
+            @Override
+            public Timer timer(MetricName metricName) {
+                return delegate.timer(metricName);
+            }
+
+            @Override
+            public Timer timer(MetricName metricName, Supplier<Timer> s) {
+                return delegate.timer(metricName, s);
+            }
+
+            @Override
+            public Meter meter(MetricName metricName) {
+                return delegate.meter(metricName);
+            }
+
+            @Override
+            public Meter meter(MetricName metricName, Supplier<Meter> s) {
+                return delegate.meter(metricName, s);
+            }
+
+            @Override
+            public Histogram histogram(MetricName metricName) {
+                return delegate.histogram(metricName);
+            }
+
+            @Override
+            public Histogram histogram(MetricName metricName, Supplier<Histogram> s) {
+                return delegate.histogram(metricName, s);
+            }
+
+            @Override
+            public Counter counter(MetricName metricName) {
+                return delegate.counter(metricName);
+            }
+
+            @Override
+            public Counter counter(MetricName metricName, Supplier<Counter> s) {
+                return delegate.counter(metricName, s);
+            }
+
+            @Override
+            public void addMetrics(String k, String v, TaggedMetricSet m) {
+                delegate.addMetrics(k, v, m);
+            }
+
+            @Override
+            public Optional<TaggedMetricSet> removeMetrics(String k, String v) {
+                return delegate.removeMetrics(k, v);
+            }
+
+            @Override
+            public boolean removeMetrics(String k, String v, TaggedMetricSet m) {
+                return delegate.removeMetrics(k, v, m);
+            }
+
+            @Override
+            public java.util.Map<MetricName, Metric> getMetrics() {
+                return delegate.getMetrics();
+            }
+        };
+
+        // Should complete without StackOverflowError
+        assertThatCode(() -> wrappingRegistry.registerWithReplacement(METRIC_1, intGauge(1)))
+                .doesNotThrowAnyException();
     }
 }
