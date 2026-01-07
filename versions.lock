@@ -8,7 +8,7 @@ com.google.auto.service:auto-service-annotations:1.1.1 (1 constraints: 0505f435)
 
 com.google.code.findbugs:jsr305:3.0.2 (1 constraints: a41965b5)
 
-com.google.errorprone:error_prone_annotations:2.41.0 (8 constraints: 2e717baa)
+com.google.errorprone:error_prone_annotations:2.41.0 (8 constraints: 6270c025)
 
 com.google.guava:failureaccess:1.0.3 (1 constraints: 160ae3b4)
 
@@ -18,29 +18,29 @@ com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 c
 
 com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
-com.palantir.delegate.processors:delegate-processor:2.1.0 (1 constraints: 0505f835)
+com.palantir.delegate.processors:delegate-processor:2.2.0 (1 constraints: 0605fb35)
 
 com.palantir.goethe:goethe:0.17.0 (1 constraints: 04164cda)
 
-com.palantir.javapoet:javapoet:0.9.0 (3 constraints: a526d7c0)
+com.palantir.javapoet:javapoet:0.10.0 (3 constraints: cd26ccd4)
 
 com.palantir.jvm.diagnostics:jvm-diagnostics:0.8.0 (1 constraints: 0a050336)
 
-com.palantir.nylon:nylon-threads:0.5.0 (1 constraints: 0705fa35)
+com.palantir.nylon:nylon-threads:0.6.0 (1 constraints: 0805fd35)
 
-com.palantir.safe-logging:logger:3.9.0 (4 constraints: f4322f1c)
+com.palantir.safe-logging:logger:3.10.0 (4 constraints: 1c33c735)
 
-com.palantir.safe-logging:logger-slf4j:3.9.0 (1 constraints: 070e6e42)
+com.palantir.safe-logging:logger-slf4j:3.10.0 (1 constraints: 2f0e8750)
 
-com.palantir.safe-logging:logger-spi:3.9.0 (2 constraints: 1d1e0c7c)
+com.palantir.safe-logging:logger-spi:3.10.0 (2 constraints: 6d1ed4af)
 
-com.palantir.safe-logging:preconditions:3.9.0 (5 constraints: 244765ce)
+com.palantir.safe-logging:preconditions:3.10.0 (5 constraints: 74474f31)
 
-com.palantir.safe-logging:safe-logging:3.9.0 (8 constraints: b075204f)
+com.palantir.safe-logging:safe-logging:3.10.0 (8 constraints: 7876dd05)
 
-com.palantir.tracing:tracing:6.29.0 (1 constraints: 4305663b)
+com.palantir.tracing:tracing:6.30.0 (1 constraints: 3b054f3b)
 
-com.palantir.tracing:tracing-api:6.29.0 (2 constraints: 1b127719)
+com.palantir.tracing:tracing-api:6.30.0 (2 constraints: 0b121918)
 
 com.squareup:javapoet:1.13.0 (1 constraints: f50b65f7)
 
@@ -94,7 +94,7 @@ com.google.testing.compile:compile-testing:0.23.0 (1 constraints: 3705303b)
 
 com.google.truth:truth:1.4.5 (1 constraints: 1d1219fb)
 
-com.palantir.safe-logging:preconditions-assertj:3.9.0 (1 constraints: 0e051536)
+com.palantir.safe-logging:preconditions-assertj:3.10.0 (1 constraints: 3605353b)
 
 com.squareup.okhttp3:okhttp-jvm:5.3.2 (1 constraints: 0c050f36)
 
@@ -122,7 +122,7 @@ org.apache.commons:commons-math3:3.6.1 (1 constraints: bf0adbcc)
 
 org.apiguardian:apiguardian-api:1.1.2 (11 constraints: 9293fa1e)
 
-org.assertj:assertj-core:3.27.6 (2 constraints: a719cee0)
+org.assertj:assertj-core:3.27.6 (2 constraints: aa19d1e0)
 
 org.awaitility:awaitility:4.3.0 (1 constraints: 09050836)
 
