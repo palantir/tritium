@@ -108,7 +108,7 @@ public interface TaggedMetricRegistry extends TaggedMetricSet {
         }
         remove(metricName).ifPresent(_removed -> LoggerFactory.getLogger(getClass())
                 .debug("Removed previously registered gauge {}", SafeArg.of("metricName", metricName)));
-        registerWithReplacement(metricName, gauge);
+        gauge(metricName, gauge);
     }
 
     /**
