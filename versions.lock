@@ -64,7 +64,7 @@ io.smallrye.common:smallrye-common-os:2.4.0 (1 constraints: b10e835a)
 
 io.smallrye.common:smallrye-common-ref:2.4.0 (1 constraints: b10e835a)
 
-net.bytebuddy:byte-buddy:1.18.4 (4 constraints: 742bcb4e)
+net.bytebuddy:byte-buddy:1.18.4 (4 constraints: 712bdd4d)
 
 org.hdrhistogram:HdrHistogram:2.2.2 (1 constraints: 0805fd35)
 
@@ -122,7 +122,7 @@ org.apache.commons:commons-math3:3.6.1 (1 constraints: bf0adbcc)
 
 org.apiguardian:apiguardian-api:1.1.2 (11 constraints: 9293fa1e)
 
-org.assertj:assertj-core:3.27.6 (2 constraints: aa19d1e0)
+org.assertj:assertj-core:3.27.7 (2 constraints: ab190be1)
 
 org.awaitility:awaitility:4.3.0 (1 constraints: 09050836)
 
