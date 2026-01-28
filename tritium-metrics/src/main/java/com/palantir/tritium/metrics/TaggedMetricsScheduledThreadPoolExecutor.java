@@ -35,9 +35,9 @@ public class TaggedMetricsScheduledThreadPoolExecutor extends ScheduledThreadPoo
     private final Timer delay;
 
     public TaggedMetricsScheduledThreadPoolExecutor(
-            int corePoolSize, @NotNull ThreadFactory threadFactory, ExecutorMetrics metrics, String name) {
+            int corePoolSize, @NotNull ThreadFactory threadFactory, TaggedMetricRegistry metrics, String name) {
         super(corePoolSize, threadFactory);
-        this.delay = metrics.queuedDuration(name);
+        this.delay = ExecutorMetrics.of(metrics).queuedDuration(name);
     }
 
     @Override
