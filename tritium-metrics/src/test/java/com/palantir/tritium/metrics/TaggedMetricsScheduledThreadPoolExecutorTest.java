@@ -18,20 +18,22 @@ package com.palantir.tritium.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.palantir.tritium.metrics.registry.DefaultTaggedMetricRegistry;
+import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
+import com.palantir.tritium.metrics.test.TestTaggedMetricRegistries;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class TaggedMetricsScheduledThreadPoolExecutorTest {
     private static final String NAME = "name";
 
-    @Test
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
     @SuppressWarnings("DangerousThreadPoolExecutorUsage")
-    void testMetrics() throws Exception {
-        DefaultTaggedMetricRegistry registry = new DefaultTaggedMetricRegistry();
+    void testMetrics(TaggedMetricRegistry registry) throws Exception {
         ScheduledExecutorService scheduledExecutorService =
                 new TaggedMetricsScheduledThreadPoolExecutor(1, Executors.defaultThreadFactory(), registry, NAME);
         scheduledExecutorService = MetricRegistries.instrument(registry, scheduledExecutorService, NAME);
