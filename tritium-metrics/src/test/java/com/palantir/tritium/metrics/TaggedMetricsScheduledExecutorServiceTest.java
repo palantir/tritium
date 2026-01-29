@@ -103,4 +103,43 @@ final class TaggedMetricsScheduledExecutorServiceTest {
 
         assertThat(metrics.scheduledOverrun(NAME).getCount()).isOne();
     }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    @SuppressWarnings("DangerousThreadPoolExecutorUsage")
+    void testQueuedDurationMetrics(TaggedMetricRegistry registry) throws Exception {
+        ScheduledExecutorService executorService =
+                MetricRegistries.instrument(registry, Executors.newSingleThreadScheduledExecutor(), NAME);
+        ExecutorMetrics metrics = ExecutorMetrics.of(registry);
+
+        assertThat(metrics.running(NAME).getCount()).isZero();
+        assertThat(metrics.duration(NAME).getCount()).isZero();
+        assertThat(metrics.queuedDuration(NAME).getCount()).isZero();
+
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch finishFirstTask = new CountDownLatch(1);
+        Future<String> firstTask = executorService.submit(() -> {
+            startLatch.countDown();
+            finishFirstTask.await();
+            return Thread.currentThread().getName();
+        });
+        Future<String> secondTask =
+                executorService.submit(() -> Thread.currentThread().getName());
+        executorService.shutdown();
+
+        startLatch.await();
+
+        assertThat(metrics.running(NAME).getCount()).isOne();
+        assertThat(metrics.duration(NAME).getCount()).isZero();
+
+        Thread.sleep(1L);
+        finishFirstTask.countDown();
+        firstTask.get();
+        secondTask.get();
+
+        assertThat(metrics.running(NAME).getCount()).isZero();
+        assertThat(metrics.duration(NAME).getCount()).isEqualTo(2);
+        assertThat(metrics.queuedDuration(NAME).getCount()).isEqualTo(2);
+        assertThat(metrics.queuedDuration(NAME).getSnapshot().getMax()).isGreaterThan(1);
+    }
 }
