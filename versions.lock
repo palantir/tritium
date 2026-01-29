@@ -100,7 +100,7 @@ com.squareup.okhttp3:okhttp-jvm:5.3.2 (1 constraints: 0c050f36)
 
 com.squareup.okio:okio-jvm:3.16.4 (1 constraints: 020ea946)
 
-io.undertow:undertow-core:2.3.20.Final (1 constraints: 51071d61)
+io.undertow:undertow-core:2.3.21.Final (1 constraints: 52072461)
 
 junit:junit:4.13.2 (2 constraints: de1ce71a)
 
