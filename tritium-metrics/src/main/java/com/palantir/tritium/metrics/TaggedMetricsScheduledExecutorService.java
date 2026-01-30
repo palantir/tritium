@@ -27,12 +27,12 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 final class TaggedMetricsScheduledExecutorService extends AbstractExecutorService implements ScheduledExecutorService {
-
     private final ScheduledExecutorService delegate;
     private final String name;
 
     private final Counter running;
     private final Timer duration;
+    private final Timer queuedDuration;
 
     private final Counter scheduledOverrun;
 
@@ -42,49 +42,58 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
 
         this.running = metrics.running(name);
         this.duration = metrics.duration(name);
+        this.queuedDuration = metrics.queuedDuration(name);
 
         this.scheduledOverrun = metrics.scheduledOverrun(name);
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable task, long delay, TimeUnit unit) {
-        return delegate.schedule(new TaggedMetricsRunnable(task), delay, unit);
+        return delegate.schedule(new TaggedMetricsRunnable(task, 0, unit.toNanos(delay), Kind.SINGLE_RUN), delay, unit);
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        return delegate.schedule(new TaggedMetricsCallable<>(callable), delay, unit);
+        return delegate.schedule(
+                new TaggedMetricsCallable<>(callable, 0, unit.toNanos(delay), Kind.SINGLE_RUN), delay, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long initialDelay, long period, TimeUnit unit) {
         return delegate.scheduleAtFixedRate(
-                new TaggedMetricsScheduledRunnable(task, period, unit), initialDelay, period, unit);
+                new TaggedMetricsScheduledRunnable(task, unit.toNanos(initialDelay), unit.toNanos(period), Kind.RATE),
+                initialDelay,
+                period,
+                unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long initialDelay, long delay, TimeUnit unit) {
-        return delegate.scheduleWithFixedDelay(new TaggedMetricsRunnable(task), initialDelay, delay, unit);
+        return delegate.scheduleWithFixedDelay(
+                new TaggedMetricsRunnable(task, unit.toNanos(initialDelay), unit.toNanos(delay), Kind.DELAY),
+                initialDelay,
+                delay,
+                unit);
     }
 
     @Override
     public void execute(Runnable task) {
-        delegate.execute(new TaggedMetricsRunnable(task));
+        delegate.execute(new TaggedMetricsRunnable(task, 0, 0, Kind.SINGLE_RUN));
     }
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-        return delegate.submit(new TaggedMetricsCallable<>(task));
+        return delegate.submit(new TaggedMetricsCallable<>(task, 0, 0, Kind.SINGLE_RUN));
     }
 
     @Override
     public <T> Future<T> submit(Runnable task, T result) {
-        return delegate.submit(new TaggedMetricsRunnable(task), result);
+        return delegate.submit(new TaggedMetricsRunnable(task, 0, 0, Kind.SINGLE_RUN), result);
     }
 
     @Override
     public Future<?> submit(Runnable task) {
-        return delegate.submit(new TaggedMetricsRunnable(task));
+        return delegate.submit(new TaggedMetricsRunnable(task, 0, 0, Kind.SINGLE_RUN));
     }
 
     // n.b. We don't override invokeAny/invokeAll because the default AbstractExecutorService implementation will
@@ -121,12 +130,24 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         return "TaggedMetricsScheduledExecutorService{name=" + name + ", delegate='" + delegate + "'}";
     }
 
+    private enum Kind {
+        SINGLE_RUN,
+        RATE,
+        DELAY
+    }
+
     private final class TaggedMetricsRunnable implements Runnable {
 
         private final Runnable task;
+        private final long periodInNanos;
+        private final Kind kind;
+        private long triggerTime;
 
-        TaggedMetricsRunnable(Runnable task) {
+        TaggedMetricsRunnable(Runnable task, long startDelayInNanos, long periodInNanos, Kind kind) {
             this.task = task;
+            this.periodInNanos = periodInNanos;
+            this.triggerTime = System.nanoTime() + startDelayInNanos + periodInNanos;
+            this.kind = kind;
         }
 
         @Override
@@ -134,11 +155,15 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         public void run() {
             running.inc();
             long startNanos = System.nanoTime();
+
+            queuedDuration.update(startNanos - triggerTime, TimeUnit.NANOSECONDS);
             try {
                 task.run();
             } finally {
-                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
+                long endNanos = System.nanoTime();
+                duration.update(endNanos - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
+                triggerTime = computeNextTriggerTime(kind, triggerTime, endNanos, periodInNanos);
             }
         }
     }
@@ -147,26 +172,35 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
 
         private final Runnable task;
         private final long periodInNanos;
+        private final Kind kind;
+        private long triggerTime;
 
-        TaggedMetricsScheduledRunnable(Runnable task, long period, TimeUnit unit) {
+        TaggedMetricsScheduledRunnable(Runnable task, long startDelayInNanos, long periodInNanos, Kind kind) {
             this.task = task;
-            this.periodInNanos = unit.toNanos(period);
+            this.periodInNanos = periodInNanos;
+            this.triggerTime = System.nanoTime() + startDelayInNanos + periodInNanos;
+            this.kind = kind;
         }
 
         @Override
         @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         public void run() {
             running.inc();
+
             long startNanos = System.nanoTime();
+            queuedDuration.update(startNanos - triggerTime, TimeUnit.NANOSECONDS);
+
             try {
                 task.run();
             } finally {
-                long elapsed = System.nanoTime() - startNanos;
+                long endNanos = System.nanoTime();
+                long elapsed = endNanos - startNanos;
                 duration.update(elapsed, TimeUnit.NANOSECONDS);
                 running.dec();
                 if (elapsed > periodInNanos) {
                     scheduledOverrun.inc();
                 }
+                triggerTime = computeNextTriggerTime(kind, triggerTime, endNanos, periodInNanos);
             }
         }
     }
@@ -174,22 +208,41 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
     private final class TaggedMetricsCallable<T> implements Callable<T> {
 
         private final Callable<T> task;
+        private final long periodInNanos;
+        private final Kind kind;
+        private long triggerTime;
 
-        TaggedMetricsCallable(Callable<T> task) {
+        TaggedMetricsCallable(Callable<T> task, long startDelayInNanos, long periodInNanos, Kind kind) {
             this.task = task;
+            this.periodInNanos = periodInNanos;
+            this.kind = kind;
+            this.triggerTime = System.nanoTime() + startDelayInNanos + periodInNanos;
         }
 
         @Override
         @SuppressWarnings("PreferJavaTimeOverload") // performance sensitive
         public T call() throws Exception {
             running.inc();
+
             long startNanos = System.nanoTime();
+            queuedDuration.update(startNanos - triggerTime, TimeUnit.NANOSECONDS);
+
             try {
                 return task.call();
             } finally {
-                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
+                long endNanos = System.nanoTime();
+                duration.update(endNanos - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
+                triggerTime = computeNextTriggerTime(kind, triggerTime, endNanos, periodInNanos);
             }
         }
+    }
+
+    private static long computeNextTriggerTime(Kind kind, long triggerTime, long now, long periodInNanos) {
+        return switch (kind) {
+            case RATE -> triggerTime + periodInNanos;
+            case DELAY -> now + periodInNanos;
+            case SINGLE_RUN -> now;
+        };
     }
 }
