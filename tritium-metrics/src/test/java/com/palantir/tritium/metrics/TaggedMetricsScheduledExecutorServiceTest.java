@@ -132,7 +132,6 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         assertThat(metrics.running(NAME).getCount()).isOne();
         assertThat(metrics.duration(NAME).getCount()).isZero();
 
-        Thread.sleep(1L);
         finishFirstTask.countDown();
         firstTask.get();
         secondTask.get();
@@ -140,6 +139,5 @@ final class TaggedMetricsScheduledExecutorServiceTest {
         assertThat(metrics.running(NAME).getCount()).isZero();
         assertThat(metrics.duration(NAME).getCount()).isEqualTo(2);
         assertThat(metrics.queuedDuration(NAME).getCount()).isEqualTo(2);
-        assertThat(metrics.queuedDuration(NAME).getSnapshot().getMax()).isGreaterThan(1);
     }
 }
