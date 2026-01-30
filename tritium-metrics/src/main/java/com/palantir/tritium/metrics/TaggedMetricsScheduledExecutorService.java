@@ -27,8 +27,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 final class TaggedMetricsScheduledExecutorService extends AbstractExecutorService implements ScheduledExecutorService {
-    private static final long MAX_NANOS = (Long.MAX_VALUE >>> 1) - 1;
-
     private final ScheduledExecutorService delegate;
     private final String name;
 
@@ -132,10 +130,6 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         return "TaggedMetricsScheduledExecutorService{name=" + name + ", delegate='" + delegate + "'}";
     }
 
-    private static long triggerTime(long initialDelay, long periodInNanos) {
-        return System.nanoTime() + Math.min(initialDelay, MAX_NANOS) + Math.min(periodInNanos, MAX_NANOS);
-    }
-
     private enum Kind {
         SINGLE_RUN,
         RATE,
@@ -152,7 +146,7 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         TaggedMetricsRunnable(Runnable task, long startDelayInNanos, long periodInNanos, Kind kind) {
             this.task = task;
             this.periodInNanos = periodInNanos;
-            this.triggerTime = triggerTime(startDelayInNanos, periodInNanos);
+            this.triggerTime = System.nanoTime() + startDelayInNanos + periodInNanos;
             this.kind = kind;
         }
 
@@ -163,19 +157,13 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
             long startNanos = System.nanoTime();
 
             queuedDuration.update(startNanos - triggerTime, TimeUnit.NANOSECONDS);
-            if (kind == Kind.RATE) {
-                triggerTime = triggerTime(triggerTime, periodInNanos);
-            }
-
             try {
                 task.run();
             } finally {
-                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
+                long endNanos = System.nanoTime();
+                duration.update(endNanos - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
-
-                if (kind == Kind.DELAY) {
-                    triggerTime = triggerTime(triggerTime, periodInNanos);
-                }
+                triggerTime = computeNextTriggerTime(kind, triggerTime, endNanos, periodInNanos);
             }
         }
     }
@@ -190,7 +178,7 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
         TaggedMetricsScheduledRunnable(Runnable task, long startDelayInNanos, long periodInNanos, Kind kind) {
             this.task = task;
             this.periodInNanos = periodInNanos;
-            this.triggerTime = triggerTime(startDelayInNanos, periodInNanos);
+            this.triggerTime = System.nanoTime() + startDelayInNanos + periodInNanos;
             this.kind = kind;
         }
 
@@ -201,22 +189,18 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
 
             long startNanos = System.nanoTime();
             queuedDuration.update(startNanos - triggerTime, TimeUnit.NANOSECONDS);
-            if (kind == Kind.RATE) {
-                triggerTime = triggerTime(triggerTime, periodInNanos);
-            }
 
             try {
                 task.run();
             } finally {
-                long elapsed = System.nanoTime() - startNanos;
+                long endNanos = System.nanoTime();
+                long elapsed = endNanos - startNanos;
                 duration.update(elapsed, TimeUnit.NANOSECONDS);
                 running.dec();
                 if (elapsed > periodInNanos) {
                     scheduledOverrun.inc();
                 }
-                if (kind == Kind.DELAY) {
-                    triggerTime = triggerTime(triggerTime, periodInNanos);
-                }
+                triggerTime = computeNextTriggerTime(kind, triggerTime, endNanos, periodInNanos);
             }
         }
     }
@@ -232,7 +216,7 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
             this.task = task;
             this.periodInNanos = periodInNanos;
             this.kind = kind;
-            this.triggerTime = triggerTime(startDelayInNanos, periodInNanos);
+            this.triggerTime = System.nanoTime() + startDelayInNanos + periodInNanos;
         }
 
         @Override
@@ -242,19 +226,23 @@ final class TaggedMetricsScheduledExecutorService extends AbstractExecutorServic
 
             long startNanos = System.nanoTime();
             queuedDuration.update(startNanos - triggerTime, TimeUnit.NANOSECONDS);
-            if (kind == Kind.RATE) {
-                triggerTime = triggerTime(triggerTime, periodInNanos);
-            }
 
             try {
                 return task.call();
             } finally {
-                duration.update(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS);
+                long endNanos = System.nanoTime();
+                duration.update(endNanos - startNanos, TimeUnit.NANOSECONDS);
                 running.dec();
-                if (kind == Kind.DELAY) {
-                    triggerTime = triggerTime(triggerTime, periodInNanos);
-                }
+                triggerTime = computeNextTriggerTime(kind, triggerTime, endNanos, periodInNanos);
             }
         }
+    }
+
+    private static long computeNextTriggerTime(Kind kind, long triggerTime, long now, long periodInNanos) {
+        return switch (kind) {
+            case RATE -> triggerTime + periodInNanos;
+            case DELAY -> now + periodInNanos;
+            case SINGLE_RUN -> now;
+        };
     }
 }
