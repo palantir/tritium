@@ -15,11 +15,19 @@ dependencies {
     implementation 'org.jspecify:jspecify'
     implementation 'org.slf4j:slf4j-api'
 
-    testRuntimeOnly 'net.jqwik:jqwik'
     testImplementation 'net.jqwik:jqwik-api'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testImplementation 'org.mockito:mockito-core'
+
+    testRuntimeOnly 'net.jqwik:jqwik'
+    testRuntimeOnly 'net.jqwik:jqwik-engine'
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform {
+        includeEngines 'jqwik', 'junit-jupiter'
+    }
 }
