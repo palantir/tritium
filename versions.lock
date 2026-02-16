@@ -110,7 +110,7 @@ net.jqwik:jqwik:1.9.3 (1 constraints: 0f050e36)
 
 net.jqwik:jqwik-api:1.9.3 (5 constraints: 7529d3b8)
 
-net.jqwik:jqwik-engine:1.9.3 (1 constraints: a007006d)
+net.jqwik:jqwik-engine:1.9.3 (2 constraints: ae0c6d1c)
 
 net.jqwik:jqwik-time:1.9.3 (1 constraints: a007006d)
 
