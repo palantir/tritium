@@ -28,15 +28,15 @@ com.palantir.jvm.diagnostics:jvm-diagnostics:0.10.0 (1 constraints: 3305233b)
 
 com.palantir.nylon:nylon-threads:0.7.0 (1 constraints: 09050036)
 
-com.palantir.safe-logging:logger:3.11.0 (4 constraints: 983338bb)
+com.palantir.safe-logging:logger:3.12.0 (4 constraints: 9933c1bb)
 
-com.palantir.safe-logging:logger-slf4j:3.11.0 (1 constraints: 300e8a50)
+com.palantir.safe-logging:logger-slf4j:3.12.0 (1 constraints: 310e8d50)
 
-com.palantir.safe-logging:logger-spi:3.11.0 (2 constraints: 6f1e0ab0)
+com.palantir.safe-logging:logger-spi:3.12.0 (2 constraints: 711e40b0)
 
-com.palantir.safe-logging:preconditions:3.11.0 (5 constraints: f147bcdd)
+com.palantir.safe-logging:preconditions:3.12.0 (5 constraints: f347a7de)
 
-com.palantir.safe-logging:safe-logging:3.11.0 (8 constraints: f8767e0f)
+com.palantir.safe-logging:safe-logging:3.12.0 (8 constraints: fd76a812)
 
 com.palantir.tracing:tracing:6.31.0 (1 constraints: 3c05523b)
 
@@ -72,7 +72,7 @@ org.jboss.logging:jboss-logging:3.6.1.Final (7 constraints: c4838fcc)
 
 org.jboss.threads:jboss-threads:3.9.2 (3 constraints: a9288ee8)
 
-org.jetbrains:annotations:26.0.2 (2 constraints: 1420d600)
+org.jetbrains:annotations:26.1.0 (2 constraints: 1320ad00)
 
 org.jspecify:jspecify:1.0.0 (10 constraints: b49cd429)
 
@@ -94,7 +94,7 @@ com.google.testing.compile:compile-testing:0.23.0 (1 constraints: 3705303b)
 
 com.google.truth:truth:1.4.5 (1 constraints: 1d1219fb)
 
-com.palantir.safe-logging:preconditions-assertj:3.11.0 (1 constraints: 3705383b)
+com.palantir.safe-logging:preconditions-assertj:3.12.0 (1 constraints: 38053b3b)
 
 com.squareup.okhttp3:okhttp-jvm:5.3.2 (1 constraints: 0c050f36)
 
@@ -122,7 +122,7 @@ org.apache.commons:commons-math3:3.6.1 (1 constraints: bf0adbcc)
 
 org.apiguardian:apiguardian-api:1.1.2 (11 constraints: 9293fa1e)
 
-org.assertj:assertj-core:3.27.7 (2 constraints: ab190be1)
+org.assertj:assertj-core:3.27.7 (2 constraints: ac190ce1)
 
 org.awaitility:awaitility:4.3.0 (1 constraints: 09050836)
 
