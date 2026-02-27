@@ -1,6 +1,6 @@
 com.fasterxml.jackson.*:* = 2.13.3
 com.fasterxml.uuid:* = 5.2.0
-com.github.ben-manes.caffeine:* = 3.2.2
+com.github.ben-manes.caffeine:* = 3.2.3
 com.google.auto.service:* = 1.1.1
 com.google.code.findbugs:* = 3.0.2
 com.google.guava:guava = 33.5.0-jre
