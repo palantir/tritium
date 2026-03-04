@@ -8,7 +8,7 @@ com.google.auto.service:auto-service-annotations:1.1.1 (1 constraints: 0505f435)
 
 com.google.code.findbugs:jsr305:3.0.2 (1 constraints: a41965b5)
 
-com.google.errorprone:error_prone_annotations:2.43.0 (8 constraints: 65701a29)
+com.google.errorprone:error_prone_annotations:2.43.0 (8 constraints: 67702029)
 
 com.google.guava:failureaccess:1.0.3 (1 constraints: 160ae3b4)
 
@@ -18,29 +18,29 @@ com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 c
 
 com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
-com.palantir.delegate.processors:delegate-processor:2.3.0 (1 constraints: 0705fe35)
+com.palantir.delegate.processors:delegate-processor:2.4.0 (1 constraints: 08050136)
 
-com.palantir.goethe:goethe:0.18.0 (1 constraints: 05164fda)
+com.palantir.goethe:goethe:0.19.0 (1 constraints: 061652da)
 
-com.palantir.javapoet:javapoet:0.11.0 (3 constraints: f826c6f5)
+com.palantir.javapoet:javapoet:0.12.0 (3 constraints: 22276a1d)
 
 com.palantir.jvm.diagnostics:jvm-diagnostics:0.10.0 (1 constraints: 3305233b)
 
-com.palantir.nylon:nylon-threads:0.7.0 (1 constraints: 09050036)
+com.palantir.nylon:nylon-threads:0.8.0 (1 constraints: 0a050336)
 
-com.palantir.safe-logging:logger:3.12.0 (4 constraints: 9933c1bb)
+com.palantir.safe-logging:logger:3.12.0 (4 constraints: 9b33edbb)
 
 com.palantir.safe-logging:logger-slf4j:3.12.0 (1 constraints: 310e8d50)
 
 com.palantir.safe-logging:logger-spi:3.12.0 (2 constraints: 711e40b0)
 
-com.palantir.safe-logging:preconditions:3.12.0 (5 constraints: f347a7de)
+com.palantir.safe-logging:preconditions:3.12.0 (5 constraints: f5470cdf)
 
-com.palantir.safe-logging:safe-logging:3.12.0 (8 constraints: fd76a812)
+com.palantir.safe-logging:safe-logging:3.12.0 (8 constraints: ff769613)
 
-com.palantir.tracing:tracing:6.31.0 (1 constraints: 3c05523b)
+com.palantir.tracing:tracing:6.32.0 (1 constraints: 3d05553b)
 
-com.palantir.tracing:tracing-api:6.31.0 (2 constraints: 0d124518)
+com.palantir.tracing:tracing-api:6.32.0 (2 constraints: 0f127118)
 
 com.squareup:javapoet:1.13.0 (1 constraints: f50b65f7)
 
