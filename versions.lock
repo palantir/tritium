@@ -24,19 +24,19 @@ com.palantir.goethe:goethe:0.19.0 (1 constraints: 061652da)
 
 com.palantir.javapoet:javapoet:0.12.0 (3 constraints: 22276a1d)
 
-com.palantir.jvm.diagnostics:jvm-diagnostics:0.10.0 (1 constraints: 3305233b)
+com.palantir.jvm.diagnostics:jvm-diagnostics:0.11.0 (1 constraints: 3405263b)
 
 com.palantir.nylon:nylon-threads:0.8.0 (1 constraints: 0a050336)
 
-com.palantir.safe-logging:logger:3.12.0 (4 constraints: 9b33edbb)
+com.palantir.safe-logging:logger:3.12.0 (4 constraints: 9c3340bc)
 
 com.palantir.safe-logging:logger-slf4j:3.12.0 (1 constraints: 310e8d50)
 
 com.palantir.safe-logging:logger-spi:3.12.0 (2 constraints: 711e40b0)
 
-com.palantir.safe-logging:preconditions:3.12.0 (5 constraints: f5470cdf)
+com.palantir.safe-logging:preconditions:3.12.0 (5 constraints: f64798df)
 
-com.palantir.safe-logging:safe-logging:3.12.0 (8 constraints: ff769613)
+com.palantir.safe-logging:safe-logging:3.12.0 (8 constraints: 0077ab14)
 
 com.palantir.tracing:tracing:6.32.0 (1 constraints: 3d05553b)
 
@@ -150,9 +150,9 @@ org.junit.platform:junit-platform-engine:6.0.3 (3 constraints: 5c2d47c8)
 
 org.junit.platform:junit-platform-launcher:6.0.3 (1 constraints: 0b050c36)
 
-org.mockito:mockito-core:5.22.0 (2 constraints: 2e149b86)
+org.mockito:mockito-core:5.23.0 (2 constraints: 3014cc86)
 
-org.mockito:mockito-junit-jupiter:5.22.0 (1 constraints: 3b054b3b)
+org.mockito:mockito-junit-jupiter:5.23.0 (1 constraints: 3c054e3b)
 
 org.objenesis:objenesis:3.3 (1 constraints: b20a14bd)
 
