@@ -22,7 +22,7 @@ com.palantir.delegate.processors:delegate-processor:2.5.0 (1 constraints: 090504
 
 com.palantir.goethe:goethe:0.21.0 (1 constraints: ff153eda)
 
-com.palantir.javapoet:javapoet:0.13.0 (3 constraints: 2627fb1d)
+com.palantir.javapoet:javapoet:0.14.0 (3 constraints: 27275f1e)
 
 com.palantir.jvm.diagnostics:jvm-diagnostics:0.11.0 (1 constraints: 3405263b)
 
