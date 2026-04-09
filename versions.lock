@@ -24,19 +24,19 @@ com.palantir.goethe:goethe:0.21.0 (1 constraints: ff153eda)
 
 com.palantir.javapoet:javapoet:0.14.0 (3 constraints: 27275f1e)
 
-com.palantir.jvm.diagnostics:jvm-diagnostics:0.11.0 (1 constraints: 3405263b)
+com.palantir.jvm.diagnostics:jvm-diagnostics:0.12.0 (1 constraints: 3505293b)
 
 com.palantir.nylon:nylon-threads:0.9.0 (1 constraints: 0b050636)
 
-com.palantir.safe-logging:logger:3.13.0 (4 constraints: 9f33f5bc)
+com.palantir.safe-logging:logger:3.13.0 (4 constraints: a03348bd)
 
 com.palantir.safe-logging:logger-slf4j:3.13.0 (1 constraints: 320e9050)
 
 com.palantir.safe-logging:logger-spi:3.13.0 (2 constraints: 731e76b0)
 
-com.palantir.safe-logging:preconditions:3.13.0 (5 constraints: fa47e8e0)
+com.palantir.safe-logging:preconditions:3.13.0 (5 constraints: fb4774e1)
 
-com.palantir.safe-logging:safe-logging:3.13.0 (8 constraints: 0777c318)
+com.palantir.safe-logging:safe-logging:3.13.0 (8 constraints: 0877d819)
 
 com.palantir.tracing:tracing:6.33.0 (1 constraints: 3e05583b)
 
