@@ -16,6 +16,8 @@
 
 package com.palantir.tritium.microbenchmarks;
 
+// error-prone immutable checks have pathological recursion overhead analyzing annotations
+@SuppressWarnings("Immutable")
 public final class Stubs {
 
     private Stubs() {}
