@@ -394,7 +394,7 @@ public abstract class InstrumentationTest {
     }
 
     @Test
-    @SuppressWarnings({"EqualsWithItself", "for-rollout:SelfAssertion"}) // explicitly testing proxy equals
+    @SuppressWarnings("EqualsWithItself") // explicitly testing proxy equals
     void testEquals_sameInstance() {
         TestInterface proxy = Instrumentation.builder(TestInterface.class, new TestImplementation())
                 .withPerformanceTraceLogging()
