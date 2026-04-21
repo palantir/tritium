@@ -57,16 +57,18 @@ final class MetricsBooleanSupplierTest {
     @BeforeEach
     void before() {
         systemProperties.remove(METRICS_SYSTEM_PROPERTY_PREFIX);
-        System.getProperties().entrySet().removeIf(entry -> String.valueOf(entry.getKey())
-                .startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
+        System.getProperties()
+                .entrySet()
+                .removeIf(entry -> String.valueOf(entry.getKey()).startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
         InstrumentationProperties.reload();
     }
 
     @AfterEach
     void after() {
         systemProperties.remove(METRICS_SYSTEM_PROPERTY_PREFIX);
-        System.getProperties().entrySet().removeIf(entry -> String.valueOf(entry.getKey())
-                .startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
+        System.getProperties()
+                .entrySet()
+                .removeIf(entry -> String.valueOf(entry.getKey()).startsWith(METRICS_SYSTEM_PROPERTY_PREFIX));
         InstrumentationProperties.reload();
     }
 

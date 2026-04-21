@@ -82,14 +82,18 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
                         + ".recordStats(stats).");
 
         metrics.estimatedSize().cache(name).build(cache::estimatedSize);
-        metrics.weightedSize().cache(name).build(() -> cache.policy()
-                .eviction()
-                .flatMap(e -> e.weightedSize().stream().boxed().findFirst())
-                .orElse(null));
-        metrics.maximumSize().cache(name).build(() -> cache.policy()
-                .eviction()
-                .map(Policy.Eviction::getMaximum)
-                .orElse(null));
+        metrics.weightedSize()
+                .cache(name)
+                .build(() -> cache.policy()
+                        .eviction()
+                        .flatMap(e -> e.weightedSize().stream().boxed().findFirst())
+                        .orElse(null));
+        metrics.maximumSize()
+                .cache(name)
+                .build(() -> cache.policy()
+                        .eviction()
+                        .map(Policy.Eviction::getMaximum)
+                        .orElse(null));
     }
 
     /**
@@ -151,15 +155,19 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
         this.loadFailureTimer =
                 metrics.load().cache(name).result(Load_Result.FAILURE).build();
         this.evictionMeters = Arrays.stream(RemovalCause.values())
-                .collect(Maps.toImmutableEnumMap(cause -> cause, cause -> metrics.eviction()
-                        .cache(name)
-                        .cause(cause.toString())
-                        .build()));
+                .collect(Maps.toImmutableEnumMap(
+                        cause -> cause,
+                        cause -> metrics.eviction()
+                                .cache(name)
+                                .cause(cause.toString())
+                                .build()));
         this.evictionWeightMeters = Arrays.stream(RemovalCause.values())
-                .collect(Maps.toImmutableEnumMap(cause -> cause, cause -> metrics.evictionWeight()
-                        .cache(name)
-                        .cause(cause.toString())
-                        .build()));
+                .collect(Maps.toImmutableEnumMap(
+                        cause -> cause,
+                        cause -> metrics.evictionWeight()
+                                .cache(name)
+                                .cause(cause.toString())
+                                .build()));
     }
 
     @Override

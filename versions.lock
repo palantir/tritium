@@ -1,6 +1,6 @@
 # Run ./gradlew writeVersionsLocks to regenerate this file. Blank lines are to minimize merge conflicts.
 
-com.github.ben-manes.caffeine:caffeine:3.2.2 (1 constraints: 09050236)
+com.github.ben-manes.caffeine:caffeine:3.2.3 (1 constraints: 0a050336)
 
 com.google.auto:auto-common:1.2.2 (2 constraints: e82701fd)
 
@@ -8,39 +8,39 @@ com.google.auto.service:auto-service-annotations:1.1.1 (1 constraints: 0505f435)
 
 com.google.code.findbugs:jsr305:3.0.2 (1 constraints: a41965b5)
 
-com.google.errorprone:error_prone_annotations:2.41.0 (8 constraints: 6270c025)
+com.google.errorprone:error_prone_annotations:2.47.0 (8 constraints: 6d70142f)
 
 com.google.guava:failureaccess:1.0.3 (1 constraints: 160ae3b4)
 
-com.google.guava:guava:33.5.0-jre (6 constraints: 785b15ac)
+com.google.guava:guava:33.6.0-jre (6 constraints: 795b10ad)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
 com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
-com.palantir.delegate.processors:delegate-processor:2.3.0 (1 constraints: 0705fe35)
+com.palantir.delegate.processors:delegate-processor:2.5.0 (1 constraints: 09050436)
 
-com.palantir.goethe:goethe:0.18.0 (1 constraints: 05164fda)
+com.palantir.goethe:goethe:0.21.0 (1 constraints: ff153eda)
 
-com.palantir.javapoet:javapoet:0.11.0 (3 constraints: f826c6f5)
+com.palantir.javapoet:javapoet:0.14.0 (3 constraints: 27275f1e)
 
-com.palantir.jvm.diagnostics:jvm-diagnostics:0.10.0 (1 constraints: 3305233b)
+com.palantir.jvm.diagnostics:jvm-diagnostics:0.12.0 (1 constraints: 3505293b)
 
-com.palantir.nylon:nylon-threads:0.7.0 (1 constraints: 09050036)
+com.palantir.nylon:nylon-threads:0.9.0 (1 constraints: 0b050636)
 
-com.palantir.safe-logging:logger:3.12.0 (4 constraints: 9933c1bb)
+com.palantir.safe-logging:logger:3.14.0 (4 constraints: a133d1bd)
 
-com.palantir.safe-logging:logger-slf4j:3.12.0 (1 constraints: 310e8d50)
+com.palantir.safe-logging:logger-slf4j:3.14.0 (1 constraints: 330e9350)
 
-com.palantir.safe-logging:logger-spi:3.12.0 (2 constraints: 711e40b0)
+com.palantir.safe-logging:logger-spi:3.14.0 (2 constraints: 751eacb0)
 
-com.palantir.safe-logging:preconditions:3.12.0 (5 constraints: f347a7de)
+com.palantir.safe-logging:preconditions:3.14.0 (5 constraints: fd475fe2)
 
-com.palantir.safe-logging:safe-logging:3.12.0 (8 constraints: fd76a812)
+com.palantir.safe-logging:safe-logging:3.14.0 (8 constraints: 0d77021d)
 
-com.palantir.tracing:tracing:6.31.0 (1 constraints: 3c05523b)
+com.palantir.tracing:tracing:6.33.0 (1 constraints: 3e05583b)
 
-com.palantir.tracing:tracing-api:6.31.0 (2 constraints: 0d124518)
+com.palantir.tracing:tracing-api:6.33.0 (2 constraints: 11129d18)
 
 com.squareup:javapoet:1.13.0 (1 constraints: f50b65f7)
 
@@ -64,7 +64,7 @@ io.smallrye.common:smallrye-common-os:2.4.0 (1 constraints: b10e835a)
 
 io.smallrye.common:smallrye-common-ref:2.4.0 (1 constraints: b10e835a)
 
-net.bytebuddy:byte-buddy:1.18.5 (4 constraints: 722b4f4e)
+net.bytebuddy:byte-buddy:1.18.8 (4 constraints: 752ba54f)
 
 org.hdrhistogram:HdrHistogram:2.2.2 (1 constraints: 0805fd35)
 
@@ -94,17 +94,17 @@ com.google.testing.compile:compile-testing:0.23.0 (1 constraints: 3705303b)
 
 com.google.truth:truth:1.4.5 (1 constraints: 1d1219fb)
 
-com.palantir.safe-logging:preconditions-assertj:3.12.0 (1 constraints: 38053b3b)
+com.palantir.safe-logging:preconditions-assertj:3.14.0 (1 constraints: 3a05413b)
 
 com.squareup.okhttp3:okhttp-jvm:5.3.2 (1 constraints: 0c050f36)
 
 com.squareup.okio:okio-jvm:3.16.4 (1 constraints: 020ea946)
 
-io.undertow:undertow-core:2.3.21.Final (1 constraints: 52072461)
+io.undertow:undertow-core:2.3.23.Final (1 constraints: 54073261)
 
 junit:junit:4.13.2 (2 constraints: de1ce71a)
 
-net.bytebuddy:byte-buddy-agent:1.18.5 (2 constraints: e01abd63)
+net.bytebuddy:byte-buddy-agent:1.18.8 (2 constraints: e01abd63)
 
 net.jqwik:jqwik:1.9.3 (1 constraints: 0f050e36)
 
@@ -150,9 +150,9 @@ org.junit.platform:junit-platform-engine:6.0.3 (3 constraints: 5c2d47c8)
 
 org.junit.platform:junit-platform-launcher:6.0.3 (1 constraints: 0b050c36)
 
-org.mockito:mockito-core:5.21.0 (2 constraints: 2c146a86)
+org.mockito:mockito-core:5.23.0 (2 constraints: 3014cc86)
 
-org.mockito:mockito-junit-jupiter:5.21.0 (1 constraints: 3a05483b)
+org.mockito:mockito-junit-jupiter:5.23.0 (1 constraints: 3c054e3b)
 
 org.objenesis:objenesis:3.3 (1 constraints: b20a14bd)
 
