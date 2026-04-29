@@ -12,17 +12,17 @@ com.google.errorprone:error_prone_annotations:2.47.0 (8 constraints: 6d70142f)
 
 com.google.guava:failureaccess:1.0.3 (1 constraints: 160ae3b4)
 
-com.google.guava:guava:33.6.0-jre (6 constraints: 795b10ad)
+com.google.guava:guava:33.6.0-jre (6 constraints: 7a5b41ad)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
 com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
-com.palantir.delegate.processors:delegate-processor:2.5.0 (1 constraints: 09050436)
+com.palantir.delegate.processors:delegate-processor:2.6.0 (1 constraints: 0a050736)
 
-com.palantir.goethe:goethe:0.21.0 (1 constraints: ff153eda)
+com.palantir.goethe:goethe:0.22.0 (1 constraints: 001641da)
 
-com.palantir.javapoet:javapoet:0.14.0 (3 constraints: 27275f1e)
+com.palantir.javapoet:javapoet:0.14.0 (3 constraints: 2b27b31e)
 
 com.palantir.jvm.diagnostics:jvm-diagnostics:0.12.0 (1 constraints: 3505293b)
 
