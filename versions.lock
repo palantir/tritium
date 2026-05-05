@@ -1,6 +1,6 @@
 # Run ./gradlew writeVersionsLocks to regenerate this file. Blank lines are to minimize merge conflicts.
 
-com.github.ben-manes.caffeine:caffeine:3.2.3 (1 constraints: 0a050336)
+com.github.ben-manes.caffeine:caffeine:3.2.4 (1 constraints: 0b050436)
 
 com.google.auto:auto-common:1.2.2 (2 constraints: e82701fd)
 
@@ -8,7 +8,7 @@ com.google.auto.service:auto-service-annotations:1.1.1 (1 constraints: 0505f435)
 
 com.google.code.findbugs:jsr305:3.0.2 (1 constraints: a41965b5)
 
-com.google.errorprone:error_prone_annotations:2.47.0 (8 constraints: 7170202f)
+com.google.errorprone:error_prone_annotations:2.49.0 (8 constraints: 7770d435)
 
 com.google.guava:failureaccess:1.0.3 (1 constraints: 160ae3b4)
 
