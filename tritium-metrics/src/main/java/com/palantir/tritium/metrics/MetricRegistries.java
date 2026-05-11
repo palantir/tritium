@@ -275,7 +275,8 @@ public final class MetricRegistries {
      * Prefer {@link Caffeine#recordStats(Supplier)} and {@link CacheStats#of(TaggedMetricRegistry, String)}.
      */
     @Deprecated // BanGuavaCaches
-    @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
+    @SuppressWarnings({"BanGuavaCaches", "for-rollout:InvalidLink"
+    }) // this implementation is explicitly for Guava caches
     public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
         checkNotNull(registry, "metric registry");
         checkNotNull(cache, "cache");
