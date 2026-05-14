@@ -46,7 +46,7 @@ public interface MetricName {
      * Returns an optimized builder for callers that know the number of tags upfront.
      * Tags must be added via {@link PreSizedBuilder#putSafeTags(String, String)} in lexicographic key order.
      */
-    static PreSizedBuilder builder(int expectedTags) {
+    static PreSizedBuilder builderWithExpectedTags(int expectedTags) {
         return new PreSizedBuilder(expectedTags);
     }
 
