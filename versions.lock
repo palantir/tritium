@@ -28,15 +28,15 @@ com.palantir.jvm.diagnostics:jvm-diagnostics:0.13.0 (1 constraints: 36052c3b)
 
 com.palantir.nylon:nylon-threads:0.10.0 (1 constraints: 3305233b)
 
-com.palantir.safe-logging:logger:3.14.0 (4 constraints: a43350be)
+com.palantir.safe-logging:logger:3.15.0 (4 constraints: a533d9be)
 
-com.palantir.safe-logging:logger-slf4j:3.14.0 (1 constraints: 330e9350)
+com.palantir.safe-logging:logger-slf4j:3.15.0 (1 constraints: 340e9650)
 
-com.palantir.safe-logging:logger-spi:3.14.0 (2 constraints: 751eacb0)
+com.palantir.safe-logging:logger-spi:3.15.0 (2 constraints: 771ee2b0)
 
-com.palantir.safe-logging:preconditions:3.14.0 (5 constraints: 004850e3)
+com.palantir.safe-logging:preconditions:3.15.0 (5 constraints: 02483be4)
 
-com.palantir.safe-logging:safe-logging:3.14.0 (8 constraints: 1077051f)
+com.palantir.safe-logging:safe-logging:3.15.0 (8 constraints: 15772f22)
 
 com.palantir.tracing:tracing:6.34.0 (1 constraints: 3f055b3b)
 
@@ -94,7 +94,7 @@ com.google.testing.compile:compile-testing:0.23.0 (1 constraints: 3705303b)
 
 com.google.truth:truth:1.4.5 (1 constraints: 1d1219fb)
 
-com.palantir.safe-logging:preconditions-assertj:3.14.0 (1 constraints: 3a05413b)
+com.palantir.safe-logging:preconditions-assertj:3.15.0 (1 constraints: 3b05443b)
 
 com.squareup.okhttp3:okhttp-jvm:5.3.2 (1 constraints: 0c050f36)
 
