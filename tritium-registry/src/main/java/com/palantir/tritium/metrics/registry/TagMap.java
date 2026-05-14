@@ -142,9 +142,15 @@ final class TagMap implements SortedMap<String, String> {
 
             Preconditions.checkArgument(
                     size == expectedSize,
-                    "Mismatch between number of keys expected and number of keys inserted in TagMap#builder",
-                    SafeArg.of("actualSize", size),
+                    "TagMap#builder inserted keys should be equal to the number of expected keys",
+                    SafeArg.of("size", size),
                     SafeArg.of("expectedSize", expectedSize));
+
+            for (int i = 2; i < values.length; i += 2) {
+                Preconditions.checkArgument(
+                        values[i - 2].compareTo(values[i]) < 0,
+                        "TagMap#builder keys should be inserted in lexicographically ascending order");
+            }
 
             return new TagMap(values);
         }
