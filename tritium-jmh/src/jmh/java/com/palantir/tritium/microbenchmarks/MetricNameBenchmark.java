@@ -87,7 +87,7 @@ public class MetricNameBenchmark {
 
     @Benchmark
     public MetricName benchmarkName3Tags_preSizedBuilder() {
-        return MetricName.builder(3)
+        return MetricName.builderWithExpectedTags(3)
                 .safeName("someMetric")
                 .putSafeTags("libraryName", "tritium")
                 .putSafeTags("libraryVersion", "1.2.3")
@@ -97,7 +97,7 @@ public class MetricNameBenchmark {
 
     @Benchmark
     public MetricName benchmarkName7Tags_preSizedBuilder() {
-        return MetricName.builder(7)
+        return MetricName.builderWithExpectedTags(7)
                 .safeName("someMetric")
                 .putSafeTags("libraryName", "tritium")
                 .putSafeTags("libraryName1", "tritium1")
@@ -111,7 +111,7 @@ public class MetricNameBenchmark {
 
     @Benchmark
     public MetricName benchmarkName13Tags_preSizedBuilder() {
-        return MetricName.builder(13)
+        return MetricName.builderWithExpectedTags(13)
                 .safeName("someMetric")
                 .putSafeTags("libraryName", "tritium")
                 .putSafeTags("libraryName1", "tritium1")

@@ -110,8 +110,8 @@ public class MetricNameTest {
     }
 
     @Test
-    public void preSizedBuilder_basic() {
-        MetricName preSized = MetricName.builder(2)
+    public void preSizedBuilder() {
+        MetricName preSized = MetricName.builderWithExpectedTags(2)
                 .safeName("test")
                 .putSafeTags("key1", "value1")
                 .putSafeTags("key2", "value2")
@@ -130,7 +130,8 @@ public class MetricNameTest {
 
     @Test
     public void preSizedBuilder_noTags() {
-        MetricName preSized = MetricName.builder(0).safeName("test").build();
+        MetricName preSized =
+                MetricName.builderWithExpectedTags(0).safeName("test").build();
         MetricName standard = MetricName.builder().safeName("test").build();
 
         assertThat(preSized).isEqualTo(standard);
@@ -139,7 +140,7 @@ public class MetricNameTest {
 
     @Test
     public void preSizedBuilder_equalsStandardBuilderWithDifferentInsertionOrder() {
-        MetricName preSized = MetricName.builder(3)
+        MetricName preSized = MetricName.builderWithExpectedTags(3)
                 .safeName("test")
                 .putSafeTags("a", "1")
                 .putSafeTags("b", "2")
@@ -159,10 +160,20 @@ public class MetricNameTest {
 
     @Test
     public void preSizedBuilder_sizeMismatchThrows() {
-        assertThatThrownBy(() -> MetricName.builder(3)
+        assertThatThrownBy(() -> MetricName.builderWithExpectedTags(3)
                         .safeName("test")
                         .putSafeTags("key1", "value1")
                         .putSafeTags("key2", "value2")
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void preSizedBuilder_notLexicographicalOrderThrows() {
+        assertThatThrownBy(() -> MetricName.builderWithExpectedTags(3)
+                        .safeName("test")
+                        .putSafeTags("key2", "value2")
+                        .putSafeTags("key1", "value1")
                         .build())
                 .isInstanceOf(IllegalArgumentException.class);
     }
