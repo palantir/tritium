@@ -18,6 +18,8 @@ package com.palantir.tritium.metrics.registry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
+import com.palantir.logsafe.Preconditions;
+import com.palantir.logsafe.SafeArg;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,6 +113,41 @@ final class TagMap implements SortedMap<String, String> {
             values[valuesIndex + 1] = data.get(key);
         }
         return values;
+    }
+
+    /** Builds a new {@link TagMap}. Keys are expected to be inserted in lexicographical order. */
+    static final class Builder {
+        private final String[] values;
+        private final int expectedSize;
+        private int size;
+
+        Builder(int expectedSize) {
+            this.values = new String[expectedSize * 2];
+            this.expectedSize = expectedSize;
+            this.size = 0;
+        }
+
+        Builder put(String key, String value) {
+            int arrayLen = size * 2;
+            values[arrayLen] = key;
+            values[arrayLen + 1] = value;
+            size++;
+            return this;
+        }
+
+        TagMap build() {
+            if (size == 0) {
+                return EMPTY;
+            }
+
+            Preconditions.checkArgument(
+                    size == expectedSize,
+                    "Mismatch between number of keys expected and number of keys inserted in TagMap#builder",
+                    SafeArg.of("actualSize", size),
+                    SafeArg.of("expectedSize", expectedSize));
+
+            return new TagMap(values);
+        }
     }
 
     /** Returns a new {@link TagMap} with an additional or updated entry. */

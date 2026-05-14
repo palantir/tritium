@@ -42,5 +42,19 @@ public interface MetricName {
         return new Builder();
     }
 
+    /**
+     * Returns an optimized builder for callers that know the number of tags upfront.
+     * Tags must be added via {@link PreSizedBuilder#putSafeTags(String, String)} in lexicographic key order.
+     */
+    static PreSizedBuilder builder(int expectedTags) {
+        return new PreSizedBuilder(expectedTags);
+    }
+
     final class Builder extends ImmutableMetricName.Builder {}
+
+    final class PreSizedBuilder extends ImmutableMetricName.PreSizedBuilder {
+        PreSizedBuilder(int expectedTags) {
+            super(expectedTags);
+        }
+    }
 }
