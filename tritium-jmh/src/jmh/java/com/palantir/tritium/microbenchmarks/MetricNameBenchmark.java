@@ -85,6 +85,50 @@ public class MetricNameBenchmark {
                 .build();
     }
 
+    @Benchmark
+    public MetricName benchmarkName3Tags_preSizedBuilder() {
+        return MetricName.builder(3)
+                .safeName("someMetric")
+                .putSafeTags("libraryName", "tritium")
+                .putSafeTags("libraryVersion", "1.2.3")
+                .putSafeTags("some tag", "some tag value")
+                .build();
+    }
+
+    @Benchmark
+    public MetricName benchmarkName7Tags_preSizedBuilder() {
+        return MetricName.builder(7)
+                .safeName("someMetric")
+                .putSafeTags("libraryName", "tritium")
+                .putSafeTags("libraryName1", "tritium1")
+                .putSafeTags("libraryName2", "tritium2")
+                .putSafeTags("libraryVersion", "1.2.3")
+                .putSafeTags("libraryVersion1", "2.3.4")
+                .putSafeTags("libraryVersion2", "5.6.7")
+                .putSafeTags("some tag", "some tag value")
+                .build();
+    }
+
+    @Benchmark
+    public MetricName benchmarkName13Tags_preSizedBuilder() {
+        return MetricName.builder(13)
+                .safeName("someMetric")
+                .putSafeTags("libraryName", "tritium")
+                .putSafeTags("libraryName1", "tritium1")
+                .putSafeTags("libraryName2", "tritium2")
+                .putSafeTags("libraryName3", "tritium")
+                .putSafeTags("libraryName4", "tritium1")
+                .putSafeTags("libraryName5", "tritium2")
+                .putSafeTags("libraryVersion", "1.2.3")
+                .putSafeTags("libraryVersion1", "2.3.4")
+                .putSafeTags("libraryVersion2", "5.6.7")
+                .putSafeTags("libraryVersion3", "1.2.3")
+                .putSafeTags("libraryVersion4", "2.3.4")
+                .putSafeTags("libraryVersion5", "5.6.7")
+                .putSafeTags("some tag", "some tag value")
+                .build();
+    }
+
     public static void main(String[] _args) throws Exception {
         Options opt = new OptionsBuilder()
                 .include(MetricNameBenchmark.class.getSimpleName())

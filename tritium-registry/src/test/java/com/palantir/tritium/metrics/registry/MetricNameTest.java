@@ -17,6 +17,7 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
 
@@ -106,5 +107,63 @@ public class MetricNameTest {
 
         assertThat(one).isNotEqualTo(two);
         assertThat(two).isNotEqualTo(one);
+    }
+
+    @Test
+    public void preSizedBuilder_basic() {
+        MetricName preSized = MetricName.builder(2)
+                .safeName("test")
+                .putSafeTags("key1", "value1")
+                .putSafeTags("key2", "value2")
+                .build();
+        MetricName standard = MetricName.builder()
+                .safeName("test")
+                .putSafeTags("key1", "value1")
+                .putSafeTags("key2", "value2")
+                .build();
+
+        assertThat(preSized).isEqualTo(standard);
+        assertThat(preSized).hasSameHashCodeAs(standard);
+        assertThat(preSized.safeName()).isEqualTo("test");
+        assertThat(preSized.safeTags()).containsEntry("key1", "value1").containsEntry("key2", "value2");
+    }
+
+    @Test
+    public void preSizedBuilder_noTags() {
+        MetricName preSized = MetricName.builder(0).safeName("test").build();
+        MetricName standard = MetricName.builder().safeName("test").build();
+
+        assertThat(preSized).isEqualTo(standard);
+        assertThat(preSized).hasSameHashCodeAs(standard);
+    }
+
+    @Test
+    public void preSizedBuilder_equalsStandardBuilderWithDifferentInsertionOrder() {
+        MetricName preSized = MetricName.builder(3)
+                .safeName("test")
+                .putSafeTags("a", "1")
+                .putSafeTags("b", "2")
+                .putSafeTags("c", "3")
+                .build();
+        MetricName standard = MetricName.builder()
+                .safeName("test")
+                .putSafeTags("c", "3")
+                .putSafeTags("a", "1")
+                .putSafeTags("b", "2")
+                .build();
+
+        assertThat(preSized).isEqualTo(standard);
+        assertThat(preSized).hasSameHashCodeAs(standard);
+        assertThat(preSized.toString()).isEqualTo(standard.toString());
+    }
+
+    @Test
+    public void preSizedBuilder_sizeMismatchThrows() {
+        assertThatThrownBy(() -> MetricName.builder(3)
+                        .safeName("test")
+                        .putSafeTags("key1", "value1")
+                        .putSafeTags("key2", "value2")
+                        .build())
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }
