@@ -16,8 +16,6 @@
 package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Snapshot;
-import com.codahale.metrics.WeightedSnapshot;
-import com.codahale.metrics.WeightedSnapshot.WeightedSample;
 import com.palantir.logsafe.Preconditions;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -27,47 +25,24 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A {@link WeightedSnapshot} with support for storing exemplar metadata for each sample.
+ * A {@link Snapshot} with support for storing exemplar metadata for each sample.
  */
 final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsCapture {
 
     /**
      * A single sample item with value, weights and optional exemplar metadata.
      */
-    static class WeightedSampleWithExemplar {
+    record WeightedSampleWithExemplar(
+            long value, double weight, @Nullable Object exemplarMetadata) {}
 
-        private final long value;
-        private final double weight;
-        private final @Nullable Object exemplarMetadata;
-
-        WeightedSampleWithExemplar(long value, double weight, @Nullable Object exemplarMetadata) {
-            this.value = value;
-            this.weight = weight;
-            this.exemplarMetadata = exemplarMetadata;
-        }
-
-        long value() {
-            return value;
-        }
-
-        double weight() {
-            return weight;
-        }
-
-        @Nullable
-        Object exemplarMetadata() {
-            return exemplarMetadata;
-        }
-    }
-
-    private final WeightedSnapshot weightedSnapshot;
+    private final Snapshot delegate;
     private final ExemplarMetadataProvider<?> exemplarProvider;
     private final List<LongExemplar<Object>> exemplars;
 
     private WeightedSnapshotWithExemplars(
-            ExemplarMetadataProvider<?> provider, List<LongExemplar<Object>> exemplars, WeightedSnapshot snapshot) {
+            ExemplarMetadataProvider<?> provider, List<LongExemplar<Object>> exemplars, Snapshot snapshot) {
         this.exemplars = Collections.unmodifiableList(exemplars);
-        this.weightedSnapshot = Preconditions.checkNotNull(snapshot, "snapshot");
+        this.delegate = Preconditions.checkNotNull(snapshot, "snapshot");
         this.exemplarProvider = Preconditions.checkNotNull(provider, "provider");
     }
 
@@ -79,20 +54,31 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
      * @param values an unordered set of values in the reservoir
      */
     static Snapshot snapshot(ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
-        List<WeightedSample> weightedSamples = new ArrayList<>(values.size());
-        List<LongExemplar<Object>> exemplars = new ArrayList<>();
-        values.forEach(v -> {
-            weightedSamples.add(new WeightedSample(v.value, v.weight));
-            if (v.exemplarMetadata != null) {
-                exemplars.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
-            }
-        });
-
-        WeightedSnapshot weightedSnapshot = new WeightedSnapshot(weightedSamples);
-        if (exemplars.isEmpty()) {
-            return weightedSnapshot;
+        if (values.isEmpty()) {
+            return PrimitiveWeightedSnapshot.EMPTY;
         }
-        return new WeightedSnapshotWithExemplars(provider, exemplars, weightedSnapshot);
+        int size = values.size();
+        long[] sampleValues = new long[size];
+        double[] sampleWeights = new double[size];
+        List<LongExemplar<Object>> exemplars = null;
+        int idx = 0;
+        for (WeightedSampleWithExemplar v : values) {
+            sampleValues[idx] = v.value();
+            sampleWeights[idx] = v.weight();
+            if (v.exemplarMetadata() != null) {
+                if (exemplars == null) {
+                    exemplars = new ArrayList<>();
+                }
+                exemplars.add(DefaultLongExemplar.of(v.exemplarMetadata(), v.value()));
+            }
+            idx++;
+        }
+
+        Snapshot snapshot = new PrimitiveWeightedSnapshot(sampleValues, sampleWeights);
+        if (exemplars == null) {
+            return snapshot;
+        }
+        return new WeightedSnapshotWithExemplars(provider, exemplars, snapshot);
     }
 
     /**
@@ -109,45 +95,45 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
         return List.of();
     }
 
-    /* All Snapshot methods are delegated to the weightedSnapshot */
+    /* All Snapshot methods are delegated to the delegate */
 
     @Override
     public double getValue(double quantile) {
-        return weightedSnapshot.getValue(quantile);
+        return delegate.getValue(quantile);
     }
 
     @Override
     public long[] getValues() {
-        return weightedSnapshot.getValues();
+        return delegate.getValues();
     }
 
     @Override
     public int size() {
-        return weightedSnapshot.size();
+        return delegate.size();
     }
 
     @Override
     public long getMax() {
-        return weightedSnapshot.getMax();
+        return delegate.getMax();
     }
 
     @Override
     public double getMean() {
-        return weightedSnapshot.getMean();
+        return delegate.getMean();
     }
 
     @Override
     public long getMin() {
-        return weightedSnapshot.getMin();
+        return delegate.getMin();
     }
 
     @Override
     public double getStdDev() {
-        return weightedSnapshot.getStdDev();
+        return delegate.getStdDev();
     }
 
     @Override
     public void dump(OutputStream output) {
-        weightedSnapshot.dump(output);
+        delegate.dump(output);
     }
 }
