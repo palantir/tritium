@@ -149,7 +149,7 @@ final class PrimitiveWeightedSnapshot extends Snapshot {
     public void dump(OutputStream output) {
         try (PrintWriter out = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8))) {
             for (long value : values) {
-                out.printf("%d%n", value);
+                out.println(value);
             }
         }
     }

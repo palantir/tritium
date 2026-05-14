@@ -160,6 +160,6 @@ class PrimitiveWeightedSnapshotTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         snapshot.dump(out);
         String result = out.toString(StandardCharsets.UTF_8);
-        assertThat(result).contains("1").contains("2").contains("3");
+        assertThat(result.lines()).containsExactly("1", "2", "3");
     }
 }
