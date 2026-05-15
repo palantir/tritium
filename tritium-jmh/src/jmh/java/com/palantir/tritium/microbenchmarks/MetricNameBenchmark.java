@@ -34,9 +34,9 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
+@Warmup(iterations = 40, time = 50, timeUnit = TimeUnit.MILLISECONDS)
+@Measurement(iterations = 30, time = 100, timeUnit = TimeUnit.MILLISECONDS)
+@Fork(3)
 @State(Scope.Benchmark)
 @SuppressWarnings({"designforextension", "NullAway"})
 public class MetricNameBenchmark {

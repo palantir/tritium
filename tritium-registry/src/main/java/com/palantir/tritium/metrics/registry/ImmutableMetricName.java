@@ -117,8 +117,6 @@ final class ImmutableMetricName {
 
         @CanIgnoreReturnValue
         public MetricName.PreSizedBuilder putSafeTags(@Safe String key, @Safe String value) {
-            Preconditions.checkNotNull(key, "safeTagName");
-            Preconditions.checkNotNull(value, "safeTagValue");
             tagMapBuilder.put(key, value);
             return (MetricName.PreSizedBuilder) this;
         }

@@ -81,9 +81,8 @@ allprojects {
             tasks.jmhCompileGeneratedClasses {
                 options.annotationProcessorPath = configurations.jmhAnnotationProcessor
                 options.errorprone {
-                    enabled = true
-                    // JMH generates duplicate field names like byte p000, p001, p002
-                    disable('HidingField')
+                    // JMH generates code that doesn't conform to error-prone
+                    enabled = false
                 }
             }
         }
