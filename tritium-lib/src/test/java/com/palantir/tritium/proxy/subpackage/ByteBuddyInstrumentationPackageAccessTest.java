@@ -23,11 +23,14 @@ import com.palantir.tritium.proxy.Instrumentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
 @ExtendWith(SystemStubsExtension.class)
+@ResourceLock(value = "instrument.dynamic-proxy", mode = ResourceAccessMode.READ_WRITE)
 class ByteBuddyInstrumentationPackageAccessTest {
     @SystemStub
     private SystemProperties systemProperties;
