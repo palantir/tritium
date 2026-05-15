@@ -69,6 +69,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -80,6 +82,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
 @ExtendWith({MockitoExtension.class, SystemStubsExtension.class})
+@ResourceLock(value = "instrument.dynamic-proxy", mode = ResourceAccessMode.READ_WRITE)
 @SuppressWarnings({"NullAway", "WeakerAccess"}) // mock injection, dumping metrics to standard out
 public abstract class InstrumentationTest {
     @SystemStub
