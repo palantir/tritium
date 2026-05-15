@@ -34,9 +34,9 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
-@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
-@Fork(1)
+@Warmup(iterations = 40, time = 50, timeUnit = TimeUnit.MILLISECONDS)
+@Measurement(iterations = 30, time = 100, timeUnit = TimeUnit.MILLISECONDS)
+@Fork(3)
 @State(Scope.Benchmark)
 @SuppressWarnings({"designforextension", "NullAway"})
 public class MetricNameBenchmark {
@@ -82,6 +82,50 @@ public class MetricNameBenchmark {
                 .putSafeTags("libraryVersion4", "2.3.4")
                 .putSafeTags("libraryName5", "tritium2")
                 .putSafeTags("libraryVersion5", "5.6.7")
+                .build();
+    }
+
+    @Benchmark
+    public MetricName benchmarkName3Tags_preSizedBuilder() {
+        return MetricName.builderWithExpectedTags(3)
+                .safeName("someMetric")
+                .putSafeTags("libraryName", "tritium")
+                .putSafeTags("libraryVersion", "1.2.3")
+                .putSafeTags("some tag", "some tag value")
+                .build();
+    }
+
+    @Benchmark
+    public MetricName benchmarkName7Tags_preSizedBuilder() {
+        return MetricName.builderWithExpectedTags(7)
+                .safeName("someMetric")
+                .putSafeTags("libraryName", "tritium")
+                .putSafeTags("libraryName1", "tritium1")
+                .putSafeTags("libraryName2", "tritium2")
+                .putSafeTags("libraryVersion", "1.2.3")
+                .putSafeTags("libraryVersion1", "2.3.4")
+                .putSafeTags("libraryVersion2", "5.6.7")
+                .putSafeTags("some tag", "some tag value")
+                .build();
+    }
+
+    @Benchmark
+    public MetricName benchmarkName13Tags_preSizedBuilder() {
+        return MetricName.builderWithExpectedTags(13)
+                .safeName("someMetric")
+                .putSafeTags("libraryName", "tritium")
+                .putSafeTags("libraryName1", "tritium1")
+                .putSafeTags("libraryName2", "tritium2")
+                .putSafeTags("libraryName3", "tritium")
+                .putSafeTags("libraryName4", "tritium1")
+                .putSafeTags("libraryName5", "tritium2")
+                .putSafeTags("libraryVersion", "1.2.3")
+                .putSafeTags("libraryVersion1", "2.3.4")
+                .putSafeTags("libraryVersion2", "5.6.7")
+                .putSafeTags("libraryVersion3", "1.2.3")
+                .putSafeTags("libraryVersion4", "2.3.4")
+                .putSafeTags("libraryVersion5", "5.6.7")
+                .putSafeTags("some tag", "some tag value")
                 .build();
     }
 

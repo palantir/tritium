@@ -18,6 +18,7 @@ package com.palantir.tritium.metrics.registry;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
+import com.palantir.logsafe.Preconditions;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,6 +112,66 @@ final class TagMap implements SortedMap<String, String> {
             values[valuesIndex + 1] = data.get(key);
         }
         return values;
+    }
+
+    /** Builds a new {@link TagMap}. */
+    static final class Builder {
+        private String[] values;
+        private int size;
+        private boolean sorted = true;
+
+        Builder(int expectedSize) {
+            this.values = new String[expectedSize * 2];
+            this.size = 0;
+        }
+
+        Builder put(String key, String value) {
+            Preconditions.checkNotNull(key, "safeTagName");
+            Preconditions.checkNotNull(value, "safeTagValue");
+            int arrayLen = size * 2;
+            if (arrayLen + 1 >= values.length) {
+                values = Arrays.copyOf(values, Math.max(values.length * 3 / 2, arrayLen + 2));
+            }
+            if (sorted && arrayLen >= 2 && values[arrayLen - 2].compareTo(key) > 0) {
+                sorted = false;
+            }
+            values[arrayLen] = key;
+            values[arrayLen + 1] = value;
+            size++;
+            return this;
+        }
+
+        TagMap build() {
+            if (size == 0) {
+                return EMPTY;
+            }
+
+            if (!sorted) {
+                sortKeyValuePairs(values, size);
+            }
+
+            int requiredLength = size * 2;
+            if (requiredLength < values.length) {
+                return new TagMap(Arrays.copyOf(values, requiredLength));
+            }
+            return new TagMap(values);
+        }
+
+        private static void sortKeyValuePairs(String[] values, int size) {
+            // Insertion sort: suitable for the small tag maps we expect
+            for (int i = 1; i < size; i++) {
+                String key = values[i * 2];
+                String value = values[i * 2 + 1];
+                int jx = i - 1;
+                while (jx >= 0 && values[jx * 2].compareTo(key) > 0) {
+                    values[(jx + 1) * 2] = values[jx * 2];
+                    values[(jx + 1) * 2 + 1] = values[jx * 2 + 1];
+                    jx--;
+                }
+                values[(jx + 1) * 2] = key;
+                values[(jx + 1) * 2 + 1] = value;
+            }
+        }
     }
 
     /** Returns a new {@link TagMap} with an additional or updated entry. */
@@ -227,13 +288,16 @@ final class TagMap implements SortedMap<String, String> {
 
     @Override
     public SortedMap<String, String> subMap(String fromKey, String toKey) {
-        int beginIndex = 0;
+        int beginIndex = -1;
         for (int i = 0; i < values.length; i += 2) {
             String key = values[i];
             if (key.compareTo(fromKey) >= 0) {
                 beginIndex = i;
                 break;
             }
+        }
+        if (beginIndex < 0) {
+            return EMPTY;
         }
         for (int i = values.length - 2; i >= beginIndex; i -= 2) {
             String key = values[i];
@@ -421,7 +485,7 @@ final class TagMap implements SortedMap<String, String> {
             for (int i = 0; i < local.length; i += 2) {
                 result[i / 2] = (T) new TagEntry(local[i], local[i + 1]);
             }
-            Arrays.fill(result, resultLength, array.length, null);
+            Arrays.fill(result, resultLength, result.length, null);
             return result;
         }
 

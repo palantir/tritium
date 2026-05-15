@@ -94,4 +94,36 @@ final class ImmutableMetricName {
             return new RealMetricName(safeName, tagMap);
         }
     }
+
+    /**
+     * Optimized builder for callers that know the number of tags upfront and insert them in sorted key order.
+     * Tags must be added via {@link #putSafeTags(String, String)} in lexicographic key order.
+     */
+    public abstract static class PreSizedBuilder {
+        @Nullable
+        private String safeName;
+
+        private final TagMap.Builder tagMapBuilder;
+
+        PreSizedBuilder(int expectedTags) {
+            this.tagMapBuilder = new TagMap.Builder(expectedTags);
+        }
+
+        @CanIgnoreReturnValue
+        public MetricName.PreSizedBuilder safeName(@Safe String value) {
+            this.safeName = Preconditions.checkNotNull(value, "safeName");
+            return (MetricName.PreSizedBuilder) this;
+        }
+
+        @CanIgnoreReturnValue
+        public MetricName.PreSizedBuilder putSafeTags(@Safe String key, @Safe String value) {
+            tagMapBuilder.put(key, value);
+            return (MetricName.PreSizedBuilder) this;
+        }
+
+        @SuppressWarnings("NullAway") // RealMetricName ctor checks nulls
+        public MetricName build() {
+            return new RealMetricName(safeName, tagMapBuilder.build());
+        }
+    }
 }
