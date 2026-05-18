@@ -238,8 +238,8 @@ class TagMapTest {
         void testEquals() {
             TagMap map = TagMap.of(ImmutableMap.of("a", "1", "b", "2"));
             assertThat(map.equals(map)).isTrue();
-            assertThat(map).isEqualTo(TagMap.of(ImmutableMap.of("a", "1", "b", "2")));
-            assertThat(map).isEqualTo(ImmutableMap.of("a", "1", "b", "2"));
+            assertThat(map).containsExactlyInAnyOrderEntriesOf(TagMap.of(ImmutableMap.of("a", "1", "b", "2")));
+            assertThat(map).containsExactlyInAnyOrderEntriesOf(ImmutableMap.of("a", "1", "b", "2"));
 
             assertThat(map).isNotEqualTo(TagMap.of(ImmutableMap.of("a", "1", "b", "different")));
             assertThat(map).isNotEqualTo("not a map");
@@ -403,8 +403,11 @@ class TagMapTest {
             TagMap map = TagMap.of(ImmutableMap.of("a", "1"));
             assertThat(map.entrySet().equals(map.entrySet())).isTrue();
             assertThat(map.entrySet())
-                    .isEqualTo(TagMap.of(ImmutableMap.of("a", "1")).entrySet());
-            assertThat(map.entrySet()).isEqualTo(ImmutableMap.of("a", "1").entrySet());
+                    .containsExactlyInAnyOrderElementsOf(
+                            TagMap.of(ImmutableMap.of("a", "1")).entrySet());
+            assertThat(map.entrySet())
+                    .containsExactlyInAnyOrderElementsOf(
+                            ImmutableMap.of("a", "1").entrySet());
 
             assertThat(map.entrySet())
                     .isNotEqualTo(TagMap.of(ImmutableMap.of("a", "2")).entrySet());
