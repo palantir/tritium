@@ -136,19 +136,19 @@ org.jboss.xnio:xnio-nio:3.8.16.Final (1 constraints: f80dc53d)
 
 org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (2 constraints: f119f936)
 
-org.junit.jupiter:junit-jupiter:6.0.3 (1 constraints: 4a070d70)
+org.junit.jupiter:junit-jupiter:6.1.0 (1 constraints: 48070b70)
 
-org.junit.jupiter:junit-jupiter-api:6.0.3 (5 constraints: 6543c4ec)
+org.junit.jupiter:junit-jupiter-api:6.1.0 (5 constraints: 5d4346e9)
 
-org.junit.jupiter:junit-jupiter-engine:6.0.3 (1 constraints: 060ecd3b)
+org.junit.jupiter:junit-jupiter-engine:6.1.0 (1 constraints: 040ecd3b)
 
-org.junit.jupiter:junit-jupiter-params:6.0.3 (2 constraints: 1013783b)
+org.junit.jupiter:junit-jupiter-params:6.1.0 (2 constraints: 0c13283b)
 
-org.junit.platform:junit-platform-commons:6.0.3 (4 constraints: 7334a1f0)
+org.junit.platform:junit-platform-commons:6.1.0 (4 constraints: 6f343ff0)
 
-org.junit.platform:junit-platform-engine:6.0.3 (3 constraints: 5c2d47c8)
+org.junit.platform:junit-platform-engine:6.1.0 (3 constraints: 582de1c7)
 
-org.junit.platform:junit-platform-launcher:6.0.3 (1 constraints: 0b050c36)
+org.junit.platform:junit-platform-launcher:6.1.0 (1 constraints: 0b050c36)
 
 org.mockito:mockito-core:5.23.0 (2 constraints: 3014cc86)
 
