@@ -148,7 +148,7 @@ org.junit.platform:junit-platform-commons:6.1.0 (4 constraints: 6f343ff0)
 
 org.junit.platform:junit-platform-engine:6.1.0 (3 constraints: 582de1c7)
 
-org.junit.platform:junit-platform-launcher:6.1.0 (1 constraints: 0b050c36)
+org.junit.platform:junit-platform-launcher:6.1.0 (1 constraints: 09050c36)
 
 org.mockito:mockito-core:5.23.0 (2 constraints: 3014cc86)
 
