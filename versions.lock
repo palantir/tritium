@@ -106,15 +106,15 @@ junit:junit:4.13.2 (2 constraints: de1ce71a)
 
 net.bytebuddy:byte-buddy-agent:1.18.8 (2 constraints: e01abd63)
 
-net.jqwik:jqwik:1.9.3 (1 constraints: 0f050e36)
+net.jqwik:jqwik:1.10.0 (1 constraints: 3405293b)
 
-net.jqwik:jqwik-api:1.9.3 (5 constraints: 7529d3b8)
+net.jqwik:jqwik-api:1.10.0 (5 constraints: 2e2a4e56)
 
-net.jqwik:jqwik-engine:1.9.3 (2 constraints: ae0c6d1c)
+net.jqwik:jqwik-engine:1.10.0 (2 constraints: f80cdf31)
 
-net.jqwik:jqwik-time:1.9.3 (1 constraints: a007006d)
+net.jqwik:jqwik-time:1.10.0 (1 constraints: c507ac74)
 
-net.jqwik:jqwik-web:1.9.3 (1 constraints: a007006d)
+net.jqwik:jqwik-web:1.10.0 (1 constraints: c507ac74)
 
 net.sf.jopt-simple:jopt-simple:5.0.4 (1 constraints: be0ad6cc)
 
@@ -144,9 +144,9 @@ org.junit.jupiter:junit-jupiter-engine:6.1.0 (1 constraints: 040ecd3b)
 
 org.junit.jupiter:junit-jupiter-params:6.1.0 (2 constraints: 0c13283b)
 
-org.junit.platform:junit-platform-commons:6.1.0 (4 constraints: 6f343ff0)
+org.junit.platform:junit-platform-commons:6.1.0 (4 constraints: 7734b3f3)
 
-org.junit.platform:junit-platform-engine:6.1.0 (3 constraints: 582de1c7)
+org.junit.platform:junit-platform-engine:6.1.0 (3 constraints: 5c2d6fc9)
 
 org.junit.platform:junit-platform-launcher:6.1.0 (1 constraints: 09050c36)
 
