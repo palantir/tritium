@@ -19,14 +19,14 @@ buildscript {
         classpath 'com.palantir.metricschema:gradle-metric-schema:0.41.0'
         classpath 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone:2.31.0'
         classpath 'me.champeau.jmh:jmh-gradle-plugin:0.7.3'
-        classpath 'org.revapi:gradle-revapi:1.8.0'
+        classpath 'com.palantir.gradle.revapi:gradle-revapi:2.0.0'
     }
 }
 
 apply plugin: 'com.palantir.external-publish'
 apply plugin: 'com.palantir.failure-reports'
 apply plugin: 'java'
-apply plugin: 'org.revapi.revapi-gradle-plugin'
+apply plugin: 'com.palantir.revapi'
 apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.baseline-error-prone-root'
 apply plugin: 'com.palantir.consistent-versions'
