@@ -1,6 +1,6 @@
 apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'me.champeau.jmh'
-apply plugin: 'org.revapi.revapi-gradle-plugin'
+apply plugin: 'com.palantir.revapi'
 
 jmh {
     jvmArgsAppend = ['-Xms2g', '-Xmx2g', '-XX:+UseG1GC']

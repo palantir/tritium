@@ -1,4 +1,4 @@
-apply plugin: 'org.revapi.revapi-gradle-plugin'
+apply plugin: 'com.palantir.revapi'
 dependencies {
 
     implementation 'com.palantir.safe-logging:preconditions'

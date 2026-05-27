@@ -1,5 +1,5 @@
 apply plugin: 'me.champeau.jmh'
-apply plugin: 'org.revapi.revapi-gradle-plugin'
+apply plugin: 'com.palantir.revapi'
 
 jmh {
     // Use profilers to collect additional data. Supported profilers:
