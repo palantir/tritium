@@ -106,15 +106,15 @@ junit:junit:4.13.2 (2 constraints: de1ce71a)
 
 net.bytebuddy:byte-buddy-agent:1.18.8 (2 constraints: e01abd63)
 
-net.jqwik:jqwik:1.10.0 (1 constraints: 3405293b)
+net.jqwik:jqwik:1.10.1 (1 constraints: 35052a3b)
 
-net.jqwik:jqwik-api:1.10.0 (5 constraints: 2e2a4e56)
+net.jqwik:jqwik-api:1.10.1 (5 constraints: 332a7a57)
 
-net.jqwik:jqwik-engine:1.10.0 (2 constraints: f80cdf31)
+net.jqwik:jqwik-engine:1.10.1 (2 constraints: fa0cfa31)
 
-net.jqwik:jqwik-time:1.10.0 (1 constraints: c507ac74)
+net.jqwik:jqwik-time:1.10.1 (1 constraints: c607ad74)
 
-net.jqwik:jqwik-web:1.10.0 (1 constraints: c507ac74)
+net.jqwik:jqwik-web:1.10.1 (1 constraints: c607ad74)
 
 net.sf.jopt-simple:jopt-simple:5.0.4 (1 constraints: be0ad6cc)
 
