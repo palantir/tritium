@@ -39,13 +39,22 @@ class ExtraEntrySortedMapTest {
     void check_TagMap_has_the_same_behaviour_as_an_ImmutableSortedMap_with_an_extra_entry() {
         Gen<String> stringGen = strings().betweenCodePoints('A', 'z').ofLengthBetween(1, 10);
         Gen<Map<String, String>> mapGen = maps().of(stringGen, stringGen).ofSizeBetween(0, 10);
-        Gen<Index> indicesGen = integers().between(0, 1000).zip(integers().between(0, 1000), Index::new);
+        Gen<Input> inputGen = rnd -> {
+            Map<String, String> map = mapGen.generate(rnd);
+            if (map.isEmpty()) {
+                return new Input(map, 0, 0);
+            }
+            int size = map.size();
+            Integer index1 = integers().from(0).upTo(size).generate(rnd);
+            Integer index2 = integers().from(index1).upTo(size).generate(rnd);
+            return new Input(map, index1, index2);
+        };
 
         qt().withExamples(10_000)
-                .forAll(mapGen, stringGen, stringGen, indicesGen)
-                .assuming((initialMap, extraKey, _extraValue, _indices) -> !initialMap.containsKey(extraKey))
-                .checkAssert((initialMap, extraKey, extraValue, indices) -> {
-                    ImmutableSortedMap<String, String> base = ImmutableSortedMap.copyOf(initialMap);
+                .forAll(inputGen, stringGen, stringGen)
+                .assuming((input, extraKey, _extraValue) -> !input.map().containsKey(extraKey))
+                .checkAssert((input, extraKey, extraValue) -> {
+                    ImmutableSortedMap<String, String> base = ImmutableSortedMap.copyOf(input.map());
 
                     ImmutableSortedMap<String, String> guavaWithExtra =
                             ImmutableSortedMap.<String, String>naturalOrder()
@@ -58,14 +67,9 @@ class ExtraEntrySortedMapTest {
                             .containsExactlyInAnyOrderEntriesOf(guavaWithExtra)
                             .hasSameHashCodeAs(guavaWithExtra);
 
-                    int paramKeyIndex1 = Math.min(
-                            indices.keyIndex1() % guavaWithExtra.size(), indices.keyIndex2() % guavaWithExtra.size());
-                    String paramKey1 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex1);
+                    String paramKey1 = Iterables.get(guavaWithExtra.keySet(), input.keyIndex1());
                     String paramValue1 = guavaWithExtra.get(paramKey1);
-
-                    int paramKeyIndex2 = Math.max(
-                            indices.keyIndex1() % guavaWithExtra.size(), indices.keyIndex2() % guavaWithExtra.size());
-                    String paramKey2 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex2);
+                    String paramKey2 = Iterables.get(guavaWithExtra.keySet(), input.keyIndex2());
 
                     ImmutableMap.<String, Function<SortedMap<String, String>, Object>>builder()
                             .put("subMap", sortedMap -> sortedMap.subMap(paramKey1, paramKey2))
@@ -92,5 +96,5 @@ class ExtraEntrySortedMapTest {
                 });
     }
 
-    private record Index(int keyIndex1, int keyIndex2) {}
+    private record Input(Map<String, String> map, int keyIndex1, int keyIndex2) {}
 }
