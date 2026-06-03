@@ -17,6 +17,10 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.quicktheories.QuickTheory.qt;
+import static org.quicktheories.generators.SourceDSL.integers;
+import static org.quicktheories.generators.SourceDSL.maps;
+import static org.quicktheories.generators.SourceDSL.strings;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -25,73 +29,72 @@ import com.google.common.collect.Iterables;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.function.Function;
-import net.jqwik.api.Assume;
-import net.jqwik.api.ForAll;
-import net.jqwik.api.Property;
-import net.jqwik.api.constraints.AlphaChars;
-import net.jqwik.api.constraints.IntRange;
-import net.jqwik.api.constraints.Size;
-import net.jqwik.api.constraints.StringLength;
+import org.junit.jupiter.api.Test;
+import org.quicktheories.core.Gen;
 
-@SuppressWarnings("JdkObsolete")
+@SuppressWarnings("JdkObsolete") // Test uses SortedMap
 class ExtraEntrySortedMapTest {
 
-    @Property(tries = 10_000, seed = "3619154246571270871")
-    void check_TagMap_has_the_same_behaviour_as_an_ImmutableSortedMap_with_an_extra_entry(
-            @ForAll @Size(max = 10)
-                    Map<
-                                    @AlphaChars @StringLength(min = 1, max = 10) String,
-                                    @AlphaChars @StringLength(min = 1, max = 10) String>
-                            initialValues,
-            @ForAll @AlphaChars @StringLength(min = 1, max = 10) String extraKey,
-            @ForAll @AlphaChars @StringLength(min = 1, max = 10) String extraValue,
-            @ForAll @IntRange(max = 5) int paramKeyIndex1,
-            @ForAll @IntRange(min = 5, max = 10) int paramKeyIndex2) {
+    @Test
+    void check_TagMap_has_the_same_behaviour_as_an_ImmutableSortedMap_with_an_extra_entry() {
+        Gen<String> stringGen = strings().betweenCodePoints('A', 'z').ofLengthBetween(1, 10);
+        Gen<Map<String, String>> mapGen = maps().of(stringGen, stringGen).ofSizeBetween(0, 10);
+        Gen<Input> inputGen = rnd -> {
+            Map<String, String> map = mapGen.generate(rnd);
+            if (map.isEmpty()) {
+                return new Input(map, 0, 0);
+            }
+            int size = map.size();
+            Integer index1 = integers().from(0).upTo(size).generate(rnd);
+            Integer index2 = integers().from(index1).upTo(size).generate(rnd);
+            return new Input(map, index1, index2);
+        };
 
-        Assume.that(!initialValues.containsKey(extraKey));
-        Assume.that(paramKeyIndex1 <= paramKeyIndex2);
-        Assume.that(paramKeyIndex1 < initialValues.size());
-        Assume.that(paramKeyIndex2 < initialValues.size());
+        qt().withExamples(10_000)
+                .forAll(inputGen, stringGen, stringGen)
+                .assuming((input, extraKey, _extraValue) -> !input.map().containsKey(extraKey))
+                .checkAssert((input, extraKey, extraValue) -> {
+                    ImmutableSortedMap<String, String> base = ImmutableSortedMap.copyOf(input.map());
 
-        ImmutableSortedMap<String, String> base = ImmutableSortedMap.copyOf(initialValues);
+                    ImmutableSortedMap<String, String> guavaWithExtra =
+                            ImmutableSortedMap.<String, String>naturalOrder()
+                                    .putAll(base)
+                                    .put(extraKey, extraValue)
+                                    .buildOrThrow();
 
-        ImmutableSortedMap<String, String> guavaWithExtra = ImmutableSortedMap.<String, String>naturalOrder()
-                .putAll(base)
-                .put(extraKey, extraValue)
-                .buildOrThrow();
+                    SortedMap<String, String> extraMap = TagMap.of(base).withEntry(extraKey, extraValue);
+                    assertThat(extraMap)
+                            .containsExactlyInAnyOrderEntriesOf(guavaWithExtra)
+                            .hasSameHashCodeAs(guavaWithExtra);
 
-        SortedMap<String, String> extraMap = TagMap.of(base).withEntry(extraKey, extraValue);
+                    String paramKey1 = Iterables.get(guavaWithExtra.keySet(), input.keyIndex1());
+                    String paramValue1 = guavaWithExtra.get(paramKey1);
+                    String paramKey2 = Iterables.get(guavaWithExtra.keySet(), input.keyIndex2());
 
-        assertThat(extraMap).containsExactlyInAnyOrderEntriesOf(guavaWithExtra);
-        assertThat(extraMap).hasSameHashCodeAs(guavaWithExtra);
-
-        String paramKey1 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex1);
-        String paramValue1 = guavaWithExtra.get(paramKey1);
-        String paramKey2 = Iterables.get(guavaWithExtra.keySet(), paramKeyIndex2);
-
-        ImmutableMap<String, Function<SortedMap<String, String>, Object>> methodCalls =
-                ImmutableMap.<String, Function<SortedMap<String, String>, Object>>builder()
-                        .put("subMap", sortedMap -> sortedMap.subMap(paramKey1, paramKey2))
-                        .put("headMap", sortedMap -> sortedMap.headMap(paramKey1))
-                        .put("tailMap", sortedMap -> sortedMap.tailMap(paramKey1))
-                        .put("containsKey", sortedMap -> sortedMap.containsKey(paramKey1))
-                        .put("containsValue", sortedMap -> sortedMap.containsValue(paramValue1))
-                        .put("get", sortedMap -> sortedMap.get(paramKey1))
-                        .put("firstKey", SortedMap::firstKey)
-                        .put("lastKey", SortedMap::lastKey)
-                        .put("size", SortedMap::size)
-                        .put("isEmpty", SortedMap::isEmpty)
-                        .put("keySet", SortedMap::keySet)
-                        .put("entrySet", SortedMap::entrySet)
-                        .put("values", shortByteSortedMap -> ImmutableList.copyOf(shortByteSortedMap.values()))
-                        .buildOrThrow();
-
-        methodCalls.forEach((methodCallName, methodCall) -> {
-            assertThat(methodCall.apply(extraMap))
-                    .describedAs(
-                            "%s() applied to both extra map %s and guava map %s",
-                            methodCallName, extraMap, guavaWithExtra)
-                    .isEqualTo(methodCall.apply(guavaWithExtra));
-        });
+                    ImmutableMap.<String, Function<SortedMap<String, String>, Object>>builder()
+                            .put("subMap", sortedMap -> sortedMap.subMap(paramKey1, paramKey2))
+                            .put("headMap", sortedMap -> sortedMap.headMap(paramKey1))
+                            .put("tailMap", sortedMap -> sortedMap.tailMap(paramKey1))
+                            .put("containsKey", sortedMap -> sortedMap.containsKey(paramKey1))
+                            .put("containsValue", sortedMap -> sortedMap.containsValue(paramValue1))
+                            .put("get", sortedMap -> sortedMap.get(paramKey1))
+                            .put("firstKey", SortedMap::firstKey)
+                            .put("lastKey", SortedMap::lastKey)
+                            .put("size", SortedMap::size)
+                            .put("isEmpty", SortedMap::isEmpty)
+                            .put("keySet", SortedMap::keySet)
+                            .put("entrySet", SortedMap::entrySet)
+                            .put("values", shortByteSortedMap -> ImmutableList.copyOf(shortByteSortedMap.values()))
+                            .buildOrThrow()
+                            .forEach((methodCallName, methodCall) -> {
+                                assertThat(methodCall.apply(extraMap))
+                                        .describedAs(
+                                                "%s() applied to both extra map %s and guava map %s",
+                                                methodCallName, extraMap, guavaWithExtra)
+                                        .isEqualTo(methodCall.apply(guavaWithExtra));
+                            });
+                });
     }
+
+    private record Input(Map<String, String> map, int keyIndex1, int keyIndex2) {}
 }
