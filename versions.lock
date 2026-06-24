@@ -38,9 +38,9 @@ com.palantir.safe-logging:preconditions:3.16.0 (5 constraints: 084879e6)
 
 com.palantir.safe-logging:safe-logging:3.16.0 (8 constraints: 1e774728)
 
-com.palantir.tracing:tracing:6.35.0 (1 constraints: 40055e3b)
+com.palantir.tracing:tracing:6.36.0 (1 constraints: 4105613b)
 
-com.palantir.tracing:tracing-api:6.35.0 (2 constraints: 1512f518)
+com.palantir.tracing:tracing-api:6.36.0 (2 constraints: 17122119)
 
 com.squareup:javapoet:1.13.0 (1 constraints: f50b65f7)
 
