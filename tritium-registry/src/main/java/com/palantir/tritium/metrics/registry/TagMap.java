@@ -96,6 +96,7 @@ final class TagMap implements SortedMap<String, String> {
         return values;
     }
 
+    @SuppressWarnings("for-rollout:NullAway")
     private static String[] toArray(Map<String, String> data) {
         int size = data.size();
         String[] values = new String[size * 2];

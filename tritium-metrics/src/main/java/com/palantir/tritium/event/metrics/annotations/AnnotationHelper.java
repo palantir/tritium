@@ -65,6 +65,7 @@ public final class AnnotationHelper {
 
         private static final Class<?>[] NO_ARGS = new Class<?>[0];
 
+        @SuppressWarnings("for-rollout:NullAway")
         private MethodSignature(String methodName, @Nullable Class<?>... parameterTypes) {
             this.methodName = checkNotNull(methodName);
             this.parameterTypes =

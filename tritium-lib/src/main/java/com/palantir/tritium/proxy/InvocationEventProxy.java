@@ -73,6 +73,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
     @Override
     @Nullable
     public final Object invoke(Object proxy, Method method, @Nullable Object[] nullableArgs) throws Throwable {
+        @SuppressWarnings("for-rollout:NullAway")
         Object[] arguments = nullableArgs == null ? EMPTY_ARRAY : nullableArgs;
         if (isSpecialMethod(method, arguments)) {
             return handleSpecialMethod(proxy, method, arguments);

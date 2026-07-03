@@ -37,6 +37,7 @@ public class DefaultInvocationContext implements InvocationContext {
         this.args = toNonNullClone(args);
     }
 
+    @SuppressWarnings("for-rollout:NullAway")
     private static Object[] toNonNullClone(@Nullable Object[] args) {
         return args == null ? NO_ARGS : args.clone();
     }

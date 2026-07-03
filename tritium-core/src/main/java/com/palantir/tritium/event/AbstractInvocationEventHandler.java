@@ -103,7 +103,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
         return InstrumentationProperties.getSystemPropertySupplier(clazz.getName());
     }
 
-    @SuppressWarnings("WeakerAccess") // public API
+    @SuppressWarnings({"WeakerAccess", "for-rollout:NullAway"}) // public API
     public static Object[] nullToEmpty(@Nullable Object[] args) {
         return (args == null) ? NO_ARGS : args;
     }

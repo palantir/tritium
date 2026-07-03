@@ -51,6 +51,7 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
         }
     }
 
+    @SuppressWarnings("for-rollout:NullAway")
     @Override
     public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
         InvocationContext[] contexts = new InvocationContext[handlers.length];
