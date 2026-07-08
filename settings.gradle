@@ -26,4 +26,3 @@ include 'tritium-time'
 include 'tritium-tracing'
 include 'tritium-annotations'
 include 'tritium-processor'
-throw new RuntimeException('''The excavator failed to run properly - exited with code 1 and output:\n\n''' + file('gradle/exception').text + '\n\n')
