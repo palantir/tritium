@@ -18,11 +18,11 @@ com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 c
 
 com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
-com.palantir.delegate.processors:delegate-processor:2.8.0 (1 constraints: 0c050d36)
+com.palantir.delegate.processors:delegate-processor:2.9.0 (1 constraints: 0d051036)
 
-com.palantir.goethe:goethe:0.24.0 (1 constraints: 021647da)
+com.palantir.goethe:goethe:0.25.0 (1 constraints: 03164ada)
 
-com.palantir.javapoet:javapoet:0.17.0 (3 constraints: 32273320)
+com.palantir.javapoet:javapoet:0.17.0 (3 constraints: 34275d20)
 
 com.palantir.jvm.diagnostics:jvm-diagnostics:0.15.0 (1 constraints: 3805323b)
 
