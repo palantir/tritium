@@ -26,7 +26,7 @@ com.palantir.javapoet:javapoet:0.18.0 (3 constraints: 3527c120)
 
 com.palantir.jvm.diagnostics:jvm-diagnostics:0.16.0 (1 constraints: 3905353b)
 
-com.palantir.nylon:nylon-threads:0.13.0 (1 constraints: 36052c3b)
+com.palantir.nylon:nylon-threads:0.14.0 (1 constraints: 37052f3b)
 
 com.palantir.safe-logging:logger:3.17.0 (4 constraints: b03368c1)
 
