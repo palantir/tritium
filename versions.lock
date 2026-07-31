@@ -126,7 +126,7 @@ org.jboss.xnio:xnio-nio:3.8.16.Final (1 constraints: f80dc53d)
 
 org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (2 constraints: f119f936)
 
-org.junit.jupiter:junit-jupiter:6.1.2 (1 constraints: 4a070f70)
+org.junit.jupiter:junit-jupiter:6.1.2 (1 constraints: 75070d77)
 
 org.junit.jupiter:junit-jupiter-api:6.1.2 (5 constraints: 6543ccec)
 
