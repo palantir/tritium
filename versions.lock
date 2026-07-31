@@ -18,29 +18,29 @@ com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 c
 
 com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
-com.palantir.delegate.processors:delegate-processor:2.8.0 (1 constraints: 0c050d36)
+com.palantir.delegate.processors:delegate-processor:2.10.0 (1 constraints: 35052f3b)
 
-com.palantir.goethe:goethe:0.24.0 (1 constraints: 021647da)
+com.palantir.goethe:goethe:0.25.0 (1 constraints: 03164ada)
 
-com.palantir.javapoet:javapoet:0.17.0 (3 constraints: 32273320)
+com.palantir.javapoet:javapoet:0.18.0 (3 constraints: 3527c120)
 
-com.palantir.jvm.diagnostics:jvm-diagnostics:0.15.0 (1 constraints: 3805323b)
+com.palantir.jvm.diagnostics:jvm-diagnostics:0.16.0 (1 constraints: 3905353b)
 
-com.palantir.nylon:nylon-threads:0.12.0 (1 constraints: 3505293b)
+com.palantir.nylon:nylon-threads:0.14.0 (1 constraints: 37052f3b)
 
-com.palantir.safe-logging:logger:3.16.0 (4 constraints: ab335dc0)
+com.palantir.safe-logging:logger:3.17.0 (4 constraints: b03368c1)
 
-com.palantir.safe-logging:logger-slf4j:3.16.0 (1 constraints: 350e9950)
+com.palantir.safe-logging:logger-slf4j:3.17.0 (1 constraints: 360e9c50)
 
-com.palantir.safe-logging:logger-spi:3.16.0 (2 constraints: 791e18b1)
+com.palantir.safe-logging:logger-spi:3.17.0 (2 constraints: 7b1e4eb1)
 
-com.palantir.safe-logging:preconditions:3.16.0 (5 constraints: 094805e7)
+com.palantir.safe-logging:preconditions:3.17.0 (5 constraints: 0f48e4e8)
 
-com.palantir.safe-logging:safe-logging:3.16.0 (8 constraints: 1f775c29)
+com.palantir.safe-logging:safe-logging:3.17.0 (8 constraints: 28778c2e)
 
-com.palantir.tracing:tracing:6.36.0 (1 constraints: 4105613b)
+com.palantir.tracing:tracing:6.38.0 (1 constraints: 4305673b)
 
-com.palantir.tracing:tracing-api:6.36.0 (2 constraints: 17122119)
+com.palantir.tracing:tracing-api:6.38.0 (2 constraints: 1b127919)
 
 com.squareup:javapoet:1.13.0 (1 constraints: f50b65f7)
 
@@ -94,7 +94,7 @@ com.google.testing.compile:compile-testing:0.23.0 (1 constraints: 3705303b)
 
 com.google.truth:truth:1.4.5 (1 constraints: 1d1219fb)
 
-com.palantir.safe-logging:preconditions-assertj:3.16.0 (1 constraints: 3c05473b)
+com.palantir.safe-logging:preconditions-assertj:3.17.0 (1 constraints: 3d054a3b)
 
 com.squareup.okhttp3:okhttp-jvm:5.3.2 (1 constraints: 0c050f36)
 
@@ -126,19 +126,19 @@ org.jboss.xnio:xnio-nio:3.8.16.Final (1 constraints: f80dc53d)
 
 org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (2 constraints: f119f936)
 
-org.junit.jupiter:junit-jupiter:6.1.1 (1 constraints: 74070b77)
+org.junit.jupiter:junit-jupiter:6.1.2 (1 constraints: 75070d77)
 
-org.junit.jupiter:junit-jupiter-api:6.1.1 (5 constraints: 614309eb)
+org.junit.jupiter:junit-jupiter-api:6.1.2 (5 constraints: 6543ccec)
 
-org.junit.jupiter:junit-jupiter-engine:6.1.1 (1 constraints: 050ece3b)
+org.junit.jupiter:junit-jupiter-engine:6.1.2 (1 constraints: 060ecf3b)
 
-org.junit.jupiter:junit-jupiter-params:6.1.1 (2 constraints: 0e13523b)
+org.junit.jupiter:junit-jupiter-params:6.1.2 (2 constraints: 10137c3b)
 
-org.junit.platform:junit-platform-commons:6.1.1 (2 constraints: d7207e4a)
+org.junit.platform:junit-platform-commons:6.1.2 (2 constraints: d920b14a)
 
-org.junit.platform:junit-platform-engine:6.1.1 (2 constraints: ef221508)
+org.junit.platform:junit-platform-engine:6.1.2 (2 constraints: f1224a08)
 
-org.junit.platform:junit-platform-launcher:6.1.1 (1 constraints: 0a050d36)
+org.junit.platform:junit-platform-launcher:6.1.2 (1 constraints: 0b050e36)
 
 org.mockito:mockito-core:5.23.0 (2 constraints: 3014cc86)
 
