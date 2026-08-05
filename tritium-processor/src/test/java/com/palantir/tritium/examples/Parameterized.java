@@ -29,4 +29,6 @@ public interface Parameterized<T> {
     void consumeListOfParameter(List<T> value);
 
     <U extends T> T methodParameter(T first, U second);
+
+    <U extends CharSequence> void consumeBoundedParameter(U value);
 }
