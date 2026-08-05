@@ -215,7 +215,10 @@ enum TritiumAnnotationProcessorStrategy implements DelegateProcessorStrategy {
                                         method.implementation().getParameters().stream()
                                                 .map(parameter -> CodeBlock.of(
                                                         "$T.class",
-                                                        TypeNames.erased(TypeName.get(parameter.asType())))))
+                                                        TypeName.get(arguments
+                                                                .context()
+                                                                .types()
+                                                                .erasure(parameter.asType())))))
                                 .collect(CodeBlock.joining(",")));
             });
             staticBlock
