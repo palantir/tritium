@@ -64,7 +64,7 @@ io.smallrye.common:smallrye-common-os:2.4.0 (1 constraints: b10e835a)
 
 io.smallrye.common:smallrye-common-ref:2.4.0 (1 constraints: b10e835a)
 
-net.bytebuddy:byte-buddy:1.18.11 (4 constraints: 9f2b9667)
+net.bytebuddy:byte-buddy:1.18.12 (4 constraints: a02b0868)
 
 org.hdrhistogram:HdrHistogram:2.2.2 (1 constraints: 0805fd35)
 
@@ -104,7 +104,7 @@ io.undertow:undertow-core:2.3.25.Final (1 constraints: 56074061)
 
 junit:junit:4.13.2 (2 constraints: de1ce71a)
 
-net.bytebuddy:byte-buddy-agent:1.18.11 (2 constraints: e01abd63)
+net.bytebuddy:byte-buddy-agent:1.18.12 (2 constraints: e01abd63)
 
 net.sf.jopt-simple:jopt-simple:5.0.4 (1 constraints: be0ad6cc)
 
