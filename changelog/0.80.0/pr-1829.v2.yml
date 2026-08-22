@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Tritium cpu shares metric reports -2 when unsupported
-  links:
-  - https://github.com/palantir/tritium/pull/1829

@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Treat warnings as compile errors
-  links:
-  - https://github.com/palantir/tritium/pull/354

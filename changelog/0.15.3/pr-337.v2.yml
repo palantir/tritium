@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Check that all modules declare minimum dependencies
-  links:
-  - https://github.com/palantir/tritium/pull/337

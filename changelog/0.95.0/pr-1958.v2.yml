@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Target JDK 17 bytecode & APIs
-  links:
-  - https://github.com/palantir/tritium/pull/1958

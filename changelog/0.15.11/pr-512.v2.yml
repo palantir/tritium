@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Include `jvm.attribute` metrics in metric-schema
-  links:
-  - https://github.com/palantir/tritium/pull/512

@@ -1,6 +1,0 @@
-type: improvement
-improvement:
-  description: Adds native image tag to the attributeUptime metric, which contains
-    other informational tags.
-  links:
-  - https://github.com/palantir/tritium/pull/2192

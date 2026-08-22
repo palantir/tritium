@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Use [jspecify](https://jspecify.dev) nullability annotations.
-  links:
-  - https://github.com/palantir/tritium/pull/2133

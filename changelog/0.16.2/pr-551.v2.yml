@@ -1,6 +1,0 @@
-type: fix
-fix:
-  description: Fix class initialization race with logging frameworks that consume
-    the singleton registry
-  links:
-  - https://github.com/palantir/tritium/pull/551

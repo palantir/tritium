@@ -1,5 +1,0 @@
-type: feature
-feature:
-  description: Tritium provides an annotation processor alternative to dynamic proxies
-  links:
-  - https://github.com/palantir/tritium/pull/1083

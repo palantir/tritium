@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: LoggingInvocationEventHandler precomputes level information
-  links:
-  - https://github.com/palantir/tritium/pull/997

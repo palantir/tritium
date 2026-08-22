@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Tritium uses the Palantir fork of javapoet
-  links:
-  - https://github.com/palantir/tritium/pull/2085
