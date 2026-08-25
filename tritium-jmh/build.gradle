@@ -12,6 +12,7 @@ dependencies {
     jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess'
     api 'io.dropwizard.metrics:metrics-core'
 
+    jmhImplementation 'com.github.ben-manes.caffeine:caffeine'
     jmhImplementation 'com.google.guava:guava'
     jmhImplementation 'com.palantir.safe-logging:preconditions'
     jmhImplementation 'com.palantir.safe-logging:safe-logging'
@@ -21,6 +22,7 @@ dependencies {
     jmhImplementation 'org.jspecify:jspecify'
     jmhImplementation 'org.slf4j:slf4j-api'
     jmhImplementation project(':tritium-api')
+    jmhImplementation project(':tritium-caffeine')
     jmhImplementation project(':tritium-core')
     jmhImplementation project(':tritium-lib')
     jmhImplementation project(':tritium-metrics')

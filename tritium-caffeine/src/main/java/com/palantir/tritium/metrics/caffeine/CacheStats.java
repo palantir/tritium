@@ -32,6 +32,7 @@ import com.google.common.collect.Maps;
 import com.palantir.logsafe.Safe;
 import com.palantir.tritium.metrics.caffeine.CacheMetrics.Load_Result;
 import com.palantir.tritium.metrics.caffeine.CacheMetrics.Request_Result;
+import com.palantir.tritium.metrics.registry.MetricName;
 import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -67,7 +68,7 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
      * {@link com.github.benmanes.caffeine.cache.Caffeine#recordStats(Supplier)}.
      */
     public static CacheStats of(TaggedMetricRegistry taggedMetricRegistry, @Safe String name) {
-        return new CacheStats(CacheMetrics.of(taggedMetricRegistry), name);
+        return new CacheStats(taggedMetricRegistry, CacheMetrics.of(taggedMetricRegistry), name);
     }
 
     /**
@@ -144,12 +145,15 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
         return cache;
     }
 
-    private CacheStats(CacheMetrics metrics, @Safe String name) {
+    private CacheStats(TaggedMetricRegistry registry, CacheMetrics metrics, @Safe String name) {
         this.metrics = metrics;
         this.name = name;
-        this.hitMeter = metrics.request().cache(name).result(Request_Result.HIT).build();
-        this.missMeter =
-                metrics.request().cache(name).result(Request_Result.MISS).build();
+        this.hitMeter = countOnlyMeter(
+                registry,
+                metrics.request().cache(name).result(Request_Result.HIT).buildMetricName());
+        this.missMeter = countOnlyMeter(
+                registry,
+                metrics.request().cache(name).result(Request_Result.MISS).buildMetricName());
         this.loadSuccessTimer =
                 metrics.load().cache(name).result(Load_Result.SUCCESS).build();
         this.loadFailureTimer =
@@ -157,17 +161,25 @@ public final class CacheStats implements StatsCounter, Supplier<StatsCounter> {
         this.evictionMeters = Arrays.stream(RemovalCause.values())
                 .collect(Maps.toImmutableEnumMap(
                         cause -> cause,
-                        cause -> metrics.eviction()
-                                .cache(name)
-                                .cause(cause.toString())
-                                .build()));
+                        cause -> countOnlyMeter(
+                                registry,
+                                metrics.eviction()
+                                        .cache(name)
+                                        .cause(cause.toString())
+                                        .buildMetricName())));
         this.evictionWeightMeters = Arrays.stream(RemovalCause.values())
                 .collect(Maps.toImmutableEnumMap(
                         cause -> cause,
-                        cause -> metrics.evictionWeight()
-                                .cache(name)
-                                .cause(cause.toString())
-                                .build()));
+                        cause -> countOnlyMeter(
+                                registry,
+                                metrics.evictionWeight()
+                                        .cache(name)
+                                        .cause(cause.toString())
+                                        .buildMetricName())));
+    }
+
+    private static Meter countOnlyMeter(TaggedMetricRegistry registry, MetricName metricName) {
+        return registry.meter(metricName, DisabledMovingAverages::meter);
     }
 
     @Override
