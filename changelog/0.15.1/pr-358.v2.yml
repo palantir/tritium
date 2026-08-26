@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Optimize TaggedMetricsServiceInvocationEventHandler
-  links:
-  - https://github.com/palantir/tritium/pull/358

@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Add ThreadFactory tags to differentiate platform and virtual threads
-  links:
-  - https://github.com/palantir/tritium/pull/1794

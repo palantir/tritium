@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Migrate class loading gauges to metric-schema
-  links:
-  - https://github.com/palantir/tritium/pull/690

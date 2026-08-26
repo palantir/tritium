@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Enable gradle incremental annotation processing for tritium-processor
-  links:
-  - https://github.com/palantir/tritium/pull/1085

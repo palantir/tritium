@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Update LockFreeExponentiallyDecayingReservoir based on upstream feedback
-  links:
-  - https://github.com/palantir/tritium/pull/867

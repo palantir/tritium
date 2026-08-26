@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Upgrade jqwik to 1.2.4
-  links:
-  - https://github.com/palantir/tritium/pull/656

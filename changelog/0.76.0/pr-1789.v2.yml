@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Add UniqueIds for improved scalable UUID generation
-  links:
-  - https://github.com/palantir/tritium/pull/1789

@@ -1,5 +1,0 @@
-type: improvement
-improvement:
-  description: Memory gauges report null when data is unavailable
-  links:
-  - https://github.com/palantir/tritium/pull/1392
