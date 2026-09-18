@@ -19,6 +19,7 @@ package com.palantir.tritium.event;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import java.lang.reflect.Method;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultInvocationContext implements InvocationContext {
@@ -28,7 +29,7 @@ public class DefaultInvocationContext implements InvocationContext {
     private final long startTimeNanos;
     private final Object instance;
     private final Method method;
-    private final @Nullable Object[] args;
+    private final @Nullable Object @NonNull [] args;
 
     protected DefaultInvocationContext(
             long startTimeNanos, Object instance, Method method, @Nullable Object @Nullable [] args) {
@@ -38,7 +39,7 @@ public class DefaultInvocationContext implements InvocationContext {
         this.args = toNonNullClone(args);
     }
 
-    private static @Nullable Object[] toNonNullClone(@Nullable Object @Nullable [] args) {
+    private static @Nullable Object @NonNull [] toNonNullClone(@Nullable Object @Nullable [] args) {
         return args == null ? NO_ARGS : args.clone();
     }
 
@@ -63,7 +64,7 @@ public class DefaultInvocationContext implements InvocationContext {
     }
 
     @Override
-    public final @Nullable Object[] getArgs() {
+    public final @Nullable Object @NonNull [] getArgs() {
         return args;
     }
 

@@ -23,6 +23,7 @@ import com.palantir.logsafe.logger.SafeLoggerFactory;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
 import java.util.Objects;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public final class Handlers {
@@ -47,7 +48,7 @@ public final class Handlers {
             InstrumentationFilter filter,
             Object instance,
             Method method,
-            @Nullable Object[] args) {
+            @Nullable Object @NonNull [] args) {
         try {
             return filter.shouldInstrument(instance, method, args)
                     ? handler.preInvocation(instance, method, args)
@@ -70,7 +71,7 @@ public final class Handlers {
             InstrumentationFilter filter,
             Object instance,
             Method method,
-            @Nullable Object[] args) {
+            @Nullable Object @NonNull [] args) {
         try {
             return handler.isEnabled() && filter.shouldInstrument(instance, method, args)
                     ? handler.preInvocation(instance, method, args)
@@ -180,7 +181,7 @@ public final class Handlers {
         }
 
         @Override
-        public @Nullable Object[] getArgs() {
+        public @Nullable Object @NonNull [] getArgs() {
             throw fail();
         }
 

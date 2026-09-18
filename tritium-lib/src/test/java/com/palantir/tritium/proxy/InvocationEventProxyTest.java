@@ -98,7 +98,7 @@ public class InvocationEventProxyTest {
         InvocationEventHandler<InvocationContext> testHandler = new SimpleHandler() {
             @Override
             public InvocationContext preInvocation(
-                    @NonNull Object _instance, @NonNull Method _method, @NonNull Object[] _args) {
+                    @NonNull Object _instance, @NonNull Method _method, @Nullable Object @NonNull [] _args) {
                 throw new IllegalStateException("expected");
             }
         };
@@ -307,7 +307,7 @@ public class InvocationEventProxyTest {
 
         @Override
         public InvocationContext preInvocation(
-                @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+                @NonNull Object instance, @NonNull Method method, @Nullable Object @NonNull [] args) {
             return DefaultInvocationContext.of(instance, method, args);
         }
 

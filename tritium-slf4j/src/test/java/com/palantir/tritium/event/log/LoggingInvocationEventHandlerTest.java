@@ -27,6 +27,8 @@ import com.palantir.tritium.test.TestInterface;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -117,7 +119,7 @@ public class LoggingInvocationEventHandlerTest {
         long durationNanoseconds = 1234567L;
         LoggingLevel level = LoggingLevel.TRACE;
 
-        Object[] args = new Object[method.getParameterTypes().length];
+        @Nullable Object @NonNull [] args = new Object[method.getParameterTypes().length];
         String messagePattern = LoggingInvocationEventHandler.getMessagePattern(args);
         args[0] = "arg0";
         args[1] = 1;
@@ -136,7 +138,7 @@ public class LoggingInvocationEventHandlerTest {
         long durationNanoseconds = 1234567L;
         LoggingLevel level = LoggingLevel.TRACE;
 
-        Object[] args = new Object[method.getParameterTypes().length];
+        @Nullable Object @NonNull [] args = new Object[method.getParameterTypes().length];
         String messagePattern = LoggingInvocationEventHandler.getMessagePattern(args);
         args[0] = ImmutableSet.of("a", "b");
         Object[] logParams = LoggingInvocationEventHandler.getLogParams(method, args, durationNanoseconds, level);

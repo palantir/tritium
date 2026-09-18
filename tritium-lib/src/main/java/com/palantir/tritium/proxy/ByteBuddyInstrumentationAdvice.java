@@ -27,6 +27,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 final class ByteBuddyInstrumentationAdvice {
@@ -45,7 +46,7 @@ final class ByteBuddyInstrumentationAdvice {
     @Advice.OnMethodEnter
     static InvocationContext enter(
             @Advice.This Object proxy,
-            @Advice.AllArguments @Nullable Object[] arguments,
+            @Advice.AllArguments @Nullable Object @NonNull [] arguments,
             @Advice.FieldValue("instrumentationFilter") InstrumentationFilter filter,
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
             @Advice.FieldValue("methods") Method[] methods,

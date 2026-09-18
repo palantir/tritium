@@ -17,6 +17,7 @@
 package com.palantir.tritium.event;
 
 import java.lang.reflect.Method;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /** Represents the state when an invocation event occurred. */
@@ -47,8 +48,8 @@ public interface InvocationContext {
     /**
      * Returns the array of arguments for the specified invocation.
      *
-     * @return arguments
+     * @return a non-null array of arguments; array elements may be null
      */
     @Nullable
-    Object[] getArgs();
+    Object @NonNull [] getArgs();
 }

@@ -22,6 +22,7 @@ import com.google.errorprone.annotations.InlineMe;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.logger.SafeLogger;
 import com.palantir.logsafe.logger.SafeLoggerFactory;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -104,7 +105,7 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
     }
 
     @SuppressWarnings("WeakerAccess") // public API
-    public static @Nullable Object[] nullToEmpty(@Nullable Object @Nullable [] args) {
+    public static @Nullable Object @NonNull [] nullToEmpty(@Nullable Object @Nullable [] args) {
         return (args == null) ? NO_ARGS : args;
     }
 }
