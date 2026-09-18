@@ -43,7 +43,7 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * @param args an array of objects containing the values of the arguments passed in the method invocation on the
      *     instance, or empty array if interface method takes no arguments. Arguments of primitive types are wrapped in
      *     instances of the appropriate primitive wrapper class, such as {@code java.lang.Integer} or
-     *     {@code java.lang.Boolean}. Array elements may be null.
+     *     {@code java.lang.Boolean}. The array is non-null, but its elements may be null.
      * @return the current invocation context. Null values are not recommended but are supported
      */
     @Nullable
