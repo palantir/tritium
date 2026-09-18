@@ -65,7 +65,8 @@ public final class AnnotationHelper {
 
         private static final Class<?>[] NO_ARGS = new Class<?>[0];
 
-        private MethodSignature(String methodName, @Nullable Class<?>... parameterTypes) {
+        @SuppressWarnings("checkstyle:NoWhitespaceBefore") // Formatter-required JSpecify varargs syntax
+        private MethodSignature(String methodName, Class<?> @Nullable ... parameterTypes) {
             this.methodName = checkNotNull(methodName);
             this.parameterTypes =
                     (parameterTypes == null || parameterTypes.length == 0) ? NO_ARGS : parameterTypes.clone();
@@ -121,7 +122,8 @@ public final class AnnotationHelper {
             return MethodSignature.of(method.getName(), method.getParameterTypes());
         }
 
-        public static MethodSignature of(String methodName, Class<?>... parameterTypes) {
+        @SuppressWarnings("checkstyle:NoWhitespaceBefore") // Formatter-required JSpecify varargs syntax
+        public static MethodSignature of(String methodName, Class<?> @Nullable ... parameterTypes) {
             return new MethodSignature(methodName, parameterTypes);
         }
     }

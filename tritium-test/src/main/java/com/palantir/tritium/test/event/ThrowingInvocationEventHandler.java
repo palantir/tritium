@@ -34,7 +34,7 @@ public class ThrowingInvocationEventHandler implements InvocationEventHandler<In
 
     @Override
     public InvocationContext preInvocation(
-            @NonNull Object _instance, @NonNull Method _method, @NonNull Object[] _args) {
+            @NonNull Object _instance, @NonNull Method _method, @Nullable Object @NonNull [] _args) {
         throw new SafeIllegalStateException("preInvocation always throws");
     }
 

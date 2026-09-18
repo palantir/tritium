@@ -45,7 +45,7 @@ final class ByteBuddyInstrumentationAdvice {
     @Advice.OnMethodEnter
     static InvocationContext enter(
             @Advice.This Object proxy,
-            @Advice.AllArguments Object[] arguments,
+            @Advice.AllArguments @Nullable Object[] arguments,
             @Advice.FieldValue("instrumentationFilter") InstrumentationFilter filter,
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
             @Advice.FieldValue("methods") Method[] methods,
@@ -55,10 +55,10 @@ final class ByteBuddyInstrumentationAdvice {
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, backupArguments = false)
     static void exit(
-            @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object result,
+            @Advice.Return(typing = Assigner.Typing.DYNAMIC) @Nullable Object result,
             @Advice.Thrown @Nullable Throwable thrown,
             @Advice.FieldValue("invocationEventHandler") InvocationEventHandler<?> eventHandler,
-            @Advice.Enter InvocationContext context) {
+            @Advice.Enter @Nullable InvocationContext context) {
         if (thrown != null) {
             Handlers.onFailure(eventHandler, context, thrown);
         } else {

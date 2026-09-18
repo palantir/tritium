@@ -18,6 +18,7 @@ package com.palantir.tritium.api.event;
 
 import java.lang.reflect.Method;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 @FunctionalInterface
 public interface InstrumentationFilter {
@@ -32,5 +33,5 @@ public interface InstrumentationFilter {
      *     {@code java.lang.Boolean}.
      * @return true if invocation should be instrumented, false if invocation should not be instrumented
      */
-    boolean shouldInstrument(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args);
+    boolean shouldInstrument(@NonNull Object instance, @NonNull Method method, @Nullable Object @NonNull [] args);
 }

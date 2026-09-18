@@ -80,7 +80,7 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     @Override
     public final InvocationContext preInvocation(
-            @NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+            @NonNull Object instance, @NonNull Method method, @Nullable Object @NonNull [] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 
@@ -102,9 +102,9 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         }
     }
 
-    private void logInvocation(Method method, @Nullable Object[] nullableArgs, long durationNanos) {
+    private void logInvocation(Method method, @Nullable Object @Nullable [] nullableArgs, long durationNanos) {
         if (isEnabled() && durationPredicate.test(durationNanos)) {
-            Object[] args = nullToEmpty(nullableArgs);
+            @Nullable Object[] args = nullToEmpty(nullableArgs);
             logger.accept(getMessagePattern(args), getLogParams(method, args, durationNanos, level));
         }
     }
@@ -170,14 +170,14 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
         return message.toString();
     }
 
-    static String getMessagePattern(Object[] args) {
+    static String getMessagePattern(@Nullable Object[] args) {
         if (args.length < MESSAGE_PATTERNS.size()) {
             return MESSAGE_PATTERNS.get(args.length);
         }
         return generateMessagePattern(args.length);
     }
 
-    static Object[] getLogParams(Method method, Object[] args, long durationNanos, LoggingLevel level) {
+    static Object[] getLogParams(Method method, @Nullable Object[] args, long durationNanos, LoggingLevel level) {
         @SuppressWarnings("rawtypes") // arrays don't support generics
         Arg[] logParams = new Arg[3 + args.length];
         logParams[0] = SafeArg.of("class", method.getDeclaringClass().getSimpleName());

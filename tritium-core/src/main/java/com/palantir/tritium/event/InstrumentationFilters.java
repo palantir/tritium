@@ -19,13 +19,15 @@ package com.palantir.tritium.event;
 import com.palantir.tritium.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public enum InstrumentationFilters implements InstrumentationFilter {
 
     /** Instrument all invocations. */
     INSTRUMENT_ALL {
         @Override
-        public boolean shouldInstrument(@NonNull Object _instance, @NonNull Method _method, @NonNull Object[] _args) {
+        public boolean shouldInstrument(
+                @NonNull Object _instance, @NonNull Method _method, @Nullable Object @NonNull [] _args) {
             return true;
         }
     },
@@ -33,7 +35,8 @@ public enum InstrumentationFilters implements InstrumentationFilter {
     /** Instrument no invocations. */
     INSTRUMENT_NONE {
         @Override
-        public boolean shouldInstrument(@NonNull Object _instance, @NonNull Method _method, @NonNull Object[] _args) {
+        public boolean shouldInstrument(
+                @NonNull Object _instance, @NonNull Method _method, @Nullable Object @NonNull [] _args) {
             return false;
         }
     };

@@ -58,7 +58,8 @@ public final class TracingInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+    public InvocationContext preInvocation(
+            @NonNull Object instance, @NonNull Method method, @Nullable Object @NonNull [] args) {
         InvocationContext context = DefaultInvocationContext.of(instance, method, args);
         String operationName = getOperationName(method);
         Tracer.fastStartSpan(operationName);

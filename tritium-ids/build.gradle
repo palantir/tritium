@@ -10,6 +10,7 @@ dependencies {
     implementation 'com.google.guava:guava'
     implementation 'com.palantir.safe-logging:logger'
     implementation 'com.palantir.safe-logging:preconditions'
+    implementation 'org.jspecify:jspecify'
 
     jmhImplementation 'com.fasterxml.uuid:java-uuid-generator'
 

@@ -3,6 +3,8 @@ apply plugin: 'com.palantir.metric-schema'
 apply plugin: 'com.palantir.revapi'
 
 dependencies {
+    compileOnly 'com.google.code.findbugs:jsr305'
+
     api 'io.dropwizard.metrics:metrics-core'
     api project(':tritium-api')
     api project(':tritium-core')

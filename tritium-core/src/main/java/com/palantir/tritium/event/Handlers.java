@@ -47,7 +47,7 @@ public final class Handlers {
             InstrumentationFilter filter,
             Object instance,
             Method method,
-            Object[] args) {
+            @Nullable Object[] args) {
         try {
             return filter.shouldInstrument(instance, method, args)
                     ? handler.preInvocation(instance, method, args)
@@ -70,7 +70,7 @@ public final class Handlers {
             InstrumentationFilter filter,
             Object instance,
             Method method,
-            Object[] args) {
+            @Nullable Object[] args) {
         try {
             return handler.isEnabled() && filter.shouldInstrument(instance, method, args)
                     ? handler.preInvocation(instance, method, args)
@@ -180,7 +180,7 @@ public final class Handlers {
         }
 
         @Override
-        public Object[] getArgs() {
+        public @Nullable Object[] getArgs() {
             throw fail();
         }
 

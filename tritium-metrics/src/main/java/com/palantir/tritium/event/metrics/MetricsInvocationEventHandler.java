@@ -71,7 +71,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+    public InvocationContext preInvocation(
+            @NonNull Object instance, @NonNull Method method, @Nullable Object @NonNull [] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 

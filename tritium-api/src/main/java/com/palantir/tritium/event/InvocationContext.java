@@ -49,5 +49,6 @@ public interface InvocationContext {
      *
      * @return arguments
      */
+    @Nullable
     Object[] getArgs();
 }
