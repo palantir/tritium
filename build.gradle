@@ -71,9 +71,15 @@ allprojects {
             ]
 
             options.errorprone {
+                error('RequireExplicitNullMarking')
+                error('JSpecifyUnrecognizedAnnotationLocation')
                 option('NullAway:AnnotatedPackages', 'com.palantir,com.google.common')
                 option('NullAway:CheckOptionalEmptiness', 'true')
                 option('NullAway:JSpecifyMode', 'true')
+
+                errorproneArgs = [
+                    '-XepAllSuggestionsAsWarnings',
+                ]
             }
         }
 
@@ -115,53 +121,6 @@ allprojects {
     tasks.check.dependsOn(checkUnusedDependencies)
     tasks.check.dependsOn(checkUnusedConstraints)
 }
-
-def nullMarkedSourceFiles = files(allprojects.collect { currentProject ->
-    currentProject.fileTree(currentProject.projectDir) {
-        include 'src/*/java/**/*.java'
-    }
-})
-
-def checkNullMarkedPackages = tasks.register('checkNullMarkedPackages') {
-    group = 'verification'
-    description = 'Checks that every com.palantir Java source package is annotated with @NullMarked.'
-    inputs.files(nullMarkedSourceFiles)
-
-    doLast {
-        def missingPackages = []
-        allprojects.each { currentProject ->
-            def sourcePackages = [] as Set
-            def nullMarkedPackages = [] as Set
-            currentProject.fileTree(currentProject.projectDir) {
-                include 'src/*/java/**/*.java'
-            }.files.each { sourceFile ->
-                def source = sourceFile.getText('UTF-8')
-                def packageMatcher = source =~ /(?m)^package\s+([a-zA-Z0-9_.]+);/
-                if (packageMatcher.find()) {
-                    def packageName = packageMatcher.group(1)
-                    if (packageName == 'com.palantir' || packageName.startsWith('com.palantir.')) {
-                        sourcePackages.add(packageName)
-                        if (sourceFile.name == 'package-info.java'
-                                && source =~ /(?m)^@(?:org\.jspecify\.annotations\.)?NullMarked\s*$/) {
-                            nullMarkedPackages.add(packageName)
-                        }
-                    }
-                }
-            }
-            sourcePackages.minus(nullMarkedPackages).each { packageName ->
-                missingPackages.add("${currentProject.path}: ${packageName}")
-            }
-        }
-
-        if (!missingPackages.isEmpty()) {
-            throw new GradleException(
-                    'Every com.palantir Java source package must declare @NullMarked in package-info.java:\n'
-                            + missingPackages.sort().collect { "  - ${it}" }.join('\n'))
-        }
-    }
-}
-
-tasks.check.dependsOn(checkNullMarkedPackages)
 
 jdks {
     daemonTarget = 21
