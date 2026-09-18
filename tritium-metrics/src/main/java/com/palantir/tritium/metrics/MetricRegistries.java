@@ -35,7 +35,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheStats;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.Safe;
@@ -272,11 +271,11 @@ public final class MetricRegistries {
      * @param name cache name
      * @throws IllegalArgumentException if name is blank
      * @deprecated Do not use Guava caches, they are outperformed by and harder to use than Caffeine caches.
-     * Prefer {@link Caffeine#recordStats(Supplier)} and {@link CacheStats#of(TaggedMetricRegistry, String)}.
+     * Prefer {@code Caffeine.recordStats(Supplier)} and the tritium-caffeine
+     * {@code CacheStats.of(TaggedMetricRegistry, String)} API.
      */
     @Deprecated // BanGuavaCaches
-    @SuppressWarnings({"BanGuavaCaches", "for-rollout:InvalidLink"
-    }) // this implementation is explicitly for Guava caches
+    @SuppressWarnings("BanGuavaCaches") // this implementation is explicitly for Guava caches
     public static void registerCache(TaggedMetricRegistry registry, Cache<?, ?> cache, @Safe String name) {
         checkNotNull(registry, "metric registry");
         checkNotNull(cache, "cache");
