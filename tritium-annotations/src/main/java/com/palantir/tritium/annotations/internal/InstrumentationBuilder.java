@@ -58,9 +58,9 @@ public final class InstrumentationBuilder<T, U extends T> {
      * <p>Uses a {@link TaggedMetricsServiceInvocationEventHandler} object for handling invocations, so metric names
      * are chosen based off of the interface name and invoked method.
      *
-     * @param metricRegistry - TaggedMetricsRegistry used for this application.
-     * @param prefix - Metrics name prefix to be used
-     * @return - InstrumentationBuilder
+     * @param metricRegistry TaggedMetricsRegistry used for this application
+     * @param prefix metrics name prefix, or null or empty to use the interface class name
+     * @return this builder
      */
     public InstrumentationBuilder<T, U> withTaggedMetrics(
             TaggedMetricRegistry metricRegistry, @Nullable String prefix) {

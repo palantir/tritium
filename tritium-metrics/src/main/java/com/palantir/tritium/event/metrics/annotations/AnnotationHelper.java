@@ -122,6 +122,12 @@ public final class AnnotationHelper {
             return MethodSignature.of(method.getName(), method.getParameterTypes());
         }
 
+        /**
+         * Do not use, will be removed in a future release.
+         *
+         * @param parameterTypes non-null parameter types, or a null or empty array to represent no parameters
+         * @return a method signature
+         */
         @SuppressWarnings("checkstyle:NoWhitespaceBefore") // Formatter-required JSpecify varargs syntax
         public static MethodSignature of(String methodName, Class<?> @Nullable ... parameterTypes) {
             return new MethodSignature(methodName, parameterTypes);

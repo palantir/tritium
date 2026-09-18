@@ -31,6 +31,11 @@ public class DefaultInvocationContext implements InvocationContext {
     private final Method method;
     private final @Nullable Object @NonNull [] args;
 
+    /**
+     * Constructs an invocation context.
+     *
+     * @param args argument array, or null to use an empty array; elements may be null
+     */
     protected DefaultInvocationContext(
             long startTimeNanos, Object instance, Method method, @Nullable Object @Nullable [] args) {
         this.startTimeNanos = startTimeNanos;
@@ -43,6 +48,12 @@ public class DefaultInvocationContext implements InvocationContext {
         return args == null ? NO_ARGS : args.clone();
     }
 
+    /**
+     * Creates an invocation context using the current time.
+     *
+     * @param args argument array, or null to use an empty array; elements may be null
+     * @return a new invocation context
+     */
     public static InvocationContext of(Object instance, Method method, @Nullable Object @Nullable [] args) {
         return new DefaultInvocationContext(
                 System.nanoTime(), checkNotNull(instance, "instance"), checkNotNull(method, "method"), args);

@@ -41,6 +41,9 @@ public final class Handlers {
     /**
      * The caller is expected to check {@link InvocationEventHandler#isEnabled()} prior to calling this method,
      * allowing argument array allocation to be avoided when the handler is not enabled.
+     *
+     * @param args non-null argument array which may contain null elements
+     * @return the invocation context, a disabled context if filtered out, or null if the handler returns null or throws
      */
     @Nullable
     public static InvocationContext pre(
@@ -64,6 +67,10 @@ public final class Handlers {
      * except that {@link InvocationEventHandler#isEnabled()} is checked along with
      * {@link InstrumentationFilter#shouldInstrument(Object, Method, Object[])}. This should be used when
      * argument array allocation has already occurred and cannot be avoided.
+     *
+     * @param args non-null argument array which may contain null elements
+     * @return the invocation context, a disabled context if handling is disabled, or null if the handler returns null
+     *     or throws
      */
     @Nullable
     public static InvocationContext preWithEnabledCheck(
@@ -98,10 +105,21 @@ public final class Handlers {
         }
     }
 
+    /**
+     * Notifies the handler of a successful invocation with a null result.
+     *
+     * @param context invocation context, which may be null if pre-invocation handling returned null or threw
+     */
     public static void onSuccess(InvocationEventHandler<?> handler, @Nullable InvocationContext context) {
         onSuccess(handler, context, null);
     }
 
+    /**
+     * Notifies the handler of a successful invocation.
+     *
+     * @param context invocation context, which may be null if pre-invocation handling returned null or threw
+     * @param result invocation result, which may be null
+     */
     public static void onSuccess(
             InvocationEventHandler<?> handler, @Nullable InvocationContext context, @Nullable Object result) {
         if (context != DisabledHandlerSentinel.INSTANCE) {
@@ -130,6 +148,11 @@ public final class Handlers {
         }
     }
 
+    /**
+     * Notifies the handler of a failed invocation.
+     *
+     * @param context invocation context, which may be null if pre-invocation handling returned null or threw
+     */
     public static void onFailure(
             InvocationEventHandler<?> handler, @Nullable InvocationContext context, Throwable thrown) {
         if (context != DisabledHandlerSentinel.INSTANCE) {
