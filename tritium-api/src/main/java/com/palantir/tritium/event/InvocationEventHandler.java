@@ -43,16 +43,17 @@ public interface InvocationEventHandler<C extends InvocationContext> {
      * @param args an array of objects containing the values of the arguments passed in the method invocation on the
      *     instance, or empty array if interface method takes no arguments. Arguments of primitive types are wrapped in
      *     instances of the appropriate primitive wrapper class, such as {@code java.lang.Integer} or
-     *     {@code java.lang.Boolean}.
+     *     {@code java.lang.Boolean}. The array is non-null, but its elements may be null.
      * @return the current invocation context. Null values are not recommended but are supported
      */
-    C preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args);
+    @Nullable
+    C preInvocation(@NonNull Object instance, @NonNull Method method, @Nullable Object @NonNull [] args);
 
     /**
      * Invoked with the result of the invocation when it is successful.
      *
      * @param context the current invocation context or null if preInvocation returned null, or threw an exception.
-     * @param result the return value from invocation, or null if {@link Void}.
+     * @param result the return value, or null if the invocation returns null or has a {@code void} return type.
      */
     void onSuccess(@Nullable InvocationContext context, @Nullable Object result);
 

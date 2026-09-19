@@ -47,6 +47,9 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this.serviceName = checkNotNull(serviceName, "serviceName");
     }
 
+    /**
+     * @param _globalGroupPrefix unused; may be null
+     */
     @SuppressWarnings("InconsistentOverloads")
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry,
@@ -58,6 +61,9 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
         this.serviceName = checkNotNull(serviceName, "serviceName");
     }
 
+    /**
+     * @param globalGroupPrefix unused; may be null
+     */
     @SuppressWarnings("WeakerAccess") // public API
     public MetricsInvocationEventHandler(
             MetricRegistry metricRegistry, Class<?> serviceClass, @Safe @Nullable String globalGroupPrefix) {
@@ -71,7 +77,8 @@ public final class MetricsInvocationEventHandler extends AbstractInvocationEvent
     }
 
     @Override
-    public InvocationContext preInvocation(@NonNull Object instance, @NonNull Method method, @NonNull Object[] args) {
+    public InvocationContext preInvocation(
+            @NonNull Object instance, @NonNull Method method, @Nullable Object @NonNull [] args) {
         return DefaultInvocationContext.of(instance, method, args);
     }
 

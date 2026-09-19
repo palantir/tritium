@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 abstract class InvocationEventProxy implements InvocationHandler {
@@ -72,8 +73,9 @@ abstract class InvocationEventProxy implements InvocationHandler {
     /** Optimized to avoid excessive stack frames for readable stack traces. */
     @Override
     @Nullable
-    public final Object invoke(Object proxy, Method method, @Nullable Object[] nullableArgs) throws Throwable {
-        Object[] arguments = nullableArgs == null ? EMPTY_ARRAY : nullableArgs;
+    public final Object invoke(Object proxy, Method method, @Nullable Object @Nullable [] nullableArgs)
+            throws Throwable {
+        @Nullable Object @NonNull [] arguments = nullableArgs == null ? EMPTY_ARRAY : nullableArgs;
         if (isSpecialMethod(method, arguments)) {
             return handleSpecialMethod(proxy, method, arguments);
         }
@@ -88,11 +90,11 @@ abstract class InvocationEventProxy implements InvocationHandler {
         }
     }
 
-    private static boolean isSpecialMethod(Method method, Object[] arguments) {
+    private static boolean isSpecialMethod(Method method, @Nullable Object @NonNull [] arguments) {
         return isHashCode(method, arguments) || isEquals(method, arguments) || isToString(method, arguments);
     }
 
-    private Object handleSpecialMethod(Object proxy, Method method, Object[] arguments) {
+    private Object handleSpecialMethod(Object proxy, Method method, @Nullable Object @NonNull [] arguments) {
         if (isHashCode(method, arguments)) {
             return hashCode();
         }
@@ -107,23 +109,23 @@ abstract class InvocationEventProxy implements InvocationHandler {
                 "Method does not require special handling", SafeArg.of("method", method.toString()));
     }
 
-    private static boolean isEquals(Method method, Object[] arguments) {
+    private static boolean isEquals(Method method, @Nullable Object @NonNull [] arguments) {
         return arguments.length == 1
                 && "equals".equals(method.getName())
                 && method.getParameterTypes()[0] == Object.class;
     }
 
-    private static boolean isHashCode(Method method, Object[] arguments) {
+    private static boolean isHashCode(Method method, @Nullable Object @NonNull [] arguments) {
         return arguments.length == 0 && "hashCode".equals(method.getName());
     }
 
-    private static boolean isToString(Method method, Object[] arguments) {
+    private static boolean isToString(Method method, @Nullable Object @NonNull [] arguments) {
         return arguments.length == 0 && "toString".equals(method.getName());
     }
 
     @Nullable
     @VisibleForTesting
-    final InvocationContext handlePreInvocation(Object instance, Method method, Object[] args) {
+    final InvocationContext handlePreInvocation(Object instance, Method method, @Nullable Object @NonNull [] args) {
         return Handlers.preWithEnabledCheck(eventHandler, filter, instance, method, args);
     }
 

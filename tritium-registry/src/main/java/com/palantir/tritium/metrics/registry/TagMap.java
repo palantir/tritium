@@ -109,7 +109,7 @@ final class TagMap implements SortedMap<String, String> {
             int valuesIndex = 2 * i;
             String key = keys[i];
             values[valuesIndex] = key;
-            values[valuesIndex + 1] = data.get(key);
+            values[valuesIndex + 1] = Preconditions.checkNotNull(data.get(key), "value");
         }
         return values;
     }

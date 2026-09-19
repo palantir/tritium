@@ -6,7 +6,7 @@ com.google.auto:auto-common:1.2.2 (2 constraints: e82701fd)
 
 com.google.auto.service:auto-service-annotations:1.1.1 (1 constraints: 0505f435)
 
-com.google.code.findbugs:jsr305:3.0.2 (1 constraints: a41965b5)
+com.google.code.findbugs:jsr305:3.0.2 (2 constraints: aa1e1d46)
 
 com.google.errorprone:error_prone_annotations:2.50.0 (8 constraints: 6b70d02f)
 

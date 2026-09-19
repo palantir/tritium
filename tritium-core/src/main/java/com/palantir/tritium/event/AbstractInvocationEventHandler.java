@@ -22,6 +22,7 @@ import com.google.errorprone.annotations.InlineMe;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.logger.SafeLogger;
 import com.palantir.logsafe.logger.SafeLoggerFactory;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -75,9 +76,9 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
     }
 
     /**
-     * Logs debug information if the specified invocation context is not null.
+     * Logs debug information if the specified invocation context is null.
      *
-     * @param context invocation context
+     * @param context invocation context, which may be null
      */
     protected final void debugIfNullContext(@Nullable InvocationContext context) {
         if (context == null && log.isDebugEnabled()) {
@@ -103,8 +104,14 @@ public abstract class AbstractInvocationEventHandler<C extends InvocationContext
         return InstrumentationProperties.getSystemPropertySupplier(clazz.getName());
     }
 
+    /**
+     * Returns the supplied arguments, or an empty array if {@code args} is null.
+     *
+     * @param args argument array, which may be null and may contain null elements
+     * @return a non-null array which may contain null elements
+     */
     @SuppressWarnings("WeakerAccess") // public API
-    public static Object[] nullToEmpty(@Nullable Object[] args) {
+    public static @Nullable Object @NonNull [] nullToEmpty(@Nullable Object @Nullable [] args) {
         return (args == null) ? NO_ARGS : args;
     }
 }

@@ -19,6 +19,7 @@ package com.palantir.tritium.event;
 import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import java.lang.reflect.Method;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultInvocationContext implements InvocationContext {
@@ -28,20 +29,32 @@ public class DefaultInvocationContext implements InvocationContext {
     private final long startTimeNanos;
     private final Object instance;
     private final Method method;
-    private final Object[] args;
+    private final @Nullable Object @NonNull [] args;
 
-    protected DefaultInvocationContext(long startTimeNanos, Object instance, Method method, @Nullable Object[] args) {
+    /**
+     * Constructs an invocation context.
+     *
+     * @param args argument array, or null to use an empty array; elements may be null
+     */
+    protected DefaultInvocationContext(
+            long startTimeNanos, Object instance, Method method, @Nullable Object @Nullable [] args) {
         this.startTimeNanos = startTimeNanos;
         this.instance = instance;
         this.method = method;
         this.args = toNonNullClone(args);
     }
 
-    private static Object[] toNonNullClone(@Nullable Object[] args) {
+    private static @Nullable Object @NonNull [] toNonNullClone(@Nullable Object @Nullable [] args) {
         return args == null ? NO_ARGS : args.clone();
     }
 
-    public static InvocationContext of(Object instance, Method method, @Nullable Object[] args) {
+    /**
+     * Creates an invocation context using the current time.
+     *
+     * @param args argument array, or null to use an empty array; elements may be null
+     * @return a new invocation context
+     */
+    public static InvocationContext of(Object instance, Method method, @Nullable Object @Nullable [] args) {
         return new DefaultInvocationContext(
                 System.nanoTime(), checkNotNull(instance, "instance"), checkNotNull(method, "method"), args);
     }
@@ -62,7 +75,7 @@ public class DefaultInvocationContext implements InvocationContext {
     }
 
     @Override
-    public final Object[] getArgs() {
+    public final @Nullable Object @NonNull [] getArgs() {
         return args;
     }
 
