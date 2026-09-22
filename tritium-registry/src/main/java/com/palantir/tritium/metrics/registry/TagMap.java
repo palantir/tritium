@@ -499,6 +499,7 @@ final class TagMap implements SortedMap<String, String> {
             throw new UnsupportedOperationException("immutable");
         }
 
+        @SuppressWarnings("for-rollout:NullAway")
         @Override
         public boolean containsAll(Collection<?> collection) {
             for (Object object : collection) {
