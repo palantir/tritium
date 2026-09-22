@@ -94,7 +94,7 @@ abstract class InvocationEventProxy implements InvocationHandler {
         return isHashCode(method, arguments) || isEquals(method, arguments) || isToString(method, arguments);
     }
 
-    @SuppressWarnings("for-rollout:ReferenceEquality")
+    @SuppressWarnings("ReferenceEquality")
     private Object handleSpecialMethod(Object proxy, Method method, @Nullable Object @NonNull [] arguments) {
         if (isHashCode(method, arguments)) {
             return hashCode();
