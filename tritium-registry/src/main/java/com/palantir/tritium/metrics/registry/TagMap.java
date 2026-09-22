@@ -445,9 +445,8 @@ final class TagMap implements SortedMap<String, String> {
         }
 
         @Override
-        public boolean contains(Object object) {
-            if (object instanceof Entry) {
-                Entry<?, ?> entry = (Entry<?, ?>) object;
+        public boolean contains(@Nullable Object object) {
+            if (object instanceof Entry<?, ?> entry) {
                 for (int i = 0; i < values.length; i += 2) {
                     if (Objects.equals(entry.getKey(), values[i]) && Objects.equals(entry.getValue(), values[i + 1])) {
                         return true;
@@ -499,7 +498,6 @@ final class TagMap implements SortedMap<String, String> {
             throw new UnsupportedOperationException("immutable");
         }
 
-        @SuppressWarnings("for-rollout:NullAway")
         @Override
         public boolean containsAll(Collection<?> collection) {
             for (Object object : collection) {
