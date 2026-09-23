@@ -101,8 +101,7 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
      * Only exemplars for which the provider returned non-null metadata are returned.
      */
     @Override
-    @SuppressWarnings({"unchecked", "for-rollout:ReferenceEquality"
-    }) // instance check on the provider guarantees the cast is safe
+    @SuppressWarnings({"ReferenceEquality", "unchecked"}) // instance check on the provider guarantees the cast is safe
     public <U> List<LongExemplar<U>> getSamples(ExemplarMetadataProvider<U> provider) {
         if (this.exemplarProvider == provider) {
             return (List<LongExemplar<U>>) (List<?>) exemplars;

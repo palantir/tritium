@@ -333,8 +333,8 @@ final class MetricRegistriesTest {
                 return mockMetric;
             }
 
-            @SuppressWarnings("for-rollout:ReferenceEquality")
             @Override
+            @SuppressWarnings("ReferenceEquality")
             public boolean isInstance(Metric metric) {
                 return mockMetric == metric;
             }
