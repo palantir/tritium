@@ -23,7 +23,6 @@ import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
-import com.codahale.metrics.WeightedSnapshot;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -426,7 +425,7 @@ class LockFreeExponentiallyDecayingReservoirWithExemplarsTest {
 
         // No exemplars should be returned since the provider didn't return non-null metadata
         assertThat(reservoir.getSnapshot())
-                .isInstanceOf(WeightedSnapshot.class)
+                .isInstanceOf(PrimitiveWeightedSnapshot.class)
                 .isNotInstanceOf(ExemplarsCapture.class);
     }
 
