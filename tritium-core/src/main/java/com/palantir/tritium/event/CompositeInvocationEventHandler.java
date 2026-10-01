@@ -54,7 +54,9 @@ public final class CompositeInvocationEventHandler extends AbstractInvocationEve
     @Override
     public InvocationContext preInvocation(
             @NonNull Object instance, @NonNull Method method, @Nullable Object @NonNull [] args) {
-        @Nullable InvocationContext @NonNull [] contexts = new InvocationContext[handlers.length];
+        @SuppressWarnings("for-rollout:JSpecifyUnrecognizedAnnotationLocation")
+        @Nullable
+        InvocationContext @NonNull [] contexts = new InvocationContext[handlers.length];
 
         for (int i = 0; i < handlers.length; i++) {
             contexts[i] = Handlers.preWithEnabledCheck(

@@ -104,7 +104,9 @@ public class LoggingInvocationEventHandler extends AbstractInvocationEventHandle
 
     private void logInvocation(Method method, @Nullable Object @Nullable [] nullableArgs, long durationNanos) {
         if (isEnabled() && durationPredicate.test(durationNanos)) {
-            @Nullable Object @NonNull [] args = nullToEmpty(nullableArgs);
+            @SuppressWarnings("for-rollout:JSpecifyUnrecognizedAnnotationLocation")
+            @Nullable
+            Object @NonNull [] args = nullToEmpty(nullableArgs);
             logger.accept(getMessagePattern(args), getLogParams(method, args, durationNanos, level));
         }
     }
