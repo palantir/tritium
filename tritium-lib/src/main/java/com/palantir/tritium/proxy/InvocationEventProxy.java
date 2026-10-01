@@ -75,7 +75,9 @@ abstract class InvocationEventProxy implements InvocationHandler {
     @Nullable
     public final Object invoke(Object proxy, Method method, @Nullable Object @Nullable [] nullableArgs)
             throws Throwable {
-        @Nullable Object @NonNull [] arguments = nullableArgs == null ? EMPTY_ARRAY : nullableArgs;
+        @SuppressWarnings("for-rollout:JSpecifyUnrecognizedAnnotationLocation")
+        @Nullable
+        Object @NonNull [] arguments = nullableArgs == null ? EMPTY_ARRAY : nullableArgs;
         if (isSpecialMethod(method, arguments)) {
             return handleSpecialMethod(proxy, method, arguments);
         }

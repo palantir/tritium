@@ -119,7 +119,9 @@ public class LoggingInvocationEventHandlerTest {
         long durationNanoseconds = 1234567L;
         LoggingLevel level = LoggingLevel.TRACE;
 
-        @Nullable Object @NonNull [] args = new Object[method.getParameterTypes().length];
+        @SuppressWarnings("for-rollout:JSpecifyUnrecognizedAnnotationLocation")
+        @Nullable
+        Object @NonNull [] args = new Object[method.getParameterTypes().length];
         String messagePattern = LoggingInvocationEventHandler.getMessagePattern(args);
         args[0] = "arg0";
         args[1] = 1;
@@ -138,7 +140,9 @@ public class LoggingInvocationEventHandlerTest {
         long durationNanoseconds = 1234567L;
         LoggingLevel level = LoggingLevel.TRACE;
 
-        @Nullable Object @NonNull [] args = new Object[method.getParameterTypes().length];
+        @SuppressWarnings("for-rollout:JSpecifyUnrecognizedAnnotationLocation")
+        @Nullable
+        Object @NonNull [] args = new Object[method.getParameterTypes().length];
         String messagePattern = LoggingInvocationEventHandler.getMessagePattern(args);
         args[0] = ImmutableSet.of("a", "b");
         Object[] logParams = LoggingInvocationEventHandler.getLogParams(method, args, durationNanoseconds, level);
