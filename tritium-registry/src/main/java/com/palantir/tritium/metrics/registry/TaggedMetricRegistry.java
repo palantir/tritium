@@ -32,6 +32,25 @@ import org.slf4j.LoggerFactory;
 public interface TaggedMetricRegistry extends TaggedMetricSet {
 
     /**
+     * Returns the existing metric for the specified name if it is an instance of {@code metricClass}, or atomically
+     * registers and returns a new metric supplied by {@code metricSupplier}. The supplier is invoked only when the
+     * metric is absent.
+     *
+     * <p>This method operates on local metrics only; it does not look up metrics in sets attached via
+     * {@link #addMetrics(String, String, TaggedMetricSet)}.
+     *
+     * @param metricName metric name
+     * @param metricClass expected metric type
+     * @param metricSupplier supplier used to create an absent metric
+     * @return the compatible existing metric or newly registered metric
+     * @throws IllegalArgumentException if a local metric with this name has an incompatible type
+     * @throws UnsupportedOperationException if this registry does not support generic metric registration
+     */
+    default <T extends Metric> T getOrAdd(MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
+        throw new UnsupportedOperationException("Generic metric registration is not supported");
+    }
+
+    /**
      * Returns existing or new timer metric for the specified metric name.
      *
      * @param metricName metric name

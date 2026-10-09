@@ -31,8 +31,15 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
 import com.palantir.tritium.registry.test.TestTaggedMetricRegistries;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,6 +52,73 @@ final class TaggedMetricRegistryTest {
             MetricName.builder().safeName("name").build();
     private static final MetricName METRIC_2 =
             MetricName.builder().safeName("name").putSafeTags("key", "val").build();
+
+    private static final class CustomMetric implements Metric {}
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testCustomMetric(TaggedMetricRegistry registry) {
+        CustomMetric metric = new CustomMetric();
+
+        assertThat(registry.getOrAdd(METRIC_1, CustomMetric.class, () -> metric))
+                .isSameAs(metric);
+        assertThat(registry.getMetrics().get(METRIC_1)).isSameAs(metric);
+        assertThat(registry.getOrAdd(METRIC_1, Metric.class, () -> {
+                    throw new AssertionError("Existing compatible metric should be returned");
+                }))
+                .isSameAs(metric);
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testSuppliedCustomMetric(TaggedMetricRegistry registry) {
+        testSuppliedCall(
+                (name, supplier) -> registry.getOrAdd(name, CustomMetric.class, supplier),
+                new CustomMetric(),
+                new CustomMetric());
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testCustomMetricRejectsIncompatibleType(TaggedMetricRegistry registry) {
+        CustomMetric metric = registry.getOrAdd(METRIC_1, CustomMetric.class, CustomMetric::new);
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> registry.getOrAdd(METRIC_1, Counter.class, () -> {
+                    throw new AssertionError("Supplier should not be invoked for an existing metric");
+                }))
+                .withMessageStartingWith("Metric name already used for different metric type: ");
+        assertThat(registry.getMetrics().get(METRIC_1)).isSameAs(metric);
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testConcurrentCustomMetricRegistration(TaggedMetricRegistry registry) throws Exception {
+        int callers = 8;
+        ExecutorService executor = Executors.newFixedThreadPool(callers);
+        CyclicBarrier barrier = new CyclicBarrier(callers);
+        AtomicInteger supplierCalls = new AtomicInteger();
+        List<Future<CustomMetric>> results = new ArrayList<>();
+        try {
+            for (int i = 0; i < callers; i++) {
+                results.add(executor.submit(() -> {
+                    barrier.await(10, TimeUnit.SECONDS);
+                    return registry.getOrAdd(METRIC_1, CustomMetric.class, () -> {
+                        supplierCalls.incrementAndGet();
+                        return new CustomMetric();
+                    });
+                }));
+            }
+            CustomMetric metric = results.get(0).get(10, TimeUnit.SECONDS);
+            for (Future<CustomMetric> result : results) {
+                assertThat(result.get(10, TimeUnit.SECONDS)).isSameAs(metric);
+            }
+            assertThat(supplierCalls).hasValue(1);
+            assertThat(registry.getMetrics().get(METRIC_1)).isSameAs(metric);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
 
     interface SuppliedMetricMethod<T extends Metric> {
         T metric(MetricName metricName, Supplier<T> supplier);
