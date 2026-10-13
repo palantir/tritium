@@ -19,12 +19,12 @@ package com.palantir.tritium.metrics.registry;
 import com.codahale.metrics.Clock;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Snapshot;
-import com.codahale.metrics.WeightedSnapshot;
 import com.codahale.metrics.WeightedSnapshot.WeightedSample;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.SafeArg;
 import com.palantir.logsafe.exceptions.SafeIllegalArgumentException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -224,7 +224,20 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     @Override
     public Snapshot getSnapshot() {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
-        return new WeightedSnapshot(stateSnapshot.values.values());
+        Collection<WeightedSample> samples = stateSnapshot.values.values();
+        int sampleCount = samples.size();
+        if (sampleCount == 0) {
+            return PrimitiveWeightedSnapshot.EMPTY;
+        }
+        long[] sampleValues = new long[sampleCount];
+        double[] sampleWeights = new double[sampleCount];
+        int idx = 0;
+        for (WeightedSample sample : samples) {
+            sampleValues[idx] = sample.value;
+            sampleWeights[idx] = sample.weight;
+            idx++;
+        }
+        return new PrimitiveWeightedSnapshot(sampleValues, sampleWeights);
     }
 
     public static Builder builder() {
