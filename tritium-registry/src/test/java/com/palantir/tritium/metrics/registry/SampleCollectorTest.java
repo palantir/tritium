@@ -65,13 +65,19 @@ class SampleCollectorTest {
             }
             Collector collector = new Collector(size);
             samples.forEach(sample -> collector.accept(0.0, sample));
-            double threshold = collector.negligibleBelow();
+            double threshold = collector.evictionThreshold(0);
             List<WeightedSample> retained = new ArrayList<>();
+            double total = 0;
+            double removed = 0;
             for (WeightedSample sample : samples) {
+                total += sample.weight;
                 if (sample.weight >= threshold) {
                     retained.add(sample);
+                } else {
+                    removed += sample.weight;
                 }
             }
+            assertThat(removed).isLessThanOrEqualTo(NegligibleSamples.EVICTED_WEIGHT_BUDGET * total);
             if (threshold > 0) {
                 collector.retainAtLeast(threshold);
                 assertThat(retained).hasSizeLessThan(samples.size());

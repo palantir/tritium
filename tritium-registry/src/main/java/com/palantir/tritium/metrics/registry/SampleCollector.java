@@ -45,6 +45,7 @@ abstract class SampleCollector<S> implements BiConsumer<Double, S> {
     private int size;
     private double maxWeight;
     private double minWeight = Double.POSITIVE_INFINITY;
+    private double totalWeight;
     private long minValue = Long.MAX_VALUE;
     private long maxValue = Long.MIN_VALUE;
 
@@ -84,6 +85,7 @@ abstract class SampleCollector<S> implements BiConsumer<Double, S> {
         size++;
         maxWeight = Math.max(maxWeight, weight);
         minWeight = Math.min(minWeight, weight);
+        totalWeight += weight;
         minValue = Math.min(minValue, value);
         maxValue = Math.max(maxValue, value);
     }
@@ -100,10 +102,16 @@ abstract class SampleCollector<S> implements BiConsumer<Double, S> {
         return values[index];
     }
 
-    /** The weight below which samples are negligible next to the newest one, or 0 if none are. */
-    final double negligibleBelow() {
-        double threshold = maxWeight * NegligibleSamples.RELATIVE_WEIGHT_THRESHOLD;
-        return minWeight < threshold ? threshold : 0;
+    /**
+     * The weight below which samples can be evicted, or 0 if none can, given the weight the reservoir has already
+     * evicted. See {@link NegligibleSamples#evictionThreshold}.
+     */
+    final double evictionThreshold(double evicted) {
+        if (minWeight >= maxWeight * NegligibleSamples.RELATIVE_WEIGHT_THRESHOLD) {
+            // Common for busy reservoirs, which replace old samples before they become negligible.
+            return 0;
+        }
+        return NegligibleSamples.evictionThreshold(weights, size, maxWeight, totalWeight, evicted);
     }
 
     /** Drops samples weighing less than {@code threshold}, keeping the rest in order. */
