@@ -69,7 +69,7 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
         this.exemplarProvider = Preconditions.checkNotNull(provider, "provider");
     }
 
-    /** Collects a reservoir's samples, and their exemplars, for {@link #snapshot}. */
+    /** Collects a reservoir's samples, and the exemplars of those it keeps, for {@link #snapshot}. */
     static final class Collector extends SampleCollector<WeightedSampleWithExemplar> {
         // allocated on the first sample with metadata, so reservoirs without exemplars don't pay for it
         private @Nullable Object @Nullable [] metadata;
@@ -102,6 +102,14 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
         void grown(int capacity) {
             if (metadata != null) {
                 metadata = Arrays.copyOf(metadata, capacity);
+            }
+        }
+
+        @Override
+        void moved(int from, int to) {
+            if (metadata != null) {
+                metadata[to] = metadata[from];
+                metadata[from] = null;
             }
         }
 

@@ -52,6 +52,42 @@ class SampleCollectorTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 50, 1028})
+    void matchesWeightedSnapshotOfTheRetainedSamples(int size) {
+        SplittableRandom random = new SplittableRandom(size);
+        for (int trial = 0; trial < 50; trial++) {
+            LongSupplier values = values(random, trial);
+            List<WeightedSample> samples = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                // weights spanning far more than the negligible threshold, as in a reservoir hours old
+                samples.add(new WeightedSample(values.getAsLong(), Math.exp(random.nextDouble(-60, 0))));
+            }
+            Collector collector = new Collector(size);
+            samples.forEach(sample -> collector.accept(0.0, sample));
+            double threshold = collector.evictionThreshold(0);
+            List<WeightedSample> retained = new ArrayList<>();
+            double total = 0;
+            double removed = 0;
+            for (WeightedSample sample : samples) {
+                total += sample.weight;
+                if (sample.weight >= threshold) {
+                    retained.add(sample);
+                } else {
+                    removed += sample.weight;
+                }
+            }
+            assertThat(removed).isLessThanOrEqualTo(NegligibleSamples.EVICTED_WEIGHT_BUDGET * total);
+            if (threshold > 0) {
+                collector.retainAtLeast(threshold);
+                assertThat(retained).hasSizeLessThan(samples.size());
+            } else {
+                assertThat(retained).hasSameSizeAs(samples);
+            }
+            assertIdentical(collector.snapshot(), new WeightedSnapshot(retained));
+        }
+    }
+
     /** Values that exercise the sort: spread out, heavily duplicated, negative, and too large to pack. */
     private static LongSupplier values(SplittableRandom random, int trial) {
         return switch (trial % 6) {

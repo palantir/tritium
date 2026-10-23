@@ -36,7 +36,8 @@ import java.util.function.BiConsumer;
  * ExponentiallyDecayingReservoir.java</a>, however it provides looser guarantees while completely avoiding locks.
  *
  * Unlike upstream, {@link #getSnapshot()} builds its snapshot with {@link SampleCollector}, which gives the same
- * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort.
+ * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort, and also
+ * removes samples whose weight is negligible next to the newest sample, see {@link NegligibleSamples}.
  *
  * Looser guarantees:
  * <ul>
@@ -78,6 +79,9 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         // Count is updated after samples are successfully added to the map.
         private final ConcurrentSkipListMap<Double, WeightedSample> values;
 
+        // what this state has evicted, in its weight units, bounding how much more it may evict
+        private final NegligibleSamples.EvictedWeight evicted;
+
         private volatile int count;
 
         State(
@@ -85,12 +89,14 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
                 int size,
                 long startTick,
                 int count,
-                ConcurrentSkipListMap<Double, WeightedSample> values) {
+                ConcurrentSkipListMap<Double, WeightedSample> values,
+                NegligibleSamples.EvictedWeight evicted) {
             this.alphaNanos = alphaNanos;
             this.size = size;
             this.startTick = startTick;
             this.values = values;
             this.count = count;
+            this.evicted = evicted;
         }
 
         private void update(long value, long timestampNanos) {
@@ -144,7 +150,23 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
                 Preconditions.checkNotNull(newValues.pollFirstEntry(), "Expected an entry");
                 newCount--;
             }
-            return new State(alphaNanos, size, newTick, newCount, newValues);
+            return new State(alphaNanos, size, newTick, newCount, newValues, evicted.scaled(scalingFactor));
+        }
+
+        private void evictBelow(double threshold) {
+            NegligibleSamples.Evicted removed = NegligibleSamples.evictBelow(values, State::weight, threshold);
+            if (removed.samples() > 0) {
+                evicted.add(removed.weight());
+                // Racing updates can leave count above size while the map holds size samples, so clamp first.
+                int current;
+                do {
+                    current = count;
+                } while (!countUpdater.compareAndSet(this, current, Math.min(current, size) - removed.samples()));
+            }
+        }
+
+        private static double weight(WeightedSample sample) {
+            return sample.weight;
         }
 
         private double weight(long durationNanos) {
@@ -197,7 +219,13 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         this.size = size;
         this.clock = clock;
         this.rescaleThresholdNanos = rescaleThreshold.toNanos();
-        this.state = new State(alphaNanos, size, clock.getTick(), 0, new ConcurrentSkipListMap<>());
+        this.state = new State(
+                alphaNanos,
+                size,
+                clock.getTick(),
+                0,
+                new ConcurrentSkipListMap<>(),
+                new NegligibleSamples.EvictedWeight(0));
     }
 
     @Override
@@ -238,6 +266,11 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
         Collector collector = new Collector(stateSnapshot.count);
         stateSnapshot.values.forEach(collector);
+        double negligible = collector.evictionThreshold(stateSnapshot.evicted.get());
+        if (negligible > 0) {
+            stateSnapshot.evictBelow(negligible);
+            collector.retainAtLeast(negligible);
+        }
         return collector.snapshot();
     }
 

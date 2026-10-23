@@ -38,7 +38,8 @@ import org.jspecify.annotations.Nullable;
  * and adds support for capturing exemplar metadata, maintaining basically every other aspect of its original design.
  * <p>
  * Unlike upstream, {@link #getSnapshot()} builds its snapshot with {@link SampleCollector}, which gives the same
- * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort.
+ * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort, and also
+ * removes samples whose weight is negligible next to the newest sample, see {@link NegligibleSamples}.
  * <p>
  * Exemplar metadata is captured via the provided {@link ExemplarMetadataProvider}, which is invoked every time a
  * sample is selected to be added to the reservoir (ie for certain occurrences of {@link Reservoir#update(long)}).
@@ -76,6 +77,8 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
         private volatile int count;
 
         private final ExemplarMetadataProvider<?> exemplarMetadataProvider;
+        // what this state has evicted, in its weight units, bounding how much more it may evict
+        private final NegligibleSamples.EvictedWeight evicted;
 
         State(
                 double alphaNanos,
@@ -83,13 +86,15 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
                 long startTick,
                 int count,
                 ConcurrentSkipListMap<Double, WeightedSampleWithExemplar> values,
-                ExemplarMetadataProvider<?> exemplarMetadataProvider) {
+                ExemplarMetadataProvider<?> exemplarMetadataProvider,
+                NegligibleSamples.EvictedWeight evicted) {
             this.alphaNanos = alphaNanos;
             this.size = size;
             this.startTick = startTick;
             this.values = values;
             this.count = count;
             this.exemplarMetadataProvider = exemplarMetadataProvider;
+            this.evicted = evicted;
         }
 
         private void update(long value, long timestampNanos) {
@@ -149,7 +154,27 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
                 Preconditions.checkNotNull(newValues.pollFirstEntry(), "Expected an entry");
                 newCount--;
             }
-            return new State(alphaNanos, size, newTick, newCount, newValues, exemplarMetadataProvider);
+            return new State(
+                    alphaNanos,
+                    size,
+                    newTick,
+                    newCount,
+                    newValues,
+                    exemplarMetadataProvider,
+                    evicted.scaled(scalingFactor));
+        }
+
+        private void evictBelow(double threshold) {
+            NegligibleSamples.Evicted removed =
+                    NegligibleSamples.evictBelow(values, WeightedSampleWithExemplar::weight, threshold);
+            if (removed.samples() > 0) {
+                evicted.add(removed.weight());
+                // Racing updates can leave count above size while the map holds size samples, so clamp first.
+                int current;
+                do {
+                    current = count;
+                } while (!countUpdater.compareAndSet(this, current, Math.min(current, size) - removed.samples()));
+            }
         }
 
         private double weight(long durationNanos) {
@@ -193,7 +218,13 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
         this.clock = clock;
         this.rescaleThresholdNanos = rescaleThreshold.toNanos();
         this.state = new State(
-                alphaNanos, size, clock.getTick(), 0, new ConcurrentSkipListMap<>(), exemplarMetadataProvider);
+                alphaNanos,
+                size,
+                clock.getTick(),
+                0,
+                new ConcurrentSkipListMap<>(),
+                exemplarMetadataProvider,
+                new NegligibleSamples.EvictedWeight(0));
     }
 
     @Override
@@ -235,6 +266,11 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
         WeightedSnapshotWithExemplars.Collector collector =
                 new WeightedSnapshotWithExemplars.Collector(stateSnapshot.count);
         stateSnapshot.values.forEach(collector);
+        double negligible = collector.evictionThreshold(stateSnapshot.evicted.get());
+        if (negligible > 0) {
+            stateSnapshot.evictBelow(negligible);
+            collector.retainAtLeast(negligible);
+        }
         return collector.snapshot(stateSnapshot.exemplarMetadataProvider);
     }
 
