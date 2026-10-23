@@ -36,7 +36,8 @@ import java.util.function.BiConsumer;
  * ExponentiallyDecayingReservoir.java</a>, however it provides looser guarantees while completely avoiding locks.
  *
  * Unlike upstream, {@link #getSnapshot()} builds its snapshot with {@link SampleCollector}, which gives the same
- * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort.
+ * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort, and also
+ * removes samples whose weight is negligible next to the newest sample, see {@link NegligibleSamples}.
  *
  * Looser guarantees:
  * <ul>
@@ -147,6 +148,21 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
             return new State(alphaNanos, size, newTick, newCount, newValues);
         }
 
+        private void evictBelow(double threshold) {
+            int removed = NegligibleSamples.evictBelow(values, State::weight, threshold);
+            if (removed > 0) {
+                // Racing updates can leave count above size while the map holds size samples, so clamp first.
+                int current;
+                do {
+                    current = count;
+                } while (!countUpdater.compareAndSet(this, current, Math.min(current, size) - removed));
+            }
+        }
+
+        private static double weight(WeightedSample sample) {
+            return sample.weight;
+        }
+
         private double weight(long durationNanos) {
             return Math.exp(alphaNanos * durationNanos);
         }
@@ -238,6 +254,11 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
         Collector collector = new Collector(stateSnapshot.count);
         stateSnapshot.values.forEach(collector);
+        double negligible = collector.negligibleBelow();
+        if (negligible > 0) {
+            stateSnapshot.evictBelow(negligible);
+            collector.retainAtLeast(negligible);
+        }
         return collector.snapshot();
     }
 

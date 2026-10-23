@@ -38,7 +38,8 @@ import org.jspecify.annotations.Nullable;
  * and adds support for capturing exemplar metadata, maintaining basically every other aspect of its original design.
  * <p>
  * Unlike upstream, {@link #getSnapshot()} builds its snapshot with {@link SampleCollector}, which gives the same
- * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort.
+ * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort, and also
+ * removes samples whose weight is negligible next to the newest sample, see {@link NegligibleSamples}.
  * <p>
  * Exemplar metadata is captured via the provided {@link ExemplarMetadataProvider}, which is invoked every time a
  * sample is selected to be added to the reservoir (ie for certain occurrences of {@link Reservoir#update(long)}).
@@ -152,6 +153,17 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
             return new State(alphaNanos, size, newTick, newCount, newValues, exemplarMetadataProvider);
         }
 
+        private void evictBelow(double threshold) {
+            int removed = NegligibleSamples.evictBelow(values, WeightedSampleWithExemplar::weight, threshold);
+            if (removed > 0) {
+                // Racing updates can leave count above size while the map holds size samples, so clamp first.
+                int current;
+                do {
+                    current = count;
+                } while (!countUpdater.compareAndSet(this, current, Math.min(current, size) - removed));
+            }
+        }
+
         private double weight(long durationNanos) {
             return Math.exp(alphaNanos * durationNanos);
         }
@@ -235,6 +247,11 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
         WeightedSnapshotWithExemplars.Collector collector =
                 new WeightedSnapshotWithExemplars.Collector(stateSnapshot.count);
         stateSnapshot.values.forEach(collector);
+        double negligible = collector.negligibleBelow();
+        if (negligible > 0) {
+            stateSnapshot.evictBelow(negligible);
+            collector.retainAtLeast(negligible);
+        }
         return collector.snapshot(stateSnapshot.exemplarMetadataProvider);
     }
 
