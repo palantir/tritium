@@ -19,7 +19,6 @@ package com.palantir.tritium.metrics.registry;
 import com.codahale.metrics.Clock;
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Snapshot;
-import com.codahale.metrics.WeightedSnapshot;
 import com.codahale.metrics.WeightedSnapshot.WeightedSample;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.logsafe.SafeArg;
@@ -36,8 +35,8 @@ import java.util.function.BiConsumer;
  * <a href="https://github.com/dropwizard/metrics/blob/0313a104bf785e87d7d14a18a82026225304c402/metrics-core/src/main/java/com/codahale/metrics/ExponentiallyDecayingReservoir.java">
  * ExponentiallyDecayingReservoir.java</a>, however it provides looser guarantees while completely avoiding locks.
  *
- * This implementation is being contributed upstream:
- * <a href="https://github.com/dropwizard/metrics/pull/1656">metrics#1656</a>
+ * Unlike upstream, {@link #getSnapshot()} builds its snapshot with {@link SampleCollector}, which gives the same
+ * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort.
  *
  * Looser guarantees:
  * <ul>
@@ -54,10 +53,7 @@ import java.util.function.BiConsumer;
  *
  * See {@link com.codahale.metrics.ExponentiallyDecayingReservoir} Copyright 2010-2012 Coda Hale and Yammer, Inc.
  * Licensed under the Apache License, Version 2.0. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * @deprecated prefer upstream {@link com.codahale.metrics.LockFreeExponentiallyDecayingReservoir}.
  */
-@Deprecated
 public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
     private static final double SECONDS_PER_NANO = .000_000_001D;
@@ -156,6 +152,22 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
     }
 
+    private static final class Collector extends SampleCollector<WeightedSample> {
+        Collector(int expectedSize) {
+            super(expectedSize);
+        }
+
+        @Override
+        long sampleValue(WeightedSample sample) {
+            return sample.value;
+        }
+
+        @Override
+        double sampleWeight(WeightedSample sample) {
+            return sample.weight;
+        }
+    }
+
     private static final class RescalingConsumer implements BiConsumer<Double, WeightedSample> {
         private final double scalingFactor;
         private final ConcurrentSkipListMap<Double, WeightedSample> values;
@@ -224,7 +236,9 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     @Override
     public Snapshot getSnapshot() {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
-        return new WeightedSnapshot(stateSnapshot.values.values());
+        Collector collector = new Collector(stateSnapshot.count);
+        stateSnapshot.values.forEach(collector);
+        return collector.snapshot();
     }
 
     public static Builder builder() {
