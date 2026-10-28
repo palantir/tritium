@@ -232,8 +232,9 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
     @Override
     public Snapshot getSnapshot() {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
+        // Concurrent inserts can leave count above the reservoir size until the next rescale.
         WeightedSnapshotWithExemplars.Collector collector =
-                new WeightedSnapshotWithExemplars.Collector(stateSnapshot.count);
+                new WeightedSnapshotWithExemplars.Collector(Math.min(size, stateSnapshot.count));
         stateSnapshot.values.forEach(collector);
         return collector.snapshot(stateSnapshot.exemplarMetadataProvider);
     }

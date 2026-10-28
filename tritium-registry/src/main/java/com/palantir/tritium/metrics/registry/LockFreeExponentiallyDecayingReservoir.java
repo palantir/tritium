@@ -236,7 +236,8 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     @Override
     public Snapshot getSnapshot() {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
-        Collector collector = new Collector(stateSnapshot.count);
+        // Concurrent inserts can leave count above the reservoir size until the next rescale.
+        Collector collector = new Collector(Math.min(size, stateSnapshot.count));
         stateSnapshot.values.forEach(collector);
         return collector.snapshot();
     }
