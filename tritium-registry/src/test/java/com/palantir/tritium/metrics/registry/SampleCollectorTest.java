@@ -17,6 +17,7 @@
 package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.WeightedSnapshot;
@@ -27,7 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
 import java.util.function.LongSupplier;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /** {@link SampleCollector} must build exactly what {@link WeightedSnapshot} builds from the same samples. */
@@ -52,14 +55,72 @@ class SampleCollectorTest {
         }
     }
 
+    @ParameterizedTest
+    @CsvSource({"0, 0", "0, 1028", "1, 1028", "3, 1028", "1028, 0", "1028, 1029"})
+    void onlyExposesCollectedSamples(int size, int expectedSize) {
+        Collector collector = new Collector(expectedSize);
+        List<WeightedSample> samples = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            WeightedSample sample = new WeightedSample(-i - 1, i + 1);
+            samples.add(sample);
+            collector.accept(0.0, sample);
+        }
+        Snapshot snapshot = collector.snapshot();
+        Snapshot expected = new WeightedSnapshot(samples);
+        assertIdentical(snapshot, expected);
+        if (size > 0) {
+            snapshot.getValues()[0] = Long.MAX_VALUE;
+            assertIdentical(snapshot, expected);
+        }
+        for (double quantile : new double[] {-1, 2, Double.NaN}) {
+            assertThatIllegalArgumentException().isThrownBy(() -> snapshot.getValue(quantile));
+        }
+    }
+
+    @Test
+    void preservesQuantileBoundariesWithUnusedCapacity() {
+        Collector collector = new Collector(100);
+        List<WeightedSample> samples =
+                List.of(new WeightedSample(30, 1), new WeightedSample(10, 1), new WeightedSample(20, 2));
+        samples.forEach(sample -> collector.accept(0.0, sample));
+        Snapshot snapshot = collector.snapshot();
+        Snapshot expected = new WeightedSnapshot(samples);
+        for (double boundary : new double[] {0.25, 0.75}) {
+            for (double quantile : new double[] {Math.nextDown(boundary), boundary, Math.nextUp(boundary)}) {
+                assertThat(snapshot.getValue(quantile)).isEqualTo(expected.getValue(quantile));
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 2, 100})
+    void preservesExemplarValuesBeforeSorting(int expectedSize) {
+        ExemplarMetadataProvider<String> provider = () -> "metadata";
+        WeightedSnapshotWithExemplars.Collector collector = new WeightedSnapshotWithExemplars.Collector(expectedSize);
+        collector.accept(0.0, new WeightedSnapshotWithExemplars.WeightedSampleWithExemplar(Long.MAX_VALUE, 1, "first"));
+        collector.accept(0.0, new WeightedSnapshotWithExemplars.WeightedSampleWithExemplar(Long.MIN_VALUE, 2, null));
+        collector.accept(0.0, new WeightedSnapshotWithExemplars.WeightedSampleWithExemplar(7, 3, "last"));
+        Snapshot snapshot = collector.snapshot(provider);
+        assertIdentical(
+                snapshot,
+                new WeightedSnapshot(List.of(
+                        new WeightedSample(Long.MAX_VALUE, 1),
+                        new WeightedSample(Long.MIN_VALUE, 2),
+                        new WeightedSample(7, 3))));
+        List<LongExemplar<String>> exemplars = ((ExemplarsCapture) snapshot).getSamples(provider);
+        assertThat(exemplars).extracting(LongExemplar::metadata).containsExactly("first", "last");
+        assertThat(exemplars).extracting(LongExemplar::value).containsExactly(Long.MAX_VALUE, 7L);
+    }
+
     /** Values that exercise the sort: spread out, heavily duplicated, negative, and too large to pack. */
     private static LongSupplier values(SplittableRandom random, int trial) {
-        return switch (trial % 6) {
+        return switch (trial % 7) {
             case 0 -> () -> random.nextLong(1, 10_000_000_000L);
             case 1 -> () -> random.nextLong(0, 4);
             case 2 -> () -> random.nextLong(-1_000_000, 1_000_000);
             case 3 -> () -> random.nextBoolean() ? Long.MAX_VALUE : Long.MIN_VALUE + random.nextInt(3);
             case 4 -> () -> random.nextLong(1L << 51, 1L << 53);
+            case 5 -> random::nextLong;
             default -> () -> (long) Math.exp(random.nextDouble(0, 40));
         };
     }

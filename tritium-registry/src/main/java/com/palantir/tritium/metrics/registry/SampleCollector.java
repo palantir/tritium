@@ -28,7 +28,7 @@ import java.util.function.BiConsumer;
  * Copies a reservoir's samples, in the map's iteration order, into primitive arrays with one {@code forEach} pass, and
  * builds the snapshot from them. The result is identical to {@code new WeightedSnapshot(map.values())} but avoids its
  * intermediate {@code ArrayList}, {@code WeightedSample[]} copy and object sort: only the snapshot's own three arrays are
- * allocated.
+ * allocated. The arrays can have spare capacity if the expected size was too large or they grew while collecting.
  *
  * <p>The sort packs each value with its iteration index, {@code value << bits | index}, and sorts the {@code long[]}.
  * Equal values therefore keep their iteration order, exactly as the stable sort in {@link WeightedSnapshot} does, so
@@ -38,7 +38,7 @@ import java.util.function.BiConsumer;
 abstract class SampleCollector<S> implements BiConsumer<Double, S> {
 
     private static final SortedWeightedSnapshot EMPTY =
-            new SortedWeightedSnapshot(new long[0], new double[0], new double[0]);
+            new SortedWeightedSnapshot(new long[0], new double[0], new double[0], 0);
 
     private long[] values;
     private double[] weights;
@@ -116,13 +116,13 @@ abstract class SampleCollector<S> implements BiConsumer<Double, S> {
             normWeights[i] = sumWeight != 0 ? weights[(int) (key & mask)] / sumWeight : 0;
             keys[i] = key >> bits;
         }
-        // the weights in iteration order aren't needed any more
-        double[] quantiles = weights.length == count ? weights : new double[count];
+        // the weights in iteration order aren't needed any more, so they become the quantiles
+        double[] quantiles = weights;
         quantiles[0] = 0;
         for (int i = 1; i < count; i++) {
             quantiles[i] = quantiles[i - 1] + normWeights[i - 1];
         }
-        return new SortedWeightedSnapshot(keys, normWeights, quantiles);
+        return new SortedWeightedSnapshot(keys, normWeights, quantiles, count);
     }
 
     /** Whether every value still fits once shifted left by {@code bits}. */
@@ -136,11 +136,11 @@ abstract class SampleCollector<S> implements BiConsumer<Double, S> {
 
     /** Each value shifted left with its iteration index in the low {@code bits}, sorted. */
     private long[] sortedKeys(int count, int bits) {
-        long[] keys = values.length == count ? values : Arrays.copyOf(values, count);
+        long[] keys = values;
         for (int i = 0; i < count; i++) {
             keys[i] = (keys[i] << bits) | i;
         }
-        Arrays.sort(keys);
+        Arrays.sort(keys, 0, count);
         return keys;
     }
 
