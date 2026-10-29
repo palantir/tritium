@@ -214,7 +214,12 @@ public abstract class AbstractTaggedMetricRegistry implements TaggedMetricRegist
 
     protected final <T extends Metric> T getOrAdd(
             MetricName metricName, Class<T> metricClass, Supplier<T> metricSupplier) {
-        Metric metric = registry.computeIfAbsent(metricName, _name -> metricSupplier.get());
+        // ConcurrentHashMap.computeIfAbsent locks the hash bin even when the key is present (unless it is the first
+        // node in the bin), so look up existing metrics with a lock-free get and only fall back on a miss.
+        Metric metric = registry.get(metricName);
+        if (metric == null) {
+            metric = registry.computeIfAbsent(metricName, _name -> metricSupplier.get());
+        }
         return checkNotNull(checkMetricType(metricName, metricClass, metric), "metric");
     }
 
