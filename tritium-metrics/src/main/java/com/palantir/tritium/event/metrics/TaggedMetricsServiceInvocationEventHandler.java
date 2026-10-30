@@ -101,10 +101,21 @@ public class TaggedMetricsServiceInvocationEventHandler extends AbstractInvocati
     }
 
     private Timer getSuccessTimer(Method method) {
-        return successTimerCache.computeIfAbsent(method, onSuccessTimerMappingFunction);
+        return getTimer(successTimerCache, method, onSuccessTimerMappingFunction);
     }
 
     private Timer getFailureTimer(Method method) {
-        return failureTimerCache.computeIfAbsent(method, onFailureTimerMappingFunction);
+        return getTimer(failureTimerCache, method, onFailureTimerMappingFunction);
+    }
+
+    private static Timer getTimer(
+            ConcurrentMap<Method, Timer> cache, Method method, Function<Method, Timer> mappingFunction) {
+        // ConcurrentHashMap.computeIfAbsent locks the hash bin even when the key is present (unless it is the first
+        // node in the bin), and overloads of a method always share a bin, so try a lock-free get first.
+        Timer timer = cache.get(method);
+        if (timer == null) {
+            timer = cache.computeIfAbsent(method, mappingFunction);
+        }
+        return timer;
     }
 }
