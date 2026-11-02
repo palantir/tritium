@@ -8,11 +8,11 @@ com.google.auto.service:auto-service-annotations:1.1.1 (1 constraints: 0505f435)
 
 com.google.code.findbugs:jsr305:3.0.2 (2 constraints: aa1e1d46)
 
-com.google.errorprone:error_prone_annotations:2.50.0 (8 constraints: 6370e126)
+com.google.errorprone:error_prone_annotations:2.52.0 (8 constraints: 6570dd28)
 
 com.google.guava:failureaccess:1.0.3 (1 constraints: 160ae3b4)
 
-com.google.guava:guava:33.7.2-jre (6 constraints: 815b13af)
+com.google.guava:guava:33.8.0-jre (6 constraints: 805b1cae)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
