@@ -16,7 +16,6 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import com.codahale.metrics.LockFreeExponentiallyDecayingReservoir;
 import com.google.auto.service.AutoService;
 
 @AutoService(TaggedMetricRegistry.class)

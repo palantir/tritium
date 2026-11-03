@@ -16,12 +16,10 @@
 package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Snapshot;
-import com.codahale.metrics.WeightedSnapshot;
-import com.codahale.metrics.WeightedSnapshot.WeightedSample;
 import com.palantir.logsafe.Preconditions;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -60,46 +58,73 @@ final class WeightedSnapshotWithExemplars extends Snapshot implements ExemplarsC
         }
     }
 
-    private final WeightedSnapshot weightedSnapshot;
+    private final Snapshot weightedSnapshot;
     private final ExemplarMetadataProvider<?> exemplarProvider;
     private final List<LongExemplar<Object>> exemplars;
 
     private WeightedSnapshotWithExemplars(
-            ExemplarMetadataProvider<?> provider, List<LongExemplar<Object>> exemplars, WeightedSnapshot snapshot) {
+            ExemplarMetadataProvider<?> provider, List<LongExemplar<Object>> exemplars, Snapshot snapshot) {
         this.exemplars = Collections.unmodifiableList(exemplars);
         this.weightedSnapshot = Preconditions.checkNotNull(snapshot, "snapshot");
         this.exemplarProvider = Preconditions.checkNotNull(provider, "provider");
     }
 
-    /**
-     * Create a new {@link Snapshot} with the given values.
-     *
-     * @param provider the provider used to capture exemplar metadata. The {@link ExemplarsCapture} will only return
-     * exemplars to clients able to input the same provider instance, to guarantee type-safety.
-     * @param values an unordered set of values in the reservoir
-     */
-    static Snapshot snapshot(ExemplarMetadataProvider<?> provider, Collection<WeightedSampleWithExemplar> values) {
-        List<WeightedSample> weightedSamples = new ArrayList<>(values.size());
-        List<LongExemplar<Object>> exemplars = new ArrayList<>();
-        values.forEach(v -> {
-            weightedSamples.add(new WeightedSample(v.value, v.weight));
-            if (v.exemplarMetadata != null) {
-                exemplars.add(DefaultLongExemplar.of(v.exemplarMetadata, v.value));
-            }
-        });
+    /** Collects a reservoir's samples, and their exemplars, for {@link #snapshot}. */
+    static final class Collector extends SampleCollector<WeightedSampleWithExemplar> {
+        // allocated on the first sample with metadata, so reservoirs without exemplars don't pay for it
+        private @Nullable Object @Nullable [] metadata;
 
-        WeightedSnapshot weightedSnapshot = new WeightedSnapshot(weightedSamples);
-        if (exemplars.isEmpty()) {
-            return weightedSnapshot;
+        Collector(int expectedSize) {
+            super(expectedSize);
         }
-        return new WeightedSnapshotWithExemplars(provider, exemplars, weightedSnapshot);
+
+        @Override
+        long sampleValue(WeightedSampleWithExemplar sample) {
+            return sample.value;
+        }
+
+        @Override
+        double sampleWeight(WeightedSampleWithExemplar sample) {
+            return sample.weight;
+        }
+
+        @Override
+        void collected(int index, WeightedSampleWithExemplar sample) {
+            if (sample.exemplarMetadata != null) {
+                if (metadata == null) {
+                    metadata = new Object[capacity()];
+                }
+                metadata[index] = sample.exemplarMetadata;
+            }
+        }
+
+        @Override
+        void grown(int capacity) {
+            if (metadata != null) {
+                metadata = Arrays.copyOf(metadata, capacity);
+            }
+        }
+
+        /** The snapshot, with the exemplars of the samples it holds in iteration order if there are any. */
+        Snapshot snapshot(ExemplarMetadataProvider<?> provider) {
+            List<LongExemplar<Object>> exemplars = new ArrayList<>();
+            if (metadata != null) {
+                for (int i = 0; i < size(); i++) {
+                    Object exemplarMetadata = metadata[i];
+                    if (exemplarMetadata != null) {
+                        exemplars.add(DefaultLongExemplar.of(exemplarMetadata, value(i)));
+                    }
+                }
+            }
+            // after reading the values: building the snapshot reuses the collector's arrays
+            Snapshot snapshot = snapshot();
+            if (exemplars.isEmpty()) {
+                return snapshot;
+            }
+            return new WeightedSnapshotWithExemplars(provider, exemplars, snapshot);
+        }
     }
 
-    /**
-     * Returns the exemplars captured from the given provider. If the provider is different from the
-     * one used to create this snapshot, an empty list is returned.
-     * Only exemplars for which the provider returned non-null metadata are returned.
-     */
     @Override
     @SuppressWarnings({"unchecked", "for-rollout:ReferenceEquality"
     }) // instance check on the provider guarantees the cast is safe

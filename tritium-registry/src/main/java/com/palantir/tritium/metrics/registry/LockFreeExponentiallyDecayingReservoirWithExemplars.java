@@ -37,6 +37,9 @@ import org.jspecify.annotations.Nullable;
  * <a href="https://github.com/dropwizard/metrics/blob/1418393d0476d3eb6147bc567797e5d2a71d0b83/metrics-core/src/main/java/com/codahale/metrics/LockFreeExponentiallyDecayingReservoir.java">LockFreeExponentiallyDecayingReservoir.java</a>
  * and adds support for capturing exemplar metadata, maintaining basically every other aspect of its original design.
  * <p>
+ * Unlike upstream, {@link #getSnapshot()} builds its snapshot with {@link SampleCollector}, which gives the same
+ * result as {@link com.codahale.metrics.WeightedSnapshot} without its intermediate copies and object sort.
+ * <p>
  * Exemplar metadata is captured via the provided {@link ExemplarMetadataProvider}, which is invoked every time a
  * sample is selected to be added to the reservoir (ie for certain occurrences of {@link Reservoir#update(long)}).
  * <p>
@@ -229,8 +232,12 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
     @Override
     public Snapshot getSnapshot() {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
-        return WeightedSnapshotWithExemplars.snapshot(
-                stateSnapshot.exemplarMetadataProvider, stateSnapshot.values.values());
+        // A fill race can leave count a few above the samples until the next rescale. That only leaves the snapshot
+        // spare capacity; clamping to size would make the collector grow whenever an insert is in flight.
+        WeightedSnapshotWithExemplars.Collector collector =
+                new WeightedSnapshotWithExemplars.Collector(stateSnapshot.count);
+        stateSnapshot.values.forEach(collector);
+        return collector.snapshot(stateSnapshot.exemplarMetadataProvider);
     }
 
     public static Builder builder() {
