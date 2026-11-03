@@ -18,7 +18,9 @@ package com.palantir.tritium.metrics;
 
 import com.codahale.metrics.Clock;
 import java.util.concurrent.TimeUnit;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class TestClock extends Clock {
     private long tick = 0;
 
