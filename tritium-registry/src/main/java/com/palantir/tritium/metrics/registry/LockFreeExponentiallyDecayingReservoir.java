@@ -68,7 +68,7 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
 
     private volatile State state;
 
-    private static final class State {
+    private static final class State implements NegligibleSamples.Removals {
 
         private static final AtomicIntegerFieldUpdater<State> countUpdater =
                 AtomicIntegerFieldUpdater.newUpdater(State.class, "count");
@@ -105,14 +105,27 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
             boolean mapIsFull = count >= size;
             if (!mapIsFull || values.firstKey() < priority) {
                 addSample(priority, value, itemWeight, mapIsFull);
+            } else if (count < size) {
+                // eviction freed a slot after this update found the map full
+                addSample(priority, value, itemWeight, false);
             }
         }
 
         private void addSample(double priority, long value, double itemWeight, boolean bypassIncrement) {
             if (values.putIfAbsent(priority, new WeightedSample(value, itemWeight)) == null
-                    && (bypassIncrement || countUpdater.incrementAndGet(this) > size)) {
+                    && (bypassIncrement ? !claimFreedSlot() : countUpdater.incrementAndGet(this) > size)) {
                 values.pollFirstEntry();
             }
+        }
+
+        /** Takes a slot eviction freed after this update found the map full, if there is one. */
+        private boolean claimFreedSlot() {
+            for (int current = count; current < size; current = count) {
+                if (countUpdater.compareAndSet(this, current, current + 1)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /* "A common feature of the above techniques—indeed, the key technique that
@@ -154,15 +167,24 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
         }
 
         private void evictBelow(double threshold) {
-            NegligibleSamples.Evicted removed = NegligibleSamples.evictBelow(values, State::weight, threshold);
-            if (removed.samples() > 0) {
-                evicted.add(removed.weight());
-                // Racing updates can leave count above size while the map holds size samples, so clamp first.
-                int current;
-                do {
-                    current = count;
-                } while (!countUpdater.compareAndSet(this, current, Math.min(current, size) - removed.samples()));
-            }
+            // Racing updates can leave count above size while the map holds size samples, so clamp first.
+            int current;
+            do {
+                current = count;
+            } while (current > size && !countUpdater.compareAndSet(this, current, size));
+            NegligibleSamples.evictBelow(values, State::weight, threshold, this);
+        }
+
+        @Override
+        public void removing(double weight) {
+            evicted.add(weight);
+            countUpdater.decrementAndGet(this);
+        }
+
+        @Override
+        public void notRemoved(double weight) {
+            evicted.add(-weight);
+            countUpdater.incrementAndGet(this);
         }
 
         private static double weight(WeightedSample sample) {

@@ -87,6 +87,13 @@ class DecayingReservoirCompatibilityTest {
                         .clock(clock)
                         .build();
             }
+
+            @Override
+            Reservoir createDefault(Clock clock) {
+                return LockFreeExponentiallyDecayingReservoir.builder()
+                        .clock(clock)
+                        .build();
+            }
         },
         EXEMPLARS {
             @Override
@@ -96,9 +103,18 @@ class DecayingReservoirCompatibilityTest {
                         .clock(clock)
                         .build();
             }
+
+            @Override
+            Reservoir createDefault(Clock clock) {
+                return LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                        .clock(clock)
+                        .build();
+            }
         };
 
         abstract Reservoir create(Clock clock);
+
+        abstract Reservoir createDefault(Clock clock);
     }
 
     @ParameterizedTest(name = "{0}: {1}")
@@ -141,6 +157,121 @@ class DecayingReservoirCompatibilityTest {
         assertThat(reports).isGreaterThan(100);
         // guard against the comparison passing vacuously: every scenario but the constant-rate busy one evicts
         assertThat(evicting).as("reports where tritium had evicted something").isGreaterThan(0);
+    }
+
+    static Stream<Arguments> fullScenarios() {
+        List<Arguments> scenarios = List.of(
+                Arguments.of("1.5/s, bimodal", Duration.ofHours(3), (Supplier<Workload>) () -> steady(1.5, bimodal())),
+                Arguments.of("20,000 slow calls, then a fast trickle", Duration.ofHours(3), (Supplier<Workload>)
+                        () -> bigBurstThenTrickle()),
+                Arguments.of("10 minutes at 2.5/s every 30 minutes", Duration.ofHours(4), (Supplier<Workload>)
+                        () -> frequentBursts()));
+        return Stream.of(Kind.values())
+                .flatMap(kind -> scenarios.stream()
+                        .map(scenario -> Arguments.of(kind, scenario.get()[0], scenario.get()[1], scenario.get()[2])));
+    }
+
+    /**
+     * Once reservoirs fill, which samples they keep is random, so they can't be compared sample for sample, and
+     * eviction also changes which later updates get in. Instead both are scored against the exact decayed
+     * distribution of every update: at each report, how far each quantile's value is in rank from where it should be.
+     * Eviction must be about as accurate as dropwizard's reservoir.
+     */
+    @ParameterizedTest(name = "{0}: {1}")
+    @MethodSource("fullScenarios")
+    void fullReservoirsAreAsAccurateAsDropwizard(
+            Kind kind, String _name, Duration duration, Supplier<Workload> workloads) {
+        double[] dropwizardError = new double[QUANTILES.length];
+        double[] tritiumError = new double[QUANTILES.length];
+        int reports = 0;
+        int evicting = 0;
+        for (int seed = 0; seed < 10; seed++) {
+            Workload workload = workloads.get();
+            ManualClock clock = new ManualClock();
+            Reservoir dropwizard = com.codahale.metrics.LockFreeExponentiallyDecayingReservoir.builder()
+                    .clock(clock)
+                    .build();
+            Reservoir tritium = kind.createDefault(clock);
+            ExactDistribution exact = new ExactDistribution();
+            SplittableRandom random = new SplittableRandom(seed);
+            long end = duration.toNanos();
+            long nextUpdate = workload.next(0, random);
+            for (long report = REPORT_INTERVAL; report <= end; report += REPORT_INTERVAL) {
+                while (nextUpdate <= report) {
+                    clock.nanos = nextUpdate;
+                    long value = workload.value(nextUpdate, random);
+                    dropwizard.update(value);
+                    tritium.update(value);
+                    exact.update(nextUpdate, value);
+                    nextUpdate = workload.next(nextUpdate, random);
+                }
+                clock.nanos = report;
+                Snapshot expected = dropwizard.getSnapshot();
+                Snapshot actual = tritium.getSnapshot();
+                if (expected.size() == 0) {
+                    continue;
+                }
+                exact.at(report);
+                for (int q = 0; q < QUANTILES.length; q++) {
+                    dropwizardError[q] += exact.rankError(QUANTILES[q], expected.getValue(QUANTILES[q]));
+                    tritiumError[q] += exact.rankError(QUANTILES[q], actual.getValue(QUANTILES[q]));
+                }
+                reports++;
+                if (actual.size() < expected.size()) {
+                    evicting++;
+                }
+            }
+        }
+        assertThat(evicting).as("reports where tritium had evicted something").isGreaterThan(reports / 10);
+        for (int q = 0; q < QUANTILES.length; q++) {
+            // sampling noise between runs is a few percent; this catches eviction biasing what full reservoirs keep
+            assertThat(tritiumError[q] / reports)
+                    .as("q%s mean rank error, dropwizard's is %s", QUANTILES[q], dropwizardError[q] / reports)
+                    .isLessThanOrEqualTo(1.25 * dropwizardError[q] / reports + 0.0005);
+        }
+    }
+
+    /** Every update, weighted by its decay as of a report, ignoring updates too old to matter. */
+    private static final class ExactDistribution {
+        private static final double ALPHA_PER_NANO = 0.015 / 1e9;
+
+        private final List<long[]> updates = new java.util.ArrayList<>();
+        private int first;
+        private double[] weights = new double[0];
+        private double total;
+
+        void update(long nanos, long value) {
+            updates.add(new long[] {nanos, value});
+        }
+
+        void at(long nanos) {
+            // weights below 1e-15 of the newest change no rank by more than 1e-15 per update
+            while (first < updates.size() && (nanos - updates.get(first)[0]) * ALPHA_PER_NANO > 35) {
+                first++;
+            }
+            weights = new double[updates.size() - first];
+            total = 0;
+            for (int i = first; i < updates.size(); i++) {
+                weights[i - first] = Math.exp(-(nanos - updates.get(i)[0]) * ALPHA_PER_NANO);
+                total += weights[i - first];
+            }
+        }
+
+        /** How far {@code quantile} is from the ranks the exact distribution gives {@code value}. */
+        double rankError(double quantile, double value) {
+            double below = 0;
+            double atOrBelow = 0;
+            for (int i = first; i < updates.size(); i++) {
+                long sample = updates.get(i)[1];
+                if (sample < value) {
+                    below += weights[i - first];
+                }
+                if (sample <= value) {
+                    atOrBelow += weights[i - first];
+                }
+            }
+            return Math.max(0, Math.max(below / total - quantile, quantile - atOrBelow / total));
+        }
     }
 
     private static void assertWithinBound(Snapshot actual, Snapshot expected, long nanos) {
@@ -236,6 +367,31 @@ class DecayingReservoirCompatibilityTest {
                 return nanos < quietEnd ? TimeUnit.SECONDS.toNanos(2) : TimeUnit.MILLISECONDS.toNanos(1);
             }
         };
+    }
+
+    /** 20,000 two-second calls in 10 s, then 1 ms calls at 0.5/s: the burst fills the reservoir, then decays out. */
+    private static Workload bigBurstThenTrickle() {
+        long burstEnd = TimeUnit.SECONDS.toNanos(10);
+        return workload(
+                t -> t < burstEnd ? 2000.0 : 0.5,
+                2000,
+                (t, random) -> t < burstEnd
+                        ? TimeUnit.SECONDS.toNanos(2)
+                        : TimeUnit.MILLISECONDS.toNanos(1) + random.nextInt(1000));
+    }
+
+    /**
+     * 10 minutes at 2.5/s every 30 minutes, the last 20 s of each burst 50x slower: each burst fills the reservoir,
+     * and the next one starts while the last one's samples are still there but negligible.
+     */
+    private static Workload frequentBursts() {
+        long period = TimeUnit.MINUTES.toNanos(30);
+        long length = TimeUnit.MINUTES.toNanos(10);
+        Values values = lognormal(30, 0.5);
+        return workload(t -> t % period < length ? 2.5 : 0.0, 2.5, (t, random) -> {
+            long value = values.sample(t, random);
+            return t % period > length - TimeUnit.SECONDS.toNanos(20) ? value * 50 : value;
+        });
     }
 
     /** 10 minutes at 2/s every 2 hours, with the slowest calls at the end of each burst. */

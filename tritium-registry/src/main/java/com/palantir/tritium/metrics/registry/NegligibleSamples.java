@@ -97,19 +97,26 @@ final class NegligibleSamples {
     }
 
     /**
-     * Removes samples weighing less than {@code threshold} from {@code values}, returning how many were removed and
-     * their weight. Entries are removed only if they still map to the sample that was examined, so concurrent updates
-     * and evictions are not double-counted.
+     * Removes samples weighing less than {@code threshold} from {@code values}. Each removal is announced to
+     * {@code removals} before it happens, so a reservoir's count and evicted weight never lag its map: an update that
+     * finds the reservoir full can't be looking at slots eviction already emptied, and a rescale, which copies the map
+     * before the evicted weight, can't copy a sample's absence without its weight. Entries are removed only if they
+     * still map to the sample that was examined; a removal that loses that race is undone.
      */
-    static <S> Evicted evictBelow(
-            ConcurrentSkipListMap<Double, S> values, ToDoubleFunction<S> weight, double threshold) {
+    static <S> void evictBelow(
+            ConcurrentSkipListMap<Double, S> values, ToDoubleFunction<S> weight, double threshold, Removals removals) {
         // forEach walks the nodes directly, where entrySet() would allocate an entry per sample.
-        Evictor<S> evictor = new Evictor<>(values, weight, threshold);
-        values.forEach(evictor);
-        return new Evicted(evictor.removed, evictor.removedWeight);
+        values.forEach(new Evictor<>(values, weight, threshold, removals));
     }
 
-    record Evicted(int samples, double weight) {}
+    /** What a reservoir state does around each removal, see {@link #evictBelow}. */
+    interface Removals {
+        /** A sample of this weight is about to be removed: free its slot and count its weight as evicted. */
+        void removing(double weight);
+
+        /** The sample announced to {@link #removing} was already gone: undo it. */
+        void notRemoved(double weight);
+    }
 
     /** The weight a reservoir state has evicted so far, in that state's units: rescaled along with its samples. */
     static final class EvictedWeight {
@@ -139,21 +146,27 @@ final class NegligibleSamples {
         private final ConcurrentSkipListMap<Double, S> values;
         private final ToDoubleFunction<S> weight;
         private final double threshold;
-        private int removed;
-        private double removedWeight;
+        private final Removals removals;
 
-        Evictor(ConcurrentSkipListMap<Double, S> values, ToDoubleFunction<S> weight, double threshold) {
+        Evictor(
+                ConcurrentSkipListMap<Double, S> values,
+                ToDoubleFunction<S> weight,
+                double threshold,
+                Removals removals) {
             this.values = values;
             this.weight = weight;
             this.threshold = threshold;
+            this.removals = removals;
         }
 
         @Override
         public void accept(Double priority, S sample) {
             double sampleWeight = weight.applyAsDouble(sample);
-            if (sampleWeight < threshold && values.remove(priority, sample)) {
-                removed++;
-                removedWeight += sampleWeight;
+            if (sampleWeight < threshold) {
+                removals.removing(sampleWeight);
+                if (!values.remove(priority, sample)) {
+                    removals.notRemoved(sampleWeight);
+                }
             }
         }
     }

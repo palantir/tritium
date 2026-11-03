@@ -18,7 +18,10 @@ package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ConcurrentSkipListMap;
 import org.junit.jupiter.api.Test;
 
 class NegligibleSamplesTest {
@@ -71,6 +74,30 @@ class NegligibleSamplesTest {
         assertThat(threshold(weights, BUDGET * total * 2)).isZero();
     }
 
+    @Test
+    void announcesEachRemovalBeforeItHappens() {
+        // a reservoir's count and evicted weight must never lag its map, so each removal is announced first
+        List<String> events = new ArrayList<>();
+        RecordingMap values = new RecordingMap(events, Double.NaN);
+        values.put(1.0, 1e-9);
+        values.put(2.0, 1.0);
+        values.put(3.0, 2e-9);
+        NegligibleSamples.evictBelow(values, weight -> weight, NEGLIGIBLE, new RecordingRemovals(events));
+        assertThat(events).containsExactly("removing 1.0E-9", "remove 1.0", "removing 2.0E-9", "remove 3.0");
+        assertThat(values).containsOnlyKeys(2.0);
+    }
+
+    @Test
+    void undoesARemovalThatLostARace() {
+        List<String> events = new ArrayList<>();
+        // an update polls the sample out between the announcement and the removal
+        RecordingMap values = new RecordingMap(events, 1.0);
+        values.put(1.0, 1e-9);
+        values.put(2.0, 1.0);
+        NegligibleSamples.evictBelow(values, weight -> weight, NEGLIGIBLE, new RecordingRemovals(events));
+        assertThat(events).containsExactly("removing 1.0E-9", "remove 1.0", "notRemoved 1.0E-9");
+    }
+
     private static double threshold(double[] weights, double evicted) {
         double max = Arrays.stream(weights).max().orElseThrow();
         double total = Arrays.stream(weights).sum();
@@ -80,5 +107,39 @@ class NegligibleSamplesTest {
     private static double evicted(double[] weights, double evicted) {
         double threshold = threshold(weights, evicted);
         return Arrays.stream(weights).filter(weight -> weight < threshold).sum();
+    }
+
+    private record RecordingRemovals(List<String> events) implements NegligibleSamples.Removals {
+        @Override
+        public void removing(double weight) {
+            events.add("removing " + weight);
+        }
+
+        @Override
+        public void notRemoved(double weight) {
+            events.add("notRemoved " + weight);
+        }
+    }
+
+    /** Records conditional removals, and optionally loses the race for one key to a concurrent removal. */
+    private static final class RecordingMap extends ConcurrentSkipListMap<Double, Double> {
+        private static final long serialVersionUID = 1L;
+
+        private final transient List<String> events;
+        private final double lostKey;
+
+        RecordingMap(List<String> events, double lostKey) {
+            this.events = events;
+            this.lostKey = lostKey;
+        }
+
+        @Override
+        public boolean remove(Object key, Object value) {
+            events.add("remove " + key);
+            if (key.equals(lostKey)) {
+                super.remove(key);
+            }
+            return super.remove(key, value);
+        }
     }
 }

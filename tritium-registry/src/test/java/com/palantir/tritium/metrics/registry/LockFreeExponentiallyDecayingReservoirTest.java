@@ -24,7 +24,9 @@ import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -513,6 +515,63 @@ class LockFreeExponentiallyDecayingReservoirTest {
         }
         assertThat(reservoir.size()).isEqualTo(100);
         assertThat(reservoir.getSnapshot().size()).isEqualTo(100);
+    }
+
+    @Test
+    public void updatesRacingAnEvictionKeepTheirSamples() throws Exception {
+        // A full reservoir of samples that just became negligible, and fresh updates racing the snapshot that evicts
+        // them. There's room for every fresh sample, so none may be displaced: an update that found the reservoir
+        // full must take a slot the eviction freed rather than poll another sample out. A few nanoseconds remain
+        // where one can still slip through, so this allows a handful of trials to lose a sample; before the fix
+        // about a quarter of them did.
+        int size = 64;
+        int updaters = 8;
+        int updatesEach = 4;
+        int trials = 500;
+        int lostTrials = 0;
+        ExecutorService executor = Executors.newFixedThreadPool(updaters);
+        try {
+            for (int trial = 0; trial < trials; trial++) {
+                ManualClock clock = new ManualClock();
+                Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
+                        .size(size)
+                        .clock(clock)
+                        .build();
+                for (int i = 0; i < size; i++) {
+                    reservoir.update(-1);
+                }
+                clock.addSeconds(20 * 60);
+                CyclicBarrier start = new CyclicBarrier(updaters + 1);
+                CountDownLatch done = new CountDownLatch(updaters);
+                for (int t = 0; t < updaters; t++) {
+                    int first = 1000 + t * updatesEach;
+                    executor.execute(() -> {
+                        try {
+                            start.await();
+                        } catch (Exception e) {
+                            throw new IllegalStateException(e);
+                        }
+                        for (int i = 0; i < updatesEach; i++) {
+                            reservoir.update(first + i);
+                        }
+                        done.countDown();
+                    });
+                }
+                start.await(1, TimeUnit.MINUTES);
+                while (done.getCount() > 0) {
+                    reservoir.getSnapshot();
+                }
+                long fresh = Arrays.stream(reservoir.getSnapshot().getValues())
+                        .filter(value -> value >= 1000)
+                        .count();
+                if (fresh != updaters * updatesEach) {
+                    lostTrials++;
+                }
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+        assertThat(lostTrials).isLessThanOrEqualTo(5);
     }
 
     @Test
