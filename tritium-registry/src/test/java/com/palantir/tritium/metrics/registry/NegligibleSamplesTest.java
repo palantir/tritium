@@ -43,10 +43,10 @@ class NegligibleSamplesTest {
 
     @Test
     void keepsAnOldBurstThatStillCarriesWeight() {
-        // 1,027 equal old samples next to one newer one: together 0.1% of the weight, a hundred times the budget
+        // 1,027 equal negligible samples next to one newer one: together 1.5 times the budget
         double[] weights = new double[1028];
         Arrays.fill(weights, 1);
-        weights[1027] = 1.0145e6;
+        weights[1027] = 7e7;
         assertThat(evicted(weights, 0)).isZero();
     }
 
@@ -56,7 +56,7 @@ class NegligibleSamplesTest {
         for (int i = 0; i < 1000; i++) {
             weights[i] = 1 + i * 1e-3;
         }
-        weights[1000] = 2e6;
+        weights[1000] = 1.4e8;
         double total = Arrays.stream(weights).sum();
         double removed = evicted(weights, 0);
         assertThat(removed).isPositive().isLessThanOrEqualTo(BUDGET * total);

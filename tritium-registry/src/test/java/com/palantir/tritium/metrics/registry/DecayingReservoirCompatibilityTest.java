@@ -161,7 +161,7 @@ class DecayingReservoirCompatibilityTest {
 
     static Stream<Arguments> fullScenarios() {
         List<Arguments> scenarios = List.of(
-                Arguments.of("1.5/s, bimodal", Duration.ofHours(3), (Supplier<Workload>) () -> steady(1.5, bimodal())),
+                Arguments.of("1/s, bimodal", Duration.ofHours(3), (Supplier<Workload>) () -> steady(1, bimodal())),
                 Arguments.of("20,000 slow calls, then a fast trickle", Duration.ofHours(3), (Supplier<Workload>)
                         () -> bigBurstThenTrickle()),
                 Arguments.of("10 minutes at 2.5/s every 30 minutes", Duration.ofHours(4), (Supplier<Workload>)
@@ -341,10 +341,10 @@ class DecayingReservoirCompatibilityTest {
         return (t, random) -> (random.nextInt(100) == 0 ? slow : fast).sample(t, random);
     }
 
-    /** 1,027 two-second calls at once, quiet for about 15 minutes, then 1 ms calls arriving faster and faster. */
+    /** 1,027 two-second calls at once, quiet for about 20 minutes, then 1 ms calls arriving faster and faster. */
     private static Workload burstThenTrickle() {
         long burstEnd = TimeUnit.SECONDS.toNanos(1);
-        long quietEnd = TimeUnit.SECONDS.toNanos(922);
+        long quietEnd = TimeUnit.SECONDS.toNanos(1201);
         return new Workload() {
             private int burst;
 

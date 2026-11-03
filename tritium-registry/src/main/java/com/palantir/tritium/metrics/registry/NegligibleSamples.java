@@ -29,7 +29,7 @@ import java.util.function.ToDoubleFunction;
  * zero on a rescale, which takes about 15 hours with the default alpha of 0.015. A reservoir updated once a minute
  * therefore holds about 900 samples even though only the last few minutes of them influence its quantiles.
  *
- * <p>Samples weighing less than {@link #RELATIVE_WEIGHT_THRESHOLD} of the newest sample (about 15 minutes older with
+ * <p>Samples weighing less than {@link #RELATIVE_WEIGHT_THRESHOLD} of the newest sample (about 20 minutes older with
  * the default alpha) are candidates. Removing weight moves every quantile's rank by at most the removed share of the
  * total weight, but a rank error can still change a value: a reservoir full of old slow samples followed by one fast
  * one would lose its whole p99.9 tail, and its mean, if all of them went. So candidates are removed only while
@@ -45,7 +45,9 @@ import java.util.function.ToDoubleFunction;
  */
 final class NegligibleSamples {
 
-    static final double RELATIVE_WEIGHT_THRESHOLD = 1e-6;
+    // 20 minutes at the default alpha of 0.015: clear of the 15 and 30 minute durations monitors commonly use, so a
+    // single slow call reliably shows in max and min for longer than the former and shorter than the latter
+    static final double RELATIVE_WEIGHT_THRESHOLD = Math.exp(-18);
     static final double EVICTED_WEIGHT_BUDGET = 1e-5;
 
     private NegligibleSamples() {}

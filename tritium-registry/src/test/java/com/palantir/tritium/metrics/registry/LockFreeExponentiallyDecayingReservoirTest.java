@@ -395,8 +395,8 @@ class LockFreeExponentiallyDecayingReservoirTest {
         reservoir.update(2);
         assertThat(reservoir.getSnapshot().size()).isEqualTo(2);
 
-        // the first sample is now 16 minutes older than the newest: exp(-14.4) < 1e-6
-        clock.addSeconds(6 * 60);
+        // the first sample is now 21 minutes older than the newest: exp(-18.9) < exp(-18)
+        clock.addSeconds(11 * 60);
         reservoir.update(3);
         Snapshot snapshot = reservoir.getSnapshot();
         assertThat(snapshot.size()).isEqualTo(2);
@@ -426,7 +426,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
     }
 
     @Test
-    public void steadyUpdatesKeepAboutFifteenMinutesOfSamples() {
+    public void steadyUpdatesKeepAboutTwentyMinutesOfSamples() {
         ManualClock clock = new ManualClock();
         Reservoir reservoir = LockFreeExponentiallyDecayingReservoir.builder()
                 .size(10_000)
@@ -438,10 +438,10 @@ class LockFreeExponentiallyDecayingReservoirTest {
             clock.addSeconds(1);
         }
 
-        // ln(1e6) / 0.015 is about 921 seconds
+        // 18 / 0.015 is 1200 seconds
         Snapshot snapshot = reservoir.getSnapshot();
-        assertThat(snapshot.size()).isBetween(915, 925);
-        assertThat(snapshot.getMin()).isGreaterThan(3600 - 925);
+        assertThat(snapshot.size()).isBetween(1195, 1205);
+        assertThat(snapshot.getMin()).isGreaterThan(3600 - 1205);
         assertThat(reservoir.size()).isEqualTo(snapshot.size());
     }
 
@@ -456,7 +456,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
         for (int i = 0; i < 9; i++) {
             reservoir.update(i);
         }
-        clock.addSeconds(20 * 60);
+        clock.addSeconds(25 * 60);
         reservoir.update(100);
         assertThat(reservoir.getSnapshot().size()).isEqualTo(1);
         assertThat(reservoir.size()).isEqualTo(1);
@@ -507,7 +507,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
         Snapshot snapshot = reservoir.getSnapshot();
         assertThat(reservoir.size()).isEqualTo(snapshot.size());
         // after the burst a single newer sample makes every older one negligible, then capacity refills fully
-        clock.addSeconds(20 * 60);
+        clock.addSeconds(25 * 60);
         reservoir.update(-1);
         assertThat(reservoir.getSnapshot().size()).isEqualTo(1);
         for (int i = 0; i < 1000; i++) {
@@ -540,7 +540,7 @@ class LockFreeExponentiallyDecayingReservoirTest {
                 for (int i = 0; i < size; i++) {
                     reservoir.update(-1);
                 }
-                clock.addSeconds(20 * 60);
+                clock.addSeconds(25 * 60);
                 CyclicBarrier start = new CyclicBarrier(updaters + 1);
                 CountDownLatch done = new CountDownLatch(updaters);
                 for (int t = 0; t < updaters; t++) {
