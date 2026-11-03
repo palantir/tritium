@@ -264,6 +264,8 @@ public final class LockFreeExponentiallyDecayingReservoir implements Reservoir {
     @Override
     public Snapshot getSnapshot() {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
+        // A fill race can leave count a few above the samples until the next rescale. That only leaves the snapshot
+        // spare capacity; clamping to size would make the collector grow whenever an insert is in flight.
         Collector collector = new Collector(stateSnapshot.count);
         stateSnapshot.values.forEach(collector);
         double negligible = collector.evictionThreshold(stateSnapshot.evicted.get());

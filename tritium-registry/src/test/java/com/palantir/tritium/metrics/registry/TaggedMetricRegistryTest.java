@@ -30,11 +30,22 @@ import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.palantir.tritium.registry.test.TestTaggedMetricRegistries;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
@@ -330,6 +341,137 @@ final class TaggedMetricRegistryTest {
         AtomicInteger elements = new AtomicInteger();
         registry.forEachMetric((_name, _metric) -> elements.incrementAndGet());
         assertThat(elements).hasValue(2);
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testCollidingNamesReturnSameMetricOnHitAndMiss(TaggedMetricRegistry registry) {
+        Supplier<Timer> failingSupplier = () -> {
+            throw new AssertionError("metric should already exist");
+        };
+        MetricName[] names = collidingNames();
+        Timer[] timers = new Timer[names.length];
+        for (int i = 0; i < names.length; i++) {
+            timers[i] = registry.timer(names[i]);
+        }
+        for (int i = 0; i < names.length; i++) {
+            assertThat(registry.timer(names[i])).isSameAs(timers[i]);
+            assertThat(registry.timer(names[i], failingSupplier)).isSameAs(timers[i]);
+            assertThat(registry.timer(copyOf(names[i]))).isSameAs(timers[i]);
+        }
+        assertThat(timers).doesNotHaveDuplicates();
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testCollidingNamesTypeMismatchThrows(TaggedMetricRegistry registry) {
+        MetricName[] names = collidingNames();
+        registry.counter(names[0]);
+        registry.meter(names[1]);
+        registry.histogram(names[2]);
+
+        // names[1] and names[2] are not the first node in their hash bin, so exercise the lock-free hit path.
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> registry.timer(names[1]))
+                .withMessageStartingWith("Metric name already used for different metric type: ")
+                .withMessageContaining("metricName=BB")
+                .withMessageContaining("existingMetricType=Meter")
+                .withMessageContaining("newMetricType=Timer")
+                .withMessageContaining("safeTags={}");
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> registry.counter(names[2]))
+                .withMessageStartingWith("Metric name already used for different metric type: ")
+                .withMessageContaining("metricName=C#")
+                .withMessageContaining("existingMetricType=Histogram")
+                .withMessageContaining("newMetricType=Counter")
+                .withMessageContaining("safeTags={}");
+        assertThat(registry.getMetrics().get(names[1])).isInstanceOf(Meter.class);
+        assertThat(registry.getMetrics().get(names[2])).isInstanceOf(Histogram.class);
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testLookupDoesNotWaitForRegistrationOfCollidingName(TaggedMetricRegistry registry) throws Exception {
+        MetricName[] names = collidingNames();
+        Timer existing = registry.timer(names[0]);
+        Timer existingNonFirstInBin = registry.timer(names[1]);
+        CountDownLatch creating = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            // Holds the hash bin lock shared by all colliding names until released.
+            Future<Timer> registration = executor.submit(() -> registry.timer(names[2], () -> {
+                creating.countDown();
+                Uninterruptibles.awaitUninterruptibly(release);
+                return new Timer();
+            }));
+            assertThat(creating.await(10, TimeUnit.SECONDS)).isTrue();
+
+            Future<Timer> lookup = executor.submit(() -> registry.timer(names[1]));
+            assertThat(lookup).succeedsWithin(Duration.ofSeconds(10)).isSameAs(existingNonFirstInBin);
+            assertThat(registry.timer(names[0])).isSameAs(existing);
+
+            release.countDown();
+            assertThat(registration).succeedsWithin(Duration.ofSeconds(10)).isSameAs(registry.timer(names[2]));
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource(TestTaggedMetricRegistries.REGISTRIES)
+    void testConcurrentFirstRegistrationCreatesOneMetric(TaggedMetricRegistry registry) throws Exception {
+        int threads = 8;
+        int metrics = 500;
+        AtomicInteger[] created = new AtomicInteger[metrics];
+        for (int i = 0; i < metrics; i++) {
+            created[i] = new AtomicInteger();
+        }
+        CyclicBarrier barrier = new CyclicBarrier(threads);
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            List<Future<Timer[]>> results = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                results.add(executor.submit(() -> {
+                    Timer[] timers = new Timer[metrics];
+                    for (int i = 0; i < metrics; i++) {
+                        AtomicInteger counter = created[i];
+                        MetricName name = MetricName.builder()
+                                .safeName("concurrent")
+                                .putSafeTags("index", Integer.toString(i))
+                                .build();
+                        barrier.await();
+                        timers[i] = registry.timer(name, () -> {
+                            counter.incrementAndGet();
+                            return new Timer();
+                        });
+                    }
+                    return timers;
+                }));
+            }
+            Timer[] first = results.get(0).get(1, TimeUnit.MINUTES);
+            for (Future<Timer[]> result : results) {
+                assertThat(result.get(1, TimeUnit.MINUTES)).containsExactly(first);
+            }
+            assertThat(first).doesNotHaveDuplicates();
+            assertThat(created).allSatisfy(counter -> assertThat(counter).hasValue(1));
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    /** Names whose hash codes are equal, so they share a {@link java.util.concurrent.ConcurrentHashMap} bin. */
+    private static MetricName[] collidingNames() {
+        MetricName[] names = Stream.of("Aa", "BB", "C#")
+                .map(name -> MetricName.builder().safeName(name).build())
+                .toArray(MetricName[]::new);
+        assertThat(names).extracting(MetricName::hashCode).containsOnly(names[0].hashCode());
+        return names;
+    }
+
+    private static MetricName copyOf(MetricName name) {
+        return MetricName.builder().from(name).build();
     }
 
     private static void assertMetric(

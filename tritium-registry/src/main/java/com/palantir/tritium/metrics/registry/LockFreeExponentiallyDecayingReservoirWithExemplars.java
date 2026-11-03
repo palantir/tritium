@@ -263,6 +263,8 @@ public final class LockFreeExponentiallyDecayingReservoirWithExemplars implement
     @Override
     public Snapshot getSnapshot() {
         State stateSnapshot = rescaleIfNeeded(clock.getTick());
+        // A fill race can leave count a few above the samples until the next rescale. That only leaves the snapshot
+        // spare capacity; clamping to size would make the collector grow whenever an insert is in flight.
         WeightedSnapshotWithExemplars.Collector collector =
                 new WeightedSnapshotWithExemplars.Collector(stateSnapshot.count);
         stateSnapshot.values.forEach(collector);
