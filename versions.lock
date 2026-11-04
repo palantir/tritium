@@ -146,11 +146,11 @@ org.mockito:mockito-junit-jupiter:5.24.0 (1 constraints: 3d05513b)
 
 org.objenesis:objenesis:3.3 (1 constraints: b20a14bd)
 
-org.openjdk.jmh:jmh-core:1.37 (4 constraints: 2d349791)
+org.openjdk.jmh:jmh-core:1.37 (4 constraints: 2e341f92)
 
 org.openjdk.jmh:jmh-generator-asm:1.37 (1 constraints: 2c107598)
 
-org.openjdk.jmh:jmh-generator-bytecode:1.37 (1 constraints: de04fb30)
+org.openjdk.jmh:jmh-generator-bytecode:1.37 (1 constraints: df04fc30)
 
 org.openjdk.jmh:jmh-generator-reflection:1.37 (2 constraints: 491e3064)
 
