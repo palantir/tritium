@@ -34,7 +34,9 @@ import java.util.List;
 import java.util.Objects;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 abstract class InvocationEventProxy implements InvocationHandler {
     private static final Object[] EMPTY_ARRAY = new Object[0];
 

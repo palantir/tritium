@@ -29,7 +29,9 @@ import com.palantir.tritium.api.functions.BooleanSupplier;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class InstrumentationProperties {
     private static final SafeLogger log = SafeLoggerFactory.get(InstrumentationProperties.class);
 

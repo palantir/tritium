@@ -29,7 +29,9 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 final class ByteBuddyInstrumentationAdvice {
 
     private ByteBuddyInstrumentationAdvice() {}

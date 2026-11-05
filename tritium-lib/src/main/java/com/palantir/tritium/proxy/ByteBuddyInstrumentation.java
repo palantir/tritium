@@ -49,7 +49,9 @@ import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.jar.asm.Opcodes;
 import net.bytebuddy.matcher.ElementMatchers;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 final class ByteBuddyInstrumentation {
 
     private static final SafeLogger log = SafeLoggerFactory.get(ByteBuddyInstrumentation.class);

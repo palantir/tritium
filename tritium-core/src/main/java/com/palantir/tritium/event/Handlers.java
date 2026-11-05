@@ -25,7 +25,9 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public final class Handlers {
 
     private static final SafeLogger log = SafeLoggerFactory.get(Handlers.class);

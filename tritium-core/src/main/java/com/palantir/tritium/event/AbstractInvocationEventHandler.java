@@ -24,12 +24,13 @@ import com.palantir.logsafe.logger.SafeLogger;
 import com.palantir.logsafe.logger.SafeLoggerFactory;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
+import org.jspecify.annotations.NullMarked;
 /**
  * Abstract invocation event handler implementation.
  *
  * @param <C> invocation context
  */
+@NullMarked
 public abstract class AbstractInvocationEventHandler<C extends InvocationContext> implements InvocationEventHandler<C> {
 
     private static final SafeLogger log = SafeLoggerFactory.get(AbstractInvocationEventHandler.class);

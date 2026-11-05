@@ -37,8 +37,11 @@ import java.util.List;
 import java.util.function.LongPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.jspecify.annotations.NullMarked;
+
 
 /** Instrument arbitrary service interfaces with optional metrics and invocation logging. */
+@NullMarked
 public final class Instrumentation {
 
     private Instrumentation() {}

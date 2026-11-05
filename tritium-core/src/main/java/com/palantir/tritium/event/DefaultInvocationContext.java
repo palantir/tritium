@@ -21,7 +21,9 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 import java.lang.reflect.Method;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public class DefaultInvocationContext implements InvocationContext {
 
     private static final Object[] NO_ARGS = {};

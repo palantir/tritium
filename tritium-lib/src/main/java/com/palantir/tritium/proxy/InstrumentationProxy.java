@@ -20,7 +20,9 @@ import com.palantir.tritium.api.event.InstrumentationFilter;
 import com.palantir.tritium.event.InvocationContext;
 import com.palantir.tritium.event.InvocationEventHandler;
 import java.util.List;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 class InstrumentationProxy<T> extends InvocationEventProxy {
 
     private final T delegate;

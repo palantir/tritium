@@ -20,7 +20,9 @@ import com.palantir.tritium.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public enum InstrumentationFilters implements InstrumentationFilter {
 
     /** Instrument all invocations. */
