@@ -18,8 +18,8 @@ package com.palantir.tritium.event;
 
 import java.lang.reflect.Method;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /** No-op implementation of {@link InvocationEventHandler}. */
 @NullMarked

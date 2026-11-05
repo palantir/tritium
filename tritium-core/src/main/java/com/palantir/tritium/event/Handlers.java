@@ -24,8 +24,8 @@ import com.palantir.tritium.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public final class Handlers {

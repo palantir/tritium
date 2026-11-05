@@ -28,8 +28,8 @@ import java.lang.reflect.Method;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 final class ByteBuddyInstrumentationAdvice {
