@@ -24,6 +24,12 @@ import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -373,6 +379,200 @@ class LockFreeExponentiallyDecayingReservoirWithExemplarsTest {
         // so, it's 40 vs 60 distribution, not 40 vs 10
         assertThat(reservoir.getSnapshot().getMedian()).isEqualTo(9999);
         assertThat(reservoir.getSnapshot().get75thPercentile()).isEqualTo(9999);
+    }
+
+    @Test
+    public void snapshotEvictsSamplesNegligibleNextToTheNewest() {
+        ManualClock clock = new ManualClock();
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                .size(1000)
+                .alpha(.015)
+                .clock(clock)
+                .build();
+
+        reservoir.update(1);
+        // 10 minutes older: relative weight exp(-9), about 1e-4, so it still counts
+        clock.addSeconds(10 * 60);
+        reservoir.update(2);
+        assertThat(reservoir.getSnapshot().size()).isEqualTo(2);
+
+        // the first sample is now 21 minutes older than the newest: exp(-18.9) < exp(-18)
+        clock.addSeconds(11 * 60);
+        reservoir.update(3);
+        Snapshot snapshot = reservoir.getSnapshot();
+        assertThat(snapshot.size()).isEqualTo(2);
+        assertThat(snapshot.getMin()).isEqualTo(2);
+        assertThat(reservoir.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void snapshotOfIdleReservoirKeepsItsSamples() {
+        ManualClock clock = new ManualClock();
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                .size(1000)
+                .alpha(.015)
+                .clock(clock)
+                .build();
+        for (int i = 0; i < 100; i++) {
+            reservoir.update(i);
+            clock.addMillis(100);
+        }
+        double median = reservoir.getSnapshot().getMedian();
+
+        // idle for two hours, including a rescale: every sample decays alike, so none is negligible
+        clock.addHours(2);
+        Snapshot snapshot = reservoir.getSnapshot();
+        assertThat(snapshot.size()).isEqualTo(100);
+        assertThat(snapshot.getMedian()).isEqualTo(median);
+    }
+
+    @Test
+    public void steadyUpdatesKeepAboutTwentyMinutesOfSamples() {
+        ManualClock clock = new ManualClock();
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                .size(10_000)
+                .alpha(.015)
+                .clock(clock)
+                .build();
+        for (int i = 0; i < 3600; i++) {
+            reservoir.update(i);
+            clock.addSeconds(1);
+        }
+
+        // 18 / 0.015 is 1200 seconds
+        Snapshot snapshot = reservoir.getSnapshot();
+        assertThat(snapshot.size()).isBetween(1195, 1205);
+        assertThat(snapshot.getMin()).isGreaterThan(3600 - 1205);
+        assertThat(reservoir.size()).isEqualTo(snapshot.size());
+    }
+
+    @Test
+    public void evictionFreesCapacityForNewSamples() {
+        ManualClock clock = new ManualClock();
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                .size(10)
+                .alpha(.015)
+                .clock(clock)
+                .build();
+        for (int i = 0; i < 9; i++) {
+            reservoir.update(i);
+        }
+        clock.addSeconds(25 * 60);
+        reservoir.update(100);
+        assertThat(reservoir.getSnapshot().size()).isEqualTo(1);
+        assertThat(reservoir.size()).isEqualTo(1);
+
+        for (int i = 0; i < 20; i++) {
+            reservoir.update(200 + i);
+        }
+        assertThat(reservoir.size()).isEqualTo(10);
+        assertThat(reservoir.getSnapshot().size()).isEqualTo(10);
+    }
+
+    @Test
+    public void concurrentUpdatesAndEvictionsKeepSizeConsistent() throws Exception {
+        ManualClock clock = new ManualClock();
+        Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                .size(100)
+                .alpha(.015)
+                .clock(clock)
+                .build();
+        int updaters = 4;
+        ExecutorService executor = Executors.newFixedThreadPool(updaters + 1);
+        try {
+            CountDownLatch done = new CountDownLatch(updaters);
+            for (int t = 0; t < updaters; t++) {
+                executor.execute(() -> {
+                    for (int i = 0; i < 20_000; i++) {
+                        reservoir.update(i);
+                        if (i % 50 == 0) {
+                            clock.addSeconds(1);
+                        }
+                    }
+                    done.countDown();
+                });
+            }
+            // snapshots evict concurrently with updates; in-flight sizes can briefly exceed 100 because updates
+            // insert before they poll, so only the state after the updates finish is asserted
+            Future<?> snapshots = executor.submit(() -> {
+                while (done.getCount() > 0) {
+                    reservoir.getSnapshot();
+                }
+            });
+            assertThat(done.await(1, TimeUnit.MINUTES)).isTrue();
+            snapshots.get(1, TimeUnit.MINUTES);
+        } finally {
+            executor.shutdownNow();
+        }
+
+        Snapshot snapshot = reservoir.getSnapshot();
+        assertThat(reservoir.size()).isEqualTo(snapshot.size());
+        // after the burst a single newer sample makes every older one negligible, then capacity refills fully
+        clock.addSeconds(25 * 60);
+        reservoir.update(-1);
+        assertThat(reservoir.getSnapshot().size()).isEqualTo(1);
+        for (int i = 0; i < 1000; i++) {
+            reservoir.update(i);
+        }
+        assertThat(reservoir.size()).isEqualTo(100);
+        assertThat(reservoir.getSnapshot().size()).isEqualTo(100);
+    }
+
+    @Test
+    public void updatesRacingAnEvictionKeepTheirSamples() throws Exception {
+        // A full reservoir of samples that just became negligible, and fresh updates racing the snapshot that evicts
+        // them. There's room for every fresh sample, so none may be displaced: an update that found the reservoir
+        // full must take a slot the eviction freed rather than poll another sample out. A few nanoseconds remain
+        // where one can still slip through, so this allows a handful of trials to lose a sample; before the fix
+        // about a quarter of them did.
+        int size = 64;
+        int updaters = 8;
+        int updatesEach = 4;
+        int trials = 500;
+        int lostTrials = 0;
+        ExecutorService executor = Executors.newFixedThreadPool(updaters);
+        try {
+            for (int trial = 0; trial < trials; trial++) {
+                ManualClock clock = new ManualClock();
+                Reservoir reservoir = LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                        .size(size)
+                        .clock(clock)
+                        .build();
+                for (int i = 0; i < size; i++) {
+                    reservoir.update(-1);
+                }
+                clock.addSeconds(25 * 60);
+                CyclicBarrier start = new CyclicBarrier(updaters + 1);
+                CountDownLatch done = new CountDownLatch(updaters);
+                for (int t = 0; t < updaters; t++) {
+                    int first = 1000 + t * updatesEach;
+                    executor.execute(() -> {
+                        try {
+                            start.await();
+                        } catch (Exception e) {
+                            throw new IllegalStateException(e);
+                        }
+                        for (int i = 0; i < updatesEach; i++) {
+                            reservoir.update(first + i);
+                        }
+                        done.countDown();
+                    });
+                }
+                start.await(1, TimeUnit.MINUTES);
+                while (done.getCount() > 0) {
+                    reservoir.getSnapshot();
+                }
+                long fresh = Arrays.stream(reservoir.getSnapshot().getValues())
+                        .filter(value -> value >= 1000)
+                        .count();
+                if (fresh != updaters * updatesEach) {
+                    lostTrials++;
+                }
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+        assertThat(lostTrials).isLessThanOrEqualTo(5);
     }
 
     @Test
