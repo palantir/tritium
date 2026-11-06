@@ -22,8 +22,10 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+@NullMarked
 public final class CompositeInvocationEventHandler extends AbstractInvocationEventHandler<InvocationContext> {
 
     // most instances will have very small number of handlers (typically 2-3)

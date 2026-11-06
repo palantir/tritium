@@ -20,8 +20,10 @@ import static com.palantir.logsafe.Preconditions.checkNotNull;
 
 import java.lang.reflect.Method;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+@NullMarked
 public class DefaultInvocationContext implements InvocationContext {
 
     private static final Object[] NO_ARGS = {};

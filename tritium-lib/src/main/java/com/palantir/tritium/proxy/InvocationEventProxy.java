@@ -33,8 +33,10 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+@NullMarked
 abstract class InvocationEventProxy implements InvocationHandler {
     private static final Object[] EMPTY_ARRAY = new Object[0];
 

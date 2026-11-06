@@ -35,10 +35,12 @@ import com.palantir.tritium.metrics.registry.TaggedMetricRegistry;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.LongPredicate;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Instrument arbitrary service interfaces with optional metrics and invocation logging. */
+@NullMarked
 public final class Instrumentation {
 
     private Instrumentation() {}

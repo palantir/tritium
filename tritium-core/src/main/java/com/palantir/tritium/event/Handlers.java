@@ -24,8 +24,10 @@ import com.palantir.tritium.api.event.InstrumentationFilter;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+@NullMarked
 public final class Handlers {
 
     private static final SafeLogger log = SafeLoggerFactory.get(Handlers.class);
