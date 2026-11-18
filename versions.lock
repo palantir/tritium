@@ -26,17 +26,15 @@ com.palantir.javapoet:javapoet:0.23.0 (3 constraints: 29278c1e)
 
 com.palantir.jvm.diagnostics:jvm-diagnostics:0.20.0 (1 constraints: 3405273b)
 
-com.palantir.nylon:nylon-threads:0.18.0 (1 constraints: 3b053b3b)
-
-com.palantir.safe-logging:logger:3.21.0 (4 constraints: 9a33c8bb)
+com.palantir.safe-logging:logger:3.21.0 (3 constraints: 26253f40)
 
 com.palantir.safe-logging:logger-slf4j:3.21.0 (1 constraints: 310e8e50)
 
 com.palantir.safe-logging:logger-spi:3.21.0 (2 constraints: 711e42b0)
 
-com.palantir.safe-logging:preconditions:3.21.0 (5 constraints: f447afde)
+com.palantir.safe-logging:preconditions:3.21.0 (4 constraints: 8039252b)
 
-com.palantir.safe-logging:safe-logging:3.21.0 (8 constraints: fe76b312)
+com.palantir.safe-logging:safe-logging:3.21.0 (7 constraints: 8a688ea2)
 
 com.palantir.tracing:tracing:6.43.0 (1 constraints: 3f055c3b)
 
@@ -48,29 +46,9 @@ io.dropwizard.metrics:metrics-core:4.2.40 (2 constraints: 29140888)
 
 io.dropwizard.metrics:metrics-jvm:4.2.40 (1 constraints: 3c05453b)
 
-io.smallrye.common:smallrye-common-annotation:2.20.0 (1 constraints: ef0d0144)
-
-io.smallrye.common:smallrye-common-constraint:2.20.0 (4 constraints: e241ff1a)
-
-io.smallrye.common:smallrye-common-cpu:2.20.0 (2 constraints: 9f1caee7)
-
-io.smallrye.common:smallrye-common-expression:2.4.0 (1 constraints: b10e835a)
-
-io.smallrye.common:smallrye-common-function:2.20.0 (2 constraints: 8821d7a9)
-
-io.smallrye.common:smallrye-common-net:2.4.0 (1 constraints: b10e835a)
-
-io.smallrye.common:smallrye-common-os:2.4.0 (1 constraints: b10e835a)
-
-io.smallrye.common:smallrye-common-ref:2.4.0 (1 constraints: b10e835a)
-
 net.bytebuddy:byte-buddy:1.18.17 (4 constraints: a52b426a)
 
 org.hdrhistogram:HdrHistogram:2.2.2 (1 constraints: 0805fd35)
-
-org.jboss.logging:jboss-logging:3.6.3.Final (7 constraints: c6830bcd)
-
-org.jboss.threads:jboss-threads:3.10.1 (3 constraints: d028dc02)
 
 org.jetbrains:annotations:26.1.0 (2 constraints: 1320ad00)
 
@@ -79,8 +57,6 @@ org.jspecify:jspecify:1.0.1 (10 constraints: b79c192e)
 org.mpierce.metrics.reservoir:hdrhistogram-metrics-reservoir:1.1.3 (1 constraints: 0705f635)
 
 org.slf4j:slf4j-api:2.0.19 (7 constraints: 4d5b8841)
-
-org.wildfly.common:wildfly-common:2.0.1 (2 constraints: 591adc48)
 
 
 
@@ -99,6 +75,22 @@ com.palantir.safe-logging:preconditions-assertj:3.21.0 (1 constraints: 38053c3b)
 com.squareup.okhttp3:okhttp-jvm:5.3.2 (1 constraints: 0c050f36)
 
 com.squareup.okio:okio-jvm:3.16.4 (1 constraints: 020ea946)
+
+io.smallrye.common:smallrye-common-annotation:2.6.0 (1 constraints: c30d1c36)
+
+io.smallrye.common:smallrye-common-constraint:2.6.0 (4 constraints: 8a413caf)
+
+io.smallrye.common:smallrye-common-cpu:2.6.0 (2 constraints: 731c91d2)
+
+io.smallrye.common:smallrye-common-expression:2.4.0 (1 constraints: b10e835a)
+
+io.smallrye.common:smallrye-common-function:2.6.0 (2 constraints: 5c215988)
+
+io.smallrye.common:smallrye-common-net:2.4.0 (1 constraints: b10e835a)
+
+io.smallrye.common:smallrye-common-os:2.4.0 (1 constraints: b10e835a)
+
+io.smallrye.common:smallrye-common-ref:2.4.0 (1 constraints: b10e835a)
 
 io.undertow:undertow-core:2.3.27.Final (1 constraints: 58074e61)
 
@@ -119,6 +111,10 @@ org.awaitility:awaitility:4.3.0 (1 constraints: 09050836)
 org.hamcrest:hamcrest:2.1 (1 constraints: 6f0b2cce)
 
 org.hamcrest:hamcrest-core:1.3 (1 constraints: cc05fe3f)
+
+org.jboss.logging:jboss-logging:3.6.1.Final (7 constraints: c4838fcc)
+
+org.jboss.threads:jboss-threads:3.7.0.Final (2 constraints: 5c1ab543)
 
 org.jboss.xnio:xnio-api:3.8.16.Final (2 constraints: d71a2474)
 
@@ -163,6 +159,8 @@ org.quicktheories:quicktheories:0.26 (1 constraints: dc04f530)
 org.slf4j:slf4j-simple:2.0.19 (1 constraints: 3c05323b)
 
 org.wildfly.client:wildfly-client-config:1.0.1.Final (1 constraints: 940c6308)
+
+org.wildfly.common:wildfly-common:2.0.0 (2 constraints: 581ab548)
 
 uk.org.webcompere:system-stubs-core:2.1.6 (2 constraints: c5151ad5)
 

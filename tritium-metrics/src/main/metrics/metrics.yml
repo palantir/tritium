@@ -79,15 +79,9 @@ namespaces:
       # ThreadFactory metrics
       threads.created:
         type: meter
-        tags:
-          - executor
-          - name: thread-type
-            values: [platform, virtual]
+        tags: [executor]
         docs: Rate that new threads are created for this executor.
       threads.running:
         type: counter
-        tags:
-          - executor
-          - name: thread-type
-            values: [platform, virtual]
+        tags: [executor]
         docs: Number of live threads created by this executor.
