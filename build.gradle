@@ -64,6 +64,12 @@ allprojects {
     }
 
     plugins.withId('com.palantir.baseline-error-prone', {
+        configurations.errorprone {
+            // External checks can depend on Tritium, which Gradle resolves to these projects,
+            // creating cycles between compilation and the Error Prone artifact transform.
+            exclude group: 'com.palantir.tritium'
+        }
+
         tasks.withType(JavaCompile).configureEach {
             options.compilerArgs += [
                 '-Werror',
