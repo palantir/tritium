@@ -43,6 +43,9 @@ abstract class SampleCollector<S> implements BiConsumer<Double, S> {
     private long[] values;
     private double[] weights;
     private int size;
+    private double maxWeight;
+    private double minWeight = Double.POSITIVE_INFINITY;
+    private double totalWeight;
     private long minValue = Long.MAX_VALUE;
     private long maxValue = Long.MIN_VALUE;
 
@@ -63,6 +66,9 @@ abstract class SampleCollector<S> implements BiConsumer<Double, S> {
     /** Called when the arrays grow. */
     void grown(int _capacity) {}
 
+    /** Called when a sample moves to an earlier index while dropping samples. */
+    void moved(int _from, int _to) {}
+
     @Override
     public final void accept(Double _priority, S sample) {
         if (size == values.length) {
@@ -77,6 +83,9 @@ abstract class SampleCollector<S> implements BiConsumer<Double, S> {
         weights[size] = weight;
         collected(size, sample);
         size++;
+        maxWeight = Math.max(maxWeight, weight);
+        minWeight = Math.min(minWeight, weight);
+        totalWeight += weight;
         minValue = Math.min(minValue, value);
         maxValue = Math.max(maxValue, value);
     }
@@ -91,6 +100,40 @@ abstract class SampleCollector<S> implements BiConsumer<Double, S> {
 
     final long value(int index) {
         return values[index];
+    }
+
+    /**
+     * The weight below which samples can be evicted, or 0 if none can, given the weight the reservoir has already
+     * evicted. See {@link NegligibleSamples#evictionThreshold}.
+     */
+    final double evictionThreshold(double evicted) {
+        if (minWeight >= maxWeight * NegligibleSamples.RELATIVE_WEIGHT_THRESHOLD) {
+            // Common for busy reservoirs, which replace old samples before they become negligible.
+            return 0;
+        }
+        return NegligibleSamples.evictionThreshold(weights, size, maxWeight, totalWeight, evicted);
+    }
+
+    /** Drops samples weighing less than {@code threshold}, keeping the rest in order. */
+    final void retainAtLeast(double threshold) {
+        int kept = 0;
+        long min = Long.MAX_VALUE;
+        long max = Long.MIN_VALUE;
+        for (int i = 0; i < size; i++) {
+            if (weights[i] >= threshold) {
+                if (kept != i) {
+                    values[kept] = values[i];
+                    weights[kept] = weights[i];
+                    moved(i, kept);
+                }
+                min = Math.min(min, values[kept]);
+                max = Math.max(max, values[kept]);
+                kept++;
+            }
+        }
+        size = kept;
+        minValue = min;
+        maxValue = max;
     }
 
     /** Builds the snapshot. The collector can't be used afterwards: its arrays become the snapshot's. */
