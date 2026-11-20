@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics;
+package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Snapshot;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Optional;
 
 /**
  * An immutable cumulative histogram snapshot. Total count can be derived from the captured bucket counts,
  * including the zero bucket. Sum and uniform summary statistics are captured independently.
  */
-public final class ExponentialSnapshot extends Snapshot {
+final class ExponentialSnapshot extends Snapshot implements ExponentialHistogramCapture {
     private final Snapshot summaries;
     private final double sum;
     private final int scale;
@@ -48,36 +47,32 @@ public final class ExponentialSnapshot extends Snapshot {
         this.negative = negative;
     }
 
-    /**
-     *  A contiguous range of bucket counts. Entry {@code bucketCounts[j]} is the count for bucket
-     *  index {@code offset + j}; zero entries represent gaps between occupied buckets.
-     */
-    public record Buckets(int offset, List<Long> bucketCounts) {
-        public Buckets {
-            bucketCounts = List.copyOf(bucketCounts);
-        }
-    }
-
+    @Override
     public double sum() {
         return sum;
     }
 
+    @Override
     public int scale() {
         return scale;
     }
 
+    @Override
     public long zeroCount() {
         return zeroCount;
     }
 
+    @Override
     public double zeroThreshold() {
         return 0.0;
     }
 
+    @Override
     public Optional<Buckets> positive() {
         return positive;
     }
 
+    @Override
     public Optional<Buckets> negative() {
         return negative;
     }

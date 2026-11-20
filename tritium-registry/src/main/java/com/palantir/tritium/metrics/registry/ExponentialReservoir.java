@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package com.palantir.tritium.metrics;
+package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Reservoir;
+import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.UniformReservoir;
 import com.palantir.logsafe.Preconditions;
+import com.palantir.tritium.metrics.registry.ExponentialHistogramCapture.Buckets;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -40,14 +45,13 @@ import java.util.concurrent.atomic.LongAdder;
  * Negative scales produce wider buckets.
  */
 public final class ExponentialReservoir implements Reservoir {
-    // Largest integer exactly representable in the JSON safe-integer range.
-    private static final long MAX_SAFE_INTEGER = (1L << 53) - 1;
+    private static final ConcurrentMap<Integer, long[]> UPPER_BOUNDS = new ConcurrentHashMap<>();
 
     private final int scale;
     private final long[] bucketUpperBounds;
     private final UniformReservoir summaries = new UniformReservoir();
-    private final LongAdder[] positiveBuckets;
-    private final LongAdder[] negativeBuckets;
+    private final ConcurrentMap<Integer, LongAdder> positiveBuckets = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, LongAdder> negativeBuckets = new ConcurrentHashMap<>();
     private final LongAdder zeroBucket = new LongAdder();
     private final DoubleAdder sum = new DoubleAdder();
 
@@ -59,9 +63,7 @@ public final class ExponentialReservoir implements Reservoir {
     public ExponentialReservoir(int scale) {
         Preconditions.checkArgument(scale >= -4 && scale <= 8, "Scale must be between -4 and 8");
         this.scale = scale;
-        positiveBuckets = buckets(scale);
-        negativeBuckets = buckets(scale);
-        bucketUpperBounds = upperBounds(scale, positiveBuckets.length);
+        bucketUpperBounds = UPPER_BOUNDS.computeIfAbsent(scale, ExponentialReservoir::upperBounds);
     }
 
     @Override
@@ -74,19 +76,19 @@ public final class ExponentialReservoir implements Reservoir {
         if (value == 0) {
             zeroBucket.increment();
         } else {
-            LongAdder[] buckets = value > 0 ? positiveBuckets : negativeBuckets;
-            buckets[bucketPosition(value)].increment();
+            ConcurrentMap<Integer, LongAdder> buckets = value > 0 ? positiveBuckets : negativeBuckets;
+            buckets.computeIfAbsent(bucketPosition(value), _index -> new LongAdder())
+                    .increment();
         }
         sum.add((double) value);
         summaries.update(value);
     }
 
     @Override
-    public ExponentialSnapshot getSnapshot() {
+    public Snapshot getSnapshot() {
         long zeros = zeroBucket.sum();
         long[] positiveCounts = counts(positiveBuckets);
         long[] negativeCounts = counts(negativeBuckets);
-        Preconditions.checkState(zeros >= 0 && zeros <= MAX_SAFE_INTEGER, "Histogram count exceeds safelong range");
         return new ExponentialSnapshot(
                 summaries.getSnapshot(), sum.sum(), scale, zeros, buckets(positiveCounts), buckets(negativeCounts));
     }
@@ -111,25 +113,35 @@ public final class ExponentialReservoir implements Reservoir {
         return low;
     }
 
-    private static long[] upperBounds(int scale, int size) {
+    private static long[] upperBounds(int scale) {
+        int size = (int) Math.ceil(Math.scalb(63.0, scale)) + 1;
         long[] bounds = new long[size];
-        for (int position = 0; position < size; position++) {
-            double boundary = Math.pow(2.0, Math.scalb((double) position, -scale));
-            bounds[position] = (long) boundary;
+        for (int position = 0; position < size - 1; position++) {
+            bounds[position] = integerUpperBound(position, scale);
         }
+        // The final boundary is at least 2^63, beyond the positive long range.
+        bounds[size - 1] = Long.MAX_VALUE;
         return bounds;
     }
 
-    private static LongAdder[] buckets(int scale) {
-        int numBuckets = (int) Math.ceil(Math.scalb(63.0, scale)) + 1;
-        LongAdder[] buckets = new LongAdder[numBuckets];
-        for (int index = 0; index < buckets.length; index++) {
-            buckets[index] = new LongAdder();
+    private static long integerUpperBound(int position, int scale) {
+        // The boundary is 2^(position / 2^scale). At negative scales, the exponent is multiplied
+        // by a power of two; at scale zero, it is unchanged.
+        if (scale <= 0) {
+            return 1L << (position << -scale);
         }
-        return buckets;
+
+        // Dividing the exponent by 2^scale is equivalent to taking 'scale' square roots of 2^position.
+        // BigInteger.sqrt() rounds down exactly. Repeated rounding is safe because
+        // floor(sqrt(floor(x))) == floor(sqrt(x)), so this gives the exact integer floor of the boundary.
+        BigInteger bound = BigInteger.ONE.shiftLeft(position);
+        for (int root = 0; root < scale; root++) {
+            bound = bound.sqrt();
+        }
+        return bound.longValueExact();
     }
 
-    private static Optional<ExponentialSnapshot.Buckets> buckets(long[] counts) {
+    private static Optional<Buckets> buckets(long[] counts) {
         int start = 0;
         while (start < counts.length && counts[start] == 0) {
             start++;
@@ -145,17 +157,12 @@ public final class ExponentialReservoir implements Reservoir {
         for (int index = 0; index < bucketCounts.length; index++) {
             bucketCounts[index] = counts[start + index];
         }
-        return Optional.of(new ExponentialSnapshot.Buckets(start - 1, List.of(bucketCounts)));
+        return Optional.of(new Buckets(start - 1, List.of(bucketCounts)));
     }
 
-    private static long[] counts(LongAdder[] buckets) {
-        long[] result = new long[buckets.length];
-        for (int index = 0; index < result.length; index++) {
-            long count = buckets[index].sum();
-            Preconditions.checkState(
-                    count >= 0 && count <= MAX_SAFE_INTEGER, "Histogram bucket count exceeds safelong range");
-            result[index] = count;
-        }
+    private long[] counts(ConcurrentMap<Integer, LongAdder> buckets) {
+        long[] result = new long[bucketUpperBounds.length];
+        buckets.forEach((index, count) -> result[index] = count.sum());
         return result;
     }
 }
