@@ -146,7 +146,7 @@ public final class ExponentialReservoir implements Reservoir {
         return bound.longValueExact();
     }
 
-    private static Optional<Buckets> buckets(long[] counts) {
+    private static Optional<Buckets> buckets(long[] counts, int firstPosition) {
         int start = 0;
         while (start < counts.length && counts[start] == 0) {
             start++;
@@ -162,19 +162,34 @@ public final class ExponentialReservoir implements Reservoir {
         for (int index = 0; index < bucketCounts.length; index++) {
             bucketCounts[index] = counts[start + index];
         }
-        return Optional.of(new Buckets(start - 1, List.of(bucketCounts)));
+        return Optional.of(new Buckets(firstPosition + start - 1, List.of(bucketCounts)));
     }
 
-    private BucketCapture capture(ConcurrentMap<Integer, Bucket> buckets) {
-        long[] counts = new long[bucketUpperBounds.length];
+    private static BucketCapture capture(ConcurrentMap<Integer, Bucket> buckets) {
+        int firstPosition = Integer.MAX_VALUE;
+        int lastPosition = -1;
+        for (int position : buckets.keySet()) {
+            firstPosition = Math.min(firstPosition, position);
+            lastPosition = Math.max(lastPosition, position);
+        }
+        if (lastPosition < firstPosition) {
+            return new BucketCapture(Optional.empty(), 0);
+        }
+
+        long[] counts = new long[lastPosition - firstPosition + 1];
         double sum = 0;
         for (Map.Entry<Integer, Bucket> entry : buckets.entrySet()) {
+            int position = entry.getKey();
+            // Buckets inserted outside the captured range belong to a later snapshot.
+            if (position < firstPosition || position > lastPosition) {
+                continue;
+            }
             // Read once so the count and sum always describe the same observations.
             BucketState captured = entry.getValue().state.get();
-            counts[entry.getKey()] = captured.count();
+            counts[position - firstPosition] = captured.count();
             sum += captured.sum();
         }
-        return new BucketCapture(buckets(counts), sum);
+        return new BucketCapture(buckets(counts, firstPosition), sum);
     }
 
     private record BucketCapture(Optional<Buckets> buckets, double sum) {}
