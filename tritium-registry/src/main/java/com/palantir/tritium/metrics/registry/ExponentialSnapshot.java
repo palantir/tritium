@@ -22,7 +22,8 @@ import java.util.Optional;
 
 /**
  * An immutable cumulative histogram snapshot. Total count can be derived from the captured bucket counts,
- * including the zero bucket. Sum and uniform summary statistics are captured independently.
+ * including the zero bucket. The sum covers the captured bucket observations.
+ * Uniform summary statistics are captured independently.
  */
 final class ExponentialSnapshot extends Snapshot implements ExponentialHistogramCapture {
     private final Snapshot summaries;
