@@ -22,7 +22,6 @@ import java.util.Optional;
  * Exposes a cumulative exponential histogram from a {@link com.codahale.metrics.Snapshot}.
  * Total count is the sum of the positive, negative, and zero bucket counts.
  * The sum covers the same observations as the captured bucket counts, subject to floating-point rounding.
- * Buckets are captured independently, so the snapshot need not represent a single instant.
  */
 public interface ExponentialHistogramCapture {
     /** Sum of all observations, in the original metric unit. */

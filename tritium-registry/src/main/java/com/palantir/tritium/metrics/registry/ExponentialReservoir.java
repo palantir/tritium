@@ -21,12 +21,11 @@ import com.codahale.metrics.Snapshot;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.tritium.metrics.registry.ExponentialHistogramCapture.Buckets;
 import java.math.BigInteger;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Cumulative exponential distribution for {@link com.codahale.metrics.Histogram}.
@@ -36,10 +35,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Summary statistics default to a {@link LockFreeExponentiallyDecayingReservoir}.
  *
  * <p>The total number of observations can be derived from the captured bucket counts,
- * including the zero bucket. Each bucket captures its count and sum atomically; the total sum
- * covers the same observations as the captured bucket counts. Buckets are captured independently,
- * so a snapshot need not represent a single instant. Summary statistics and exemplars are captured
- * separately through the delegate.
+ * including the zero bucket. Updates and snapshots share a lock, capturing sum and bucket counts
+ * together. Snapshot collection blocks updates.
  *
  * <p>The scale parameter dictates the granularity of the histogram buckets. At scale 0,
  * bucket boundaries are powers of two. Each increase in scale divides each bucket into
@@ -53,9 +50,10 @@ public final class ExponentialReservoir implements Reservoir {
     private final int scale;
     private final long[] bucketUpperBounds;
     private final Reservoir summaries;
-    private final ConcurrentMap<Integer, Bucket> positiveBuckets = new ConcurrentHashMap<>();
-    private final ConcurrentMap<Integer, Bucket> negativeBuckets = new ConcurrentHashMap<>();
-    private final Bucket zeroBucket = new Bucket();
+    private final Map<Integer, Bucket> positiveBuckets = new HashMap<>();
+    private final Map<Integer, Bucket> negativeBuckets = new HashMap<>();
+    private long zeroCount;
+    private double sum;
 
     /** Creates a reservoir at scale 3, with eight buckets per doubling of magnitude. */
     public ExponentialReservoir() {
@@ -67,8 +65,8 @@ public final class ExponentialReservoir implements Reservoir {
     }
 
     /**
-     * Uses the supplied reservoir for summary statistics and exemplars. The delegate must support
-     * concurrent updates and snapshots. It should be empty and be accessed only through this reservoir.
+     * Uses the supplied reservoir for summary statistics and exemplars. The delegate should be empty
+     * and accessed only through this reservoir.
      */
     public ExponentialReservoir(int scale, Reservoir delegate) {
         Preconditions.checkArgument(scale >= -4 && scale <= 8, "Scale must be between -4 and 8");
@@ -78,34 +76,26 @@ public final class ExponentialReservoir implements Reservoir {
     }
 
     @Override
-    public int size() {
+    public synchronized int size() {
         return summaries.size();
     }
 
     @Override
-    public void update(long value) {
+    public synchronized void update(long value) {
         if (value == 0) {
-            zeroBucket.update(value);
+            zeroCount++;
         } else {
-            ConcurrentMap<Integer, Bucket> buckets = value > 0 ? positiveBuckets : negativeBuckets;
-            buckets.computeIfAbsent(bucketPosition(value), _index -> new Bucket())
-                    .update(value);
+            Map<Integer, Bucket> buckets = value > 0 ? positiveBuckets : negativeBuckets;
+            buckets.computeIfAbsent(bucketPosition(value), _index -> new Bucket()).count++;
         }
+        sum += value;
         summaries.update(value);
     }
 
     @Override
-    public Snapshot getSnapshot() {
-        BucketState zeros = zeroBucket.state.get();
-        BucketCapture positive = capture(positiveBuckets);
-        BucketCapture negative = capture(negativeBuckets);
+    public synchronized Snapshot getSnapshot() {
         return new ExponentialSnapshot(
-                summaries.getSnapshot(),
-                positive.sum() + negative.sum(),
-                scale,
-                zeros.count(),
-                positive.buckets(),
-                negative.buckets());
+                summaries.getSnapshot(), sum, scale, zeroCount, capture(positiveBuckets), capture(negativeBuckets));
     }
 
     private int bucketPosition(long value) {
@@ -165,23 +155,7 @@ public final class ExponentialReservoir implements Reservoir {
         return bound.longValueExact();
     }
 
-    private static Optional<Buckets> buckets(long[] counts, int firstPosition) {
-        int start = 0;
-        while (start < counts.length && counts[start] == 0) {
-            start++;
-        }
-        if (start == counts.length) {
-            return Optional.empty();
-        }
-        int end = counts.length;
-        while (counts[end - 1] == 0) {
-            end--;
-        }
-        long[] bucketCounts = start == 0 && end == counts.length ? counts : Arrays.copyOfRange(counts, start, end);
-        return Optional.of(new ExponentialSnapshot.ArrayBuckets(firstPosition + start - 1, bucketCounts));
-    }
-
-    private static BucketCapture capture(ConcurrentMap<Integer, Bucket> buckets) {
+    private static Optional<Buckets> capture(Map<Integer, Bucket> buckets) {
         int firstPosition = Integer.MAX_VALUE;
         int lastPosition = -1;
         for (int position : buckets.keySet()) {
@@ -189,39 +163,17 @@ public final class ExponentialReservoir implements Reservoir {
             lastPosition = Math.max(lastPosition, position);
         }
         if (lastPosition < firstPosition) {
-            return new BucketCapture(Optional.empty(), 0);
+            return Optional.empty();
         }
 
         long[] counts = new long[lastPosition - firstPosition + 1];
-        double sum = 0;
         for (Map.Entry<Integer, Bucket> entry : buckets.entrySet()) {
-            int position = entry.getKey();
-            // Buckets inserted outside the captured range belong to a later snapshot.
-            if (position < firstPosition || position > lastPosition) {
-                continue;
-            }
-            // Read once so the count and sum always describe the same observations.
-            BucketState captured = entry.getValue().state.get();
-            counts[position - firstPosition] = captured.count();
-            sum += captured.sum();
+            counts[entry.getKey() - firstPosition] = entry.getValue().count;
         }
-        return new BucketCapture(buckets(counts, firstPosition), sum);
+        return Optional.of(new ExponentialSnapshot.ArrayBuckets(firstPosition - 1, counts));
     }
 
-    private record BucketCapture(Optional<Buckets> buckets, double sum) {}
-
-    private record BucketState(long count, double sum) {}
-
     private static final class Bucket {
-        private final AtomicReference<BucketState> state = new AtomicReference<>(new BucketState(0, 0));
-
-        void update(long value) {
-            BucketState previous;
-            BucketState next;
-            do {
-                previous = state.get();
-                next = new BucketState(previous.count() + 1, previous.sum() + value);
-            } while (!state.compareAndSet(previous, next));
-        }
+        private long count;
     }
 }
