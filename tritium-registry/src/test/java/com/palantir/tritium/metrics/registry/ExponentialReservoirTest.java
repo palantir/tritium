@@ -18,10 +18,12 @@ package com.palantir.tritium.metrics.registry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.codahale.metrics.UniformReservoir;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,8 +36,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 final class ExponentialReservoirTest {
     @Test
-    void summaryStatisticsUseUniformSnapshot() {
-        ExponentialReservoir reservoir = new ExponentialReservoir();
+    void summaryStatisticsUseSuppliedDelegate() {
+        ExponentialReservoir reservoir = new ExponentialReservoir(3, new UniformReservoir());
         for (long value : new long[] {-10, -2, 0, 4, 8}) {
             reservoir.update(value);
         }
@@ -78,9 +80,8 @@ final class ExponentialReservoirTest {
             executor.shutdownNow();
         }
         ExponentialSnapshot snapshot = (ExponentialSnapshot) reservoir.getSnapshot();
-        ExponentialHistogramCapture.Buckets expected = new ExponentialHistogramCapture.Buckets(-1, List.of(40_000L));
-        assertThat(snapshot.positive()).contains(expected);
-        assertThat(snapshot.negative()).contains(expected);
+        assertBuckets(snapshot.positive(), -1, 40_000L);
+        assertBuckets(snapshot.negative(), -1, 40_000L);
         assertThat(snapshot.zeroCount()).isEqualTo(40_000);
         assertThat(snapshot.sum()).isZero();
     }
@@ -98,8 +99,8 @@ final class ExponentialReservoirTest {
 
         assertThat(snapshot.sum()).isEqualTo(4);
         assertThat(snapshot.zeroCount()).isEqualTo(2);
-        assertThat(snapshot.positive()).contains(new ExponentialHistogramCapture.Buckets(-1, List.of(1L, 2L, 0L, 1L)));
-        assertThat(snapshot.negative()).contains(new ExponentialHistogramCapture.Buckets(-1, List.of(1L, 0L, 0L, 1L)));
+        assertBuckets(snapshot.positive(), -1, 1L, 2L, 0L, 1L);
+        assertBuckets(snapshot.negative(), -1, 1L, 0L, 0L, 1L);
         assertThat(snapshot.getValues()).containsExactly(-8, -1, 0, 0, 1, 2, 2, 8);
     }
 
@@ -123,9 +124,8 @@ final class ExponentialReservoirTest {
         reservoir.update(magnitude);
         reservoir.update(-magnitude);
         ExponentialSnapshot snapshot = (ExponentialSnapshot) reservoir.getSnapshot();
-        ExponentialHistogramCapture.Buckets expected = new ExponentialHistogramCapture.Buckets(offset, List.of(1L));
-        assertThat(snapshot.positive()).contains(expected);
-        assertThat(snapshot.negative()).contains(expected);
+        assertBuckets(snapshot.positive(), offset, 1L);
+        assertBuckets(snapshot.negative(), offset, 1L);
     }
 
     @ParameterizedTest(name = "scale={0}, last bucket={1}")
@@ -135,9 +135,8 @@ final class ExponentialReservoirTest {
         reservoir.update(Long.MAX_VALUE);
         reservoir.update(Long.MIN_VALUE);
         ExponentialSnapshot snapshot = (ExponentialSnapshot) reservoir.getSnapshot();
-        ExponentialHistogramCapture.Buckets expected = new ExponentialHistogramCapture.Buckets(offset, List.of(1L));
-        assertThat(snapshot.positive()).contains(expected);
-        assertThat(snapshot.negative()).contains(expected);
+        assertBuckets(snapshot.positive(), offset, 1L);
+        assertBuckets(snapshot.negative(), offset, 1L);
     }
 
     @ParameterizedTest
@@ -150,10 +149,8 @@ final class ExponentialReservoirTest {
             reservoir.update(-value);
         }
         ExponentialSnapshot snapshot = (ExponentialSnapshot) reservoir.getSnapshot();
-        ExponentialHistogramCapture.Buckets expected =
-                new ExponentialHistogramCapture.Buckets(exponent - 1, List.of(2L, 1L));
-        assertThat(snapshot.positive()).contains(expected);
-        assertThat(snapshot.negative()).contains(expected);
+        assertBuckets(snapshot.positive(), exponent - 1, 2L, 1L);
+        assertBuckets(snapshot.negative(), exponent - 1, 2L, 1L);
     }
 
     @Test
@@ -165,11 +162,9 @@ final class ExponentialReservoirTest {
         reservoir.update(-1);
         reservoir.update(-2);
         ExponentialSnapshot snapshot = (ExponentialSnapshot) reservoir.getSnapshot();
-        ExponentialHistogramCapture.Buckets expected =
-                new ExponentialHistogramCapture.Buckets(-1, List.of(1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L));
         assertThat(snapshot.scale()).isEqualTo(3);
-        assertThat(snapshot.positive()).contains(expected);
-        assertThat(snapshot.negative()).contains(expected);
+        assertBuckets(snapshot.positive(), -1, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L);
+        assertBuckets(snapshot.negative(), -1, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L);
     }
 
     @Test
@@ -180,7 +175,7 @@ final class ExponentialReservoirTest {
         }
         ExponentialSnapshot snapshot = (ExponentialSnapshot) reservoir.getSnapshot();
         assertThat(snapshot.sum()).isEqualTo(100_000);
-        assertThat(snapshot.positive().orElseThrow().bucketCounts()).containsExactly(10_000L);
+        assertBuckets(snapshot.positive(), 53, 10_000L);
         assertThat(snapshot.size()).isLessThan(10_000);
         assertThat(snapshot.get99thPercentile()).isEqualTo(10);
     }
@@ -205,9 +200,8 @@ final class ExponentialReservoirTest {
         reservoir.update(magnitude);
         reservoir.update(-magnitude);
         ExponentialHistogramCapture capture = (ExponentialHistogramCapture) reservoir.getSnapshot();
-        ExponentialHistogramCapture.Buckets expected = new ExponentialHistogramCapture.Buckets(offset, List.of(1L));
-        assertThat(capture.positive()).contains(expected);
-        assertThat(capture.negative()).contains(expected);
+        assertBuckets(capture.positive(), offset, 1L);
+        assertBuckets(capture.negative(), offset, 1L);
     }
 
     @Test
@@ -219,5 +213,41 @@ final class ExponentialReservoirTest {
         assertThat(snapshot.negative()).isEmpty();
         assertThat(snapshot.zeroCount()).isOne();
         assertThat(snapshot.sum()).isZero();
+    }
+
+    @Test
+    void forwardsDelegateExemplars() {
+        ExemplarMetadataProvider<String> provider = () -> "trace-id";
+        ExponentialReservoir reservoir = new ExponentialReservoir(
+                3,
+                LockFreeExponentiallyDecayingReservoirWithExemplars.builder()
+                        .exemplarProvider(provider)
+                        .build());
+        reservoir.update(42);
+        ExponentialSnapshot snapshot = (ExponentialSnapshot) reservoir.getSnapshot();
+        assertThat(snapshot.getSamples(provider)).singleElement().satisfies(exemplar -> {
+            assertThat(exemplar.value()).isEqualTo(42);
+            assertThat(exemplar.metadata()).isEqualTo("trace-id");
+        });
+        assertThat(snapshot.sum()).isEqualTo(42);
+        assertThat(snapshot.getValues()).containsExactly(42);
+    }
+
+    @Test
+    void defaultDelegateHasNoExemplars() {
+        ExponentialReservoir reservoir = new ExponentialReservoir();
+        reservoir.update(42);
+        ExponentialSnapshot snapshot = (ExponentialSnapshot) reservoir.getSnapshot();
+        assertThat(snapshot.getSamples(() -> "trace-id")).isEmpty();
+    }
+
+    private static void assertBuckets(
+            Optional<ExponentialHistogramCapture.Buckets> buckets, int offset, long... counts) {
+        ExponentialHistogramCapture.Buckets captured = buckets.orElseThrow();
+        assertThat(captured.offset()).isEqualTo(offset);
+        assertThat(captured.size()).isEqualTo(counts.length);
+        for (int index = 0; index < counts.length; index++) {
+            assertThat(captured.count(index)).isEqualTo(counts[index]);
+        }
     }
 }

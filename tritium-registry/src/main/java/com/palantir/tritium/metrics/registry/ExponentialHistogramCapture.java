@@ -16,7 +16,6 @@
 
 package com.palantir.tritium.metrics.registry;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,14 +40,16 @@ public interface ExponentialHistogramCapture {
     Optional<Buckets> negative();
 
     /**
-     *  A contiguous range of bucket counts. Entry {@code bucketCounts[j]} is the count for bucket
+     *  A contiguous range of bucket counts. Entry {@code count(j)} is the count for bucket
      *  index {@code offset + j}; zero entries represent gaps between occupied buckets.
      *  Bucket index {@code i} covers magnitudes in {@code (base^i, base^(i+1)]},
      *  using the OpenTelemetry exponential histogram indexing convention.
      */
-    record Buckets(int offset, List<Long> bucketCounts) {
-        public Buckets {
-            bucketCounts = List.copyOf(bucketCounts);
-        }
+    interface Buckets {
+        int offset();
+
+        int size();
+
+        long count(int index);
     }
 }

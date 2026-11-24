@@ -18,14 +18,15 @@ package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Snapshot;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * An immutable cumulative histogram snapshot. Total count can be derived from the captured bucket counts,
  * including the zero bucket. The sum covers the captured bucket observations.
- * Uniform summary statistics are captured independently.
+ * Summary statistics and exemplars are supplied by the delegate snapshot.
  */
-final class ExponentialSnapshot extends Snapshot implements ExponentialHistogramCapture {
+final class ExponentialSnapshot extends Snapshot implements ExponentialHistogramCapture, ExemplarsCapture {
     private final Snapshot summaries;
     private final double sum;
     private final int scale;
@@ -46,6 +47,36 @@ final class ExponentialSnapshot extends Snapshot implements ExponentialHistogram
         this.zeroCount = zeroCount;
         this.positive = positive;
         this.negative = negative;
+    }
+
+    static final class ArrayBuckets implements Buckets {
+        private final int offset;
+        private final long[] counts;
+
+        ArrayBuckets(int offset, long[] counts) {
+            this.offset = offset;
+            this.counts = counts;
+        }
+
+        @Override
+        public int offset() {
+            return offset;
+        }
+
+        @Override
+        public int size() {
+            return counts.length;
+        }
+
+        @Override
+        public long count(int index) {
+            return counts[index];
+        }
+    }
+
+    @Override
+    public <T> List<LongExemplar<T>> getSamples(ExemplarMetadataProvider<T> provider) {
+        return summaries instanceof ExemplarsCapture capture ? capture.getSamples(provider) : List.of();
     }
 
     @Override

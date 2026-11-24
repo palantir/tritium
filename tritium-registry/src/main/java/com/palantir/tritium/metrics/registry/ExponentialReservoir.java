@@ -18,11 +18,10 @@ package com.palantir.tritium.metrics.registry;
 
 import com.codahale.metrics.Reservoir;
 import com.codahale.metrics.Snapshot;
-import com.codahale.metrics.UniformReservoir;
 import com.palantir.logsafe.Preconditions;
 import com.palantir.tritium.metrics.registry.ExponentialHistogramCapture.Buckets;
 import java.math.BigInteger;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,11 +33,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * Observations may be any {@code long} value in the metric's unit.
  * Only zero belongs to the zero bucket. Buckets never decay or
  * reset. Create a new reservoir to start a new cumulative distribution.
+ * Summary statistics default to a {@link LockFreeExponentiallyDecayingReservoir}.
  *
  * <p>The total number of observations can be derived from the captured bucket counts,
  * including the zero bucket. Each bucket captures its count and sum atomically; the total sum
  * covers the same observations as the captured bucket counts. Buckets are captured independently,
- * so a snapshot need not represent a single instant. Uniform summary statistics are captured separately.
+ * so a snapshot need not represent a single instant. Summary statistics and exemplars are captured
+ * separately through the delegate.
  *
  * <p>The scale parameter dictates the granularity of the histogram buckets. At scale 0,
  * bucket boundaries are powers of two. Each increase in scale divides each bucket into
@@ -51,7 +52,7 @@ public final class ExponentialReservoir implements Reservoir {
 
     private final int scale;
     private final long[] bucketUpperBounds;
-    private final UniformReservoir summaries = new UniformReservoir();
+    private final Reservoir summaries;
     private final ConcurrentMap<Integer, Bucket> positiveBuckets = new ConcurrentHashMap<>();
     private final ConcurrentMap<Integer, Bucket> negativeBuckets = new ConcurrentHashMap<>();
     private final Bucket zeroBucket = new Bucket();
@@ -62,8 +63,17 @@ public final class ExponentialReservoir implements Reservoir {
     }
 
     public ExponentialReservoir(int scale) {
+        this(scale, LockFreeExponentiallyDecayingReservoir.builder().build());
+    }
+
+    /**
+     * Uses the supplied reservoir for summary statistics and exemplars. The delegate must support
+     * concurrent updates and snapshots. It should be empty and be accessed only through this reservoir.
+     */
+    public ExponentialReservoir(int scale, Reservoir delegate) {
         Preconditions.checkArgument(scale >= -4 && scale <= 8, "Scale must be between -4 and 8");
         this.scale = scale;
+        this.summaries = Preconditions.checkNotNull(delegate, "delegate");
         bucketUpperBounds = UPPER_BOUNDS.computeIfAbsent(scale, ExponentialReservoir::upperBounds);
     }
 
@@ -105,8 +115,17 @@ public final class ExponentialReservoir implements Reservoir {
         }
 
         long magnitude = Math.abs(value);
-        int low = 0;
-        int high = bucketUpperBounds.length - 1;
+        // Subtract one to keep exact powers of two in the upper-inclusive bucket.
+        int exponent = Long.SIZE - Long.numberOfLeadingZeros(magnitude - 1);
+        if (scale <= 0) {
+            int exponentStep = 1 << -scale;
+            return (exponent + exponentStep - 1) / exponentStep;
+        }
+        if (exponent == 0) {
+            return 0;
+        }
+        int low = ((exponent - 1) << scale) + 1;
+        int high = exponent << scale;
         while (low < high) {
             int middle = (low + high) >>> 1;
             if (magnitude <= bucketUpperBounds[middle]) {
@@ -158,11 +177,8 @@ public final class ExponentialReservoir implements Reservoir {
         while (counts[end - 1] == 0) {
             end--;
         }
-        Long[] bucketCounts = new Long[end - start];
-        for (int index = 0; index < bucketCounts.length; index++) {
-            bucketCounts[index] = counts[start + index];
-        }
-        return Optional.of(new Buckets(firstPosition + start - 1, List.of(bucketCounts)));
+        long[] bucketCounts = start == 0 && end == counts.length ? counts : Arrays.copyOfRange(counts, start, end);
+        return Optional.of(new ExponentialSnapshot.ArrayBuckets(firstPosition + start - 1, bucketCounts));
     }
 
     private static BucketCapture capture(ConcurrentMap<Integer, Bucket> buckets) {
