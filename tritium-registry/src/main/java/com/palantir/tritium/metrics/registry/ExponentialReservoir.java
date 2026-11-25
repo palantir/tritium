@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * <p>The total number of observations can be derived from the captured bucket counts,
  * including the zero bucket. Updates and snapshots share a lock, capturing sum and bucket counts
- * together. Snapshot collection blocks updates.
+ * together. Delegate summaries and exemplars are captured separately.
  *
  * <p>The scale parameter dictates the granularity of the histogram buckets. At scale 0,
  * bucket boundaries are powers of two. Each increase in scale divides each bucket into
@@ -65,8 +65,8 @@ public final class ExponentialReservoir implements Reservoir {
     }
 
     /**
-     * Uses the supplied reservoir for summary statistics and exemplars. The delegate should be empty
-     * and accessed only through this reservoir.
+     * Uses the supplied reservoir for summary statistics and exemplars. The delegate must support
+     * concurrent updates and snapshots. It should be empty and accessed only through this reservoir.
      */
     public ExponentialReservoir(int scale, Reservoir delegate) {
         Preconditions.checkArgument(scale >= -4 && scale <= 8, "Scale must be between -4 and 8");
@@ -93,9 +93,12 @@ public final class ExponentialReservoir implements Reservoir {
     }
 
     @Override
-    public synchronized Snapshot getSnapshot() {
-        return new ExponentialSnapshot(
-                summaries.getSnapshot(), sum, scale, zeroCount, capture(positiveBuckets), capture(negativeBuckets));
+    public Snapshot getSnapshot() {
+        Snapshot summarySnapshot = summaries.getSnapshot();
+        synchronized (this) {
+            return new ExponentialSnapshot(
+                    summarySnapshot, sum, scale, zeroCount, capture(positiveBuckets), capture(negativeBuckets));
+        }
     }
 
     private int bucketPosition(long value) {
